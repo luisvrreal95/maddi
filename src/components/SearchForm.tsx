@@ -13,12 +13,12 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   };
 
   return (
-    <div className="flex w-[576px] flex-col items-center gap-4 shadow-[0_4px_8px_3px_rgba(0,0,0,0.15),0_1px_3px_0_rgba(0,0,0,0.30)] relative max-md:w-full max-md:max-w-[480px]">
+    <div className="flex w-[576px] flex-col items-center gap-4 relative max-md:w-full max-md:max-w-[480px]">
       <p className="self-stretch text-white text-center text-base font-normal">
         ¡El espacio perfecto para tu marca!
       </p>
       
-      <form onSubmit={handleSubmit} className="flex justify-center items-center gap-3 self-stretch border relative bg-[rgba(255,255,255,0.05)] pl-14 pr-6 py-4 rounded-[100px] border-solid border-[rgba(255,255,255,0.30)] max-sm:gap-2 max-sm:pl-10 max-sm:pr-4 max-sm:py-3">
+      <form onSubmit={handleSubmit} className="flex justify-center items-center gap-3 self-stretch relative bg-transparent pl-14 pr-6 py-4 rounded-[100px] max-sm:gap-2 max-sm:pl-10 max-sm:pr-4 max-sm:py-3">
         <div className="flex flex-col items-start gap-3 flex-[1_0_0] relative">
           <label htmlFor="search-input" className="sr-only">
             Buscar espacios publicitarios
