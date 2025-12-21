@@ -89,35 +89,41 @@ const TopListingsSection: React.FC = () => {
   ];
 
   return (
-    <section className="flex flex-col items-start gap-16 self-stretch relative bg-[#202020] pt-0 pb-[100px] px-16 max-md:gap-12 max-md:pt-0 max-md:pb-20 max-md:px-8 max-sm:gap-8 max-sm:pt-0 max-sm:pb-[60px] max-sm:px-5">
-      {/* Background blur elements */}
-      <div className="blur-[75px] w-[360px] h-[850px] absolute bg-[rgba(196,196,196,0.20)] left-16 bottom-[150px] pointer-events-none" />
-      <div className="blur-[75px] w-[360px] h-[850px] absolute bg-[rgba(196,196,196,0.20)] left-1/2 -translate-x-1/2 bottom-[150px] pointer-events-none" />
-      <div className="blur-[75px] w-[360px] h-[850px] absolute bg-[rgba(196,196,196,0.20)] right-16 bottom-[150px] pointer-events-none" />
-      
-      <header className="flex flex-col items-center gap-10 self-stretch relative rounded-[8px_8px_0_0]">
-        <div className="flex flex-col items-center gap-4 self-stretch relative">
-          <h2 className="text-[#D9D9D9] text-8xl font-bold leading-[96px] uppercase relative max-md:text-7xl max-md:leading-[72px] max-sm:text-4xl max-sm:leading-[40px] text-center">
-            Top listings
-          </h2>
-          <h3 className="self-stretch text-[#9BFF43] text-center text-5xl font-bold leading-[48px] relative max-md:text-4xl max-sm:text-2xl">
-            Mexicali, B.C.
-          </h3>
-        </div>
-      </header>
+    <section className="flex flex-col items-start gap-16 self-stretch relative max-md:gap-12 max-sm:gap-8">
+      {/* Top Section - Dark Background */}
+      <div className="w-full bg-[#202020] pt-0 pb-0 px-16 max-md:px-8 max-sm:px-5">
+        <header className="flex flex-col items-center gap-10 self-stretch relative rounded-[8px_8px_0_0] pb-8">
+          <div className="flex flex-col items-center gap-4 self-stretch relative">
+            <h2 className="text-[#D9D9D9] text-8xl font-bold leading-[96px] uppercase relative max-md:text-7xl max-md:leading-[72px] max-sm:text-4xl max-sm:leading-[40px] text-center">
+              Top listings
+            </h2>
+            <h3 className="self-stretch text-[#9BFF43] text-center text-5xl font-bold leading-[48px] relative max-md:text-4xl max-sm:text-2xl">
+              Mexicali, B.C.
+            </h3>
+          </div>
+        </header>
+      </div>
 
-      <div className="flex justify-center items-stretch gap-9 self-stretch relative z-10 max-md:flex-col max-md:gap-6">
-        {properties.map((property, index) => (
-          <PropertyCard
-            key={index}
-            title={property.title}
-            address={property.address}
-            price={property.price}
-            features={property.features}
-            availability={property.availability}
-            onSelect={() => handlePropertySelect(property.title)}
-          />
-        ))}
+      {/* Bottom Section - White Background with Cards */}
+      <div className="w-full bg-white pt-8 pb-[100px] px-16 max-md:px-8 max-sm:px-5 max-md:pb-20 max-sm:pb-[60px] -mt-16 relative">
+        {/* Background blur elements */}
+        <div className="blur-[75px] w-[360px] h-[850px] absolute bg-[rgba(196,196,196,0.30)] left-16 top-0 pointer-events-none" />
+        <div className="blur-[75px] w-[360px] h-[850px] absolute bg-[rgba(196,196,196,0.30)] left-1/2 -translate-x-1/2 top-0 pointer-events-none" />
+        <div className="blur-[75px] w-[360px] h-[850px] absolute bg-[rgba(196,196,196,0.30)] right-16 top-0 pointer-events-none" />
+        
+        <div className="flex justify-center items-stretch gap-9 self-stretch relative z-10 max-md:flex-col max-md:gap-6 pt-8">
+          {properties.map((property, index) => (
+            <PropertyCard
+              key={index}
+              title={property.title}
+              address={property.address}
+              price={property.price}
+              features={property.features}
+              availability={property.availability}
+              onSelect={() => handlePropertySelect(property.title)}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

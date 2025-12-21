@@ -4,56 +4,56 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const testimonials = [
   {
-    testimonial: "Desde que empecé a usar Maddi, mi negocio ha crecido un 40%. La visibilidad que me da el espectacular de Plaza Juárez es increíble.",
+    testimonial: "Ayudo a impulsar las ventas de mi negocio",
     rating: 5,
-    userName: "María García",
-    userLocation: "Mexicali, B.C.",
+    userName: "Miguel",
+    userLocation: "ALHO Water – Mexicali",
     address: "Blvd. Benito Juárez 2151, Centro Cívico, 21000 Mexicali, B.C.",
-    viewsPerDay: "+20,000 vistas/día",
-    monthlyTraffic: "600K tráfico mensual",
+    viewsPerDay: "+20,000",
+    pointsOfInterest: "+20",
     peakHours: "8am-12pm",
     price: "$990",
-    size: "60m x 120m",
-    peakHoursDetail: "8:00 AM - 12:00 PM"
+    size: "60m.x120m.",
+    peakHoursDetail: "8am-12pm"
   },
   {
-    testimonial: "La mejor inversión publicitaria que he hecho. El ROI es excelente y el proceso de reserva es muy sencillo.",
+    testimonial: "La mejor inversión publicitaria que he hecho",
     rating: 5,
-    userName: "Carlos Mendoza",
-    userLocation: "Ensenada, B.C.",
+    userName: "Carlos",
+    userLocation: "Tacos El Rey – Ensenada",
     address: "Av. Reforma 1500, Zona Centro, 22800 Ensenada, B.C.",
-    viewsPerDay: "+15,000 vistas/día",
-    monthlyTraffic: "450K tráfico mensual",
+    viewsPerDay: "+15,000",
+    pointsOfInterest: "+15",
     peakHours: "5pm-9pm",
     price: "$850",
-    size: "40m x 80m",
-    peakHoursDetail: "5:00 PM - 9:00 PM"
+    size: "40m.x80m.",
+    peakHoursDetail: "5pm-9pm"
   },
   {
-    testimonial: "Maddi me permitió encontrar el espacio perfecto para mi campaña. Los resultados superaron mis expectativas.",
-    rating: 4,
-    userName: "Ana Rodríguez",
-    userLocation: "Mexicali, B.C.",
+    testimonial: "Maddi me permitió encontrar el espacio perfecto",
+    rating: 5,
+    userName: "Ana",
+    userLocation: "Boutique Rosa – Mexicali",
     address: "Calz. Independencia 1234, Centro, 21100 Mexicali, B.C.",
-    viewsPerDay: "+25,000 vistas/día",
-    monthlyTraffic: "750K tráfico mensual",
+    viewsPerDay: "+25,000",
+    pointsOfInterest: "+30",
     peakHours: "7am-10am",
     price: "$1,200",
-    size: "80m x 160m",
-    peakHoursDetail: "7:00 AM - 10:00 AM"
+    size: "80m.x160m.",
+    peakHoursDetail: "7am-10am"
   },
   {
-    testimonial: "La plataforma es intuitiva y el soporte al cliente es excelente. Recomiendo Maddi a cualquier negocio.",
+    testimonial: "La plataforma es intuitiva y el soporte excelente",
     rating: 5,
-    userName: "Roberto Sánchez",
-    userLocation: "Tijuana, B.C.",
+    userName: "Roberto",
+    userLocation: "Gym Power – Tijuana",
     address: "Blvd. Agua Caliente 4500, Zona Río, 22420 Tijuana, B.C.",
-    viewsPerDay: "+30,000 vistas/día",
-    monthlyTraffic: "900K tráfico mensual",
+    viewsPerDay: "+30,000",
+    pointsOfInterest: "+25",
     peakHours: "6pm-10pm",
     price: "$1,500",
-    size: "100m x 200m",
-    peakHoursDetail: "6:00 PM - 10:00 PM"
+    size: "100m.x200m.",
+    peakHoursDetail: "6pm-10pm"
   }
 ];
 
@@ -81,7 +81,7 @@ const AdvertisingSection: React.FC = () => {
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const scrollAmount = 400;
+      const scrollAmount = 420;
       scrollContainerRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
