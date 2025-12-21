@@ -79,7 +79,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
   peakHoursDetail
 }) => {
   return (
-    <article className="flex flex-col w-[400px] min-w-[400px] bg-[#1A1A1A] rounded-3xl overflow-hidden max-sm:w-[340px] max-sm:min-w-[340px]">
+    <article className="flex flex-col w-full bg-[#1A1A1A] rounded-3xl overflow-hidden h-full">
       {/* Top Section - Dark */}
       <div className="p-6 pb-5">
         {/* Testimonial Quote */}
