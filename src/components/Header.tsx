@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, LayoutDashboard, Calendar } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { user, signOut, userRole } = useAuth();
@@ -34,6 +34,16 @@ const Header: React.FC = () => {
                   <LayoutDashboard className="w-4 h-4 text-[#9BFF43]" />
                   <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
                     Mi Panel
+                  </span>
+                </button>
+              </Link>
+            )}
+            {userRole === 'business' && (
+              <Link to="/my-bookings">
+                <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
+                  <Calendar className="w-4 h-4 text-[#9BFF43]" />
+                  <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
+                    Mis Reservas
                   </span>
                 </button>
               </Link>
