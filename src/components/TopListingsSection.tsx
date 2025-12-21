@@ -106,7 +106,7 @@ const TopListingsSection: React.FC = () => {
         </div>
       </header>
 
-      <div className="flex items-start gap-9 self-stretch relative z-10 max-md:flex-col max-md:gap-6">
+      <div className="flex justify-center items-stretch gap-9 self-stretch relative z-10 max-md:flex-col max-md:gap-6">
         {properties.map((property, index) => (
           <PropertyCard
             key={index}

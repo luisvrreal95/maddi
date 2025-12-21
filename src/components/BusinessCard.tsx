@@ -16,7 +16,7 @@ const BusinessCard: React.FC<BusinessCardProps> = ({
   onRegister
 }) => {
   return (
-    <article className="flex items-start gap-10 flex-[1_0_0] self-stretch relative bg-[#1D1D1D] px-6 py-10 rounded-2xl max-sm:px-5 max-sm:py-8">
+    <article className="flex items-start gap-10 flex-[1_0_0] self-stretch relative bg-[#1D1D1D] px-6 py-10 rounded-2xl max-sm:px-5 max-sm:py-8 border border-transparent hover:border-white/50 hover:bg-[#252525] transition-all duration-300 cursor-pointer">
       <div className="flex flex-col items-center gap-10 flex-[1_0_0] relative">
         <div className="flex flex-col items-start gap-6 self-stretch relative">
           <div className="flex flex-col items-center gap-6 self-stretch relative">
