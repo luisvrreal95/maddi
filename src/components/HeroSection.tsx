@@ -24,8 +24,12 @@ const HeroSection: React.FC = () => {
             Transforma la forma de
           </h1>
           
-          <h2 className="text-[174px] font-bold leading-[0.9] uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#9BFF43] to-[#7ACC35] max-md:text-[120px] max-sm:text-[60px]">
-            Anunciarte
+          <h2 className="text-[174px] font-bold leading-[0.9] uppercase max-md:text-[120px] max-sm:text-[60px]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#9BFF43] via-[#BFFF7A] to-[#9BFF43]" style={{
+              textShadow: '0 0 80px rgba(155, 255, 67, 0.5), 0 0 40px rgba(155, 255, 67, 0.3)'
+            }}>
+              Anunciarte
+            </span>
           </h2>
         </div>
 
