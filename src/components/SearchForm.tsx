@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchFormProps {
   onSearch?: (query: string) => void;
@@ -7,12 +8,15 @@ interface SearchFormProps {
 const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [hasInteracted, setHasInteracted] = useState(false);
+  const navigate = useNavigate();
   
   const placeholderText = 'Buscar en Mexicali, Ensenada...';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch?.(searchQuery);
+    const query = searchQuery || 'Mexicali, B.C.';
+    onSearch?.(query);
+    navigate(`/search?location=${encodeURIComponent(query)}`);
   };
 
   const handleFocus = () => {
