@@ -17,7 +17,7 @@ const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="bg-[#181818] py-16 px-16 max-md:py-12 max-md:px-8 max-sm:py-10 max-sm:px-5">
+    <footer className="w-full bg-[#181818] py-16 px-16 max-md:py-12 max-md:px-8 max-sm:py-10 max-sm:px-5">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
           {/* Logo and Tagline */}

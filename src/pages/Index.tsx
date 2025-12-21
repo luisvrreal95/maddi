@@ -9,7 +9,7 @@ import Footer from '@/components/Footer';
 
 const Index: React.FC = () => {
   return (
-    <main className="flex flex-col items-start self-stretch relative bg-[#202020] min-h-screen">
+    <main className="flex flex-col items-stretch relative min-h-screen">
       <HeroSection />
       <RatingSection />
       <BusinessModelSection />
