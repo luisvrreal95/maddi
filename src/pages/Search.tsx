@@ -5,11 +5,28 @@ import SearchFilters from '@/components/search/SearchFilters';
 import SearchMap from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
 import { supabase } from '@/integrations/supabase/client';
+import { useBillboards, Billboard } from '@/hooks/useBillboards';
 
-// Mock data for properties
+// Transform billboard to property format for existing components
+const transformBillboardToProperty = (billboard: Billboard) => ({
+  id: billboard.id,
+  name: billboard.title,
+  address: `${billboard.address}, ${billboard.city}, ${billboard.state}`,
+  price: `$${billboard.price_per_month.toLocaleString()}`,
+  viewsPerDay: billboard.daily_impressions ? `+${billboard.daily_impressions.toLocaleString()}` : 'N/A',
+  pointsOfInterest: '+15',
+  peakHours: '8am-8pm',
+  size: `${billboard.width_m}m x ${billboard.height_m}m`,
+  status: billboard.illumination !== 'ninguna' ? 'Alto' : 'Medio',
+  availability: 'Inmediata',
+  lat: Number(billboard.latitude),
+  lng: Number(billboard.longitude),
+});
+
+// Mock data as fallback when no real data exists
 const mockProperties = [
   {
-    id: '1',
+    id: 'mock-1',
     name: 'Plaza Juárez',
     address: 'Blvd. Benito Juárez 2151, Centro Cívico, 21000 Mexicali, B.C.',
     price: '$990',
@@ -23,7 +40,7 @@ const mockProperties = [
     lng: -115.4523,
   },
   {
-    id: '2',
+    id: 'mock-2',
     name: 'Centro Comercial La Cachanilla',
     address: 'Blvd. Lázaro Cárdenas 1000, Centro, 21100 Mexicali, B.C.',
     price: '$1,500',
@@ -37,7 +54,7 @@ const mockProperties = [
     lng: -115.4680,
   },
   {
-    id: '3',
+    id: 'mock-3',
     name: 'Plaza San Pedro',
     address: 'Av. Reforma 1500, Zona Centro, 21000 Mexicali, B.C.',
     price: '$850',
@@ -50,34 +67,6 @@ const mockProperties = [
     lat: 32.6180,
     lng: -115.4400,
   },
-  {
-    id: '4',
-    name: 'Galerías del Valle',
-    address: 'Blvd. Adolfo López Mateos 2500, Nueva Mexicali, 21399 Mexicali, B.C.',
-    price: '$2,200',
-    viewsPerDay: '+50,000',
-    pointsOfInterest: '+60',
-    peakHours: '4pm-8pm',
-    size: '100m x 200m',
-    status: 'Alto',
-    availability: 'Inmediata',
-    lat: 32.6420,
-    lng: -115.4250,
-  },
-  {
-    id: '5',
-    name: 'Plaza Fiesta',
-    address: 'Calz. Independencia 1234, Centro, 21100 Mexicali, B.C.',
-    price: '$1,100',
-    viewsPerDay: '+25,000',
-    pointsOfInterest: '+30',
-    peakHours: '11am-3pm',
-    size: '70m x 140m',
-    status: 'Medio',
-    availability: 'Este mes',
-    lat: 32.6290,
-    lng: -115.4580,
-  },
 ];
 
 const SearchPage: React.FC = () => {
@@ -89,6 +78,17 @@ const SearchPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(location);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
+  const [filters, setFilters] = useState<Record<string, string[]>>({});
+
+  // Fetch billboards from database
+  const { billboards, isLoading: isLoadingBillboards } = useBillboards({
+    city: searchQuery,
+  });
+
+  // Transform billboards or use mock data
+  const properties = billboards.length > 0 
+    ? billboards.map(transformBillboardToProperty)
+    : mockProperties;
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -108,9 +108,8 @@ const SearchPage: React.FC = () => {
     fetchToken();
   }, []);
 
-  const handleFiltersChange = (filters: Record<string, string[]>) => {
-    console.log('Filters changed:', filters);
-    // TODO: Filter properties based on selected filters
+  const handleFiltersChange = (newFilters: Record<string, string[]>) => {
+    setFilters(newFilters);
   };
 
   return (
@@ -184,7 +183,10 @@ const SearchPage: React.FC = () => {
 
           {/* Location Title */}
           <h1 className="text-white text-2xl font-bold mb-2">{searchQuery}</h1>
-          <p className="text-white/50 text-sm">{mockProperties.length} espectaculares disponibles</p>
+          <p className="text-white/50 text-sm">
+            {isLoadingBillboards ? 'Cargando...' : `${properties.length} espectaculares disponibles`}
+            {billboards.length === 0 && !isLoadingBillboards && ' (datos de ejemplo)'}
+          </p>
         </div>
 
         {/* Filters */}
@@ -199,7 +201,7 @@ const SearchPage: React.FC = () => {
         {(viewMode === 'split' || viewMode === 'list') && (
           <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} overflow-y-auto p-6`}>
             <div className="space-y-4">
-              {mockProperties.map((property) => (
+              {properties.map((property) => (
                 <SearchResultCard
                   key={property.id}
                   property={property}
@@ -220,7 +222,7 @@ const SearchPage: React.FC = () => {
               </div>
             ) : mapboxToken ? (
               <SearchMap
-                properties={mockProperties}
+                properties={properties}
                 selectedPropertyId={selectedPropertyId}
                 onPropertySelect={setSelectedPropertyId}
                 mapboxToken={mapboxToken}
