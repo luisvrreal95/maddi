@@ -2,10 +2,7 @@ import React from 'react';
 
 const CTASection: React.FC = () => {
   return (
-    <section className="relative bg-[#E5E5E5] py-16 px-8 md:px-16 lg:px-24">
-      {/* Background gradient fade at top */}
-      <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#202020] to-transparent pointer-events-none" />
-      
+    <section className="relative bg-white py-16 px-8 md:px-16 lg:px-24">
       {/* Centered Card */}
       <div className="relative z-10 max-w-5xl mx-auto">
         <div className="bg-[#1A1A1A] rounded-3xl py-16 px-8 md:px-16 text-center relative overflow-hidden">

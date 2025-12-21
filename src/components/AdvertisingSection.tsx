@@ -60,12 +60,12 @@ const AdvertisingSection: React.FC = () => {
   };
 
   return (
-    <section className="relative bg-[#F5F5F5] py-20 px-16 max-md:py-16 max-md:px-8 max-sm:py-12 max-sm:px-5 overflow-hidden">
+    <section className="relative bg-white py-20 px-16 max-md:py-16 max-md:px-8 max-sm:py-12 max-sm:px-5 overflow-hidden">
       {/* Header */}
       <div className="flex justify-between items-start mb-12 relative z-10">
         <div className="flex flex-col gap-2">
           <h2 className="text-[#202020] text-5xl md:text-6xl lg:text-7xl font-bold leading-tight uppercase max-sm:text-3xl">
-            DIGITAL PARA TÚ
+            PUBLICIDAD DIGITAL PARA TÚ
           </h2>
           <h2 className="text-[#202020] text-5xl md:text-6xl lg:text-7xl font-bold leading-tight uppercase max-sm:text-3xl">
             NEGOCIO
