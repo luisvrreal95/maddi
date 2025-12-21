@@ -19,13 +19,15 @@ const HeroSection: React.FC = () => {
       <Header />
 
       <div className="flex w-[810px] flex-col items-center gap-8 relative pb-20 max-md:w-full max-md:max-w-[600px] max-md:gap-6 max-md:pb-[60px] max-sm:gap-5 max-sm:pb-10">
-        <h1 className="self-stretch text-white text-center text-[64px] font-medium tracking-[-2.56px] relative max-md:text-5xl max-md:tracking-[-1.92px] max-sm:text-[32px] max-sm:tracking-[-1.28px]">
-          Transforma la forma de
-        </h1>
-        
-        <h2 className="text-[174px] font-bold leading-[174px] uppercase relative max-md:text-[120px] max-md:leading-[120px] max-sm:text-[80px] max-sm:leading-[80px] text-transparent bg-clip-text bg-gradient-to-r from-[#9BFF43] to-[#7ACC35]">
-          Anunciarte
-        </h2>
+        <div className="flex flex-col items-center gap-0">
+          <h1 className="text-white text-center text-[64px] font-normal tracking-[-2.56px] leading-[1.1] max-md:text-5xl max-md:tracking-[-1.92px] max-sm:text-[32px] max-sm:tracking-[-1.28px]">
+            Transforma la forma de
+          </h1>
+          
+          <h2 className="text-[174px] font-bold leading-[0.9] uppercase text-transparent bg-clip-text bg-gradient-to-r from-[#9BFF43] to-[#7ACC35] max-md:text-[120px] max-sm:text-[60px]">
+            Anunciarte
+          </h2>
+        </div>
 
         <SearchForm onSearch={handleSearch} />
 
