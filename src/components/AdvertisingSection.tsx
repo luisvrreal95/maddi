@@ -106,26 +106,30 @@ const AdvertisingSection: React.FC = () => {
       </div>
 
       {/* Cards Container */}
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden -mr-16 max-md:-mr-8 max-sm:-mr-5">
         <div
           ref={scrollContainerRef}
-          className="flex gap-6 transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${currentIndex * 420}px)` }}
+          className="flex gap-8 transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${currentIndex * 480}px)` }}
         >
           {testimonials.map((testimonial, index) => {
             const isBlurred = index >= currentIndex + 2;
             return (
               <div
                 key={index}
-                className={`transition-all duration-500 ${
-                  isBlurred ? 'opacity-40 blur-[2px]' : 'opacity-100'
+                className={`flex-shrink-0 transition-all duration-500 ${
+                  isBlurred ? 'opacity-50 blur-sm grayscale' : 'opacity-100'
                 }`}
+                style={{ width: '450px' }}
               >
                 <TestimonialCard {...testimonial} />
               </div>
             );
           })}
         </div>
+        
+        {/* Fade overlay on the right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-white to-transparent pointer-events-none z-10" />
       </div>
     </section>
   );
