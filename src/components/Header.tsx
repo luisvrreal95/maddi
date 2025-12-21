@@ -1,6 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { LogOut, User } from 'lucide-react';
 
 const Header: React.FC = () => {
+  const { user, signOut, userRole } = useAuth();
+
   return (
     <header className="flex items-center gap-40 relative pl-16 pr-12 py-6 rounded-[36px] border-[1.5px] border-solid border-[rgba(255,255,255,0.30)] max-md:gap-20 max-md:px-8 max-md:py-5 max-sm:gap-10 max-sm:flex-col max-sm:px-5 max-sm:py-4">
       <div className="flex items-center">
@@ -15,16 +20,42 @@ const Header: React.FC = () => {
       </div>
       
       <nav className="flex justify-end items-center gap-6 relative max-sm:gap-4">
-        <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[rgba(255,255,255,0.70)] hover:bg-white/10 transition-colors">
-          <span className="text-white text-center text-base font-semibold capitalize">
-            Ingresar
-          </span>
-        </button>
-        <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
-          <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
-            Registrarme
-          </span>
-        </button>
+        {user ? (
+          <>
+            <div className="flex items-center gap-2 text-white">
+              <User className="w-5 h-5 text-[#9BFF43]" />
+              <span className="text-sm">
+                {userRole === 'owner' ? 'Propietario' : userRole === 'business' ? 'Negocio' : 'Usuario'}
+              </span>
+            </div>
+            <button 
+              onClick={() => signOut()}
+              className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[rgba(255,255,255,0.70)] hover:bg-white/10 transition-colors"
+            >
+              <LogOut className="w-4 h-4 text-white" />
+              <span className="text-white text-center text-base font-semibold capitalize">
+                Salir
+              </span>
+            </button>
+          </>
+        ) : (
+          <>
+            <Link to="/auth">
+              <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[rgba(255,255,255,0.70)] hover:bg-white/10 transition-colors">
+                <span className="text-white text-center text-base font-semibold capitalize">
+                  Ingresar
+                </span>
+              </button>
+            </Link>
+            <Link to="/auth">
+              <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
+                <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
+                  Registrarme
+                </span>
+              </button>
+            </Link>
+          </>
+        )}
       </nav>
     </header>
   );
