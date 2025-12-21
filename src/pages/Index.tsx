@@ -3,6 +3,9 @@ import HeroSection from '@/components/HeroSection';
 import RatingSection from '@/components/RatingSection';
 import BusinessModelSection from '@/components/BusinessModelSection';
 import TopListingsSection from '@/components/TopListingsSection';
+import AdvertisingSection from '@/components/AdvertisingSection';
+import CTASection from '@/components/CTASection';
+import Footer from '@/components/Footer';
 
 const Index: React.FC = () => {
   return (
@@ -11,6 +14,9 @@ const Index: React.FC = () => {
       <RatingSection />
       <BusinessModelSection />
       <TopListingsSection />
+      <AdvertisingSection />
+      <CTASection />
+      <Footer />
     </main>
   );
 };
