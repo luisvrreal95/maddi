@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MapPin, Eye, Users, Clock, Maximize } from 'lucide-react';
 
 interface SearchResultCardProps {
@@ -19,6 +20,16 @@ interface SearchResultCardProps {
 }
 
 const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelected, onClick }) => {
+  const navigate = useNavigate();
+
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Only navigate if it's a real billboard (not mock data)
+    if (!property.id.startsWith('mock-')) {
+      navigate(`/billboard/${property.id}`);
+    }
+  };
+
   return (
     <article
       onClick={onClick}
@@ -69,7 +80,10 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelecte
           <span className="text-white text-xl font-bold">{property.price}</span>
           <span className="text-white/50 text-sm">/mes</span>
         </div>
-        <button className="px-6 py-2 rounded-full bg-[#9BFF43] text-[#1A1A1A] font-semibold text-sm hover:bg-[#8AE63A] transition-colors">
+        <button 
+          onClick={handleViewDetails}
+          className="px-6 py-2 rounded-full bg-[#9BFF43] text-[#1A1A1A] font-semibold text-sm hover:bg-[#8AE63A] transition-colors"
+        >
           Ver Detalles
         </button>
       </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, LayoutDashboard } from 'lucide-react';
 
 const Header: React.FC = () => {
   const { user, signOut, userRole } = useAuth();
@@ -28,6 +28,16 @@ const Header: React.FC = () => {
                 {userRole === 'owner' ? 'Propietario' : userRole === 'business' ? 'Negocio' : 'Usuario'}
               </span>
             </div>
+            {userRole === 'owner' && (
+              <Link to="/dashboard">
+                <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
+                  <LayoutDashboard className="w-4 h-4 text-[#9BFF43]" />
+                  <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
+                    Mi Panel
+                  </span>
+                </button>
+              </Link>
+            )}
             <button 
               onClick={() => signOut()}
               className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[rgba(255,255,255,0.70)] hover:bg-white/10 transition-colors"
