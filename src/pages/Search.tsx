@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { ArrowLeft, Search as SearchIcon, MapPin, List, Map } from 'lucide-react';
+import { ArrowLeft, MapPin, List, Map } from 'lucide-react';
 import SearchFilters from '@/components/search/SearchFilters';
 import SearchMap from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
+import LocationAutocomplete from '@/components/search/LocationAutocomplete';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
 
@@ -76,13 +77,14 @@ const SearchPage: React.FC = () => {
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
   const [searchQuery, setSearchQuery] = useState(location);
+  const [confirmedLocation, setConfirmedLocation] = useState(location);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
 
-  // Fetch billboards from database using location search
+  // Fetch billboards from database using confirmed location
   const { billboards, isLoading: isLoadingBillboards } = useBillboards({
-    location: searchQuery,
+    location: confirmedLocation,
   });
 
   // Transform billboards or use mock data
@@ -132,22 +134,18 @@ const SearchPage: React.FC = () => {
               </div>
             </Link>
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-xl mx-8">
-              <div className="relative">
-                <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9BFF43]" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 bg-[#2A2A2A] border border-white/10 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-[#9BFF43]/50"
-                  placeholder="Buscar ubicación..."
-                />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#9BFF43] rounded-full flex items-center justify-center hover:bg-[#8AE63A] transition-colors">
-                  <SearchIcon className="w-5 h-5 text-[#202020]" />
-                </button>
-              </div>
-            </div>
+            {/* Search Bar with Autocomplete */}
+            <LocationAutocomplete
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onSelect={(location) => {
+                setSearchQuery(location.place_name);
+                setConfirmedLocation(location.place_name);
+              }}
+              mapboxToken={mapboxToken}
+              placeholder="Buscar ubicación..."
+              className="flex-1 max-w-xl mx-8"
+            />
 
             {/* View Toggle */}
             <div className="flex items-center gap-2 bg-[#2A2A2A] rounded-full p-1">
@@ -182,7 +180,7 @@ const SearchPage: React.FC = () => {
           </div>
 
           {/* Location Title */}
-          <h1 className="text-white text-2xl font-bold mb-2">{searchQuery}</h1>
+          <h1 className="text-white text-2xl font-bold mb-2">{confirmedLocation}</h1>
           <p className="text-white/50 text-sm">
             {isLoadingBillboards ? 'Cargando...' : `${properties.length} espectaculares disponibles`}
             {billboards.length === 0 && !isLoadingBillboards && ' (datos de ejemplo)'}
@@ -226,7 +224,7 @@ const SearchPage: React.FC = () => {
                 selectedPropertyId={selectedPropertyId}
                 onPropertySelect={setSelectedPropertyId}
                 mapboxToken={mapboxToken}
-                searchLocation={searchQuery}
+                searchLocation={confirmedLocation}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A]">
