@@ -80,9 +80,9 @@ const SearchPage: React.FC = () => {
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
 
-  // Fetch billboards from database
+  // Fetch billboards from database using location search
   const { billboards, isLoading: isLoadingBillboards } = useBillboards({
-    city: searchQuery,
+    location: searchQuery,
   });
 
   // Transform billboards or use mock data
@@ -226,6 +226,7 @@ const SearchPage: React.FC = () => {
                 selectedPropertyId={selectedPropertyId}
                 onPropertySelect={setSelectedPropertyId}
                 mapboxToken={mapboxToken}
+                searchLocation={searchQuery}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A]">
