@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import ImageUpload from './ImageUpload';
 
 const billboardSchema = z.object({
   title: z.string().min(3, 'Mínimo 3 caracteres').max(100),
@@ -356,14 +357,12 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
               {errors.price_per_month && <p className="text-red-400 text-sm mt-1">{errors.price_per_month}</p>}
             </div>
 
-            <div>
-              <Label htmlFor="image_url">URL de imagen</Label>
-              <Input
-                id="image_url"
+            <div className="col-span-2">
+              <Label>Imagen del espectacular</Label>
+              <ImageUpload
                 value={formData.image_url}
-                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                className="bg-[#1A1A1A] border-white/10"
-                placeholder="https://..."
+                onChange={(url) => setFormData({ ...formData, image_url: url })}
+                userId={user?.id || ''}
               />
             </div>
           </div>
