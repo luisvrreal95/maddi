@@ -50,7 +50,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setIsLoading(true);
       try {
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,locality,neighborhood&limit=5&language=es`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=8&language=es`
         );
         const data = await response.json();
         
@@ -155,8 +155,12 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       country: 'País',
       region: 'Estado',
       place: 'Ciudad',
+      district: 'Zona',
       locality: 'Localidad',
       neighborhood: 'Colonia',
+      address: 'Dirección',
+      poi: 'Punto de interés',
+      postcode: 'Código postal',
     };
     return labels[type] || 'Ubicación';
   };
