@@ -166,6 +166,16 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Image Upload - Prominent at top */}
+          <div className="border-2 border-dashed border-white/20 rounded-xl p-4 bg-[#1A1A1A]/50">
+            <Label className="text-lg font-medium mb-3 block">📸 Imagen del Espectacular</Label>
+            <ImageUpload
+              value={formData.image_url}
+              onChange={(url) => setFormData({ ...formData, image_url: url })}
+              userId={user?.id || ''}
+            />
+          </div>
+
           {/* Basic Info */}
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
@@ -343,28 +353,17 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
             </div>
           </div>
 
-          {/* Price & Image */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="price_per_month">Precio mensual (MXN) *</Label>
-              <Input
-                id="price_per_month"
-                type="number"
-                value={formData.price_per_month}
-                onChange={(e) => setFormData({ ...formData, price_per_month: parseFloat(e.target.value) || 0 })}
-                className="bg-[#1A1A1A] border-white/10"
-              />
-              {errors.price_per_month && <p className="text-red-400 text-sm mt-1">{errors.price_per_month}</p>}
-            </div>
-
-            <div className="col-span-2">
-              <Label>Imagen del espectacular</Label>
-              <ImageUpload
-                value={formData.image_url}
-                onChange={(url) => setFormData({ ...formData, image_url: url })}
-                userId={user?.id || ''}
-              />
-            </div>
+          {/* Price */}
+          <div>
+            <Label htmlFor="price_per_month">Precio mensual (MXN) *</Label>
+            <Input
+              id="price_per_month"
+              type="number"
+              value={formData.price_per_month}
+              onChange={(e) => setFormData({ ...formData, price_per_month: parseFloat(e.target.value) || 0 })}
+              className="bg-[#1A1A1A] border-white/10"
+            />
+            {errors.price_per_month && <p className="text-red-400 text-sm mt-1">{errors.price_per_month}</p>}
           </div>
 
           <div className="flex gap-3 pt-4">

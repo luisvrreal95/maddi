@@ -9,8 +9,12 @@ interface AuthContextType {
   session: Session | null;
   userRole: UserRole;
   isLoading: boolean;
+  needsRoleSelection: boolean;
   signUp: (email: string, password: string, fullName: string, role: 'owner' | 'business') => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithGoogle: () => Promise<{ error: Error | null }>;
+  signInWithFacebook: () => Promise<{ error: Error | null }>;
+  assignRole: (role: 'owner' | 'business') => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -21,8 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [needsRoleSelection, setNeedsRoleSelection] = useState(false);
 
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = async (userId: string): Promise<boolean> => {
     const { data } = await supabase
       .from('user_roles')
       .select('role')
@@ -31,7 +36,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     if (data?.role) {
       setUserRole(data.role as UserRole);
+      setNeedsRoleSelection(false);
+      return true;
     }
+    return false;
   };
 
   useEffect(() => {
@@ -43,21 +51,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         // Defer role fetch with setTimeout
         if (session?.user) {
-          setTimeout(() => {
-            fetchUserRole(session.user.id);
+          setTimeout(async () => {
+            const hasRole = await fetchUserRole(session.user.id);
+            // If OAuth user without role, show role selection
+            if (!hasRole && session.user.app_metadata?.provider !== 'email') {
+              setNeedsRoleSelection(true);
+            }
           }, 0);
         } else {
           setUserRole(null);
+          setNeedsRoleSelection(false);
         }
       }
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchUserRole(session.user.id);
+        const hasRole = await fetchUserRole(session.user.id);
+        if (!hasRole && session.user.app_metadata?.provider !== 'email') {
+          setNeedsRoleSelection(true);
+        }
       }
       setIsLoading(false);
     });
@@ -113,13 +129,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth`,
+      },
+    });
+    return { error };
+  };
+
+  const signInWithFacebook = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'facebook',
+      options: {
+        redirectTo: `${window.location.origin}/auth`,
+      },
+    });
+    return { error };
+  };
+
+  const assignRole = async (role: 'owner' | 'business') => {
+    if (!user) return { error: new Error('No user logged in') };
+
+    const { error } = await supabase
+      .from('user_roles')
+      .insert({ user_id: user.id, role });
+
+    if (error) {
+      return { error: new Error('Error al asignar rol: ' + error.message) };
+    }
+
+    setUserRole(role);
+    setNeedsRoleSelection(false);
+    return { error: null };
+  };
+
   const signOut = async () => {
     await supabase.auth.signOut();
     setUserRole(null);
+    setNeedsRoleSelection(false);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, userRole, isLoading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      userRole, 
+      isLoading, 
+      needsRoleSelection,
+      signUp, 
+      signIn, 
+      signInWithGoogle,
+      signInWithFacebook,
+      assignRole,
+      signOut 
+    }}>
       {children}
     </AuthContext.Provider>
   );
