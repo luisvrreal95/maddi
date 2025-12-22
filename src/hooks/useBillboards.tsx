@@ -25,7 +25,9 @@ export interface Billboard {
 }
 
 export interface BillboardFilters {
+  location?: string; // Search in city, state, or address
   city?: string;
+  state?: string;
   minPrice?: number;
   maxPrice?: number;
   billboardType?: string;
@@ -46,8 +48,17 @@ export function useBillboards(filters?: BillboardFilters) {
           .select('*')
           .eq('is_available', true);
 
+        // Search across city, state, and address
+        if (filters?.location) {
+          query = query.or(
+            `city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,address.ilike.%${filters.location}%`
+          );
+        }
         if (filters?.city) {
           query = query.ilike('city', `%${filters.city}%`);
+        }
+        if (filters?.state) {
+          query = query.ilike('state', `%${filters.state}%`);
         }
         if (filters?.minPrice) {
           query = query.gte('price_per_month', filters.minPrice);
@@ -74,7 +85,7 @@ export function useBillboards(filters?: BillboardFilters) {
     };
 
     fetchBillboards();
-  }, [filters?.city, filters?.minPrice, filters?.maxPrice, filters?.billboardType, filters?.illumination]);
+  }, [filters?.location, filters?.city, filters?.state, filters?.minPrice, filters?.maxPrice, filters?.billboardType, filters?.illumination]);
 
   return { billboards, isLoading, error };
 }

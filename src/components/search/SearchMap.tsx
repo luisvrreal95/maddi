@@ -23,6 +23,7 @@ interface SearchMapProps {
   selectedPropertyId: string | null;
   onPropertySelect: (id: string | null) => void;
   mapboxToken: string;
+  searchLocation?: string;
 }
 
 const SearchMap: React.FC<SearchMapProps> = ({
@@ -30,6 +31,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
   selectedPropertyId,
   onPropertySelect,
   mapboxToken,
+  searchLocation,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -59,6 +61,44 @@ const SearchMap: React.FC<SearchMapProps> = ({
       map.current?.remove();
     };
   }, [mapboxToken]);
+
+  // Geocode search location and fly to it
+  useEffect(() => {
+    if (!map.current || !mapboxToken || !searchLocation) return;
+
+    const geocodeLocation = async () => {
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchLocation)}.json?access_token=${mapboxToken}&country=mx&limit=1`
+        );
+        const data = await response.json();
+        
+        if (data.features && data.features.length > 0) {
+          const [lng, lat] = data.features[0].center;
+          const bbox = data.features[0].bbox;
+          
+          if (bbox) {
+            // If bounding box is available, fit to it
+            map.current?.fitBounds(
+              [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
+              { padding: 50, duration: 1500 }
+            );
+          } else {
+            // Otherwise fly to center
+            map.current?.flyTo({
+              center: [lng, lat],
+              zoom: 11,
+              duration: 1500,
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error geocoding location:', error);
+      }
+    };
+
+    geocodeLocation();
+  }, [searchLocation, mapboxToken]);
 
   useEffect(() => {
     if (!map.current) return;
