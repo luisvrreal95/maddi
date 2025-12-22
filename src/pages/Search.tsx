@@ -22,6 +22,7 @@ const transformBillboardToProperty = (billboard: Billboard) => ({
   availability: 'Inmediata',
   lat: Number(billboard.latitude),
   lng: Number(billboard.longitude),
+  imageUrl: billboard.image_url || null,
 });
 
 // Mock data as fallback when no real data exists
@@ -39,6 +40,7 @@ const mockProperties = [
     availability: 'Inmediata',
     lat: 32.6245,
     lng: -115.4523,
+    imageUrl: null,
   },
   {
     id: 'mock-2',
@@ -53,6 +55,7 @@ const mockProperties = [
     availability: 'Inmediata',
     lat: 32.6350,
     lng: -115.4680,
+    imageUrl: null,
   },
   {
     id: 'mock-3',
@@ -67,6 +70,7 @@ const mockProperties = [
     availability: 'Esta semana',
     lat: 32.6180,
     lng: -115.4400,
+    imageUrl: null,
   },
 ];
 

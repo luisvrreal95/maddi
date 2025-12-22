@@ -16,6 +16,7 @@ interface Property {
   availability: string;
   lat: number;
   lng: number;
+  imageUrl?: string | null;
 }
 
 interface SearchMapProps {

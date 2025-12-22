@@ -13,6 +13,7 @@ interface PropertyPopupProps {
     size: string;
     status: string;
     availability: string;
+    imageUrl?: string | null;
   };
   onClose: () => void;
   onReserve: () => void;
@@ -21,17 +22,31 @@ interface PropertyPopupProps {
 const PropertyPopup: React.FC<PropertyPopupProps> = ({ property, onClose, onReserve }) => {
   return (
     <div className="bg-[#1A1A1A] rounded-2xl overflow-hidden shadow-2xl w-[350px] border border-white/10">
-      {/* Header */}
-      <div className="relative h-32 bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 bg-[#9BFF43]/20 rounded-full flex items-center justify-center mx-auto mb-2">
-            <MapPin className="w-6 h-6 text-[#9BFF43]" />
+      {/* Header with Image */}
+      <div className="relative h-40 bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A]">
+        {property.imageUrl ? (
+          <img 
+            src={property.imageUrl} 
+            alt={property.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="w-16 h-16 bg-[#9BFF43]/20 rounded-full flex items-center justify-center">
+              <MapPin className="w-8 h-8 text-[#9BFF43]" />
+            </div>
           </div>
-          <h3 className="text-white font-bold text-lg">{property.name}</h3>
+        )}
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent" />
+        {/* Title overlay */}
+        <div className="absolute bottom-3 left-4 right-4">
+          <h3 className="text-white font-bold text-lg drop-shadow-lg">{property.name}</h3>
         </div>
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/20 transition-colors"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
