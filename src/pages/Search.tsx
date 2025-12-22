@@ -1,15 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, List, Map } from 'lucide-react';
 import SearchFilters from '@/components/search/SearchFilters';
 import SearchMap from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
 import LocationAutocomplete from '@/components/search/LocationAutocomplete';
+import BookingDialog from '@/components/booking/BookingDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
+
+// Property type used in map components
+interface MapProperty {
+  id: string;
+  name: string;
+  address: string;
+  price: string;
+  viewsPerDay: string;
+  pointsOfInterest: string;
+  peakHours: string;
+  size: string;
+  status: string;
+  availability: string;
+  lat: number;
+  lng: number;
+  imageUrl: string | null;
+}
 
 // Transform billboard to property format for existing components
-const transformBillboardToProperty = (billboard: Billboard) => ({
+const transformBillboardToProperty = (billboard: Billboard): MapProperty => ({
   id: billboard.id,
   name: billboard.title,
   address: `${billboard.address}, ${billboard.city}, ${billboard.state}`,
@@ -26,7 +46,7 @@ const transformBillboardToProperty = (billboard: Billboard) => ({
 });
 
 // Mock data as fallback when no real data exists
-const mockProperties = [
+const mockProperties: MapProperty[] = [
   {
     id: 'mock-1',
     name: 'Plaza Juárez',
@@ -76,6 +96,8 @@ const mockProperties = [
 
 const SearchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user, userRole } = useAuth();
   const location = searchParams.get('location') || 'Mexicali, B.C.';
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
@@ -85,6 +107,10 @@ const SearchPage: React.FC = () => {
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
+  
+  // Booking state
+  const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
+  const [selectedBillboard, setSelectedBillboard] = useState<Billboard | null>(null);
 
   // Fetch billboards from database using confirmed location
   const { billboards, isLoading: isLoadingBillboards } = useBillboards({
@@ -116,6 +142,32 @@ const SearchPage: React.FC = () => {
 
   const handleFiltersChange = (newFilters: Record<string, string[]>) => {
     setFilters(newFilters);
+  };
+
+  const handleReserveClick = (property: MapProperty) => {
+    // Check if user is authenticated
+    if (!user) {
+      toast.error('Debes iniciar sesión para reservar');
+      navigate('/auth');
+      return;
+    }
+
+    // Check if user has business role
+    if (userRole !== 'business') {
+      toast.error('Solo los negocios pueden reservar espectaculares');
+      return;
+    }
+
+    // Find the billboard from the original data
+    const billboard = billboards.find(b => b.id === property.id);
+    
+    if (billboard) {
+      setSelectedBillboard(billboard);
+      setBookingDialogOpen(true);
+    } else {
+      // If it's mock data, show a message
+      toast.info('Esta es una demostración. Regístrate para ver espectaculares reales.');
+    }
   };
 
   return (
@@ -229,6 +281,7 @@ const SearchPage: React.FC = () => {
                 onPropertySelect={setSelectedPropertyId}
                 mapboxToken={mapboxToken}
                 searchLocation={confirmedLocation}
+                onReserveClick={handleReserveClick}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A]">
@@ -244,6 +297,15 @@ const SearchPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Booking Dialog */}
+      {selectedBillboard && (
+        <BookingDialog
+          open={bookingDialogOpen}
+          onOpenChange={setBookingDialogOpen}
+          billboard={selectedBillboard}
+        />
+      )}
     </div>
   );
 };

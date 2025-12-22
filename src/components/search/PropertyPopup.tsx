@@ -1,5 +1,6 @@
 import React from 'react';
-import { X, MapPin, Eye, Users, Clock } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, MapPin, Eye, Users, Clock, ExternalLink } from 'lucide-react';
 
 interface PropertyPopupProps {
   property: {
@@ -20,6 +21,12 @@ interface PropertyPopupProps {
 }
 
 const PropertyPopup: React.FC<PropertyPopupProps> = ({ property, onClose, onReserve }) => {
+  const navigate = useNavigate();
+
+  const handleViewDetails = () => {
+    navigate(`/billboard/${property.id}`);
+  };
+
   return (
     <div className="bg-[#1A1A1A] rounded-2xl overflow-hidden shadow-2xl w-[350px] border border-white/10">
       {/* Header with Image */}
@@ -103,13 +110,22 @@ const PropertyPopup: React.FC<PropertyPopupProps> = ({ property, onClose, onRese
           <span className="text-[#9BFF43] text-sm">Disponibilidad: {property.availability}</span>
         </div>
 
-        {/* Reserve Button */}
-        <button
-          onClick={onReserve}
-          className="w-full py-4 rounded-full bg-[#9BFF43] text-[#1A1A1A] font-bold text-base hover:bg-[#8AE63A] transition-colors"
-        >
-          Reservar
-        </button>
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleViewDetails}
+            className="flex-1 py-3 rounded-full bg-[#2A2A2A] text-white font-semibold text-sm hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
+          >
+            <ExternalLink className="w-4 h-4" />
+            Ver Detalle
+          </button>
+          <button
+            onClick={onReserve}
+            className="flex-1 py-3 rounded-full bg-[#9BFF43] text-[#1A1A1A] font-bold text-sm hover:bg-[#8AE63A] transition-colors"
+          >
+            Reservar
+          </button>
+        </div>
       </div>
     </div>
   );
