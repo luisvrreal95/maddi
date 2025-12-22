@@ -25,6 +25,7 @@ interface SearchMapProps {
   onPropertySelect: (id: string | null) => void;
   mapboxToken: string;
   searchLocation?: string;
+  onReserveClick: (property: Property) => void;
 }
 
 const SearchMap: React.FC<SearchMapProps> = ({
@@ -33,6 +34,7 @@ const SearchMap: React.FC<SearchMapProps> = ({
   onPropertySelect,
   mapboxToken,
   searchLocation,
+  onReserveClick,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -161,8 +163,9 @@ const SearchMap: React.FC<SearchMapProps> = ({
   };
 
   const handleReserve = () => {
-    console.log('Reserve property:', popupProperty?.id);
-    // TODO: Implement reservation flow
+    if (popupProperty) {
+      onReserveClick(popupProperty);
+    }
   };
 
   return (
