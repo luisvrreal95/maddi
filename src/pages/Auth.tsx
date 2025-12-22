@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { Building2, Store, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
@@ -17,7 +18,7 @@ type UserType = 'owner' | 'business' | null;
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
-  const { user, signUp, signIn } = useAuth();
+  const { user, userRole, needsRoleSelection, signUp, signIn, signInWithGoogle, signInWithFacebook, assignRole } = useAuth();
   
   const [mode, setMode] = useState<AuthMode>('login');
   const [selectedType, setSelectedType] = useState<UserType>(null);
@@ -26,13 +27,22 @@ const Auth: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSocialLoading, setIsSocialLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedRoleForModal, setSelectedRoleForModal] = useState<UserType>(null);
 
   useEffect(() => {
-    if (user) {
+    if (user && userRole) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, userRole, navigate]);
+
+  useEffect(() => {
+    if (needsRoleSelection) {
+      setShowRoleModal(true);
+    }
+  }, [needsRoleSelection]);
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -99,6 +109,41 @@ const Auth: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsSocialLoading(true);
+    const { error } = await signInWithGoogle();
+    if (error) {
+      toast.error('Error al iniciar sesión con Google');
+    }
+    setIsSocialLoading(false);
+  };
+
+  const handleFacebookLogin = async () => {
+    setIsSocialLoading(true);
+    const { error } = await signInWithFacebook();
+    if (error) {
+      toast.error('Error al iniciar sesión con Facebook');
+    }
+    setIsSocialLoading(false);
+  };
+
+  const handleRoleAssignment = async () => {
+    if (!selectedRoleForModal) {
+      toast.error('Selecciona un tipo de cuenta');
+      return;
+    }
+    setIsLoading(true);
+    const { error } = await assignRole(selectedRoleForModal);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('¡Cuenta configurada exitosamente!');
+      setShowRoleModal(false);
+      navigate('/');
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -236,6 +281,59 @@ const Auth: React.FC = () => {
             </Button>
           </form>
 
+          {/* Social Login Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/10"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-[#202020] text-white/40">O continúa con</span>
+            </div>
+          </div>
+
+          {/* Social Login Buttons */}
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleGoogleLogin}
+              disabled={isSocialLoading}
+              className="border-white/10 text-white hover:bg-white/10 py-6"
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                <path
+                  fill="currentColor"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="currentColor"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              Google
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleFacebookLogin}
+              disabled={isSocialLoading}
+              className="border-white/10 text-white hover:bg-white/10 py-6"
+            >
+              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Facebook
+            </Button>
+          </div>
+
           <p className="text-center text-white/60 mt-6">
             {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
             <button
@@ -270,6 +368,63 @@ const Auth: React.FC = () => {
         <div className="absolute top-20 right-20 w-64 h-64 bg-[#9BFF43]/10 rounded-full blur-3xl" />
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#9BFF43]/5 rounded-full blur-3xl" />
       </div>
+
+      {/* Role Selection Modal for OAuth users */}
+      <Dialog open={showRoleModal} onOpenChange={() => {}}>
+        <DialogContent className="bg-[#2A2A2A] border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-center">
+              ¡Bienvenido a Maddi!
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-white/60 text-center mb-4">
+            Selecciona el tipo de cuenta para continuar
+          </p>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <button
+              type="button"
+              onClick={() => setSelectedRoleForModal('owner')}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                selectedRoleForModal === 'owner'
+                  ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                  : 'border-white/10 hover:border-white/30'
+              }`}
+            >
+              <Building2 className={`w-8 h-8 mx-auto mb-2 ${
+                selectedRoleForModal === 'owner' ? 'text-[#9BFF43]' : 'text-white/60'
+              }`} />
+              <p className={`font-medium ${
+                selectedRoleForModal === 'owner' ? 'text-[#9BFF43]' : 'text-white'
+              }`}>Propietario</p>
+              <p className="text-xs text-white/40 mt-1">Tengo espectaculares</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedRoleForModal('business')}
+              className={`p-4 rounded-xl border-2 transition-all ${
+                selectedRoleForModal === 'business'
+                  ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                  : 'border-white/10 hover:border-white/30'
+              }`}
+            >
+              <Store className={`w-8 h-8 mx-auto mb-2 ${
+                selectedRoleForModal === 'business' ? 'text-[#9BFF43]' : 'text-white/60'
+              }`} />
+              <p className={`font-medium ${
+                selectedRoleForModal === 'business' ? 'text-[#9BFF43]' : 'text-white'
+              }`}>Negocio</p>
+              <p className="text-xs text-white/40 mt-1">Quiero anunciarme</p>
+            </button>
+          </div>
+          <Button
+            onClick={handleRoleAssignment}
+            disabled={isLoading || !selectedRoleForModal}
+            className="w-full bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] font-semibold py-6"
+          >
+            {isLoading ? 'Configurando...' : 'Continuar'}
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
