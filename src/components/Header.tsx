@@ -26,17 +26,17 @@ const Header: React.FC = () => {
           <>
             <MessageBadge />
             <NotificationBell />
-            <Link to="/settings" className="flex items-center gap-2 text-foreground hover:text-primary transition-colors">
-              <User className="w-5 h-5 text-primary" />
+            <Link to="/settings" className="flex items-center gap-2 text-white hover:text-[#9BFF43] transition-colors">
+              <User className="w-5 h-5 text-[#9BFF43]" />
               <span className="text-sm">
                 {userRole === 'owner' ? 'Propietario' : userRole === 'business' ? 'Negocio' : 'Usuario'}
               </span>
             </Link>
             {userRole === 'owner' && (
               <Link to="/owner">
-                <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-primary hover:bg-primary/10 transition-colors">
-                  <LayoutDashboard className="w-4 h-4 text-primary" />
-                  <span className="text-primary text-center text-base font-semibold capitalize">
+                <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
+                  <LayoutDashboard className="w-4 h-4 text-[#9BFF43]" />
+                  <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
                     Mi Panel
                   </span>
                 </button>
@@ -44,9 +44,9 @@ const Header: React.FC = () => {
             )}
             {userRole === 'business' && (
               <Link to="/business">
-                <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-primary hover:bg-primary/10 transition-colors">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="text-primary text-center text-base font-semibold capitalize">
+                <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
+                  <Calendar className="w-4 h-4 text-[#9BFF43]" />
+                  <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
                     Mis Reservas
                   </span>
                 </button>
@@ -54,10 +54,10 @@ const Header: React.FC = () => {
             )}
             <button
               onClick={() => signOut()}
-              className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-foreground/70 hover:bg-foreground/10 transition-colors"
+              className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[rgba(255,255,255,0.70)] hover:bg-white/10 transition-colors"
             >
-              <LogOut className="w-4 h-4 text-foreground" />
-              <span className="text-foreground text-center text-base font-semibold capitalize">
+              <LogOut className="w-4 h-4 text-white" />
+              <span className="text-white text-center text-base font-semibold capitalize">
                 Salir
               </span>
             </button>
@@ -65,15 +65,15 @@ const Header: React.FC = () => {
         ) : (
           <>
             <Link to="/auth">
-              <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-foreground/70 hover:bg-foreground/10 transition-colors">
-                <span className="text-foreground text-center text-base font-semibold capitalize">
+              <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[rgba(255,255,255,0.70)] hover:bg-white/10 transition-colors">
+                <span className="text-white text-center text-base font-semibold capitalize">
                   Ingresar
                 </span>
               </button>
             </Link>
             <Link to="/auth">
-              <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-primary hover:bg-primary/10 transition-colors">
-                <span className="text-primary text-center text-base font-semibold capitalize">
+              <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
+                <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
                   Registrarme
                 </span>
               </button>

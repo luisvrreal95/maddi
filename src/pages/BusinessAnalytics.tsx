@@ -198,23 +198,23 @@ const BusinessAnalytics: React.FC = () => {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#202020] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#9BFF43]" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#202020]">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
+      <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link to="/business" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+          <Link to="/my-bookings" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors">
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm">Volver a Reservas</span>
           </Link>
-          <h1 className="text-foreground text-xl font-bold flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-primary" />
+          <h1 className="text-white text-xl font-bold flex items-center gap-2">
+            <BarChart3 className="w-6 h-6 text-[#9BFF43]" />
             Analytics
           </h1>
           <div className="flex items-center gap-3">
@@ -224,6 +224,7 @@ const BusinessAnalytics: React.FC = () => {
               disabled={isRefreshing}
               variant="outline"
               size="sm"
+              className="border-white/20 text-white hover:bg-white/10"
             >
               {isRefreshing ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -240,18 +241,18 @@ const BusinessAnalytics: React.FC = () => {
       <main className="p-6 max-w-7xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#9BFF43]" />
           </div>
         ) : approvedBookings.length === 0 ? (
           <div className="text-center py-16">
-            <BarChart3 className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-foreground text-2xl font-bold mb-2">Sin datos aún</h2>
-            <p className="text-muted-foreground mb-6">
+            <BarChart3 className="w-16 h-16 text-[#9BFF43] mx-auto mb-4" />
+            <h2 className="text-white text-2xl font-bold mb-2">Sin datos aún</h2>
+            <p className="text-white/60 mb-6">
               Necesitas tener reservas aprobadas para ver analytics
             </p>
             <Link
               to="/search"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#9BFF43] text-[#202020] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors"
             >
               <MapPin className="w-5 h-5" />
               Buscar Espectaculares
@@ -260,91 +261,91 @@ const BusinessAnalytics: React.FC = () => {
         ) : (
           <>
             {/* TomTom Attribution */}
-            <div className="mb-4 p-3 bg-muted/50 rounded-lg border border-border">
-              <p className="text-muted-foreground text-xs text-center">
+            <div className="mb-4 p-3 bg-[#2A2A2A]/50 rounded-lg border border-white/5">
+              <p className="text-white/40 text-xs text-center">
                 📊 Tráfico vehicular estimado – Fuente: TomTom | Los datos se actualizan semanalmente
               </p>
             </div>
 
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-card rounded-2xl p-6 border border-border">
+              <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-primary" />
+                  <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
+                    <Users className="w-5 h-5 text-[#9BFF43]" />
                   </div>
-                  <span className="text-muted-foreground text-sm">Tráfico Vehicular Estimado</span>
+                  <span className="text-white/50 text-sm">Tráfico Vehicular Estimado</span>
                 </div>
-                <p className="text-foreground text-3xl font-bold">
+                <p className="text-white text-3xl font-bold">
                   ~{totalImpressions.toLocaleString()}
                 </p>
-                <p className="text-muted-foreground/50 text-xs mt-1">vehículos durante campaña</p>
+                <p className="text-white/30 text-xs mt-1">vehículos durante campaña</p>
               </div>
 
-              <div className="bg-card rounded-2xl p-6 border border-border">
+              <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-accent-foreground" />
+                  <div className="w-10 h-10 rounded-full bg-[#43B5FF]/20 flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-[#43B5FF]" />
                   </div>
-                  <span className="text-muted-foreground text-sm">Inversión Total</span>
+                  <span className="text-white/50 text-sm">Inversión Total</span>
                 </div>
-                <p className="text-foreground text-3xl font-bold">
+                <p className="text-white text-3xl font-bold">
                   ${totalSpent.toLocaleString()}
                 </p>
               </div>
 
-              <div className="bg-card rounded-2xl p-6 border border-border">
+              <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-secondary-foreground" />
+                  <div className="w-10 h-10 rounded-full bg-[#FF9B43]/20 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-[#FF9B43]" />
                   </div>
-                  <span className="text-muted-foreground text-sm">Costo por Impresión</span>
+                  <span className="text-white/50 text-sm">Costo por Impresión</span>
                 </div>
-                <p className="text-foreground text-3xl font-bold">
+                <p className="text-white text-3xl font-bold">
                   ${costPerImpression.toFixed(4)}
                 </p>
               </div>
 
-              <div className="bg-card rounded-2xl p-6 border border-border">
+              <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-destructive/20 flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-destructive" />
+                  <div className="w-10 h-10 rounded-full bg-[#FF4393]/20 flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-[#FF4393]" />
                   </div>
-                  <span className="text-muted-foreground text-sm">Días Activos</span>
+                  <span className="text-white/50 text-sm">Días Activos</span>
                 </div>
-                <p className="text-foreground text-3xl font-bold">{totalDays}</p>
+                <p className="text-white text-3xl font-bold">{totalDays}</p>
               </div>
             </div>
 
             {/* Charts */}
             <Tabs defaultValue="performance" className="w-full">
-              <TabsList className="bg-muted mb-6">
-                <TabsTrigger value="performance" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsList className="bg-[#2A2A2A] mb-6">
+                <TabsTrigger value="performance" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
                   Rendimiento por Campaña
                 </TabsTrigger>
-                <TabsTrigger value="distribution" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger value="distribution" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
                   Distribución por Ciudad
                 </TabsTrigger>
-                <TabsTrigger value="campaigns" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                <TabsTrigger value="campaigns" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
                   Detalle Campañas
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="performance">
-                <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h3 className="text-foreground font-bold mb-6">Impresiones por Espectacular</h3>
+                <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+                  <h3 className="text-white font-bold mb-6">Impresiones por Espectacular</h3>
                   <div className="h-[400px]">
                     <ChartContainer config={chartConfig}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={campaignPerformance}>
                           <XAxis 
                             dataKey="name" 
-                            stroke="hsl(var(--muted-foreground))" 
+                            stroke="#666" 
                             fontSize={12}
                             tickLine={false}
                           />
                           <YAxis 
-                            stroke="hsl(var(--muted-foreground))" 
+                            stroke="#666" 
                             fontSize={12}
                             tickLine={false}
                             tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
@@ -352,7 +353,7 @@ const BusinessAnalytics: React.FC = () => {
                           <ChartTooltip content={<ChartTooltipContent />} />
                           <Bar 
                             dataKey="impressions" 
-                            fill="hsl(var(--primary))" 
+                            fill="#9BFF43" 
                             radius={[4, 4, 0, 0]}
                           />
                         </BarChart>
@@ -363,8 +364,8 @@ const BusinessAnalytics: React.FC = () => {
               </TabsContent>
 
               <TabsContent value="distribution">
-                <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h3 className="text-foreground font-bold mb-6">Inversión por Ciudad</h3>
+                <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+                  <h3 className="text-white font-bold mb-6">Inversión por Ciudad</h3>
                   <div className="h-[400px] flex items-center justify-center">
                     {cityChartData.length > 0 ? (
                       <div className="flex items-center gap-8">
@@ -394,8 +395,8 @@ const BusinessAnalytics: React.FC = () => {
                                 className="w-4 h-4 rounded-full"
                                 style={{ backgroundColor: item.color }}
                               />
-                              <span className="text-foreground">{item.name}</span>
-                              <span className="text-muted-foreground">
+                              <span className="text-white">{item.name}</span>
+                              <span className="text-white/50">
                                 ${item.value.toLocaleString()}
                               </span>
                             </div>
@@ -403,25 +404,25 @@ const BusinessAnalytics: React.FC = () => {
                         </div>
                       </div>
                     ) : (
-                      <p className="text-muted-foreground">Sin datos de ciudades</p>
+                      <p className="text-white/50">Sin datos de ciudades</p>
                     )}
                   </div>
                 </div>
               </TabsContent>
 
               <TabsContent value="campaigns">
-                <div className="bg-card rounded-2xl p-6 border border-border">
-                  <h3 className="text-foreground font-bold mb-6">Detalle de Campañas</h3>
+                <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+                  <h3 className="text-white font-bold mb-6">Detalle de Campañas</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left text-muted-foreground text-sm py-3 px-4">Espectacular</th>
-                          <th className="text-left text-muted-foreground text-sm py-3 px-4">Ciudad</th>
-                          <th className="text-left text-muted-foreground text-sm py-3 px-4">Período</th>
-                          <th className="text-right text-muted-foreground text-sm py-3 px-4">Impresiones</th>
-                          <th className="text-right text-muted-foreground text-sm py-3 px-4">Inversión</th>
-                          <th className="text-right text-muted-foreground text-sm py-3 px-4">CPI</th>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left text-white/50 text-sm py-3 px-4">Espectacular</th>
+                          <th className="text-left text-white/50 text-sm py-3 px-4">Ciudad</th>
+                          <th className="text-left text-white/50 text-sm py-3 px-4">Período</th>
+                          <th className="text-right text-white/50 text-sm py-3 px-4">Impresiones</th>
+                          <th className="text-right text-white/50 text-sm py-3 px-4">Inversión</th>
+                          <th className="text-right text-white/50 text-sm py-3 px-4">CPI</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -433,28 +434,28 @@ const BusinessAnalytics: React.FC = () => {
                           const cpi = impressions > 0 ? booking.total_price / impressions : 0;
 
                           return (
-                            <tr key={booking.id} className="border-b border-border/50 hover:bg-muted/50">
+                            <tr key={booking.id} className="border-b border-white/5 hover:bg-white/5">
                               <td className="py-4 px-4">
                                 <Link 
                                   to={`/billboard/${booking.billboard_id}`}
-                                  className="text-foreground hover:text-primary transition-colors"
+                                  className="text-white hover:text-[#9BFF43] transition-colors"
                                 >
                                   {booking.billboard?.title || 'Espectacular'}
                                 </Link>
                               </td>
-                              <td className="py-4 px-4 text-muted-foreground">
+                              <td className="py-4 px-4 text-white/70">
                                 {booking.billboard?.city || '-'}
                               </td>
-                              <td className="py-4 px-4 text-muted-foreground">
+                              <td className="py-4 px-4 text-white/70">
                                 {new Date(booking.start_date).toLocaleDateString()} - {new Date(booking.end_date).toLocaleDateString()}
                               </td>
-                              <td className="py-4 px-4 text-right text-primary font-semibold">
+                              <td className="py-4 px-4 text-right text-[#9BFF43] font-semibold">
                                 {impressions.toLocaleString()}
                               </td>
-                              <td className="py-4 px-4 text-right text-foreground font-semibold">
+                              <td className="py-4 px-4 text-right text-white font-semibold">
                                 ${booking.total_price.toLocaleString()}
                               </td>
-                              <td className="py-4 px-4 text-right text-muted-foreground">
+                              <td className="py-4 px-4 text-right text-white/70">
                                 ${cpi.toFixed(4)}
                               </td>
                             </tr>

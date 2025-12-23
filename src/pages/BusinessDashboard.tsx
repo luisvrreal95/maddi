@@ -117,19 +117,19 @@ const BusinessDashboard: React.FC = () => {
     switch (status) {
       case 'pending':
         return (
-          <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-secondary text-secondary-foreground text-sm font-medium">
+          <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-yellow-500/20 text-yellow-400 text-sm font-medium">
             <Clock className="w-4 h-4" /> Pendiente
           </span>
         );
       case 'approved':
         return (
-          <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary/20 text-primary text-sm font-medium">
+          <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#9BFF43]/20 text-[#9BFF43] text-sm font-medium">
             <Check className="w-4 h-4" /> Aprobada
           </span>
         );
       case 'rejected':
         return (
-          <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-destructive/20 text-destructive text-sm font-medium">
+          <span className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-red-500/20 text-red-400 text-sm font-medium">
             <X className="w-4 h-4" /> Rechazada
           </span>
         );
@@ -140,40 +140,40 @@ const BusinessDashboard: React.FC = () => {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-foreground">Cargando...</div>
+      <div className="min-h-screen bg-[#202020] flex items-center justify-center">
+        <div className="text-white">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#202020]">
       {/* Header */}
-      <header className="bg-card border-b border-border px-6 py-4">
+      <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+          <Link to="/" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors">
             <ArrowLeft className="w-5 h-5" />
             <div className="flex items-center gap-2">
               <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="40" height="40" rx="8" className="fill-primary"/>
-                <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" className="fill-primary-foreground" fontSize="14" fontWeight="bold" fontFamily="system-ui">M</text>
+                <rect width="40" height="40" rx="8" fill="#9BFF43"/>
+                <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="#202020" fontSize="14" fontWeight="bold" fontFamily="system-ui">M</text>
               </svg>
               <span className="text-xl font-bold">Maddi</span>
             </div>
           </Link>
-          <h1 className="text-foreground text-xl font-bold">Mis Reservas</h1>
+          <h1 className="text-white text-xl font-bold">Mis Reservas</h1>
           <div className="flex items-center gap-3">
             <NotificationBell />
             <Link
               to="/business-analytics"
-              className="px-4 py-2 bg-muted text-foreground rounded-full font-medium hover:bg-muted/80 transition-colors flex items-center gap-2"
+              className="px-4 py-2 bg-[#2A2A2A] text-white rounded-full font-medium hover:bg-[#3A3A3A] transition-colors flex items-center gap-2"
             >
               <BarChart3 className="w-4 h-4" />
               Analytics
             </Link>
             <Link
               to="/search"
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors"
+              className="px-4 py-2 bg-[#9BFF43] text-[#202020] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors"
             >
               Buscar Espacios
             </Link>
@@ -184,15 +184,15 @@ const BusinessDashboard: React.FC = () => {
       {/* Content */}
       <main className="p-6 max-w-4xl mx-auto">
         {isLoading ? (
-          <div className="text-muted-foreground text-center py-12">Cargando reservas...</div>
+          <div className="text-white/50 text-center py-12">Cargando reservas...</div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-16">
-            <Calendar className="w-16 h-16 text-primary mx-auto mb-4" />
-            <h2 className="text-foreground text-2xl font-bold mb-2">Sin reservas</h2>
-            <p className="text-muted-foreground mb-6">Aún no has realizado ninguna reserva</p>
+            <Calendar className="w-16 h-16 text-[#9BFF43] mx-auto mb-4" />
+            <h2 className="text-white text-2xl font-bold mb-2">Sin reservas</h2>
+            <p className="text-white/60 mb-6">Aún no has realizado ninguna reserva</p>
             <Link
               to="/search"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary/90 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-[#9BFF43] text-[#202020] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors"
             >
               <MapPin className="w-5 h-5" />
               Explorar Espectaculares
@@ -200,14 +200,14 @@ const BusinessDashboard: React.FC = () => {
           </div>
         ) : (
           <div className="space-y-6">
-            <h2 className="text-foreground text-lg font-semibold">
+            <h2 className="text-white text-lg font-semibold">
               {bookings.length} {bookings.length === 1 ? 'reserva' : 'reservas'}
             </h2>
             
             {bookings.map((booking) => (
               <div
                 key={booking.id}
-                className="bg-card rounded-2xl overflow-hidden border border-border"
+                className="bg-[#2A2A2A] rounded-2xl overflow-hidden border border-white/10"
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Image */}
@@ -219,8 +219,8 @@ const BusinessDashboard: React.FC = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <MapPin className="w-10 h-10 text-muted-foreground" />
+                      <div className="w-full h-full bg-[#1A1A1A] flex items-center justify-center">
+                        <MapPin className="w-10 h-10 text-white/20" />
                       </div>
                     )}
                   </div>
@@ -229,10 +229,10 @@ const BusinessDashboard: React.FC = () => {
                   <div className="flex-1 p-5">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="text-foreground font-bold text-lg">
+                        <h3 className="text-white font-bold text-lg">
                           {booking.billboard?.title || 'Espectacular'}
                         </h3>
-                        <p className="text-muted-foreground text-sm">
+                        <p className="text-white/50 text-sm">
                           {booking.billboard?.address}, {booking.billboard?.city}
                         </p>
                       </div>
@@ -241,20 +241,20 @@ const BusinessDashboard: React.FC = () => {
 
                     <div className="grid grid-cols-3 gap-4 mb-4">
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Fecha Inicio</p>
-                        <p className="text-foreground text-sm font-medium">
+                        <p className="text-white/50 text-xs mb-1">Fecha Inicio</p>
+                        <p className="text-white text-sm font-medium">
                           {new Date(booking.start_date).toLocaleDateString()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Fecha Fin</p>
-                        <p className="text-foreground text-sm font-medium">
+                        <p className="text-white/50 text-xs mb-1">Fecha Fin</p>
+                        <p className="text-white text-sm font-medium">
                           {new Date(booking.end_date).toLocaleDateString()}
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground text-xs mb-1">Precio Total</p>
-                        <p className="text-primary text-sm font-bold flex items-center gap-1">
+                        <p className="text-white/50 text-xs mb-1">Precio Total</p>
+                        <p className="text-[#9BFF43] text-sm font-bold flex items-center gap-1">
                           <DollarSign className="w-4 h-4" />
                           ${booking.total_price.toLocaleString()}
                         </p>
@@ -262,9 +262,9 @@ const BusinessDashboard: React.FC = () => {
                     </div>
 
                     {booking.notes && (
-                      <div className="mb-4 p-3 bg-muted rounded-lg">
-                        <p className="text-muted-foreground text-xs mb-1">Notas</p>
-                        <p className="text-foreground text-sm">{booking.notes}</p>
+                      <div className="mb-4 p-3 bg-[#1A1A1A] rounded-lg">
+                        <p className="text-white/50 text-xs mb-1">Notas</p>
+                        <p className="text-white text-sm">{booking.notes}</p>
                       </div>
                     )}
 
@@ -274,14 +274,14 @@ const BusinessDashboard: React.FC = () => {
                           href={booking.ad_design_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 text-primary text-sm hover:underline"
+                          className="inline-flex items-center gap-2 text-[#9BFF43] text-sm hover:underline"
                         >
                           <Eye className="w-4 h-4" /> Ver diseño
                         </a>
                       )}
                       <Link
                         to={`/billboard/${booking.billboard_id}`}
-                        className="text-muted-foreground text-sm hover:text-foreground transition-colors"
+                        className="text-white/50 text-sm hover:text-white transition-colors"
                       >
                         Ver espectacular →
                       </Link>

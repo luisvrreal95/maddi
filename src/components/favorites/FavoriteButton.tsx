@@ -25,7 +25,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         size="sm"
         onClick={() => toggleFavorite(billboardId)}
         className={cn(
-          favorited && 'bg-destructive hover:bg-destructive/90 border-destructive',
+          favorited && 'bg-red-500 hover:bg-red-600 border-red-500',
           className
         )}
       >
@@ -45,7 +45,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       className={cn(
         'p-2 rounded-full transition-all',
         favorited 
-          ? 'bg-destructive text-destructive-foreground' 
+          ? 'bg-red-500 text-white' 
           : 'bg-background/80 text-foreground hover:bg-background',
         className
       )}
