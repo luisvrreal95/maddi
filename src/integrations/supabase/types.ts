@@ -191,6 +191,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          notification_preferences: Json | null
           phone: string | null
           updated_at: string
           user_id: string
@@ -201,6 +202,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -211,11 +213,50 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      traffic_data: {
+        Row: {
+          billboard_id: string
+          confidence: number | null
+          current_speed: number | null
+          estimated_daily_impressions: number | null
+          free_flow_speed: number | null
+          id: string
+          recorded_at: string | null
+        }
+        Insert: {
+          billboard_id: string
+          confidence?: number | null
+          current_speed?: number | null
+          estimated_daily_impressions?: number | null
+          free_flow_speed?: number | null
+          id?: string
+          recorded_at?: string | null
+        }
+        Update: {
+          billboard_id?: string
+          confidence?: number | null
+          current_speed?: number | null
+          estimated_daily_impressions?: number | null
+          free_flow_speed?: number | null
+          id?: string
+          recorded_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "traffic_data_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: false
+            referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

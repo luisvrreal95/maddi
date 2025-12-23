@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Calendar, Clock, Check, X, DollarSign, Eye, MapPin, LogOut } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Check, X, DollarSign, Eye, MapPin, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
@@ -164,6 +164,13 @@ const BusinessDashboard: React.FC = () => {
           <h1 className="text-white text-xl font-bold">Mis Reservas</h1>
           <div className="flex items-center gap-3">
             <NotificationBell />
+            <Link
+              to="/business-analytics"
+              className="px-4 py-2 bg-[#2A2A2A] text-white rounded-full font-medium hover:bg-[#3A3A3A] transition-colors flex items-center gap-2"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Analytics
+            </Link>
             <Link
               to="/search"
               className="px-4 py-2 bg-[#9BFF43] text-[#202020] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors"
