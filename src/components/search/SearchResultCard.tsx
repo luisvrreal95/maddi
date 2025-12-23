@@ -43,7 +43,7 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelecte
       className={`bg-[#1A1A1A] rounded-2xl p-5 cursor-pointer transition-all duration-300 border-2 ${
         isSelected
           ? 'border-[#9BFF43] shadow-[0_0_20px_rgba(155,255,67,0.2)]'
-          : 'border-transparent hover:border-white/10'
+          : 'border-transparent hover:border-[#9BFF43] hover:shadow-[0_0_15px_rgba(155,255,67,0.15)]'
       }`}
     >
       {/* Header */}

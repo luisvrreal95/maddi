@@ -209,7 +209,7 @@ const BusinessAnalytics: React.FC = () => {
       {/* Header */}
       <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4">
         <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link to="/my-bookings" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors">
+          <Link to="/business" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors">
             <ArrowLeft className="w-5 h-5" />
             <span className="text-sm">Volver a Reservas</span>
           </Link>

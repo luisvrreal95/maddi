@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User, LayoutDashboard, Calendar } from 'lucide-react';
+import { LayoutDashboard, Calendar } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
-import MessageBadge from '@/components/chat/MessageBadge';
+import UserMenu from '@/components/navigation/UserMenu';
 
 const Header: React.FC = () => {
-  const { user, signOut, userRole } = useAuth();
+  const { user, userRole } = useAuth();
 
   return (
     <header className="flex items-center gap-40 relative pl-16 pr-12 py-6 rounded-[36px] border-[1.5px] border-solid border-[rgba(255,255,255,0.30)] max-md:gap-20 max-md:px-8 max-md:py-5 max-sm:gap-10 max-sm:flex-col max-sm:px-5 max-sm:py-4">
@@ -24,14 +24,7 @@ const Header: React.FC = () => {
       <nav className="flex justify-end items-center gap-4 relative max-sm:gap-3">
         {user ? (
           <>
-            <MessageBadge />
             <NotificationBell />
-            <Link to="/settings" className="flex items-center gap-2 text-white hover:text-[#9BFF43] transition-colors">
-              <User className="w-5 h-5 text-[#9BFF43]" />
-              <span className="text-sm">
-                {userRole === 'owner' ? 'Propietario' : userRole === 'business' ? 'Negocio' : 'Usuario'}
-              </span>
-            </Link>
             {userRole === 'owner' && (
               <Link to="/owner">
                 <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
@@ -52,15 +45,7 @@ const Header: React.FC = () => {
                 </button>
               </Link>
             )}
-            <button
-              onClick={() => signOut()}
-              className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[rgba(255,255,255,0.70)] hover:bg-white/10 transition-colors"
-            >
-              <LogOut className="w-4 h-4 text-white" />
-              <span className="text-white text-center text-base font-semibold capitalize">
-                Salir
-              </span>
-            </button>
+            <UserMenu />
           </>
         ) : (
           <>

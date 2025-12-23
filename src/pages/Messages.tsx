@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, MessageSquare, Send, User } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, User, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -39,6 +39,7 @@ const Messages: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -52,7 +53,6 @@ const Messages: React.FC = () => {
       fetchMessages(selectedConversation.id);
       markMessagesAsRead(selectedConversation.id);
       
-      // Subscribe to new messages
       const channel = supabase
         .channel(`messages-${selectedConversation.id}`)
         .on(
@@ -103,7 +103,6 @@ const Messages: React.FC = () => {
 
       if (error) throw error;
 
-      // Fetch other user profiles
       const conversationsWithUsers = await Promise.all(
         (data || []).map(async (conv) => {
           const otherUserId = conv.business_id === user.id ? conv.owner_id : conv.business_id;
@@ -179,56 +178,73 @@ const Messages: React.FC = () => {
 
   const backLink = userRole === 'owner' ? '/owner' : '/business';
 
+  const filteredConversations = conversations.filter(conv =>
+    conv.other_user?.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    conv.billboard?.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-card border-b border-border px-6 py-4">
-        <Link to={backLink} className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+    <div className="min-h-screen bg-[#1A1A1A] flex flex-col">
+      {/* Header */}
+      <header className="bg-[#141414] border-b border-white/5 px-6 py-4">
+        <Link to={backLink} className="flex items-center gap-3 text-white/70 hover:text-[#9BFF43] transition-colors">
           <ArrowLeft className="w-5 h-5" />
-          <span>Volver al dashboard</span>
+          <span className="text-sm">Volver al dashboard</span>
         </Link>
       </header>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Conversations List */}
-        <div className="w-80 border-r border-border bg-card flex flex-col">
-          <div className="p-4 border-b border-border">
-            <h2 className="text-foreground font-semibold flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              Conversaciones
+        <div className="w-80 border-r border-white/5 bg-[#141414] flex flex-col">
+          <div className="p-4 border-b border-white/5">
+            <h2 className="text-white font-semibold flex items-center gap-2 mb-4">
+              <MessageSquare className="w-5 h-5 text-[#9BFF43]" />
+              Mensajes
             </h2>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Input
+                placeholder="Buscar conversaciones..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-[#1A1A1A] border-white/10 text-white placeholder:text-white/30"
+              />
+            </div>
           </div>
           <ScrollArea className="flex-1">
             {isLoading ? (
               <div className="p-4 space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="animate-pulse bg-muted rounded-lg h-16"></div>
+                  <div key={i} className="animate-pulse bg-white/5 rounded-lg h-16"></div>
                 ))}
               </div>
-            ) : conversations.length === 0 ? (
+            ) : filteredConversations.length === 0 ? (
               <div className="p-4 text-center">
-                <p className="text-muted-foreground text-sm">No tienes conversaciones</p>
+                <p className="text-white/40 text-sm">No tienes conversaciones</p>
               </div>
             ) : (
               <div className="p-2">
-                {conversations.map(conv => (
+                {filteredConversations.map(conv => (
                   <button
                     key={conv.id}
                     onClick={() => setSelectedConversation(conv)}
-                    className={`w-full p-3 rounded-lg text-left transition-colors ${
+                    className={`w-full p-3 rounded-lg text-left transition-all duration-200 ${
                       selectedConversation?.id === conv.id 
-                        ? 'bg-primary/20' 
-                        : 'hover:bg-muted'
+                        ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30' 
+                        : 'hover:bg-white/5 border border-transparent'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                        <User className="w-5 h-5 text-muted-foreground" />
+                      <div className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center">
+                        <User className="w-5 h-5 text-white/40" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-foreground font-medium truncate">
+                        <p className={`font-medium truncate ${
+                          selectedConversation?.id === conv.id ? 'text-[#9BFF43]' : 'text-white'
+                        }`}>
                           {conv.other_user?.full_name}
                         </p>
-                        <p className="text-muted-foreground text-xs truncate">
+                        <p className="text-white/40 text-xs truncate">
                           {conv.billboard?.title}
                         </p>
                       </div>
@@ -241,23 +257,27 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col bg-[#1A1A1A]">
           {selectedConversation ? (
             <>
-              <div className="p-4 border-b border-border bg-card">
+              <div className="p-4 border-b border-white/5 bg-[#141414]">
                 <div className="flex items-center gap-3">
-                  {selectedConversation.billboard?.image_url && (
+                  {selectedConversation.billboard?.image_url ? (
                     <img
                       src={selectedConversation.billboard.image_url}
                       alt=""
                       className="w-10 h-10 rounded-lg object-cover"
                     />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] flex items-center justify-center">
+                      <MessageSquare className="w-5 h-5 text-white/40" />
+                    </div>
                   )}
                   <div>
-                    <p className="text-foreground font-semibold">
+                    <p className="text-white font-semibold">
                       {selectedConversation.other_user?.full_name}
                     </p>
-                    <p className="text-muted-foreground text-sm">
+                    <p className="text-white/40 text-sm">
                       {selectedConversation.billboard?.title}
                     </p>
                   </div>
@@ -274,13 +294,13 @@ const Messages: React.FC = () => {
                       <div
                         className={`max-w-[70%] rounded-2xl px-4 py-2 ${
                           msg.sender_id === user?.id
-                            ? 'bg-primary text-primary-foreground rounded-br-md'
-                            : 'bg-muted text-foreground rounded-bl-md'
+                            ? 'bg-[#9BFF43] text-[#141414] rounded-br-md'
+                            : 'bg-[#2A2A2A] text-white rounded-bl-md'
                         }`}
                       >
                         <p>{msg.content}</p>
                         <p className={`text-xs mt-1 ${
-                          msg.sender_id === user?.id ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                          msg.sender_id === user?.id ? 'text-[#141414]/60' : 'text-white/40'
                         }`}>
                           {new Date(msg.created_at).toLocaleTimeString('es-MX', { 
                             hour: '2-digit', 
@@ -294,19 +314,19 @@ const Messages: React.FC = () => {
                 </div>
               </ScrollArea>
 
-              <div className="p-4 border-t border-border bg-card">
+              <div className="p-4 border-t border-white/5 bg-[#141414]">
                 <div className="flex gap-2">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Escribe un mensaje..."
-                    className="bg-background border-border"
+                    className="bg-[#1A1A1A] border-white/10 text-white placeholder:text-white/30"
                   />
                   <Button 
                     onClick={sendMessage}
                     disabled={!newMessage.trim()}
-                    className="bg-primary text-primary-foreground"
+                    className="bg-[#9BFF43] text-[#141414] hover:bg-[#8AE63A]"
                   >
                     <Send className="w-4 h-4" />
                   </Button>
@@ -314,10 +334,10 @@ const Messages: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center bg-[#1A1A1A]">
               <div className="text-center">
-                <MessageSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">
+                <MessageSquare className="w-16 h-16 text-white/20 mx-auto mb-4" />
+                <p className="text-white/40">
                   Selecciona una conversación para ver los mensajes
                 </p>
               </div>
