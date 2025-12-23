@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
-import { format, differenceInMonths, addMonths } from 'date-fns';
+import { CalendarIcon, AlertCircle } from 'lucide-react';
+import { format, differenceInMonths, addMonths, isWithinInterval, parseISO, areIntervalsOverlapping } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,6 +21,13 @@ interface BookingDialogProps {
   billboard: Billboard;
 }
 
+interface ExistingBooking {
+  id: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+}
+
 const BookingDialog: React.FC<BookingDialogProps> = ({
   open,
   onOpenChange,
@@ -32,6 +39,54 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const [endDate, setEndDate] = useState<Date | undefined>(addMonths(new Date(), 2));
   const [notes, setNotes] = useState('');
   const [adDesignUrl, setAdDesignUrl] = useState('');
+  const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
+  const [dateConflict, setDateConflict] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      fetchExistingBookings();
+    }
+  }, [open, billboard.id]);
+
+  useEffect(() => {
+    // Check for date conflicts
+    if (startDate && endDate && existingBookings.length > 0) {
+      const hasConflict = existingBookings.some((booking) => {
+        if (booking.status === 'rejected') return false;
+        const bookingStart = parseISO(booking.start_date);
+        const bookingEnd = parseISO(booking.end_date);
+        return areIntervalsOverlapping(
+          { start: startDate, end: endDate },
+          { start: bookingStart, end: bookingEnd }
+        );
+      });
+      setDateConflict(hasConflict);
+    } else {
+      setDateConflict(false);
+    }
+  }, [startDate, endDate, existingBookings]);
+
+  const fetchExistingBookings = async () => {
+    const { data } = await supabase
+      .from('bookings')
+      .select('id, start_date, end_date, status')
+      .eq('billboard_id', billboard.id)
+      .in('status', ['approved', 'pending']);
+    
+    if (data) setExistingBookings(data);
+  };
+
+  const isDateBooked = (date: Date): 'booked' | 'pending' | null => {
+    for (const booking of existingBookings) {
+      if (booking.status === 'rejected') continue;
+      const start = parseISO(booking.start_date);
+      const end = parseISO(booking.end_date);
+      if (isWithinInterval(date, { start, end })) {
+        return booking.status === 'approved' ? 'booked' : 'pending';
+      }
+    }
+    return null;
+  };
 
   const months = startDate && endDate 
     ? Math.max(1, differenceInMonths(endDate, startDate) + 1)
@@ -48,6 +103,11 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
     if (endDate <= startDate) {
       toast.error('La fecha de fin debe ser posterior a la de inicio');
+      return;
+    }
+
+    if (dateConflict) {
+      toast.error('Las fechas seleccionadas ya están ocupadas');
       return;
     }
 
@@ -71,12 +131,24 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
       toast.success('Solicitud de reserva enviada. El propietario la revisará.');
       onOpenChange(false);
+      setNotes('');
+      setAdDesignUrl('');
     } catch (error: any) {
       console.error('Error creating booking:', error);
       toast.error(error.message || 'Error al crear la reserva');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const calendarModifiers = {
+    booked: (date: Date) => isDateBooked(date) === 'booked',
+    pending: (date: Date) => isDateBooked(date) === 'pending',
+  };
+
+  const calendarModifiersClassNames = {
+    booked: 'bg-red-500/30 text-red-300',
+    pending: 'bg-yellow-500/30 text-yellow-300',
   };
 
   return (
@@ -117,7 +189,9 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     mode="single"
                     selected={startDate}
                     onSelect={setStartDate}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => date < new Date() || isDateBooked(date) === 'booked'}
+                    modifiers={calendarModifiers}
+                    modifiersClassNames={calendarModifiersClassNames}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -145,7 +219,9 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
-                    disabled={(date) => date < (startDate || new Date())}
+                    disabled={(date) => date < (startDate || new Date()) || isDateBooked(date) === 'booked'}
+                    modifiers={calendarModifiers}
+                    modifiersClassNames={calendarModifiersClassNames}
                     initialFocus
                     className="pointer-events-auto"
                   />
@@ -153,6 +229,14 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               </Popover>
             </div>
           </div>
+
+          {/* Date conflict warning */}
+          {dateConflict && (
+            <div className="flex items-center gap-2 bg-red-500/20 text-red-400 p-3 rounded-lg">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm">Las fechas seleccionadas se solapan con una reserva existente</span>
+            </div>
+          )}
 
           <div>
             <Label htmlFor="adDesignUrl">URL del diseño publicitario</Label>
@@ -200,8 +284,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading}
-              className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A]"
+              disabled={isLoading || dateConflict}
+              className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
             >
               {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
             </Button>
