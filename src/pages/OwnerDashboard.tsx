@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Billboard } from '@/hooks/useBillboards';
 import OwnerHeader from '@/components/owner/OwnerHeader';
-import EarningsChart from '@/components/owner/EarningsChart';
 import PropertyListItem from '@/components/owner/PropertyListItem';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
@@ -14,7 +13,6 @@ import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
 import BookingManagement from '@/components/dashboard/BookingManagement';
 import BillboardSelector from '@/components/owner/BillboardSelector';
 import TrafficAnalytics from '@/components/owner/TrafficAnalytics';
-import NearbyBusinesses from '@/components/owner/NearbyBusinesses';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,8 +125,6 @@ const OwnerDashboard: React.FC = () => {
   const userName = user?.email?.split('@')[0] || 'Usuario';
   const displayName = userName.charAt(0).toUpperCase() + userName.slice(1);
 
-  // Calculate total earnings (mock calculation based on billboards)
-  const totalEarnings = billboards.reduce((acc, b) => acc + b.price_per_month, 0);
 
   if (authLoading || !user) {
     return (
@@ -173,24 +169,12 @@ const OwnerDashboard: React.FC = () => {
               isLoading={isLoading}
             />
 
-            {/* Analytics Grid */}
+            {/* Traffic Analytics */}
             {selectedBillboard && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
-                {/* Traffic Analytics */}
-                <TrafficAnalytics billboard={selectedBillboard} />
-
-                {/* Nearby Businesses */}
-                <NearbyBusinesses billboard={selectedBillboard} />
+              <div className="mt-8">
+                <TrafficAnalytics key={selectedBillboard.id} billboard={selectedBillboard} />
               </div>
             )}
-
-            {/* Earnings Overview */}
-            <div className="mt-8">
-              <h2 className="text-xl font-semibold text-white mb-4 italic">
-                Últimas ganancias
-              </h2>
-              <EarningsChart totalEarnings={totalEarnings} />
-            </div>
           </>
         )}
 
