@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import PropertyListItem from '@/components/owner/PropertyListItem';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
 import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
+import BookingManagement from '@/components/dashboard/BookingManagement';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,14 +26,23 @@ import {
 
 const OwnerDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, userRole, isLoading: authLoading } = useAuth();
   const [billboards, setBillboards] = useState<Billboard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingBillboard, setEditingBillboard] = useState<Billboard | null>(null);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'propiedades' | 'stats'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'propiedades' | 'stats' | 'reservas'>('dashboard');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [billboardToDelete, setBillboardToDelete] = useState<Billboard | null>(null);
+
+  // Handle tab from URL params
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'reservas') {
+      setActiveTab('reservas');
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!authLoading && (!user || userRole !== 'owner')) {
@@ -267,6 +277,19 @@ const OwnerDashboard: React.FC = () => {
               </Button>
             </div>
             <AnalyticsDashboard billboards={billboards} userId={user?.id || ''} />
+          </>
+        )}
+
+        {activeTab === 'reservas' && (
+          <>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-4xl font-bold text-white">
+                Gestión de Reservas
+              </h1>
+            </div>
+            <div className="max-w-4xl">
+              <BookingManagement />
+            </div>
           </>
         )}
       </main>
