@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User, LayoutDashboard, Calendar, Settings } from 'lucide-react';
+import { LogOut, User, LayoutDashboard, Calendar } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import MessageBadge from '@/components/chat/MessageBadge';
 
 const Header: React.FC = () => {
   const { user, signOut, userRole } = useAuth();
@@ -23,6 +24,7 @@ const Header: React.FC = () => {
       <nav className="flex justify-end items-center gap-4 relative max-sm:gap-3">
         {user ? (
           <>
+            <MessageBadge />
             <NotificationBell />
             <Link to="/settings" className="flex items-center gap-2 text-white hover:text-[#9BFF43] transition-colors">
               <User className="w-5 h-5 text-[#9BFF43]" />
@@ -31,7 +33,7 @@ const Header: React.FC = () => {
               </span>
             </Link>
             {userRole === 'owner' && (
-              <Link to="/dashboard">
+              <Link to="/owner">
                 <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
                   <LayoutDashboard className="w-4 h-4 text-[#9BFF43]" />
                   <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
@@ -41,7 +43,7 @@ const Header: React.FC = () => {
               </Link>
             )}
             {userRole === 'business' && (
-              <Link to="/my-bookings">
+              <Link to="/business">
                 <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">
                   <Calendar className="w-4 h-4 text-[#9BFF43]" />
                   <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
