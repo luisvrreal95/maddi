@@ -72,14 +72,14 @@ const OwnerDashboard: React.FC = () => {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <div className="text-foreground">Cargando...</div>
+      <div className="min-h-screen bg-[#121212] flex items-center justify-center">
+        <div className="text-white">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted flex flex-col">
+    <div className="min-h-screen bg-[#121212] flex flex-col">
       {/* Header */}
       <OwnerHeader
         activeTab={activeTab}
@@ -94,21 +94,20 @@ const OwnerDashboard: React.FC = () => {
           <>
             {/* Welcome Section */}
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-foreground">
+              <h1 className="text-4xl font-bold text-white">
                 Bienvenido, {displayName}
               </h1>
               <div className="flex items-center gap-3">
                 <Button
                   onClick={() => setShowAddDialog(true)}
-                  variant="outline"
-                  className="border-border"
+                  className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
                 >
                   Agregar Propiedad
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="border-border"
+                  className="border-white/20 bg-transparent hover:bg-white/10 text-white"
                 >
                   <Bell className="w-4 h-4" />
                 </Button>
@@ -119,7 +118,7 @@ const OwnerDashboard: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Earnings Chart - Left Side */}
               <div className="lg:col-span-2">
-                <h2 className="text-xl font-semibold text-foreground mb-4 italic">
+                <h2 className="text-xl font-semibold text-white mb-4 italic">
                   Últimas ganancias
                 </h2>
                 <EarningsChart totalEarnings={totalEarnings} />
@@ -127,16 +126,16 @@ const OwnerDashboard: React.FC = () => {
 
               {/* Properties List - Right Side */}
               <div>
-                <h2 className="text-xl font-semibold text-foreground mb-4">
+                <h2 className="text-xl font-semibold text-white mb-4">
                   Propiedades
                 </h2>
                 <div className="space-y-4">
                   {isLoading ? (
-                    <div className="text-muted-foreground text-center py-8">
+                    <div className="text-white/60 text-center py-8">
                       Cargando...
                     </div>
                   ) : billboards.length === 0 ? (
-                    <div className="text-muted-foreground text-center py-8">
+                    <div className="text-white/60 text-center py-8">
                       No hay propiedades aún
                     </div>
                   ) : (
@@ -158,21 +157,20 @@ const OwnerDashboard: React.FC = () => {
           <>
             {/* Properties Header */}
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-foreground">
+              <h1 className="text-4xl font-bold text-white">
                 Propiedades
               </h1>
               <div className="flex items-center gap-3">
                 <Button
                   onClick={() => setShowAddDialog(true)}
-                  variant="outline"
-                  className="border-border"
+                  className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
                 >
                   Agregar Propiedad
                 </Button>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="border-border"
+                  className="border-white/20 bg-transparent hover:bg-white/10 text-white"
                 >
                   <Bell className="w-4 h-4" />
                 </Button>
@@ -181,20 +179,20 @@ const OwnerDashboard: React.FC = () => {
 
             {/* Properties Grid */}
             {isLoading ? (
-              <div className="text-muted-foreground text-center py-12">
+              <div className="text-white/60 text-center py-12">
                 Cargando propiedades...
               </div>
             ) : billboards.length === 0 ? (
               <div className="text-center py-16">
-                <h2 className="text-foreground text-2xl font-bold mb-2">
+                <h2 className="text-white text-2xl font-bold mb-2">
                   Sin propiedades
                 </h2>
-                <p className="text-muted-foreground mb-6">
+                <p className="text-white/60 mb-6">
                   Agrega tu primera propiedad para comenzar
                 </p>
                 <Button
                   onClick={() => setShowAddDialog(true)}
-                  className="bg-[hsl(220,80%,55%)] hover:bg-[hsl(220,80%,50%)] text-white"
+                  className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
                 >
                   Agregar Propiedad
                 </Button>
@@ -215,10 +213,10 @@ const OwnerDashboard: React.FC = () => {
 
         {activeTab === 'stats' && (
           <div className="text-center py-16">
-            <h1 className="text-4xl font-bold text-foreground mb-4">
+            <h1 className="text-4xl font-bold text-white mb-4">
               Estadísticas
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-white/60">
               Próximamente: estadísticas detalladas de tus propiedades
             </p>
           </div>
@@ -226,8 +224,8 @@ const OwnerDashboard: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-foreground py-4">
-        <p className="text-center text-background/60 text-sm">
+      <footer className="bg-[#1A1A1A] py-4 border-t border-white/10">
+        <p className="text-center text-white/40 text-sm">
           © 2025 Maddi.
         </p>
       </footer>

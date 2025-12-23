@@ -16,78 +16,89 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   const pointsOfInterest = 'Plazas comerciales, Bancos, Parques.';
 
   return (
-    <div className="bg-background rounded-2xl border border-border p-5 relative hover:shadow-lg transition-shadow">
+    <div className="bg-[#1E1E1E] rounded-2xl border border-[#9BFF43]/30 p-5 relative hover:border-[#9BFF43]/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all">
+      {/* Image */}
+      {billboard.image_url && (
+        <div className="relative mb-4 rounded-xl overflow-hidden">
+          <img 
+            src={billboard.image_url} 
+            alt={billboard.title}
+            className="w-full h-40 object-cover"
+          />
+        </div>
+      )}
+      
       {/* Edit Button */}
       <button
         onClick={onEdit}
-        className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+        className="absolute top-4 right-4 text-white/60 hover:text-[#9BFF43] transition-colors bg-[#2A2A2A] p-2 rounded-lg"
       >
-        <Pencil className="w-5 h-5" />
+        <Pencil className="w-4 h-4" />
       </button>
 
       {/* Title & Address */}
-      <div className="mb-4 pr-8">
-        <h3 className="font-bold text-foreground text-lg">{billboard.title}</h3>
-        <p className="text-muted-foreground text-sm">
+      <div className="mb-4 pr-10">
+        <h3 className="font-bold text-white text-lg">{billboard.title}</h3>
+        <p className="text-white/50 text-sm">
           {billboard.address}, {billboard.city}, {billboard.state}
         </p>
       </div>
 
       {/* Price Bar */}
-      <div className="bg-muted rounded-lg px-4 py-3 mb-5 flex items-center justify-between">
+      <div className="bg-[#2A2A2A] rounded-lg px-4 py-3 mb-5 flex items-center justify-between">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold text-foreground">
-            {billboard.price_per_month.toLocaleString()}
+          <span className="text-2xl font-bold text-white">
+            ${billboard.price_per_month.toLocaleString()}
           </span>
-          <span className="text-muted-foreground text-sm">/mes</span>
+          <span className="text-white/50 text-sm">/mes</span>
         </div>
-        <span className="text-[hsl(142,76%,36%)] text-sm font-medium">0.39% ↑</span>
+        <span className="text-[#9BFF43] text-sm font-medium">0.39% ↑</span>
       </div>
 
       {/* Details Grid */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* Puntos de Interés */}
         <div className="flex items-start gap-3">
-          <Users className="w-5 h-5 text-muted-foreground mt-0.5" />
+          <Users className="w-5 h-5 text-[#9BFF43] mt-0.5" />
           <div>
-            <p className="font-medium text-foreground text-sm">Puntos de Interés</p>
-            <p className="text-muted-foreground text-sm">{pointsOfInterest}</p>
+            <p className="font-medium text-white text-sm">Puntos de Interés</p>
+            <p className="text-white/50 text-sm">{pointsOfInterest}</p>
           </div>
         </div>
 
         {/* Vistas por día */}
         <div className="flex items-start gap-3">
-          <Eye className="w-5 h-5 text-muted-foreground mt-0.5" />
+          <Eye className="w-5 h-5 text-[#9BFF43] mt-0.5" />
           <div>
-            <p className="font-medium text-foreground text-sm">Vistas por día</p>
-            <p className="text-muted-foreground text-sm">+{dailyViews.toLocaleString()}</p>
+            <p className="font-medium text-white text-sm">Vistas por día</p>
+            <p className="text-white/50 text-sm">+{dailyViews.toLocaleString()}</p>
           </div>
         </div>
 
         {/* Horas Pico */}
         <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-muted-foreground mt-0.5" />
+          <Clock className="w-5 h-5 text-[#9BFF43] mt-0.5" />
           <div>
-            <p className="font-medium text-foreground text-sm">Horas Pico</p>
-            <p className="text-muted-foreground text-sm">{peakHours}</p>
+            <p className="font-medium text-white text-sm">Horas Pico</p>
+            <p className="text-white/50 text-sm">{peakHours}</p>
           </div>
         </div>
 
         {/* Status */}
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-muted-foreground mt-0.5" />
+          <CheckCircle2 className="w-5 h-5 text-[#9BFF43] mt-0.5" />
           <div>
-            <p className="font-medium text-foreground text-sm">Status</p>
-            <p className="text-muted-foreground text-sm">{status}</p>
+            <p className="font-medium text-white text-sm">Status</p>
+            <p className="text-white/50 text-sm">{status}</p>
           </div>
         </div>
 
         {/* Tamaño */}
         <div className="flex items-start gap-3">
-          <Maximize className="w-5 h-5 text-muted-foreground mt-0.5" />
+          <Maximize className="w-5 h-5 text-[#9BFF43] mt-0.5" />
           <div>
-            <p className="font-medium text-foreground text-sm">Tamaño</p>
-            <p className="text-muted-foreground text-sm">{size}</p>
+            <p className="font-medium text-white text-sm">Tamaño</p>
+            <p className="text-white/50 text-sm">{size}</p>
           </div>
         </div>
       </div>

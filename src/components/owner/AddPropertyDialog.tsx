@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,15 +11,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
-import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon, Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 interface AddPropertyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   billboard?: Billboard | null;
   onSave: () => void;
+}
+
+interface LocationSuggestion {
+  id: string;
+  place_name: string;
+  text: string;
+  place_type: string[];
+  center: [number, number];
 }
 
 const POINTS_OF_INTEREST = [
@@ -40,6 +50,12 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  
+  // Map refs
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<mapboxgl.Map | null>(null);
+  const marker = useRef<mapboxgl.Marker | null>(null);
   
   // Step 1 form data
   const [title, setTitle] = useState('');
@@ -47,6 +63,21 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [address, setAddress] = useState('');
+  const [latitude, setLatitude] = useState<number>(32.6245);
+  const [longitude, setLongitude] = useState<number>(-115.4523);
+  
+  // Address autocomplete
+  const [addressSuggestions, setAddressSuggestions] = useState<LocationSuggestion[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout>();
+  const addressInputRef = useRef<HTMLInputElement>(null);
+  
+  // Image upload
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step 2 form data
   const [pointsOfInterest, setPointsOfInterest] = useState<string[]>([]);
@@ -56,6 +87,22 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [availability, setAvailability] = useState<'immediate' | 'scheduled'>('immediate');
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>(undefined);
 
+  // Fetch Mapbox token
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        if (error) throw error;
+        setMapboxToken(data.token);
+      } catch (error) {
+        console.error('Error fetching mapbox token:', error);
+      }
+    };
+    if (open) {
+      fetchToken();
+    }
+  }, [open]);
+
   useEffect(() => {
     if (billboard) {
       setTitle(billboard.title);
@@ -63,13 +110,162 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       setCity(billboard.city);
       setState(billboard.state);
       setAddress(billboard.address);
+      setLatitude(billboard.latitude);
+      setLongitude(billboard.longitude);
       setHeight(billboard.height_m.toString());
       setWidth(billboard.width_m.toString());
       setStatus(billboard.is_available ? 'alto' : 'bajo');
+      setImageUrl(billboard.image_url || '');
+      setImagePreview(billboard.image_url || null);
     } else {
       resetForm();
     }
   }, [billboard, open]);
+
+  // Initialize map on step 1
+  useEffect(() => {
+    if (!open || step !== 1 || !mapContainer.current || !mapboxToken) return;
+    
+    // Small delay to ensure container is mounted
+    const timer = setTimeout(() => {
+      if (!mapContainer.current) return;
+      
+      mapboxgl.accessToken = mapboxToken;
+      
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [longitude, latitude],
+        zoom: 14,
+      });
+
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Add draggable marker
+      marker.current = new mapboxgl.Marker({ 
+        color: '#9BFF43',
+        draggable: true 
+      })
+        .setLngLat([longitude, latitude])
+        .addTo(map.current);
+
+      // Update coordinates when marker is dragged
+      marker.current.on('dragend', () => {
+        const lngLat = marker.current?.getLngLat();
+        if (lngLat) {
+          setLongitude(lngLat.lng);
+          setLatitude(lngLat.lat);
+          // Reverse geocode to get address
+          reverseGeocode(lngLat.lng, lngLat.lat);
+        }
+      });
+
+      // Allow clicking on map to move marker
+      map.current.on('click', (e) => {
+        marker.current?.setLngLat(e.lngLat);
+        setLongitude(e.lngLat.lng);
+        setLatitude(e.lngLat.lat);
+        reverseGeocode(e.lngLat.lng, e.lngLat.lat);
+      });
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      map.current?.remove();
+      map.current = null;
+    };
+  }, [open, step, mapboxToken]);
+
+  // Update marker when coordinates change externally
+  useEffect(() => {
+    if (marker.current && map.current) {
+      marker.current.setLngLat([longitude, latitude]);
+      map.current.flyTo({ center: [longitude, latitude], zoom: 15 });
+    }
+  }, [longitude, latitude]);
+
+  const reverseGeocode = async (lng: number, lat: number) => {
+    if (!mapboxToken) return;
+    
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&language=es&types=address,poi,neighborhood`
+      );
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        setAddress(feature.place_name);
+        
+        // Extract city and state from context
+        const context = feature.context || [];
+        const cityCtx = context.find((c: any) => c.id.startsWith('place'));
+        const stateCtx = context.find((c: any) => c.id.startsWith('region'));
+        
+        if (cityCtx) setCity(cityCtx.text);
+        if (stateCtx) setState(stateCtx.short_code?.replace('MX-', '') || stateCtx.text);
+      }
+    } catch (error) {
+      console.error('Reverse geocode error:', error);
+    }
+  };
+
+  // Address autocomplete
+  useEffect(() => {
+    if (!address || address.length < 3 || !mapboxToken) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    debounceRef.current = setTimeout(async () => {
+      setIsLoadingSuggestions(true);
+      try {
+        const response = await fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=6&language=es`
+        );
+        const data = await response.json();
+        
+        if (data.features) {
+          setAddressSuggestions(data.features);
+          setShowAddressSuggestions(true);
+        }
+      } catch (error) {
+        console.error('Error fetching suggestions:', error);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [address, mapboxToken]);
+
+  const handleSelectAddress = (suggestion: LocationSuggestion) => {
+    setAddress(suggestion.place_name);
+    setLongitude(suggestion.center[0]);
+    setLatitude(suggestion.center[1]);
+    setShowAddressSuggestions(false);
+    
+    // Extract city and state
+    const parts = suggestion.place_name.split(', ');
+    if (parts.length >= 2) {
+      setCity(parts[parts.length - 3] || parts[0]);
+      setState(parts[parts.length - 2] || '');
+    }
+    
+    // Update map
+    if (marker.current && map.current) {
+      marker.current.setLngLat(suggestion.center);
+      map.current.flyTo({ center: suggestion.center, zoom: 16 });
+    }
+  };
 
   const resetForm = () => {
     setStep(1);
@@ -78,17 +274,22 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setCity('');
     setState('');
     setAddress('');
+    setLatitude(32.6245);
+    setLongitude(-115.4523);
     setPointsOfInterest([]);
     setStatus('');
     setHeight('');
     setWidth('');
     setAvailability('immediate');
     setAvailableFrom(undefined);
+    setImageUrl('');
+    setImagePreview(null);
+    setAddressSuggestions([]);
   };
 
   const handleContinue = () => {
-    if (!title || !price || !city || !state || !address) {
-      toast.error('Por favor completa todos los campos');
+    if (!title || !price || !address) {
+      toast.error('Por favor completa el nombre, precio y dirección');
       return;
     }
     setStep(2);
@@ -106,6 +307,56 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     }
   };
 
+  // Image upload handlers
+  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Solo se permiten imágenes');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('La imagen no debe superar 5MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+      const { data, error } = await supabase.storage
+        .from('billboard-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('billboard-images')
+        .getPublicUrl(data.path);
+
+      setImagePreview(urlData.publicUrl);
+      setImageUrl(urlData.publicUrl);
+      toast.success('Imagen subida correctamente');
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      toast.error(error.message || 'Error al subir imagen');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setImageUrl('');
+  };
+
   const handleSubmit = async () => {
     if (!height || !width || !status) {
       toast.error('Por favor completa todos los campos requeridos');
@@ -118,18 +369,19 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       const billboardData = {
         title,
         price_per_month: parseFloat(price),
-        city,
-        state,
+        city: city || 'Sin ciudad',
+        state: state || 'Sin estado',
         address,
         height_m: parseFloat(height),
         width_m: parseFloat(width),
         is_available: availability === 'immediate',
         owner_id: user?.id,
-        latitude: 32.6245,
-        longitude: -115.4523,
+        latitude,
+        longitude,
         billboard_type: 'espectacular',
         illumination: 'iluminado',
         faces: 1,
+        image_url: imageUrl || null,
       };
 
       if (billboard) {
@@ -160,75 +412,184 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     }
   };
 
+  const getPlaceTypeLabel = (types: string[]) => {
+    const type = types[0];
+    const labels: Record<string, string> = {
+      country: 'País',
+      region: 'Estado',
+      place: 'Ciudad',
+      district: 'Zona',
+      locality: 'Localidad',
+      neighborhood: 'Colonia',
+      address: 'Dirección',
+      poi: 'Punto de interés',
+    };
+    return labels[type] || 'Ubicación';
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-background border-border text-foreground max-w-xl p-0 gap-0 overflow-hidden">
+      <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-2xl p-0 gap-0 overflow-hidden max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 pb-4">
+        <div className="flex items-center justify-between p-6 pb-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             {step === 2 && (
-              <button onClick={handleBack} className="text-foreground hover:text-muted-foreground">
+              <button onClick={handleBack} className="text-white hover:text-[#9BFF43] transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
-            <h2 className="text-xl font-bold">Agregar propiedad</h2>
+            <h2 className="text-xl font-bold">{billboard ? 'Editar' : 'Agregar'} propiedad</h2>
           </div>
-          <span className="text-3xl font-black italic text-foreground">M</span>
+          <span className="text-3xl font-black italic text-[#9BFF43]">M</span>
         </div>
 
         {step === 1 ? (
-          /* Step 1: Basic Info */
-          <div className="px-6 pb-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          /* Step 1: Basic Info + Map */
+          <div className="px-6 pb-6 space-y-4 overflow-y-auto max-h-[calc(90vh-100px)]">
+            <div className="grid grid-cols-2 gap-4 pt-4">
               <div>
-                <Label className="text-sm text-muted-foreground">Nombre para propiedad</Label>
+                <Label className="text-sm text-white/60">Nombre para propiedad</Label>
                 <Input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 bg-background border-border"
+                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                   placeholder="Plaza Cataviña"
                 />
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground">Precio por mes</Label>
+                <Label className="text-sm text-white/60">Precio por mes</Label>
                 <Input
                   type="number"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="mt-1 bg-background border-border"
-                  placeholder="785"
+                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                  placeholder="10000"
                 />
               </div>
             </div>
 
+            {/* Address with autocomplete */}
+            <div className="relative">
+              <Label className="text-sm text-white/60">Dirección</Label>
+              <div className="relative mt-1">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BFF43]" />
+                <Input
+                  ref={addressInputRef}
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  onFocus={() => addressSuggestions.length > 0 && setShowAddressSuggestions(true)}
+                  className="pl-10 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                  placeholder="Escribe la dirección del espectacular..."
+                />
+                {isLoadingSuggestions && (
+                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 animate-spin" />
+                )}
+              </div>
+              
+              {/* Suggestions dropdown */}
+              {showAddressSuggestions && addressSuggestions.length > 0 && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl">
+                  {addressSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.id}
+                      type="button"
+                      onClick={() => handleSelectAddress(suggestion)}
+                      className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white/5 transition-colors"
+                    >
+                      <MapPin className="w-4 h-4 mt-0.5 text-[#9BFF43] flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-white truncate">{suggestion.text}</p>
+                        <p className="text-sm text-white/50 truncate">{suggestion.place_name}</p>
+                      </div>
+                      <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                        {getPlaceTypeLabel(suggestion.place_type)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label className="text-sm text-muted-foreground">Ciudad</Label>
+                <Label className="text-sm text-white/60">Ciudad</Label>
                 <Input
                   value={city}
                   onChange={(e) => setCity(e.target.value)}
-                  className="mt-1 bg-background border-border"
+                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                   placeholder="Mexicali"
                 />
               </div>
               <div>
-                <Label className="text-sm text-muted-foreground">Estado</Label>
+                <Label className="text-sm text-white/60">Estado</Label>
                 <Input
                   value={state}
                   onChange={(e) => setState(e.target.value)}
-                  className="mt-1 bg-background border-border"
+                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                   placeholder="B.C."
                 />
               </div>
             </div>
 
+            {/* Map */}
             <div>
-              <Label className="text-sm text-muted-foreground">Dirección</Label>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="mt-1 bg-background border-border"
-                placeholder="Calz. Cetys 1800, Privada Vista Hermosa"
+              <Label className="text-sm text-white/60 mb-2 block">
+                Ubicación en mapa <span className="text-white/40">(Arrastra el pin o haz clic para moverlo)</span>
+              </Label>
+              <div 
+                ref={mapContainer} 
+                className="w-full h-52 rounded-xl overflow-hidden border border-white/10"
+              />
+              <p className="text-xs text-white/40 mt-1">
+                Lat: {latitude.toFixed(6)}, Lng: {longitude.toFixed(6)}
+              </p>
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <Label className="text-sm text-white/60 mb-2 block">Imagen del espectacular</Label>
+              {imagePreview ? (
+                <div className="relative rounded-xl overflow-hidden border border-white/10">
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-40 object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={handleRemoveImage}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#2A2A2A]"
+                >
+                  {isUploadingImage ? (
+                    <>
+                      <Loader2 className="h-8 w-8 text-[#9BFF43] animate-spin mb-2" />
+                      <p className="text-white/60 text-sm">Subiendo...</p>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="h-8 w-8 text-white/40 mb-2" />
+                      <p className="text-white/60 text-sm">Haz clic para subir imagen</p>
+                      <p className="text-white/40 text-xs mt-1">JPG, PNG, WebP (máx 5MB)</p>
+                    </>
+                  )}
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleImageSelect}
+                className="hidden"
               />
             </div>
 
@@ -236,13 +597,13 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1"
+                className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleContinue}
-                className="flex-1 bg-[hsl(220,80%,55%)] hover:bg-[hsl(220,80%,50%)] text-white"
+                className="flex-1 bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
               >
                 Continuar
               </Button>
@@ -250,26 +611,26 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
           </div>
         ) : (
           /* Step 2: Details */
-          <div className="px-6 pb-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="px-6 pb-6 space-y-4 max-h-[calc(90vh-100px)] overflow-y-auto">
             {/* Property Preview Card */}
-            <div className="bg-foreground text-background rounded-xl p-4 flex items-start justify-between">
+            <div className="bg-[#2A2A2A] rounded-xl p-4 flex items-start justify-between mt-4">
               <div>
-                <h3 className="font-bold text-lg">{title}</h3>
-                <p className="text-background/70 text-sm">
-                  {address}, {city} {state}
+                <h3 className="font-bold text-lg text-white">{title}</h3>
+                <p className="text-white/50 text-sm">
+                  {address}
                 </p>
               </div>
-              <div className="bg-background text-foreground rounded-lg px-3 py-2 text-right">
-                <span className="font-bold">{parseInt(price || '0').toLocaleString()}</span>
-                <span className="text-sm text-muted-foreground"> /mes</span>
+              <div className="bg-[#9BFF43] text-[#121212] rounded-lg px-3 py-2 text-right">
+                <span className="font-bold">${parseInt(price || '0').toLocaleString()}</span>
+                <span className="text-sm opacity-70"> /mes</span>
               </div>
             </div>
 
             {/* Puntos de Interés */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-4 h-4 text-muted-foreground" />
-                <Label className="text-sm font-medium">Puntos de Interés</Label>
+                <MapPin className="w-4 h-4 text-[#9BFF43]" />
+                <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {POINTS_OF_INTEREST.map((point) => (
@@ -280,8 +641,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                       onCheckedChange={(checked) => 
                         handlePointOfInterestChange(point, checked as boolean)
                       }
+                      className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
                     />
-                    <label htmlFor={point} className="text-sm cursor-pointer">
+                    <label htmlFor={point} className="text-sm cursor-pointer text-white/80">
                       {point}
                     </label>
                   </div>
@@ -293,14 +655,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Eye className="w-4 h-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium">Status</Label>
+                  <Eye className="w-4 h-4 text-[#9BFF43]" />
+                  <Label className="text-sm font-medium text-white">Status</Label>
                 </div>
                 <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="bg-background border-border">
+                  <SelectTrigger className="bg-[#2A2A2A] border-white/10 text-white">
                     <SelectValue placeholder="Selecciona uno" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#2A2A2A] border-white/10">
                     <SelectItem value="bajo">Bajo</SelectItem>
                     <SelectItem value="medio">Medio</SelectItem>
                     <SelectItem value="alto">Alto</SelectItem>
@@ -309,21 +671,21 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-muted-foreground" />
-                  <Label className="text-sm font-medium">Tamaño</Label>
+                  <Clock className="w-4 h-4 text-[#9BFF43]" />
+                  <Label className="text-sm font-medium text-white">Tamaño (metros)</Label>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Input
                     value={height}
                     onChange={(e) => setHeight(e.target.value)}
                     placeholder="Alto"
-                    className="bg-background border-border"
+                    className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                   />
                   <Input
                     value={width}
                     onChange={(e) => setWidth(e.target.value)}
                     placeholder="Ancho"
-                    className="bg-background border-border"
+                    className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                   />
                 </div>
               </div>
@@ -332,8 +694,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
             {/* Disponibilidad */}
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <CalendarIcon className="w-4 h-4 text-muted-foreground" />
-                <Label className="text-sm font-medium">Disponibilidad</Label>
+                <CalendarIcon className="w-4 h-4 text-[#9BFF43]" />
+                <Label className="text-sm font-medium text-white">Disponibilidad</Label>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -341,20 +703,20 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   onClick={() => setAvailability('immediate')}
                   className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
                     availability === 'immediate'
-                      ? 'border-[hsl(220,80%,55%)] bg-[hsl(220,80%,55%)]/5'
-                      : 'border-border'
+                      ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                      : 'border-white/10 hover:border-white/20'
                   }`}
                 >
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                     availability === 'immediate'
-                      ? 'border-[hsl(220,80%,55%)]'
-                      : 'border-muted-foreground'
+                      ? 'border-[#9BFF43]'
+                      : 'border-white/40'
                   }`}>
                     {availability === 'immediate' && (
-                      <div className="w-2 h-2 rounded-full bg-[hsl(220,80%,55%)]" />
+                      <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
                     )}
                   </div>
-                  <span className="text-sm">Inmediata</span>
+                  <span className="text-sm text-white">Inmediata</span>
                 </button>
 
                 <Popover>
@@ -364,35 +726,36 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                       onClick={() => setAvailability('scheduled')}
                       className={`flex items-center gap-2 p-3 rounded-xl border transition-all text-left ${
                         availability === 'scheduled'
-                          ? 'border-[hsl(220,80%,55%)] bg-[hsl(220,80%,55%)]/5'
-                          : 'border-border'
+                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                          : 'border-white/10 hover:border-white/20'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
                         availability === 'scheduled'
-                          ? 'border-[hsl(220,80%,55%)]'
-                          : 'border-muted-foreground'
+                          ? 'border-[#9BFF43]'
+                          : 'border-white/40'
                       }`}>
                         {availability === 'scheduled' && (
-                          <div className="w-2 h-2 rounded-full bg-[hsl(220,80%,55%)]" />
+                          <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
                         )}
                       </div>
-                      <span className="text-sm">
+                      <span className="text-sm text-white">
                         {availableFrom 
-                          ? `A partir de ${format(availableFrom, 'd MMMM yyyy', { locale: es })}`
+                          ? `${format(availableFrom, 'd MMM yyyy', { locale: es })}`
                           : 'A partir de'
                         }
                       </span>
                     </button>
                   </PopoverTrigger>
                   {availability === 'scheduled' && (
-                    <PopoverContent className="w-auto p-0" align="start">
+                    <PopoverContent className="w-auto p-0 bg-[#2A2A2A] border-white/10" align="start">
                       <Calendar
                         mode="single"
                         selected={availableFrom}
                         onSelect={setAvailableFrom}
                         locale={es}
                         initialFocus
+                        className="bg-[#2A2A2A]"
                       />
                     </PopoverContent>
                   )}
@@ -401,8 +764,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
             </div>
 
             {/* Info Box */}
-            <div className="bg-muted rounded-xl p-4">
-              <div className="flex items-center gap-4 text-muted-foreground text-sm mb-2">
+            <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
+              <div className="flex items-center gap-4 text-white/60 text-sm mb-2">
                 <div className="flex items-center gap-2">
                   <Eye className="w-4 h-4" />
                   <span>Vistas por día</span>
@@ -412,7 +775,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   <span>Horas pico</span>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+              <p className="text-xs text-white/40 uppercase tracking-wide">
                 Calculadas automáticamente con información en tiempo real
               </p>
             </div>
@@ -422,14 +785,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="flex-1"
+                className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10"
               >
                 Cancelar
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="flex-1 bg-[hsl(220,80%,55%)] hover:bg-[hsl(220,80%,50%)] text-white"
+                className="flex-1 bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
               >
                 {isLoading ? 'Guardando...' : 'Guardar Propiedad'}
               </Button>
