@@ -1,5 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+
+export interface BillboardOwner {
+  full_name: string;
+  company_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+}
 
 export interface Billboard {
   id: string;
@@ -22,10 +29,11 @@ export interface Billboard {
   is_available: boolean;
   created_at: string;
   updated_at: string;
+  owner?: BillboardOwner;
 }
 
 export interface BillboardFilters {
-  location?: string; // Search in city, state, or address
+  location?: string;
   city?: string;
   state?: string;
   minPrice?: number;
@@ -39,53 +47,93 @@ export function useBillboards(filters?: BillboardFilters) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
-    const fetchBillboards = async () => {
-      try {
-        setIsLoading(true);
-        let query = supabase
-          .from('billboards')
-          .select('*')
-          .eq('is_available', true);
+  const fetchBillboards = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      let query = supabase
+        .from('billboards')
+        .select('*')
+        .eq('is_available', true);
 
-        // Search across city, state, and address
-        if (filters?.location) {
-          query = query.or(
-            `city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,address.ilike.%${filters.location}%`
-          );
-        }
-        if (filters?.city) {
-          query = query.ilike('city', `%${filters.city}%`);
-        }
-        if (filters?.state) {
-          query = query.ilike('state', `%${filters.state}%`);
-        }
-        if (filters?.minPrice) {
-          query = query.gte('price_per_month', filters.minPrice);
-        }
-        if (filters?.maxPrice) {
-          query = query.lte('price_per_month', filters.maxPrice);
-        }
-        if (filters?.billboardType) {
-          query = query.eq('billboard_type', filters.billboardType);
-        }
-        if (filters?.illumination) {
-          query = query.eq('illumination', filters.illumination);
-        }
-
-        const { data, error: fetchError } = await query;
-
-        if (fetchError) throw fetchError;
-        setBillboards(data || []);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setIsLoading(false);
+      if (filters?.location) {
+        query = query.or(
+          `city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,address.ilike.%${filters.location}%`
+        );
       }
-    };
+      if (filters?.city) {
+        query = query.ilike('city', `%${filters.city}%`);
+      }
+      if (filters?.state) {
+        query = query.ilike('state', `%${filters.state}%`);
+      }
+      if (filters?.minPrice) {
+        query = query.gte('price_per_month', filters.minPrice);
+      }
+      if (filters?.maxPrice) {
+        query = query.lte('price_per_month', filters.maxPrice);
+      }
+      if (filters?.billboardType) {
+        query = query.eq('billboard_type', filters.billboardType);
+      }
+      if (filters?.illumination) {
+        query = query.eq('illumination', filters.illumination);
+      }
 
-    fetchBillboards();
+      const { data, error: fetchError } = await query;
+
+      if (fetchError) throw fetchError;
+
+      // Fetch owner profiles for each billboard
+      const billboardsWithOwners = await Promise.all(
+        (data || []).map(async (billboard) => {
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('full_name, company_name, phone, avatar_url')
+            .eq('user_id', billboard.owner_id)
+            .single();
+
+          return {
+            ...billboard,
+            owner: profileData || undefined
+          };
+        })
+      );
+
+      setBillboards(billboardsWithOwners);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [filters?.location, filters?.city, filters?.state, filters?.minPrice, filters?.maxPrice, filters?.billboardType, filters?.illumination]);
 
-  return { billboards, isLoading, error };
+  useEffect(() => {
+    fetchBillboards();
+  }, [fetchBillboards]);
+
+  // Subscribe to realtime updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('billboards-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'billboards'
+        },
+        (payload) => {
+          console.log('Billboard change detected:', payload);
+          // Refetch all billboards to ensure consistency with filters
+          fetchBillboards();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [fetchBillboards]);
+
+  return { billboards, isLoading, error, refetch: fetchBillboards };
 }

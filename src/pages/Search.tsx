@@ -26,6 +26,12 @@ interface MapProperty {
   lat: number;
   lng: number;
   imageUrl: string | null;
+  owner?: {
+    full_name: string;
+    company_name: string | null;
+    phone: string | null;
+    avatar_url: string | null;
+  };
 }
 
 // Transform billboard to property format for existing components
@@ -43,6 +49,7 @@ const transformBillboardToProperty = (billboard: Billboard): MapProperty => ({
   lat: Number(billboard.latitude),
   lng: Number(billboard.longitude),
   imageUrl: billboard.image_url || null,
+  owner: billboard.owner,
 });
 
 // Mock data as fallback when no real data exists

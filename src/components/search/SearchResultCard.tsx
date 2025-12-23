@@ -1,6 +1,13 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Eye, Users, Clock, Maximize } from 'lucide-react';
+import { MapPin, Eye, Users, Clock, Maximize, Phone, Building2, User } from 'lucide-react';
+
+interface OwnerInfo {
+  full_name: string;
+  company_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+}
 
 interface SearchResultCardProps {
   property: {
@@ -14,6 +21,7 @@ interface SearchResultCardProps {
     size: string;
     status: string;
     availability: string;
+    owner?: OwnerInfo;
   };
   isSelected: boolean;
   onClick: () => void;
@@ -24,7 +32,6 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelecte
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Only navigate if it's a real billboard (not mock data)
     if (!property.id.startsWith('mock-')) {
       navigate(`/billboard/${property.id}`);
     }
@@ -53,6 +60,41 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelecte
           <span className="text-[#9BFF43] text-xs">{property.availability}</span>
         </div>
       </div>
+
+      {/* Owner Info */}
+      {property.owner && (
+        <div className="bg-[#2A2A2A] rounded-lg p-3 mb-4">
+          <p className="text-white/50 text-xs mb-2">Propietario</p>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#3A3A3A] flex items-center justify-center overflow-hidden">
+              {property.owner.avatar_url ? (
+                <img src={property.owner.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-4 h-4 text-white/50" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-medium text-sm truncate">{property.owner.full_name}</p>
+              {property.owner.company_name && (
+                <div className="flex items-center gap-1 text-white/50 text-xs">
+                  <Building2 className="w-3 h-3" />
+                  <span className="truncate">{property.owner.company_name}</span>
+                </div>
+              )}
+            </div>
+            {property.owner.phone && (
+              <a 
+                href={`tel:${property.owner.phone}`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-1 text-[#9BFF43] text-xs hover:underline"
+              >
+                <Phone className="w-3 h-3" />
+                <span>{property.owner.phone}</span>
+              </a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Metrics */}
       <div className="grid grid-cols-4 gap-2 mb-4">
