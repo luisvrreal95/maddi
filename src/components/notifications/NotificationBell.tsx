@@ -48,10 +48,10 @@ const NotificationBell: React.FC = () => {
 
   const getNotificationLink = (notification: Notification): string | null => {
     if (notification.type === 'booking_request') {
-      return '/owner-dashboard';
+      return '/owner-dashboard?tab=reservas';
     }
     if (notification.type === 'booking_approved' || notification.type === 'booking_rejected') {
-      return '/business-dashboard';
+      return '/business';
     }
     if (notification.related_billboard_id) {
       return `/billboard/${notification.related_billboard_id}`;

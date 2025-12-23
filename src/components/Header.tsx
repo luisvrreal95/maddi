@@ -8,7 +8,7 @@ const Header: React.FC = () => {
   const { user, userRole } = useAuth();
 
   return (
-    <header className="flex items-center justify-between relative px-8 py-6 rounded-[36px] border-[1.5px] border-solid border-[rgba(255,255,255,0.30)] max-md:px-6 max-md:py-5 max-sm:px-4 max-sm:py-4">
+    <header className="flex items-center justify-between relative w-full px-8 py-5 rounded-full border border-white/20 max-md:px-6 max-md:py-4 max-sm:px-4 max-sm:py-3">
       {/* Logo */}
       <div className="flex items-center">
         <Link to="/">

@@ -243,13 +243,13 @@ const DesignTemplates: React.FC = () => {
   const displayedTemplates = activeTab === 'mine' ? templates : publicTemplates;
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen bg-[#121212]">
       {/* Header */}
-      <div className="p-4 md:p-6">
+      <div className="px-6 py-4">
         <Header />
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-6 pb-12">
+      <main className="max-w-7xl mx-auto px-6 pb-12">
         {/* Back link */}
         <Link 
           to="/business" 
