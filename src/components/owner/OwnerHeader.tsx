@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, Image, BarChart3, Bell } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { LayoutGrid, Image, BarChart3 } from 'lucide-react';
 
 interface OwnerHeaderProps {
   activeTab: 'dashboard' | 'propiedades' | 'stats';
@@ -14,7 +13,6 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
   activeTab,
   onTabChange,
   userName,
-  onAddProperty,
 }) => {
   const navItems = [
     { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutGrid },
@@ -23,16 +21,16 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
   ];
 
   return (
-    <header className="bg-foreground px-6 py-4">
+    <header className="bg-[#1A1A1A] px-6 py-4 border-b border-white/10">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-1">
-          <span className="text-3xl font-black italic text-[hsl(86,100%,63%)]">M</span>
-          <span className="text-2xl font-bold text-background">addi</span>
+          <span className="text-3xl font-black italic text-[#9BFF43]">M</span>
+          <span className="text-2xl font-bold text-white">addi</span>
         </Link>
 
         {/* Navigation Tabs */}
-        <nav className="flex items-center gap-2 bg-background/10 rounded-full p-1">
+        <nav className="flex items-center gap-1 bg-[#2A2A2A] rounded-full p-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -42,8 +40,8 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
                 onClick={() => onTabChange(item.id)}
                 className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-background text-foreground'
-                    : 'text-background/70 hover:text-background'
+                    ? 'bg-[#9BFF43] text-[#121212]'
+                    : 'text-white/70 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -55,9 +53,14 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
 
         {/* User Info */}
         <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-[#9BFF43] flex items-center justify-center">
+            <span className="text-[#121212] font-bold text-lg">
+              {userName.charAt(0).toUpperCase()}
+            </span>
+          </div>
           <div className="text-right">
-            <p className="text-background font-semibold text-sm">{userName}</p>
-            <p className="text-background/60 text-xs">Administrador</p>
+            <p className="text-white font-semibold text-sm">{userName}</p>
+            <p className="text-white/50 text-xs">Propietario</p>
           </div>
         </div>
       </div>
