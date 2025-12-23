@@ -213,22 +213,49 @@ export type Database = {
         }
         Relationships: []
       }
+      favorite_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           billboard_id: string
           created_at: string
+          folder_id: string | null
           id: string
           user_id: string
         }
         Insert: {
           billboard_id: string
           created_at?: string
+          folder_id?: string | null
           id?: string
           user_id: string
         }
         Update: {
           billboard_id?: string
           created_at?: string
+          folder_id?: string | null
           id?: string
           user_id?: string
         }
@@ -238,6 +265,13 @@ export type Database = {
             columns: ["billboard_id"]
             isOneToOne: false
             referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorites_folder_id_fkey"
+            columns: ["folder_id"]
+            isOneToOne: false
+            referencedRelation: "favorite_folders"
             referencedColumns: ["id"]
           },
         ]
