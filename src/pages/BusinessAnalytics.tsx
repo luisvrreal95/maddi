@@ -112,20 +112,30 @@ const BusinessAnalytics: React.FC = () => {
   const refreshTrafficData = async () => {
     setIsRefreshing(true);
     try {
-      // Call edge function to fetch fresh traffic data for each billboard
+      let updatedCount = 0;
+      
+      // Call edge function to fetch traffic data (respects weekly cache)
       for (const booking of bookings) {
         if (booking.billboard?.latitude && booking.billboard?.longitude) {
-          await supabase.functions.invoke('get-traffic-data', {
+          const { data, error } = await supabase.functions.invoke('get-traffic-data', {
             body: {
               billboard_id: booking.billboard_id,
               latitude: booking.billboard.latitude,
               longitude: booking.billboard.longitude,
             },
           });
+          
+          if (!error && data?.source === 'tomtom') {
+            updatedCount++;
+          }
         }
       }
       
-      toast.success('Datos de tráfico actualizados');
+      if (updatedCount > 0) {
+        toast.success(`Datos de ${updatedCount} espectacular(es) actualizados desde TomTom`);
+      } else {
+        toast.info('Los datos están actualizados (se actualizan semanalmente)');
+      }
       await fetchData();
     } catch (error) {
       console.error('Error refreshing traffic:', error);
@@ -250,6 +260,13 @@ const BusinessAnalytics: React.FC = () => {
           </div>
         ) : (
           <>
+            {/* TomTom Attribution */}
+            <div className="mb-4 p-3 bg-[#2A2A2A]/50 rounded-lg border border-white/5">
+              <p className="text-white/40 text-xs text-center">
+                📊 Tráfico vehicular estimado – Fuente: TomTom | Los datos se actualizan semanalmente
+              </p>
+            </div>
+
             {/* KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
@@ -257,11 +274,12 @@ const BusinessAnalytics: React.FC = () => {
                   <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
                     <Users className="w-5 h-5 text-[#9BFF43]" />
                   </div>
-                  <span className="text-white/50 text-sm">Impresiones Estimadas</span>
+                  <span className="text-white/50 text-sm">Tráfico Vehicular Estimado</span>
                 </div>
                 <p className="text-white text-3xl font-bold">
-                  {totalImpressions.toLocaleString()}
+                  ~{totalImpressions.toLocaleString()}
                 </p>
+                <p className="text-white/30 text-xs mt-1">vehículos durante campaña</p>
               </div>
 
               <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
