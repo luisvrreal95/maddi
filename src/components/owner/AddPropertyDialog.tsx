@@ -72,6 +72,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout>();
   const addressInputRef = useRef<HTMLInputElement>(null);
+  const isUserTypingRef = useRef(false);
   
   // Image upload
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -204,6 +205,10 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const reverseGeocode = async (lng: number, lat: number) => {
     if (!mapboxToken) return;
     
+    // Disable user typing flag to prevent dropdown from opening
+    isUserTypingRef.current = false;
+    setShowAddressSuggestions(false);
+    
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&language=es&types=address,poi,neighborhood`
@@ -227,9 +232,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     }
   };
 
-  // Address autocomplete
+  // Address autocomplete - only when user is typing
   useEffect(() => {
-    if (!address || address.length < 3 || !mapboxToken) {
+    if (!address || address.length < 3 || !mapboxToken || !isUserTypingRef.current) {
       setAddressSuggestions([]);
       return;
     }
@@ -246,7 +251,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         );
         const data = await response.json();
         
-        if (data.features) {
+        if (data.features && isUserTypingRef.current) {
           setAddressSuggestions(data.features);
           setShowAddressSuggestions(true);
         }
@@ -265,10 +270,13 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   }, [address, mapboxToken]);
 
   const handleSelectAddress = (suggestion: LocationSuggestion) => {
+    // Disable typing flag to prevent dropdown from reopening
+    isUserTypingRef.current = false;
     setAddress(suggestion.place_name);
     setLongitude(suggestion.center[0]);
     setLatitude(suggestion.center[1]);
     setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
     
     // Extract city and state
     const parts = suggestion.place_name.split(', ');
@@ -493,8 +501,15 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 <Input
                   ref={addressInputRef}
                   value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  onFocus={() => addressSuggestions.length > 0 && setShowAddressSuggestions(true)}
+                  onChange={(e) => {
+                    isUserTypingRef.current = true;
+                    setAddress(e.target.value);
+                  }}
+                  onFocus={() => {
+                    if (addressSuggestions.length > 0 && isUserTypingRef.current) {
+                      setShowAddressSuggestions(true);
+                    }
+                  }}
                   className="pl-10 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                   placeholder="Escribe la dirección del espectacular..."
                 />
