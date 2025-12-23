@@ -3,7 +3,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Bell } from 'lucide-react';
 import { toast } from 'sonner';
 import { Billboard } from '@/hooks/useBillboards';
 import OwnerHeader from '@/components/owner/OwnerHeader';
@@ -13,6 +12,9 @@ import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
 import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
 import BookingManagement from '@/components/dashboard/BookingManagement';
+import BillboardSelector from '@/components/owner/BillboardSelector';
+import TrafficAnalytics from '@/components/owner/TrafficAnalytics';
+import NearbyBusinesses from '@/components/owner/NearbyBusinesses';
 import {
   AlertDialog,
   AlertDialogAction,
