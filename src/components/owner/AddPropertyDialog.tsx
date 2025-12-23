@@ -124,55 +124,72 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
   // Initialize map on step 1
   useEffect(() => {
-    if (!open || step !== 1 || !mapContainer.current || !mapboxToken) return;
+    if (!open || step !== 1 || !mapboxToken) return;
     
-    // Small delay to ensure container is mounted
+    // Larger delay to ensure dialog and container are fully mounted
     const timer = setTimeout(() => {
       if (!mapContainer.current) return;
       
+      // Clean up existing map first
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+      
       mapboxgl.accessToken = mapboxToken;
       
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [longitude, latitude],
-        zoom: 14,
-      });
+      try {
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/dark-v11',
+          center: [longitude, latitude],
+          zoom: 14,
+        });
 
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-      // Add draggable marker
-      marker.current = new mapboxgl.Marker({ 
-        color: '#9BFF43',
-        draggable: true 
-      })
-        .setLngLat([longitude, latitude])
-        .addTo(map.current);
+        // Add draggable marker
+        marker.current = new mapboxgl.Marker({ 
+          color: '#9BFF43',
+          draggable: true 
+        })
+          .setLngLat([longitude, latitude])
+          .addTo(map.current);
 
-      // Update coordinates when marker is dragged
-      marker.current.on('dragend', () => {
-        const lngLat = marker.current?.getLngLat();
-        if (lngLat) {
-          setLongitude(lngLat.lng);
-          setLatitude(lngLat.lat);
-          // Reverse geocode to get address
-          reverseGeocode(lngLat.lng, lngLat.lat);
-        }
-      });
+        // Update coordinates when marker is dragged
+        marker.current.on('dragend', () => {
+          const lngLat = marker.current?.getLngLat();
+          if (lngLat) {
+            setLongitude(lngLat.lng);
+            setLatitude(lngLat.lat);
+            // Reverse geocode to get address
+            reverseGeocode(lngLat.lng, lngLat.lat);
+          }
+        });
 
-      // Allow clicking on map to move marker
-      map.current.on('click', (e) => {
-        marker.current?.setLngLat(e.lngLat);
-        setLongitude(e.lngLat.lng);
-        setLatitude(e.lngLat.lat);
-        reverseGeocode(e.lngLat.lng, e.lngLat.lat);
-      });
-    }, 100);
+        // Allow clicking on map to move marker
+        map.current.on('click', (e) => {
+          marker.current?.setLngLat(e.lngLat);
+          setLongitude(e.lngLat.lng);
+          setLatitude(e.lngLat.lat);
+          reverseGeocode(e.lngLat.lng, e.lngLat.lat);
+        });
+        
+        // Force resize after map loads
+        map.current.on('load', () => {
+          map.current?.resize();
+        });
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    }, 300);
 
     return () => {
       clearTimeout(timer);
-      map.current?.remove();
-      map.current = null;
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
     };
   }, [open, step, mapboxToken]);
 
