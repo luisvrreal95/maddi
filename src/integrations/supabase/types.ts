@@ -136,6 +136,147 @@ export type Database = {
           },
         ]
       }
+      conversations: {
+        Row: {
+          billboard_id: string
+          business_id: string
+          created_at: string
+          id: string
+          last_message_at: string
+          owner_id: string
+        }
+        Insert: {
+          billboard_id: string
+          business_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          owner_id: string
+        }
+        Update: {
+          billboard_id?: string
+          business_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: false
+            referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          height_px: number
+          id: string
+          image_url: string
+          is_public: boolean
+          name: string
+          updated_at: string
+          user_id: string
+          width_px: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          height_px?: number
+          id?: string
+          image_url: string
+          is_public?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+          width_px?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          height_px?: number
+          id?: string
+          image_url?: string
+          is_public?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+          width_px?: number
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          billboard_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          billboard_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          billboard_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: false
+            referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
