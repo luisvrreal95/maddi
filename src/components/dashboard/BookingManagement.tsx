@@ -36,6 +36,59 @@ const BookingManagement: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchBookings();
+
+      // Subscribe to realtime booking updates for owner's billboards
+      const setupRealtimeSubscription = async () => {
+        const { data: billboards } = await supabase
+          .from('billboards')
+          .select('id')
+          .eq('owner_id', user.id);
+
+        if (billboards && billboards.length > 0) {
+          const billboardIds = billboards.map(b => b.id);
+          
+          const channel = supabase
+            .channel(`owner-bookings-${user.id}`)
+            .on(
+              'postgres_changes',
+              {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'bookings',
+              },
+              async (payload) => {
+                const newBooking = payload.new as any;
+                if (billboardIds.includes(newBooking.billboard_id)) {
+                  toast.success('¡Nueva solicitud de reserva recibida!');
+                  fetchBookings();
+                }
+              }
+            )
+            .on(
+              'postgres_changes',
+              {
+                event: 'UPDATE',
+                schema: 'public',
+                table: 'bookings',
+              },
+              (payload) => {
+                const updated = payload.new as any;
+                if (billboardIds.includes(updated.billboard_id)) {
+                  setBookings(prev => 
+                    prev.map(b => b.id === updated.id ? { ...b, status: updated.status } : b)
+                  );
+                }
+              }
+            )
+            .subscribe();
+
+          return () => {
+            supabase.removeChannel(channel);
+          };
+        }
+      };
+
+      setupRealtimeSubscription();
     }
   }, [user]);
 

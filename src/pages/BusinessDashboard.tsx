@@ -39,6 +39,41 @@ const BusinessDashboard: React.FC = () => {
   useEffect(() => {
     if (user) {
       fetchBookings();
+
+      // Subscribe to realtime booking updates
+      const channel = supabase
+        .channel(`business-bookings-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'bookings',
+            filter: `business_id=eq.${user.id}`,
+          },
+          (payload) => {
+            if (payload.eventType === 'UPDATE') {
+              const updated = payload.new as any;
+              setBookings(prev => 
+                prev.map(b => b.id === updated.id ? { ...b, status: updated.status } : b)
+              );
+              
+              // Show toast notification for status changes
+              if (updated.status === 'approved') {
+                toast.success('¡Tu reserva ha sido aprobada!');
+              } else if (updated.status === 'rejected') {
+                toast.error('Tu reserva ha sido rechazada');
+              }
+            } else {
+              fetchBookings();
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
