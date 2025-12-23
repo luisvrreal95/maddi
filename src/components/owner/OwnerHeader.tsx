@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { LayoutGrid, Image, BarChart3, LogOut } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 interface OwnerHeaderProps {
   activeTab: 'dashboard' | 'propiedades' | 'stats';
@@ -56,6 +57,7 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
 
         {/* User Info & Sign Out */}
         <div className="flex items-center gap-4">
+          <NotificationBell />
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#9BFF43] flex items-center justify-center">
               <span className="text-[#121212] font-bold text-lg">
