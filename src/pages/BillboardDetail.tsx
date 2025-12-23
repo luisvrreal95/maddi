@@ -8,6 +8,9 @@ import { ArrowLeft, MapPin, Maximize2, Sun, Eye, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingDialog from '@/components/booking/BookingDialog';
 import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
+import TrafficEstimate from '@/components/billboard/TrafficEstimate';
+import FavoriteButton from '@/components/favorites/FavoriteButton';
+import StartChatButton from '@/components/chat/StartChatButton';
 
 const BillboardDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -128,13 +131,16 @@ const BillboardDetail: React.FC = () => {
                   {billboard.address}, {billboard.city}, {billboard.state}
                 </p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-sm ${
-                billboard.is_available 
-                  ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
-                  : 'bg-red-500/20 text-red-400'
-              }`}>
-                {billboard.is_available ? 'Disponible' : 'Ocupado'}
-              </span>
+              <div className="flex items-center gap-2">
+                <FavoriteButton billboardId={billboard.id} />
+                <span className={`px-3 py-1 rounded-full text-sm ${
+                  billboard.is_available 
+                    ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
+                    : 'bg-red-500/20 text-red-400'
+                }`}>
+                  {billboard.is_available ? 'Disponible' : 'Ocupado'}
+                </span>
+              </div>
             </div>
 
             {billboard.description && (
@@ -196,8 +202,24 @@ const BillboardDetail: React.FC = () => {
             {/* Availability Calendar */}
             <AvailabilityCalendar billboardId={billboard.id} className="mb-6" />
 
+            {/* Traffic Estimate */}
+            <TrafficEstimate 
+              billboardId={billboard.id}
+              latitude={Number(billboard.latitude)}
+              longitude={Number(billboard.longitude)}
+            />
+
+            {/* Contact Owner Button */}
+            <div className="mt-6">
+              <StartChatButton 
+                billboardId={billboard.id} 
+                ownerId={billboard.owner_id}
+                className="w-full"
+              />
+            </div>
+
             {/* Additional Info */}
-            <div className="text-white/50 text-sm space-y-2">
+            <div className="text-white/50 text-sm space-y-2 mt-6">
               <p>• {billboard.faces} cara{billboard.faces > 1 ? 's' : ''}</p>
               <p>• Reserva mínima: 1 mes</p>
               <p>• Instalación incluida</p>
