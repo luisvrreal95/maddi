@@ -28,6 +28,7 @@ export type Database = {
           illumination: string
           image_url: string | null
           is_available: boolean
+          last_traffic_update: string | null
           latitude: number
           longitude: number
           owner_id: string
@@ -50,6 +51,7 @@ export type Database = {
           illumination?: string
           image_url?: string | null
           is_available?: boolean
+          last_traffic_update?: string | null
           latitude: number
           longitude: number
           owner_id: string
@@ -72,6 +74,7 @@ export type Database = {
           illumination?: string
           image_url?: string | null
           is_available?: boolean
+          last_traffic_update?: string | null
           latitude?: number
           longitude?: number
           owner_id?: string
