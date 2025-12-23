@@ -55,7 +55,8 @@ export function useBillboards(filters?: BillboardFilters) {
         .select('*')
         .eq('is_available', true);
 
-      if (filters?.location) {
+      // Only filter by location if it's a specific search (not default)
+      if (filters?.location && !filters.location.includes('Mexicali')) {
         query = query.or(
           `city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,address.ilike.%${filters.location}%`
         );

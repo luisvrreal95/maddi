@@ -6,6 +6,7 @@ import SearchMap from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
 import LocationAutocomplete from '@/components/search/LocationAutocomplete';
 import BookingDialog from '@/components/booking/BookingDialog';
+import NotificationBell from '@/components/notifications/NotificationBell';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
 import { useAuth } from '@/hooks/useAuth';
@@ -191,6 +192,7 @@ const SearchPage: React.FC = () => {
             <div className="flex items-center gap-3 ml-4">
               {user ? (
                 <>
+                  <NotificationBell />
                   <div className="flex items-center gap-2 text-white/70">
                     <User className="w-4 h-4" />
                     <span className="text-sm">{userRole === 'business' ? 'Negocio' : 'Usuario'}</span>

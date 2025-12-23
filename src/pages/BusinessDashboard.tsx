@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, Calendar, Clock, Check, X, DollarSign, Eye, MapPin } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Check, X, DollarSign, Eye, MapPin, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 interface Booking {
   id: string;
@@ -161,12 +162,15 @@ const BusinessDashboard: React.FC = () => {
             </div>
           </Link>
           <h1 className="text-white text-xl font-bold">Mis Reservas</h1>
-          <Link
-            to="/search"
-            className="px-4 py-2 bg-[#9BFF43] text-[#202020] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors"
-          >
-            Buscar Espacios
-          </Link>
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+            <Link
+              to="/search"
+              className="px-4 py-2 bg-[#9BFF43] text-[#202020] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors"
+            >
+              Buscar Espacios
+            </Link>
+          </div>
         </div>
       </header>
 

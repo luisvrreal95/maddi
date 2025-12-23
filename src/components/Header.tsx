@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User, LayoutDashboard, Calendar } from 'lucide-react';
+import NotificationBell from '@/components/notifications/NotificationBell';
 
 const Header: React.FC = () => {
   const { user, signOut, userRole } = useAuth();
@@ -22,6 +23,7 @@ const Header: React.FC = () => {
       <nav className="flex justify-end items-center gap-4 relative max-sm:gap-3">
         {user ? (
           <>
+            <NotificationBell />
             <div className="flex items-center gap-2 text-white">
               <User className="w-5 h-5 text-[#9BFF43]" />
               <span className="text-sm">
