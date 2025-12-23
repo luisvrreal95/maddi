@@ -37,6 +37,14 @@ const OwnerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'propiedades' | 'stats' | 'reservas'>('dashboard');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [billboardToDelete, setBillboardToDelete] = useState<Billboard | null>(null);
+  const [selectedBillboard, setSelectedBillboard] = useState<Billboard | null>(null);
+
+  // Auto-select first billboard when billboards load
+  useEffect(() => {
+    if (billboards.length > 0 && !selectedBillboard) {
+      setSelectedBillboard(billboards[0]);
+    }
+  }, [billboards]);
 
   // Handle tab from URL params
   useEffect(() => {
@@ -157,41 +165,31 @@ const OwnerDashboard: React.FC = () => {
               </Button>
             </div>
 
-            {/* Dashboard Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Earnings Chart - Left Side */}
-              <div className="lg:col-span-2">
-                <h2 className="text-xl font-semibold text-white mb-4 italic">
-                  Últimas ganancias
-                </h2>
-                <EarningsChart totalEarnings={totalEarnings} />
-              </div>
+            {/* Billboard Selector */}
+            <BillboardSelector
+              billboards={billboards}
+              selectedId={selectedBillboard?.id || null}
+              onSelect={setSelectedBillboard}
+              isLoading={isLoading}
+            />
 
-              {/* Properties List - Right Side */}
-              <div>
-                <h2 className="text-xl font-semibold text-white mb-4">
-                  Propiedades
-                </h2>
-                <div className="space-y-4">
-                  {isLoading ? (
-                    <div className="text-white/60 text-center py-8">
-                      Cargando...
-                    </div>
-                  ) : billboards.length === 0 ? (
-                    <div className="text-white/60 text-center py-8">
-                      No hay propiedades aún
-                    </div>
-                  ) : (
-                    billboards.slice(0, 3).map((billboard) => (
-                      <PropertyListItem
-                        key={billboard.id}
-                        billboard={billboard}
-                        onClick={() => setActiveTab('propiedades')}
-                      />
-                    ))
-                  )}
-                </div>
+            {/* Analytics Grid */}
+            {selectedBillboard && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+                {/* Traffic Analytics */}
+                <TrafficAnalytics billboard={selectedBillboard} />
+
+                {/* Nearby Businesses */}
+                <NearbyBusinesses billboard={selectedBillboard} />
               </div>
+            )}
+
+            {/* Earnings Overview */}
+            <div className="mt-8">
+              <h2 className="text-xl font-semibold text-white mb-4 italic">
+                Últimas ganancias
+              </h2>
+              <EarningsChart totalEarnings={totalEarnings} />
             </div>
           </>
         )}
