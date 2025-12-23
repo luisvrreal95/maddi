@@ -10,7 +10,9 @@ import SearchPage from "./pages/Search";
 import Auth from "./pages/Auth";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import BusinessDashboard from "./pages/BusinessDashboard";
+import BusinessAnalytics from "./pages/BusinessAnalytics";
 import BillboardDetail from "./pages/BillboardDetail";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,7 +31,9 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<OwnerDashboard />} />
               <Route path="/my-bookings" element={<BusinessDashboard />} />
+              <Route path="/business-analytics" element={<BusinessAnalytics />} />
               <Route path="/billboard/:id" element={<BillboardDetail />} />
+              <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

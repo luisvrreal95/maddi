@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LogOut, User, LayoutDashboard, Calendar } from 'lucide-react';
+import { LogOut, User, LayoutDashboard, Calendar, Settings } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 
 const Header: React.FC = () => {
@@ -24,12 +24,12 @@ const Header: React.FC = () => {
         {user ? (
           <>
             <NotificationBell />
-            <div className="flex items-center gap-2 text-white">
+            <Link to="/settings" className="flex items-center gap-2 text-white hover:text-[#9BFF43] transition-colors">
               <User className="w-5 h-5 text-[#9BFF43]" />
               <span className="text-sm">
                 {userRole === 'owner' ? 'Propietario' : userRole === 'business' ? 'Negocio' : 'Usuario'}
               </span>
-            </div>
+            </Link>
             {userRole === 'owner' && (
               <Link to="/dashboard">
                 <button className="flex justify-center items-center gap-2.5 backdrop-blur-[30px] relative border px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors">

@@ -1,1 +1,10 @@
 project_id = "szmflagbbuxcuuxpvnkt"
+
+[functions.ai-search]
+verify_jwt = false
+
+[functions.get-mapbox-token]
+verify_jwt = false
+
+[functions.get-traffic-data]
+verify_jwt = false
