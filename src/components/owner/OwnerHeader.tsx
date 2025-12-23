@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { LayoutGrid, Image, BarChart3 } from 'lucide-react';
+import { LayoutGrid, Image, BarChart3, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface OwnerHeaderProps {
   activeTab: 'dashboard' | 'propiedades' | 'stats';
@@ -14,6 +15,8 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
   onTabChange,
   userName,
 }) => {
+  const { signOut } = useAuth();
+  
   const navItems = [
     { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutGrid },
     { id: 'propiedades' as const, label: 'Propiedades', icon: Image },
@@ -51,17 +54,26 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
           })}
         </nav>
 
-        {/* User Info */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[#9BFF43] flex items-center justify-center">
-            <span className="text-[#121212] font-bold text-lg">
-              {userName.charAt(0).toUpperCase()}
-            </span>
+        {/* User Info & Sign Out */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#9BFF43] flex items-center justify-center">
+              <span className="text-[#121212] font-bold text-lg">
+                {userName.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="text-right">
+              <p className="text-white font-semibold text-sm">{userName}</p>
+              <p className="text-white/50 text-xs">Propietario</p>
+            </div>
           </div>
-          <div className="text-right">
-            <p className="text-white font-semibold text-sm">{userName}</p>
-            <p className="text-white/50 text-xs">Propietario</p>
-          </div>
+          <button
+            onClick={() => signOut()}
+            className="flex items-center gap-2 px-4 py-2 text-white/70 hover:text-white hover:bg-white/5 rounded-full transition-all"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm">Salir</span>
+          </button>
         </div>
       </div>
     </header>

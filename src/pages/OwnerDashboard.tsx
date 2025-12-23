@@ -11,6 +11,16 @@ import EarningsChart from '@/components/owner/EarningsChart';
 import PropertyListItem from '@/components/owner/PropertyListItem';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const OwnerDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -20,6 +30,8 @@ const OwnerDashboard: React.FC = () => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingBillboard, setEditingBillboard] = useState<Billboard | null>(null);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'propiedades' | 'stats'>('dashboard');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [billboardToDelete, setBillboardToDelete] = useState<Billboard | null>(null);
 
   useEffect(() => {
     if (!authLoading && (!user || userRole !== 'owner')) {
@@ -61,6 +73,33 @@ const OwnerDashboard: React.FC = () => {
   const handleEditBillboard = (billboard: Billboard) => {
     setEditingBillboard(billboard);
     setShowAddDialog(true);
+  };
+
+  const handleDeleteClick = (billboard: Billboard) => {
+    setBillboardToDelete(billboard);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!billboardToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from('billboards')
+        .delete()
+        .eq('id', billboardToDelete.id);
+      
+      if (error) throw error;
+      
+      toast.success('Espectacular eliminado correctamente');
+      fetchBillboards();
+    } catch (error) {
+      console.error('Error deleting billboard:', error);
+      toast.error('Error al eliminar el espectacular');
+    } finally {
+      setDeleteDialogOpen(false);
+      setBillboardToDelete(null);
+    }
   };
 
   // Get user name from profiles or email
@@ -204,6 +243,7 @@ const OwnerDashboard: React.FC = () => {
                     key={billboard.id}
                     billboard={billboard}
                     onEdit={() => handleEditBillboard(billboard)}
+                    onDelete={() => handleDeleteClick(billboard)}
                   />
                 ))}
               </div>
@@ -240,6 +280,31 @@ const OwnerDashboard: React.FC = () => {
         billboard={editingBillboard}
         onSave={handleBillboardSaved}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-[#1E1E1E] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">
+              ¿Eliminar espectacular?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
+              Esta acción no se puede deshacer. Se eliminará permanentemente "{billboardToDelete?.title}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#2A2A2A] border-white/10 text-white hover:bg-[#3A3A3A]">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

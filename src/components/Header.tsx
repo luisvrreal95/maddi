@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { LogOut, User, LayoutDashboard, Calendar } from 'lucide-react';
-import ThemeToggle from './ThemeToggle';
 
 const Header: React.FC = () => {
   const { user, signOut, userRole } = useAuth();
@@ -21,7 +20,6 @@ const Header: React.FC = () => {
       </div>
 
       <nav className="flex justify-end items-center gap-4 relative max-sm:gap-3">
-        <ThemeToggle />
         {user ? (
           <>
             <div className="flex items-center gap-2 text-white">

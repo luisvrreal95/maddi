@@ -1,13 +1,14 @@
 import React from 'react';
-import { Pencil, Users, Eye, Clock, CheckCircle2, Maximize } from 'lucide-react';
+import { Pencil, Trash2, Users, Eye, Clock, CheckCircle2, Maximize } from 'lucide-react';
 import { Billboard } from '@/hooks/useBillboards';
 
 interface OwnerPropertyCardProps {
   billboard: Billboard;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
-const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit }) => {
+const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit, onDelete }) => {
   // Calculate mock values for display (these would come from actual data in production)
   const dailyViews = billboard.daily_impressions || 20000;
   const peakHours = '8am-12pm';
@@ -28,13 +29,21 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
         </div>
       )}
       
-      {/* Edit Button */}
-      <button
-        onClick={onEdit}
-        className="absolute top-4 right-4 text-white/60 hover:text-[#9BFF43] transition-colors bg-[#2A2A2A] p-2 rounded-lg"
-      >
-        <Pencil className="w-4 h-4" />
-      </button>
+      {/* Action Buttons */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        <button
+          onClick={onEdit}
+          className="text-white/60 hover:text-[#9BFF43] transition-colors bg-[#2A2A2A] p-2 rounded-lg"
+        >
+          <Pencil className="w-4 h-4" />
+        </button>
+        <button
+          onClick={onDelete}
+          className="text-white/60 hover:text-red-500 transition-colors bg-[#2A2A2A] p-2 rounded-lg"
+        >
+          <Trash2 className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* Title & Address */}
       <div className="mb-4 pr-10">

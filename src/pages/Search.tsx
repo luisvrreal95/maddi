@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, List, Map } from 'lucide-react';
+import { ArrowLeft, MapPin, List, Map, LogOut, User } from 'lucide-react';
 import SearchFilters from '@/components/search/SearchFilters';
 import SearchMap from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
@@ -97,7 +97,7 @@ const mockProperties: MapProperty[] = [
 const SearchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, userRole } = useAuth();
+  const { user, userRole, signOut } = useAuth();
   const location = searchParams.get('location') || 'Mexicali, B.C.';
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
@@ -232,6 +232,29 @@ const SearchPage: React.FC = () => {
               >
                 <Map className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* User Actions */}
+            <div className="flex items-center gap-3 ml-4">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 text-white/70">
+                    <User className="w-4 h-4" />
+                    <span className="text-sm">{userRole === 'business' ? 'Negocio' : 'Usuario'}</span>
+                  </div>
+                  <button
+                    onClick={() => signOut()}
+                    className="flex items-center gap-2 px-3 py-2 text-white/70 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span className="text-sm">Salir</span>
+                  </button>
+                </>
+              ) : (
+                <Link to="/auth" className="text-[#9BFF43] text-sm font-medium hover:underline">
+                  Iniciar sesión
+                </Link>
+              )}
             </div>
           </div>
 
