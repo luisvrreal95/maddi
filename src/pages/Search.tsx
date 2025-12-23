@@ -52,55 +52,6 @@ const transformBillboardToProperty = (billboard: Billboard): MapProperty => ({
   owner: billboard.owner,
 });
 
-// Mock data as fallback when no real data exists
-const mockProperties: MapProperty[] = [
-  {
-    id: 'mock-1',
-    name: 'Plaza Juárez',
-    address: 'Blvd. Benito Juárez 2151, Centro Cívico, 21000 Mexicali, B.C.',
-    price: '$990',
-    viewsPerDay: '+20,000',
-    pointsOfInterest: '+20',
-    peakHours: '8am-12pm',
-    size: '60m x 120m',
-    status: 'Medio',
-    availability: 'Inmediata',
-    lat: 32.6245,
-    lng: -115.4523,
-    imageUrl: null,
-  },
-  {
-    id: 'mock-2',
-    name: 'Centro Comercial La Cachanilla',
-    address: 'Blvd. Lázaro Cárdenas 1000, Centro, 21100 Mexicali, B.C.',
-    price: '$1,500',
-    viewsPerDay: '+35,000',
-    pointsOfInterest: '+45',
-    peakHours: '5pm-9pm',
-    size: '80m x 150m',
-    status: 'Alto',
-    availability: 'Inmediata',
-    lat: 32.6350,
-    lng: -115.4680,
-    imageUrl: null,
-  },
-  {
-    id: 'mock-3',
-    name: 'Plaza San Pedro',
-    address: 'Av. Reforma 1500, Zona Centro, 21000 Mexicali, B.C.',
-    price: '$850',
-    viewsPerDay: '+15,000',
-    pointsOfInterest: '+15',
-    peakHours: '9am-1pm',
-    size: '40m x 80m',
-    status: 'Bajo',
-    availability: 'Esta semana',
-    lat: 32.6180,
-    lng: -115.4400,
-    imageUrl: null,
-  },
-];
-
 const SearchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -124,10 +75,8 @@ const SearchPage: React.FC = () => {
     location: confirmedLocation,
   });
 
-  // Transform billboards or use mock data
-  const properties = billboards.length > 0 
-    ? billboards.map(transformBillboardToProperty)
-    : mockProperties;
+  // Transform billboards to property format - only real data, no mocks
+  const properties = billboards.map(transformBillboardToProperty);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -171,9 +120,6 @@ const SearchPage: React.FC = () => {
     if (billboard) {
       setSelectedBillboard(billboard);
       setBookingDialogOpen(true);
-    } else {
-      // If it's mock data, show a message
-      toast.info('Esta es una demostración. Regístrate para ver espectaculares reales.');
     }
   };
 
@@ -269,7 +215,6 @@ const SearchPage: React.FC = () => {
           <h1 className="text-white text-2xl font-bold mb-2">{confirmedLocation}</h1>
           <p className="text-white/50 text-sm">
             {isLoadingBillboards ? 'Cargando...' : `${properties.length} espectaculares disponibles`}
-            {billboards.length === 0 && !isLoadingBillboards && ' (datos de ejemplo)'}
           </p>
         </div>
 
@@ -284,16 +229,26 @@ const SearchPage: React.FC = () => {
         {/* Results List */}
         {(viewMode === 'split' || viewMode === 'list') && (
           <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} overflow-y-auto p-6`}>
-            <div className="space-y-4">
-              {properties.map((property) => (
-                <SearchResultCard
-                  key={property.id}
-                  property={property}
-                  isSelected={property.id === selectedPropertyId}
-                  onClick={() => setSelectedPropertyId(property.id)}
-                />
-              ))}
-            </div>
+            {properties.length === 0 && !isLoadingBillboards ? (
+              <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                <MapPin className="w-12 h-12 text-[#9BFF43] mb-4" />
+                <h3 className="text-white text-lg font-semibold mb-2">No hay espectaculares disponibles</h3>
+                <p className="text-white/50 text-sm max-w-md">
+                  No encontramos espectaculares en esta ubicación. Intenta buscar en otra zona o con diferentes filtros.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {properties.map((property) => (
+                  <SearchResultCard
+                    key={property.id}
+                    property={property}
+                    isSelected={property.id === selectedPropertyId}
+                    onClick={() => setSelectedPropertyId(property.id)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 

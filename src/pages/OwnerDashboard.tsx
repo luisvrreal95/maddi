@@ -11,6 +11,7 @@ import EarningsChart from '@/components/owner/EarningsChart';
 import PropertyListItem from '@/components/owner/PropertyListItem';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
+import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -252,14 +253,21 @@ const OwnerDashboard: React.FC = () => {
         )}
 
         {activeTab === 'stats' && (
-          <div className="text-center py-16">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Estadísticas
-            </h1>
-            <p className="text-white/60">
-              Próximamente: estadísticas detalladas de tus propiedades
-            </p>
-          </div>
+          <>
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-4xl font-bold text-white">
+                Estadísticas
+              </h1>
+              <Button
+                variant="outline"
+                size="icon"
+                className="border-white/20 bg-transparent hover:bg-white/10 text-white"
+              >
+                <Bell className="w-4 h-4" />
+              </Button>
+            </div>
+            <AnalyticsDashboard billboards={billboards} userId={user?.id || ''} />
+          </>
         )}
       </main>
 
