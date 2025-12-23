@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Maximize2, Sun, Eye, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingDialog from '@/components/booking/BookingDialog';
+import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
 
 const BillboardDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -191,6 +192,9 @@ const BillboardDetail: React.FC = () => {
                 </Button>
               )}
             </div>
+
+            {/* Availability Calendar */}
+            <AvailabilityCalendar billboardId={billboard.id} className="mb-6" />
 
             {/* Additional Info */}
             <div className="text-white/50 text-sm space-y-2">
