@@ -1,10 +1,10 @@
 import React from 'react';
 import Header from './Header';
-import SearchForm from './SearchForm';
+import SmartSearchForm from './SmartSearchForm';
 
 const HeroSection: React.FC = () => {
-  const handleSearch = (query: string) => {
-    console.log('Searching for:', query);
+  const handleSearch = (query: string, isAISearch?: boolean) => {
+    console.log('Searching for:', query, 'AI Search:', isAISearch);
   };
 
   return (
@@ -23,13 +23,13 @@ const HeroSection: React.FC = () => {
           <h1 className="text-white text-center text-[64px] font-normal tracking-[-2.56px] leading-[1.1] max-md:text-5xl max-md:tracking-[-1.92px] max-sm:text-[32px] max-sm:tracking-[-1.28px]">
             Transforma la forma de
           </h1>
-          
+
           <h2 className="text-[174px] font-bold leading-[0.9] uppercase max-md:text-[120px] max-sm:text-[60px] text-transparent bg-clip-text bg-gradient-to-r from-white via-[#8A8A8A] to-[#4A4A4A]">
             Anunciarte
           </h2>
         </div>
 
-        <SearchForm onSearch={handleSearch} />
+        <SmartSearchForm onSearch={handleSearch} />
 
         <p className="self-stretch text-center text-2xl font-medium tracking-[-0.96px] relative max-sm:text-lg">
           <span className="text-white">Con </span>
