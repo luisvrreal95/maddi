@@ -149,21 +149,12 @@ const OwnerDashboard: React.FC = () => {
               <h1 className="text-4xl font-bold text-white">
                 Bienvenido, {displayName}
               </h1>
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={() => setShowAddDialog(true)}
-                  className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
-                >
-                  Agregar Propiedad
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="border-white/20 bg-transparent hover:bg-white/10 text-white"
-                >
-                  <Bell className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                onClick={() => setShowAddDialog(true)}
+                className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+              >
+                Agregar Propiedad
+              </Button>
             </div>
 
             {/* Dashboard Grid */}
@@ -212,21 +203,12 @@ const OwnerDashboard: React.FC = () => {
               <h1 className="text-4xl font-bold text-white">
                 Propiedades
               </h1>
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={() => setShowAddDialog(true)}
-                  className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
-                >
-                  Agregar Propiedad
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="border-white/20 bg-transparent hover:bg-white/10 text-white"
-                >
-                  <Bell className="w-4 h-4" />
-                </Button>
-              </div>
+              <Button
+                onClick={() => setShowAddDialog(true)}
+                className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+              >
+                Agregar Propiedad
+              </Button>
             </div>
 
             {/* Properties Grid */}
@@ -270,13 +252,6 @@ const OwnerDashboard: React.FC = () => {
               <h1 className="text-4xl font-bold text-white">
                 Estadísticas
               </h1>
-              <Button
-                variant="outline"
-                size="icon"
-                className="border-white/20 bg-transparent hover:bg-white/10 text-white"
-              >
-                <Bell className="w-4 h-4" />
-              </Button>
             </div>
             <AnalyticsDashboard billboards={billboards} userId={user?.id || ''} />
           </>
