@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Billboard } from '@/hooks/useBillboards';
 import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
-import PropertyListItem from '@/components/owner/PropertyListItem';
+import DashboardTabs from '@/components/owner/DashboardTabs';
+import QuickStats from '@/components/owner/QuickStats';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
 import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
@@ -141,11 +142,14 @@ const OwnerDashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+        {/* Navigation Tabs */}
+        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
         {activeTab === 'dashboard' && (
           <>
             {/* Welcome Section */}
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-white">
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
                 Bienvenido, {displayName}
               </h1>
               <Button
@@ -155,6 +159,9 @@ const OwnerDashboard: React.FC = () => {
                 Agregar Propiedad
               </Button>
             </div>
+
+            {/* Quick Stats */}
+            <QuickStats billboards={billboards} userId={user?.id || ''} />
 
             {/* Billboard Selector */}
             <BillboardSelector
@@ -177,7 +184,7 @@ const OwnerDashboard: React.FC = () => {
           <>
             {/* Properties Header */}
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-white">
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
                 Propiedades
               </h1>
               <Button
@@ -226,7 +233,7 @@ const OwnerDashboard: React.FC = () => {
         {activeTab === 'stats' && (
           <>
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-white">
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
                 Estadísticas
               </h1>
             </div>
@@ -237,7 +244,7 @@ const OwnerDashboard: React.FC = () => {
         {activeTab === 'reservas' && (
           <>
             <div className="flex items-center justify-between mb-8">
-              <h1 className="text-4xl font-bold text-white">
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
                 Gestión de Reservas
               </h1>
             </div>
