@@ -32,14 +32,16 @@ interface LocationSuggestion {
   center: [number, number];
 }
 
-const POINTS_OF_INTEREST = [
-  'Plaza comerciales',
-  'Escuelas',
-  'Restaurantes',
-  'Gasolineras',
-  'Oficinas',
-  'Áreas verdes',
-];
+const POI_CATEGORY_MAP: Record<string, string[]> = {
+  'Plaza comerciales': ['Centros comerciales', 'Tiendas departamentales', 'Tiendas'],
+  'Escuelas': ['Escuelas', 'Universidades'],
+  'Restaurantes': ['Restaurantes', 'Cafés y bares', 'Supermercados'],
+  'Gasolineras': ['Gasolineras', 'Lavado de autos', 'Talleres'],
+  'Oficinas': ['Bancos', 'Gobierno', 'Correos'],
+  'Áreas verdes': ['Parques', 'Centros deportivos', 'Gimnasios'],
+};
+
+const POINTS_OF_INTEREST = Object.keys(POI_CATEGORY_MAP);
 
 const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   open,
@@ -82,6 +84,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
   // Step 2 form data
   const [pointsOfInterest, setPointsOfInterest] = useState<string[]>([]);
+  const [detectedPOIs, setDetectedPOIs] = useState<string[]>([]);
+  const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
   const [status, setStatus] = useState('');
   const [height, setHeight] = useState('');
   const [width, setWidth] = useState('');
@@ -312,11 +316,48 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setAddressSuggestions([]);
   };
 
-  const handleContinue = () => {
+  const fetchNearbyPOIs = async () => {
+    if (!latitude || !longitude) return;
+    
+    setIsLoadingPOIs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-nearby-poi', {
+        body: { latitude, longitude, billboard_title: title, city }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.success && data?.categories) {
+        // Map TomTom categories to our POI categories
+        const detected: string[] = [];
+        
+        for (const [poiCategory, tomtomCategories] of Object.entries(POI_CATEGORY_MAP)) {
+          const hasCategory = data.categories.some((cat: any) => 
+            (tomtomCategories as string[]).includes(cat.name) && cat.count > 0
+          );
+          if (hasCategory) {
+            detected.push(poiCategory);
+          }
+        }
+        
+        setDetectedPOIs(detected);
+        setPointsOfInterest(detected);
+      }
+    } catch (error) {
+      console.error('Error fetching POIs:', error);
+    } finally {
+      setIsLoadingPOIs(false);
+    }
+  };
+
+  const handleContinue = async () => {
     if (!title || !price || !address) {
       toast.error('Por favor completa el nombre, precio y dirección');
       return;
     }
+    
+    // Fetch POIs automatically when moving to step 2
+    fetchNearbyPOIs();
     setStep(2);
   };
 

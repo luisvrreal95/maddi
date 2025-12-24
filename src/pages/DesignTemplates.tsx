@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, Plus, Layout, Trash2, Eye, Download, Upload, Loader2, Image as ImageIcon, X } from 'lucide-react';
+import { Plus, Layout, Trash2, Eye, Download, Upload, Loader2, Image as ImageIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import Header from '@/components/Header';
+import BusinessHeader from '@/components/navigation/BusinessHeader';
 
 interface DesignTemplate {
   id: string;
@@ -244,21 +244,9 @@ const DesignTemplates: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#121212]">
-      {/* Header */}
-      <div className="px-6 py-4">
-        <Header />
-      </div>
+      <BusinessHeader />
 
-      <main className="max-w-7xl mx-auto px-6 pb-12">
-        {/* Back link */}
-        <Link 
-          to="/business" 
-          className="inline-flex items-center gap-2 text-white/60 hover:text-white transition-colors mb-8"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Volver al dashboard</span>
-        </Link>
-
+      <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Page header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
