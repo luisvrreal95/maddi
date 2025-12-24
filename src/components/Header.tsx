@@ -1,11 +1,39 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Menu, Search, Calendar, Heart, MessageSquare, Layout, BarChart3, Settings, LogOut, LayoutDashboard, Building2 } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
-import UserMenu from '@/components/navigation/UserMenu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Header: React.FC = () => {
-  const { user, userRole } = useAuth();
+  const { user, userRole, signOut } = useAuth();
+
+  // Menu items for business users
+  const businessMenuItems = [
+    { to: '/search', icon: Search, label: 'Buscar Espacios' },
+    { to: '/business', icon: Calendar, label: 'Mis Reservas' },
+    { to: '/favorites', icon: Heart, label: 'Favoritos' },
+    { to: '/messages', icon: MessageSquare, label: 'Mensajes' },
+    { to: '/design-templates', icon: Layout, label: 'Plantillas' },
+    { to: '/business-analytics', icon: BarChart3, label: 'Analytics' },
+  ];
+
+  // Menu items for owner users
+  const ownerMenuItems = [
+    { to: '/owner?tab=dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/owner?tab=propiedades', icon: Building2, label: 'Propiedades' },
+    { to: '/owner?tab=reservas', icon: Calendar, label: 'Reservas' },
+    { to: '/owner?tab=stats', icon: BarChart3, label: 'Estadísticas' },
+    { to: '/messages', icon: MessageSquare, label: 'Mensajes' },
+  ];
+
+  const menuItems = userRole === 'owner' ? ownerMenuItems : businessMenuItems;
 
   return (
     <header className="flex items-center justify-between relative w-full px-8 py-5 max-md:px-6 max-md:py-4 max-sm:px-4 max-sm:py-3">
@@ -24,7 +52,7 @@ const Header: React.FC = () => {
       </div>
 
       {/* Right side navigation */}
-      <nav className="flex items-center gap-4 max-sm:gap-2">
+      <nav className="flex items-center gap-3">
         {/* Show "Anuncia tu espacio" for non-owners */}
         {(!user || userRole !== 'owner') && (
           <Link 
@@ -37,7 +65,47 @@ const Header: React.FC = () => {
         
         {user && <NotificationBell />}
         
-        <UserMenu />
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                <Menu className="w-5 h-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
+              {menuItems.map((item) => (
+                <DropdownMenuItem key={item.to} asChild className="text-white hover:bg-white/10 cursor-pointer">
+                  <Link to={item.to} className="flex items-center gap-2">
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/settings" className="flex items-center gap-2">
+                  <Settings className="w-4 h-4" />
+                  Configuración
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem 
+                onClick={() => signOut()}
+                className="text-red-400 hover:bg-red-500/10 cursor-pointer"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link 
+            to="/auth" 
+            className="bg-[#9BFF43] text-[#121212] px-4 py-2 rounded-lg font-medium hover:bg-[#8AE63A] transition-colors text-sm"
+          >
+            Iniciar Sesión
+          </Link>
+        )}
       </nav>
     </header>
   );

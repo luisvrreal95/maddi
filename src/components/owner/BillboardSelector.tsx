@@ -1,8 +1,15 @@
 import React from 'react';
 import { Billboard } from '@/hooks/useBillboards';
+import { MapPin, ChevronDown } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { MapPin, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface BillboardSelectorProps {
   billboards: Billboard[];
@@ -19,76 +26,80 @@ const BillboardSelector: React.FC<BillboardSelectorProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {[1, 2, 3].map((i) => (
-          <Card key={i} className="bg-[#1E1E1E] border-white/10 p-4 animate-pulse">
-            <div className="h-24 bg-white/10 rounded-lg mb-3" />
-            <div className="h-4 bg-white/10 rounded w-3/4 mb-2" />
-            <div className="h-3 bg-white/10 rounded w-1/2" />
-          </Card>
-        ))}
-      </div>
+      <Card className="bg-[#1E1E1E] border-white/10 p-4">
+        <Skeleton className="h-10 w-full bg-white/10" />
+      </Card>
     );
   }
 
   if (billboards.length === 0) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-8 text-center">
+      <Card className="bg-[#1E1E1E] border-white/10 p-6 text-center">
         <p className="text-white/60">No tienes espectaculares registrados</p>
       </Card>
     );
   }
 
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {billboards.map((billboard) => {
-        const isSelected = selectedId === billboard.id;
-        const imageUrl = billboard.image_url || '/placeholder.svg';
+  const selectedBillboard = billboards.find(b => b.id === selectedId);
 
-        return (
-          <Card
-            key={billboard.id}
-            onClick={() => onSelect(billboard)}
-            className={cn(
-              "relative bg-[#1E1E1E] border-2 p-3 cursor-pointer transition-all duration-200 hover:border-[#9BFF43]/50",
-              isSelected 
-                ? "border-[#9BFF43] ring-2 ring-[#9BFF43]/30" 
-                : "border-white/10"
-            )}
-          >
-            {/* Selection indicator */}
-            {isSelected && (
-              <div className="absolute top-2 right-2 w-6 h-6 bg-[#9BFF43] rounded-full flex items-center justify-center z-10">
-                <Check className="w-4 h-4 text-[#121212]" />
+  return (
+    <div className="mb-6">
+      <label className="text-white/70 text-sm mb-2 block">Seleccionar propiedad</label>
+      <Select
+        value={selectedId || undefined}
+        onValueChange={(value) => {
+          const billboard = billboards.find(b => b.id === value);
+          if (billboard) onSelect(billboard);
+        }}
+      >
+        <SelectTrigger className="w-full md:w-80 bg-[#1E1E1E] border-white/10 text-white h-12">
+          <SelectValue placeholder="Selecciona un espectacular">
+            {selectedBillboard && (
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-md overflow-hidden flex-shrink-0">
+                  <img
+                    src={selectedBillboard.image_url || '/placeholder.svg'}
+                    alt={selectedBillboard.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-medium">{selectedBillboard.title}</span>
+                  <span className="text-xs text-white/50">{selectedBillboard.city}</span>
+                </div>
               </div>
             )}
-
-            {/* Image */}
-            <div className="relative h-20 rounded-lg overflow-hidden mb-3">
-              <img
-                src={imageUrl}
-                alt={billboard.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            </div>
-
-            {/* Info */}
-            <h3 className="text-white font-medium text-sm truncate mb-1">
-              {billboard.title}
-            </h3>
-            <div className="flex items-center gap-1 text-white/50 text-xs">
-              <MapPin className="w-3 h-3" />
-              <span className="truncate">{billboard.city}</span>
-            </div>
-
-            {/* Price */}
-            <div className="mt-2 text-[#9BFF43] font-semibold text-sm">
-              ${billboard.price_per_month.toLocaleString()}/mes
-            </div>
-          </Card>
-        );
-      })}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent className="bg-[#2A2A2A] border-white/10">
+          {billboards.map((billboard) => (
+            <SelectItem 
+              key={billboard.id} 
+              value={billboard.id}
+              className="text-white hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white"
+            >
+              <div className="flex items-center gap-3 py-1">
+                <div className="w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                  <img
+                    src={billboard.image_url || '/placeholder.svg'}
+                    alt={billboard.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-medium">{billboard.title}</span>
+                  <div className="flex items-center gap-1 text-white/50 text-xs">
+                    <MapPin className="w-3 h-3" />
+                    <span>{billboard.city}</span>
+                    <span className="mx-1">•</span>
+                    <span className="text-[#9BFF43]">${billboard.price_per_month.toLocaleString()}/mes</span>
+                  </div>
+                </div>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };
