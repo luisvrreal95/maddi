@@ -49,6 +49,12 @@ const OwnerDashboard: React.FC = () => {
     const tab = searchParams.get('tab');
     if (tab === 'reservas') {
       setActiveTab('reservas');
+    } else if (tab === 'propiedades') {
+      setActiveTab('propiedades');
+    } else if (tab === 'stats') {
+      setActiveTab('stats');
+    } else if (tab === 'dashboard') {
+      setActiveTab('dashboard');
     }
   }, [searchParams]);
 
@@ -143,25 +149,27 @@ const OwnerDashboard: React.FC = () => {
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
         {activeTab === 'dashboard' && (
           <>
-            {/* Welcome Section with Billboard Selector */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-              <div className="flex items-center gap-4 flex-wrap">
-                <h1 className="text-3xl md:text-4xl font-bold text-white">
-                  Bienvenido, {displayName}
-                </h1>
-                <BillboardSelector
-                  billboards={billboards}
-                  selectedId={selectedBillboard?.id || null}
-                  onSelect={setSelectedBillboard}
-                  isLoading={isLoading}
-                />
-              </div>
+            {/* Welcome Section */}
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-white">
+                Bienvenido, {displayName}
+              </h1>
               <Button
                 onClick={() => setShowAddDialog(true)}
                 className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
               >
                 Agregar Propiedad
               </Button>
+            </div>
+
+            {/* Billboard Selector below welcome */}
+            <div className="mb-8">
+              <BillboardSelector
+                billboards={billboards}
+                selectedId={selectedBillboard?.id || null}
+                onSelect={setSelectedBillboard}
+                isLoading={isLoading}
+              />
             </div>
 
             {/* Quick Stats */}
