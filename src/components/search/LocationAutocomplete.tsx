@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Search, Loader2 } from 'lucide-react';
+import { MapPin, Search, Loader2, Navigation } from 'lucide-react';
 
 interface LocationSuggestion {
   id: string;
@@ -30,11 +30,31 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
 
-  // Fetch suggestions from Mapbox
+  // Get user's location for proximity bias
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.log('Location access denied or unavailable:', error);
+          // Default to Mexicali if location denied
+          setUserLocation({ lat: 32.6245, lng: -115.4523 });
+        }
+      );
+    }
+  }, []);
+
+  // Fetch suggestions from Mapbox with proximity bias
   useEffect(() => {
     if (!value || value.length < 2 || !mapboxToken) {
       setSuggestions([]);
@@ -49,9 +69,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=8&language=es`
-        );
+        // Build URL with proximity bias if user location is available
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=8&language=es`;
+        
+        if (userLocation) {
+          url += `&proximity=${userLocation.lng},${userLocation.lat}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data.features) {
@@ -71,7 +96,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [value, mapboxToken]);
+  }, [value, mapboxToken, userLocation]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -212,6 +237,12 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           ref={dropdownRef}
           className="absolute top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
         >
+          {userLocation && (
+            <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40">
+              <Navigation className="w-3 h-3" />
+              <span>Mostrando resultados cerca de ti</span>
+            </div>
+          )}
           {suggestions.map((suggestion, index) => (
             <button
               key={suggestion.id}

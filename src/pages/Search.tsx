@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, List, Map, LogOut, User } from 'lucide-react';
+import { ArrowLeft, MapPin, List, Map } from 'lucide-react';
 import SearchFilters from '@/components/search/SearchFilters';
 import SearchMap from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
 import LocationAutocomplete from '@/components/search/LocationAutocomplete';
 import BookingDialog from '@/components/booking/BookingDialog';
-import NotificationBell from '@/components/notifications/NotificationBell';
+import BusinessHeader from '@/components/navigation/BusinessHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
 import { useAuth } from '@/hooks/useAuth';
@@ -56,7 +56,7 @@ const transformBillboardToProperty = (billboard: Billboard): MapProperty => ({
 const SearchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { user, userRole, signOut } = useAuth();
+  const { user, userRole } = useAuth();
   const location = searchParams.get('location') || 'Mexicali, B.C.';
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
@@ -127,21 +127,15 @@ const SearchPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#202020] flex flex-col">
       {/* Header */}
-      <header className="bg-[#1A1A1A] border-b border-white/10">
+      <BusinessHeader />
+
+      {/* Search Controls */}
+      <div className="bg-[#1A1A1A] border-b border-white/10">
         <div className="px-6 py-4">
-          {/* Top Row */}
-          <div className="flex items-center justify-between mb-4">
-            <Link to="/" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors">
+          {/* Search Row */}
+          <div className="flex items-center gap-4 mb-4">
+            <Link to="/" className="text-white hover:text-[#9BFF43] transition-colors">
               <ArrowLeft className="w-5 h-5" />
-              <div className="flex items-center gap-2">
-                <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="40" height="40" rx="8" fill="#9BFF43"/>
-                  <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="#202020" fontSize="14" fontWeight="bold" fontFamily="system-ui">
-                    M
-                  </text>
-                </svg>
-                <span className="text-xl font-bold">Maddi</span>
-              </div>
             </Link>
 
             {/* Search Bar with Autocomplete */}
@@ -154,7 +148,7 @@ const SearchPage: React.FC = () => {
               }}
               mapboxToken={mapboxToken}
               placeholder="Buscar ubicación..."
-              className="flex-1 max-w-xl mx-8"
+              className="flex-1 max-w-xl"
             />
 
             {/* View Toggle */}
@@ -187,30 +181,6 @@ const SearchPage: React.FC = () => {
                 <Map className="w-5 h-5" />
               </button>
             </div>
-
-            {/* User Actions */}
-            <div className="flex items-center gap-3 ml-4">
-              {user ? (
-                <>
-                  <NotificationBell />
-                  <div className="flex items-center gap-2 text-white/70">
-                    <User className="w-4 h-4" />
-                    <span className="text-sm">{userRole === 'business' ? 'Negocio' : 'Usuario'}</span>
-                  </div>
-                  <button
-                    onClick={() => signOut()}
-                    className="flex items-center gap-2 px-3 py-2 text-white/70 hover:text-white hover:bg-white/5 rounded-full transition-all"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    <span className="text-sm">Salir</span>
-                  </button>
-                </>
-              ) : (
-                <Link to="/auth" className="text-[#9BFF43] text-sm font-medium hover:underline">
-                  Iniciar sesión
-                </Link>
-              )}
-            </div>
           </div>
 
           {/* Location Title */}
@@ -224,7 +194,7 @@ const SearchPage: React.FC = () => {
         <div className="px-6 border-t border-white/5">
           <SearchFilters onFiltersChange={handleFiltersChange} />
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <main className="flex-1 flex overflow-hidden">
