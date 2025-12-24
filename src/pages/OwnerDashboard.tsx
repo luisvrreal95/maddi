@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Billboard } from '@/hooks/useBillboards';
 import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
-import DashboardTabs from '@/components/owner/DashboardTabs';
 import QuickStats from '@/components/owner/QuickStats';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
@@ -142,16 +141,21 @@ const OwnerDashboard: React.FC = () => {
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
-        {/* Navigation Tabs */}
-        <DashboardTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
         {activeTab === 'dashboard' && (
           <>
-            {/* Welcome Section */}
-            <div className="flex items-center justify-between mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-white">
-                Bienvenido, {displayName}
-              </h1>
+            {/* Welcome Section with Billboard Selector */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+              <div className="flex items-center gap-4 flex-wrap">
+                <h1 className="text-3xl md:text-4xl font-bold text-white">
+                  Bienvenido, {displayName}
+                </h1>
+                <BillboardSelector
+                  billboards={billboards}
+                  selectedId={selectedBillboard?.id || null}
+                  onSelect={setSelectedBillboard}
+                  isLoading={isLoading}
+                />
+              </div>
               <Button
                 onClick={() => setShowAddDialog(true)}
                 className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
@@ -162,14 +166,6 @@ const OwnerDashboard: React.FC = () => {
 
             {/* Quick Stats */}
             <QuickStats billboards={billboards} userId={user?.id || ''} />
-
-            {/* Billboard Selector */}
-            <BillboardSelector
-              billboards={billboards}
-              selectedId={selectedBillboard?.id || null}
-              onSelect={setSelectedBillboard}
-              isLoading={isLoading}
-            />
 
             {/* Traffic Analytics */}
             {selectedBillboard && (

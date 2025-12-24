@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Heart, MessageSquare, Settings, Search, Calendar, BarChart3, LogOut, Layout } from 'lucide-react';
+import { Menu, Heart, MessageSquare, Settings, Search, Calendar, BarChart3, LogOut } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import {
   DropdownMenu,
@@ -73,12 +73,6 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton =
                 <Link to="/messages" className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4" />
                   Mensajes
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/design-templates" className="flex items-center gap-2">
-                  <Layout className="w-4 h-4" />
-                  Plantillas
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">

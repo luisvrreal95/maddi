@@ -14,7 +14,6 @@ import BusinessAnalytics from "./pages/BusinessAnalytics";
 import BillboardDetail from "./pages/BillboardDetail";
 import Settings from "./pages/Settings";
 import Favorites from "./pages/Favorites";
-import DesignTemplates from "./pages/DesignTemplates";
 import Messages from "./pages/Messages";
 import NotFound from "./pages/NotFound";
 
@@ -38,7 +37,6 @@ const App = () => (
               <Route path="/billboard/:id" element={<BillboardDetail />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/favorites" element={<Favorites />} />
-              <Route path="/templates" element={<DesignTemplates />} />
               <Route path="/messages" element={<Messages />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

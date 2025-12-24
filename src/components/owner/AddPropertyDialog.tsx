@@ -122,6 +122,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       setStatus(billboard.is_available ? 'alto' : 'bajo');
       setImageUrl(billboard.image_url || '');
       setImagePreview(billboard.image_url || null);
+      // Load existing POIs
+      const existingPois = (billboard as any).points_of_interest || [];
+      setPointsOfInterest(existingPois);
     } else {
       resetForm();
     }
@@ -448,6 +451,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         illumination: 'iluminado',
         faces: 1,
         image_url: imageUrl || null,
+        points_of_interest: pointsOfInterest,
       };
 
       if (billboard) {
