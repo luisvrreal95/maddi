@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, Settings, LogOut } from 'lucide-react';
+import { Menu, LayoutDashboard, Building2, Calendar, BarChart3, MessageSquare, Settings, LogOut } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import {
   DropdownMenu,
@@ -40,6 +40,37 @@ const OwnerDashboardHeader: React.FC = () => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/owner?tab=dashboard" className="flex items-center gap-2">
+                  <LayoutDashboard className="w-4 h-4" />
+                  Dashboard
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/owner?tab=propiedades" className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  Propiedades
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/owner?tab=reservas" className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Reservas
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/owner?tab=stats" className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Estadísticas
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/messages" className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4" />
+                  Mensajes
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
                 <Link to="/settings" className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />
