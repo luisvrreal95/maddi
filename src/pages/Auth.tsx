@@ -139,52 +139,65 @@ const Auth: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#202020] flex">
+    <div className="min-h-screen bg-[#1A1A1A] flex">
       {/* Left Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col p-8">
-        <Link to="/" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors mb-12">
-          <ArrowLeft className="w-5 h-5" />
-          <div className="flex items-center gap-2">
-            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="40" height="40" rx="8" fill="#9BFF43"/>
-              <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="#202020" fontSize="14" fontWeight="bold" fontFamily="system-ui">
-                M
-              </text>
-            </svg>
-            <span className="text-xl font-bold">Maddi</span>
-          </div>
+      <div className="w-full lg:w-1/2 flex flex-col p-8 lg:p-12">
+        <Link to="/" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors mb-8 group">
+          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+          <svg width="120" height="40" viewBox="0 0 169 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M127.637 20.6138H122.966C122.643 20.6138 122.381 20.8777 122.381 21.2039V31.3312C120.357 29.4365 117.485 28.372 114.295 28.372C110.565 28.372 107.157 29.8177 104.693 32.4398C102.255 35.0362 100.912 38.6019 100.912 42.481C100.912 46.3601 102.309 49.6289 104.843 52.1392C107.356 54.6294 110.761 56 114.432 56C117.748 56 120.698 54.8126 122.742 52.7V54.776C122.742 55.1022 123.004 55.366 123.327 55.366H127.639C127.962 55.366 128.223 55.1022 128.223 54.776V21.2039C128.223 20.8777 127.962 20.6138 127.639 20.6138H127.637ZM114.656 50.5103C114.642 50.5103 114.627 50.5103 114.613 50.5103C112.53 50.4993 110.571 49.6528 109.096 48.1264C107.63 46.6093 106.797 44.5937 106.752 42.4517C106.703 40.1081 107.572 37.836 109.14 36.2199C110.613 34.6991 112.572 33.8617 114.656 33.8617C117.022 33.8617 119.054 34.7155 120.533 36.3316C121.957 37.8873 122.742 40.0568 122.742 42.437C122.742 44.5625 121.902 46.5763 120.377 48.1099C118.833 49.6601 116.803 50.514 114.656 50.514V50.5103Z" fill="#FEFEFE"/>
+            <path d="M158.181 20.6138H153.509C153.187 20.6138 152.925 20.8777 152.925 21.2039V31.3312C150.901 29.4365 148.029 28.372 144.839 28.372C141.109 28.372 137.701 29.8177 135.237 32.4398C132.799 35.0362 131.456 38.6019 131.456 42.481C131.456 46.3601 132.853 49.6289 135.387 52.1392C137.9 54.6294 141.305 56 144.975 56C148.292 56 151.242 54.8126 153.286 52.7V54.776C153.286 55.1022 153.548 55.366 153.87 55.366H158.183C158.506 55.366 158.767 55.1022 158.767 54.776V21.2039C158.767 20.8777 158.506 20.6138 158.183 20.6138H158.181ZM145.2 50.5103C145.186 50.5103 145.171 50.5103 145.157 50.5103C143.074 50.4993 141.115 49.6528 139.64 48.1264C138.174 46.6093 137.341 44.5937 137.296 42.4517C137.247 40.1081 138.116 37.836 139.683 36.2199C141.157 34.6991 143.116 33.8617 145.2 33.8617C147.566 33.8617 149.598 34.7155 151.077 36.3316C152.501 37.8873 153.286 40.0568 153.286 42.437C153.286 44.5625 152.446 46.5763 150.921 48.1099C149.377 49.6601 147.347 50.514 145.2 50.514V50.5103Z" fill="#FEFEFE"/>
+            <path d="M167.673 32.7696H163.241C162.936 32.7696 162.688 33.0151 162.688 33.3193V54.7119C162.688 55.0142 162.936 55.2616 163.241 55.2616H167.673C167.978 55.2616 168.226 55.016 168.226 54.7119V33.3193C168.226 33.017 167.978 32.7696 167.673 32.7696Z" fill="#FEFEFE"/>
+            <path d="M97.0935 29.0518H92.422C92.0991 29.0518 91.8378 29.3156 91.8378 29.6418V31.617C89.864 29.4879 87.0846 28.372 83.7066 28.372C79.9693 28.372 76.5332 29.7902 74.0314 32.3646C72.8268 33.6051 71.8798 35.0783 71.2158 36.711C71.1106 36.9675 71.2829 37.2588 71.5569 37.2955L76.7273 38.0156C76.8961 38.0394 77.0575 37.9569 77.1446 37.8085C77.395 37.3834 77.6834 36.9803 78.0082 36.6028C79.5085 34.8603 81.6347 33.8598 83.8426 33.8598C86.0505 33.8598 88.2058 34.7357 89.6898 36.328C91.1339 37.8781 91.9285 39.9817 91.9285 42.2538C91.9285 44.5259 90.9724 46.7888 89.2743 48.3518C86.8578 50.5763 83.8082 50.5195 82.7541 50.4187C82.5473 50.3985 82.3713 50.5598 82.3677 50.7705L82.2752 55.5071C82.2715 55.7325 82.4403 55.9285 82.6634 55.9469C83.068 55.9798 83.478 55.9982 83.8898 55.9982C87.1445 55.9982 89.9565 54.7687 91.8414 52.5717V54.7742C91.8414 55.1003 92.1027 55.3642 92.4256 55.3642H97.0972C97.4201 55.3642 97.6813 55.1003 97.6813 54.7742V29.6399C97.6813 29.3138 97.4201 29.0499 97.0972 29.0499L97.0935 29.0518Z" fill="#FEFEFE"/>
+            <path d="M168.239 29.3963V24.0422C168.239 23.9683 168.18 23.9084 168.107 23.9084H162.806C162.733 23.9084 162.673 23.9683 162.673 24.0422V29.3963C162.673 29.4701 162.733 29.53 162.806 29.53H168.107C168.18 29.53 168.239 29.4701 168.239 29.3963Z" fill="#9BFF43"/>
+            <path d="M72.9335 51.1919C73.2129 50.9171 73.681 51.1186 73.6719 51.5126L73.6048 54.9794C73.5993 55.2249 73.7953 55.4265 74.0384 55.4265H78.9911C79.227 55.4265 79.4211 55.2359 79.4247 54.9959L79.5318 49.442L79.6842 41.5996C79.6878 41.3779 79.5281 41.1874 79.3086 41.1562L75.8417 40.6743L70.0961 39.8754L66.5403 39.3807C66.3026 39.3477 66.0831 39.5163 66.0504 39.7563L65.3737 44.7109C65.3411 44.951 65.508 45.1727 65.7457 45.2057L69.1545 45.6802C69.5029 45.7279 69.6535 46.1548 69.414 46.415C67.7576 48.2015 66.2373 49.2093 64.639 49.2093C64.2617 49.2093 63.8788 49.1525 63.4888 49.0371C63.4688 49.0316 63.4507 49.0243 63.4307 49.0169C62.6506 48.6779 61.6311 47.9707 61.2029 45.9423C60.8637 44.3353 60.9761 42.2593 61.5204 40.1008L61.5585 39.9249C61.8705 38.2611 62.8321 35.8241 63.8498 33.2423C65.1089 30.0467 66.5367 26.426 67.2097 23.0545C68.115 18.5286 67.52 15.1461 65.3901 12.7128L65.3139 12.6249L65.2304 12.5442C63.9859 11.3312 62.4112 10.7229 60.6659 10.7229C58.9914 10.7229 57.1609 11.2836 55.3158 12.405L55.2868 12.4233C51.1994 14.9757 48.4328 18.6752 45.755 22.2538C44.0624 24.5167 42.5548 26.7595 40.5936 28.438C38.8229 29.9551 36.2849 32.055 36.2178 27.5767C36.2867 24.6578 37.4968 21.5373 38.6107 18.5708C38.7794 18.1292 38.9445 17.6931 39.1042 17.2643L39.1132 17.2387C39.9278 14.9922 40.8222 12.3775 41.1306 9.77005C41.4535 7.0362 41.1887 3.3147 38.0791 1.10124L37.9666 1.02246C37.9539 1.0133 37.9394 1.00416 37.9267 0.996827L37.807 0.930843C36.6078 0.263871 35.3705 0 34.1641 0C30.5502 0 27.1994 2.36188 25.875 3.29638L25.7643 3.37887C21.7169 6.53049 18.0141 10.2886 14.6814 14.6202C14.5653 14.7705 14.3657 14.8273 14.1879 14.7632C13.0922 14.3711 11.9855 14.175 10.8698 14.175C9.63431 14.175 8.38795 14.415 7.13615 14.8988C4.3822 15.9597 2.05821 18.0302 0.127901 19.9835C-0.0426337 20.1558 -0.0426337 20.4361 0.127901 20.6065L3.65834 24.1154C3.82706 24.284 4.101 24.284 4.26972 24.1154C6.66991 21.7004 8.44237 20.5204 9.93364 20.1722C10.3092 20.0843 10.6031 20.5003 10.3981 20.8319C8.85964 23.3202 7.42279 25.9569 6.08936 28.7384L6.0694 28.7806C3.95949 33.3614 2.90182 37.1379 2.74035 40.6578C2.43194 45.1361 4.17901 49.1544 7.19602 50.9043C7.9598 51.3477 9.14447 51.8351 10.6539 51.8351C12.1633 51.8351 13.8233 51.3935 15.7663 50.0467L15.8969 49.9514C18.3479 48.044 20.3762 45.158 21.764 41.6088C23.0557 38.3032 23.7125 34.6569 23.6635 31.06C23.6236 28.0861 23.1065 25.3486 22.1269 22.9244C21.4484 21.246 20.5721 19.7728 19.5035 18.5195C19.3675 18.3582 19.3584 18.1237 19.4872 17.9569C22.4462 14.153 25.7099 10.853 29.2567 8.08431C31.8328 6.35091 35.9565 3.78196 35.3433 9.07925C35.0893 11.2194 34.1859 13.7132 33.6434 15.2121C33.4892 15.6262 33.3296 16.0458 33.1663 16.4728C31.5643 20.6853 29.7465 25.4604 30.5829 30.208L30.5919 30.2556C31.285 33.8488 33.5727 36.1209 36.7094 36.3316L36.782 36.3353C36.8836 36.339 36.9852 36.3408 37.0868 36.3408C39.496 36.3408 41.9361 35.1718 44.5322 32.7696L44.5613 32.7421C46.7927 30.6184 48.6214 28.1741 50.3885 25.8104C52.8467 22.525 55.1689 19.421 58.322 17.4457C62.2007 15.1187 61.9812 18.8823 61.4914 21.9038C60.9217 24.7549 59.6536 27.9707 58.429 31.0802C57.3205 33.8928 56.2737 36.5497 55.8456 38.7503C53.9588 46.3527 56.0742 52.3976 61.3753 54.5378L61.466 54.5744L61.5585 54.6056C62.6017 54.9464 63.6358 55.1168 64.6626 55.1168C66.9068 55.1168 69.1056 54.3032 71.23 52.6816C71.8178 52.2327 72.3747 51.738 72.9099 51.2157C72.9117 51.2139 72.9154 51.2103 72.9172 51.2084L72.9335 51.1919ZM12.4372 45.2167C12.4264 45.2258 12.4137 45.235 12.401 45.2423C11.8785 45.5923 11.229 45.9313 10.6611 45.9313C10.4616 45.9313 10.2729 45.8892 10.1042 45.792C9.21522 45.2772 8.3934 43.3532 8.56031 41.028L8.56574 40.9455C8.68548 38.2117 9.5708 35.137 11.3505 31.2671C12.606 28.6523 13.9575 26.1787 15.4016 23.8479C15.5758 23.5658 15.9876 23.5786 16.1491 23.8681C17.2177 25.7939 17.82 28.2895 17.8581 31.1241C17.9343 36.8301 15.7119 42.6019 12.4391 45.213L12.4372 45.2167Z" fill="#9BFF43"/>
+          </svg>
         </Link>
 
         <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            {mode === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
-          </h1>
-          <p className="text-white/60 mb-8">
-            {mode === 'login' 
-              ? 'Ingresa tus credenciales para acceder' 
-              : 'Únete a la plataforma de publicidad exterior más grande de México'}
-          </p>
+          {/* Header with icon */}
+          <div className="mb-8">
+            <div className="w-16 h-16 bg-[#9BFF43] rounded-2xl flex items-center justify-center mb-6">
+              {mode === 'login' ? (
+                <svg className="w-8 h-8 text-[#1A1A1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+              ) : (
+                <svg className="w-8 h-8 text-[#1A1A1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+              )}
+            </div>
+            <h1 className="text-4xl font-bold text-white mb-3">
+              {mode === 'login' ? 'Bienvenido de nuevo' : 'Crear Cuenta'}
+            </h1>
+            <p className="text-white/50 text-lg">
+              {mode === 'login' 
+                ? 'Ingresa tus credenciales para continuar' 
+                : 'Únete a la plataforma de publicidad exterior más grande de México'}
+            </p>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {mode === 'signup' && (
               <>
                 {/* User Type Selection */}
                 <div className="space-y-3">
-                  <Label className="text-white">Tipo de cuenta</Label>
-                  <div className="grid grid-cols-2 gap-4">
+                  <Label className="text-white/80 text-sm font-medium">Tipo de cuenta</Label>
+                  <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setSelectedType('owner')}
-                      className={`p-4 rounded-xl border-2 transition-all ${
+                      className={`p-5 rounded-2xl border-2 transition-all duration-200 ${
                         selectedType === 'owner'
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
-                          : 'border-white/10 hover:border-white/30'
+                          ? 'border-[#9BFF43] bg-[#9BFF43]/10 shadow-lg shadow-[#9BFF43]/20'
+                          : 'border-white/10 hover:border-white/20 bg-white/5'
                       }`}
                     >
-                      <Building2 className={`w-8 h-8 mx-auto mb-2 ${
-                        selectedType === 'owner' ? 'text-[#9BFF43]' : 'text-white/60'
+                      <Building2 className={`w-7 h-7 mx-auto mb-3 ${
+                        selectedType === 'owner' ? 'text-[#9BFF43]' : 'text-white/50'
                       }`} />
-                      <p className={`font-medium ${
+                      <p className={`font-semibold ${
                         selectedType === 'owner' ? 'text-[#9BFF43]' : 'text-white'
                       }`}>Propietario</p>
                       <p className="text-xs text-white/40 mt-1">Tengo espectaculares</p>
@@ -192,16 +205,16 @@ const Auth: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedType('business')}
-                      className={`p-4 rounded-xl border-2 transition-all ${
+                      className={`p-5 rounded-2xl border-2 transition-all duration-200 ${
                         selectedType === 'business'
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
-                          : 'border-white/10 hover:border-white/30'
+                          ? 'border-[#9BFF43] bg-[#9BFF43]/10 shadow-lg shadow-[#9BFF43]/20'
+                          : 'border-white/10 hover:border-white/20 bg-white/5'
                       }`}
                     >
-                      <Store className={`w-8 h-8 mx-auto mb-2 ${
-                        selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white/60'
+                      <Store className={`w-7 h-7 mx-auto mb-3 ${
+                        selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white/50'
                       }`} />
-                      <p className={`font-medium ${
+                      <p className={`font-semibold ${
                         selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white'
                       }`}>Negocio</p>
                       <p className="text-xs text-white/40 mt-1">Quiero anunciarme</p>
@@ -211,14 +224,14 @@ const Auth: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="fullName" className="text-white">Nombre completo</Label>
+                  <Label htmlFor="fullName" className="text-white/80 text-sm font-medium">Nombre completo</Label>
                   <Input
                     id="fullName"
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Juan Pérez"
-                    className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
                   />
                   {errors.fullName && <p className="text-red-400 text-sm">{errors.fullName}</p>}
                 </div>
@@ -226,20 +239,20 @@ const Auth: React.FC = () => {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white">Email</Label>
+              <Label htmlFor="email" className="text-white/80 text-sm font-medium">Email</Label>
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
-                className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
               />
               {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Contraseña</Label>
+              <Label htmlFor="password" className="text-white/80 text-sm font-medium">Contraseña</Label>
               <div className="relative">
                 <Input
                   id="password"
@@ -247,12 +260,12 @@ const Auth: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40 pr-10"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl pr-12 focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -263,7 +276,7 @@ const Auth: React.FC = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] font-semibold py-6"
+              className="w-full bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A] font-semibold h-12 rounded-xl text-base transition-all duration-200 hover:shadow-lg hover:shadow-[#9BFF43]/30"
             >
               {isLoading 
                 ? 'Procesando...' 
@@ -274,12 +287,12 @@ const Auth: React.FC = () => {
           </form>
 
           {/* Social Login Divider */}
-          <div className="relative my-6">
+          <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[#202020] text-white/40">O continúa con</span>
+              <span className="px-4 bg-[#1A1A1A] text-white/40">O continúa con</span>
             </div>
           </div>
 
@@ -289,9 +302,9 @@ const Auth: React.FC = () => {
             variant="outline"
             onClick={handleGoogleLogin}
             disabled={isSocialLoading}
-            className="w-full bg-white border-gray-300 text-gray-700 hover:bg-gray-50 py-6"
+            className="w-full bg-white/5 border-white/10 text-white hover:bg-white/10 h-12 rounded-xl font-medium transition-all duration-200"
           >
-            <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
+            <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -312,14 +325,14 @@ const Auth: React.FC = () => {
             Continuar con Google
           </Button>
 
-          <p className="text-center text-white/60 mt-6">
+          <p className="text-center text-white/50 mt-8">
             {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
             <button
               onClick={() => {
                 setMode(mode === 'login' ? 'signup' : 'login');
                 setErrors({});
               }}
-              className="text-[#9BFF43] hover:underline ml-2"
+              className="text-[#9BFF43] hover:underline ml-2 font-medium"
             >
               {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
             </button>
@@ -327,24 +340,45 @@ const Auth: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Side - Image/Decoration */}
-      <div className="hidden lg:block w-1/2 bg-gradient-to-br from-[#9BFF43]/20 to-[#202020] relative overflow-hidden">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center max-w-md px-8">
-            <div className="w-32 h-32 bg-[#9BFF43] rounded-3xl mx-auto mb-8 flex items-center justify-center">
-              <span className="text-[#202020] text-6xl font-bold">M</span>
+      {/* Right Side - Decorative */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#9BFF43]/10 via-[#1A1A1A] to-[#9BFF43]/5 relative overflow-hidden items-center justify-center">
+        {/* Central content */}
+        <div className="text-center max-w-lg px-12 relative z-10">
+          <div className="w-40 h-40 bg-gradient-to-br from-[#9BFF43] to-[#7ACC35] rounded-[2rem] mx-auto mb-10 flex items-center justify-center shadow-2xl shadow-[#9BFF43]/30 rotate-3 hover:rotate-0 transition-transform duration-500">
+            <svg width="100" height="100" viewBox="0 0 169 56" fill="none" xmlns="http://www.w3.org/2000/svg" className="scale-150">
+              <path d="M72.9335 51.1919C73.2129 50.9171 73.681 51.1186 73.6719 51.5126L73.6048 54.9794C73.5993 55.2249 73.7953 55.4265 74.0384 55.4265H78.9911C79.227 55.4265 79.4211 55.2359 79.4247 54.9959L79.5318 49.442L79.6842 41.5996C79.6878 41.3779 79.5281 41.1874 79.3086 41.1562L75.8417 40.6743L70.0961 39.8754L66.5403 39.3807C66.3026 39.3477 66.0831 39.5163 66.0504 39.7563L65.3737 44.7109C65.3411 44.951 65.508 45.1727 65.7457 45.2057L69.1545 45.6802C69.5029 45.7279 69.6535 46.1548 69.414 46.415C67.7576 48.2015 66.2373 49.2093 64.639 49.2093C64.2617 49.2093 63.8788 49.1525 63.4888 49.0371C63.4688 49.0316 63.4507 49.0243 63.4307 49.0169C62.6506 48.6779 61.6311 47.9707 61.2029 45.9423C60.8637 44.3353 60.9761 42.2593 61.5204 40.1008L61.5585 39.9249C61.8705 38.2611 62.8321 35.8241 63.8498 33.2423C65.1089 30.0467 66.5367 26.426 67.2097 23.0545C68.115 18.5286 67.52 15.1461 65.3901 12.7128L65.3139 12.6249L65.2304 12.5442C63.9859 11.3312 62.4112 10.7229 60.6659 10.7229C58.9914 10.7229 57.1609 11.2836 55.3158 12.405L55.2868 12.4233C51.1994 14.9757 48.4328 18.6752 45.755 22.2538C44.0624 24.5167 42.5548 26.7595 40.5936 28.438C38.8229 29.9551 36.2849 32.055 36.2178 27.5767C36.2867 24.6578 37.4968 21.5373 38.6107 18.5708C38.7794 18.1292 38.9445 17.6931 39.1042 17.2643L39.1132 17.2387C39.9278 14.9922 40.8222 12.3775 41.1306 9.77005C41.4535 7.0362 41.1887 3.3147 38.0791 1.10124L37.9666 1.02246C37.9539 1.0133 37.9394 1.00416 37.9267 0.996827L37.807 0.930843C36.6078 0.263871 35.3705 0 34.1641 0C30.5502 0 27.1994 2.36188 25.875 3.29638L25.7643 3.37887C21.7169 6.53049 18.0141 10.2886 14.6814 14.6202C14.5653 14.7705 14.3657 14.8273 14.1879 14.7632C13.0922 14.3711 11.9855 14.175 10.8698 14.175C9.63431 14.175 8.38795 14.415 7.13615 14.8988C4.3822 15.9597 2.05821 18.0302 0.127901 19.9835C-0.0426337 20.1558 -0.0426337 20.4361 0.127901 20.6065L3.65834 24.1154C3.82706 24.284 4.101 24.284 4.26972 24.1154C6.66991 21.7004 8.44237 20.5204 9.93364 20.1722C10.3092 20.0843 10.6031 20.5003 10.3981 20.8319C8.85964 23.3202 7.42279 25.9569 6.08936 28.7384L6.0694 28.7806C3.95949 33.3614 2.90182 37.1379 2.74035 40.6578C2.43194 45.1361 4.17901 49.1544 7.19602 50.9043C7.9598 51.3477 9.14447 51.8351 10.6539 51.8351C12.1633 51.8351 13.8233 51.3935 15.7663 50.0467L15.8969 49.9514C18.3479 48.044 20.3762 45.158 21.764 41.6088C23.0557 38.3032 23.7125 34.6569 23.6635 31.06C23.6236 28.0861 23.1065 25.3486 22.1269 22.9244C21.4484 21.246 20.5721 19.7728 19.5035 18.5195C19.3675 18.3582 19.3584 18.1237 19.4872 17.9569C22.4462 14.153 25.7099 10.853 29.2567 8.08431C31.8328 6.35091 35.9565 3.78196 35.3433 9.07925C35.0893 11.2194 34.1859 13.7132 33.6434 15.2121C33.4892 15.6262 33.3296 16.0458 33.1663 16.4728C31.5643 20.6853 29.7465 25.4604 30.5829 30.208L30.5919 30.2556C31.285 33.8488 33.5727 36.1209 36.7094 36.3316L36.782 36.3353C36.8836 36.339 36.9852 36.3408 37.0868 36.3408C39.496 36.3408 41.9361 35.1718 44.5322 32.7696L44.5613 32.7421C46.7927 30.6184 48.6214 28.1741 50.3885 25.8104C52.8467 22.525 55.1689 19.421 58.322 17.4457C62.2007 15.1187 61.9812 18.8823 61.4914 21.9038C60.9217 24.7549 59.6536 27.9707 58.429 31.0802C57.3205 33.8928 56.2737 36.5497 55.8456 38.7503C53.9588 46.3527 56.0742 52.3976 61.3753 54.5378L61.466 54.5744L61.5585 54.6056C62.6017 54.9464 63.6358 55.1168 64.6626 55.1168C66.9068 55.1168 69.1056 54.3032 71.23 52.6816C71.8178 52.2327 72.3747 51.738 72.9099 51.2157C72.9117 51.2139 72.9154 51.2103 72.9172 51.2084L72.9335 51.1919ZM12.4372 45.2167C12.4264 45.2258 12.4137 45.235 12.401 45.2423C11.8785 45.5923 11.229 45.9313 10.6611 45.9313C10.4616 45.9313 10.2729 45.8892 10.1042 45.792C9.21522 45.2772 8.3934 43.3532 8.56031 41.028L8.56574 40.9455C8.68548 38.2117 9.5708 35.137 11.3505 31.2671C12.606 28.6523 13.9575 26.1787 15.4016 23.8479C15.5758 23.5658 15.9876 23.5786 16.1491 23.8681C17.2177 25.7939 17.82 28.2895 17.8581 31.1241C17.9343 36.8301 15.7119 42.6019 12.4391 45.213L12.4372 45.2167Z" fill="#1A1A1A"/>
+            </svg>
+          </div>
+          <h2 className="text-4xl font-bold text-white mb-5 leading-tight">
+            La plataforma de publicidad exterior más grande de México
+          </h2>
+          <p className="text-white/50 text-lg leading-relaxed">
+            Conectamos propietarios de espectaculares con negocios que buscan maximizar su alcance publicitario
+          </p>
+          
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-6 mt-12">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-[#9BFF43]">500+</p>
+              <p className="text-white/40 text-sm mt-1">Espectaculares</p>
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4">
-              La plataforma de publicidad exterior más grande de México
-            </h2>
-            <p className="text-white/60">
-              Conectamos propietarios de espectaculares con negocios que buscan anunciarse
-            </p>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-[#9BFF43]">1M+</p>
+              <p className="text-white/40 text-sm mt-1">Impresiones/día</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-[#9BFF43]">32</p>
+              <p className="text-white/40 text-sm mt-1">Estados</p>
+            </div>
           </div>
         </div>
-        {/* Decorative circles */}
-        <div className="absolute top-20 right-20 w-64 h-64 bg-[#9BFF43]/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 left-20 w-96 h-96 bg-[#9BFF43]/5 rounded-full blur-3xl" />
+        
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#9BFF43]/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#9BFF43]/5 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-[#9BFF43] rounded-full animate-pulse" />
+        <div className="absolute bottom-1/3 right-1/4 w-2 h-2 bg-[#9BFF43]/60 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute top-1/2 right-1/3 w-4 h-4 bg-[#9BFF43]/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       {/* Role Selection Modal for OAuth users */}
