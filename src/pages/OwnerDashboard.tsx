@@ -13,6 +13,7 @@ import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
 import BookingManagement from '@/components/dashboard/BookingManagement';
 import BillboardSelector from '@/components/owner/BillboardSelector';
 import TrafficAnalytics from '@/components/owner/TrafficAnalytics';
+import RecommendedActions from '@/components/owner/RecommendedActions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -171,6 +172,9 @@ const OwnerDashboard: React.FC = () => {
                 isLoading={isLoading}
               />
             </div>
+
+            {/* Recommended Actions */}
+            <RecommendedActions billboards={billboards} userId={user?.id || ''} />
 
             {/* Quick Stats */}
             <QuickStats billboards={billboards} userId={user?.id || ''} />
