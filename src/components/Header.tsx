@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, Search, Calendar, Heart, MessageSquare, Layout, BarChart3, Settings, LogOut, LayoutDashboard, Building2 } from 'lucide-react';
+import { Menu, Search, Calendar, Heart, MessageSquare, BarChart3, Settings, LogOut, LayoutDashboard, Building2, UserPlus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import {
   DropdownMenu,
@@ -20,7 +20,6 @@ const Header: React.FC = () => {
     { to: '/business', icon: Calendar, label: 'Mis Reservas' },
     { to: '/favorites', icon: Heart, label: 'Favoritos' },
     { to: '/messages', icon: MessageSquare, label: 'Mensajes' },
-    { to: '/design-templates', icon: Layout, label: 'Plantillas' },
     { to: '/business-analytics', icon: BarChart3, label: 'Analytics' },
   ];
 
@@ -53,8 +52,8 @@ const Header: React.FC = () => {
 
       {/* Right side navigation */}
       <nav className="flex items-center gap-3">
-        {/* Show "Anuncia tu espacio" for non-owners */}
-        {(!user || userRole !== 'owner') && (
+        {/* Show "Anuncia tu espacio" only for non-authenticated users */}
+        {!user && (
           <Link 
             to="/auth?role=owner" 
             className="text-white hover:text-[#9BFF43] transition-colors text-sm font-medium hidden md:block"
@@ -99,12 +98,27 @@ const Header: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Link 
-            to="/auth" 
-            className="bg-[#9BFF43] text-[#121212] px-4 py-2 rounded-lg font-medium hover:bg-[#8AE63A] transition-colors text-sm"
-          >
-            Iniciar Sesión
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/5 transition-colors">
+                <Menu className="w-5 h-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/auth" className="flex items-center gap-2">
+                  <LogOut className="w-4 h-4" />
+                  Iniciar Sesión
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
+                <Link to="/auth?mode=signup" className="flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  Registrarse
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </nav>
     </header>

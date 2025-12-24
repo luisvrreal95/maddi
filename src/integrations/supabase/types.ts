@@ -32,6 +32,7 @@ export type Database = {
           latitude: number
           longitude: number
           owner_id: string
+          points_of_interest: string[] | null
           price_per_month: number
           state: string
           title: string
@@ -55,6 +56,7 @@ export type Database = {
           latitude: number
           longitude: number
           owner_id: string
+          points_of_interest?: string[] | null
           price_per_month: number
           state: string
           title: string
@@ -78,6 +80,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           owner_id?: string
+          points_of_interest?: string[] | null
           price_per_month?: number
           state?: string
           title?: string

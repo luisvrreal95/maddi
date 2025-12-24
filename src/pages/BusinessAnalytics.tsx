@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowLeft, TrendingUp, Users, DollarSign, Calendar, MapPin, BarChart3, Loader2, Eye, RefreshCw } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Calendar, MapPin, BarChart3, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import NotificationBell from '@/components/notifications/NotificationBell';
+import BusinessHeader from '@/components/navigation/BusinessHeader';
 import {
   ChartContainer,
   ChartTooltip,
@@ -207,38 +207,27 @@ const BusinessAnalytics: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#202020]">
       {/* Header */}
-      <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <Link to="/business" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm">Volver a Reservas</span>
-          </Link>
-          <h1 className="text-white text-xl font-bold flex items-center gap-2">
-            <BarChart3 className="w-6 h-6 text-[#9BFF43]" />
-            Analytics
-          </h1>
-          <div className="flex items-center gap-3">
-            <NotificationBell />
-            <Button
-              onClick={refreshTrafficData}
-              disabled={isRefreshing}
-              variant="outline"
-              size="sm"
-              className="border-white/20 text-white hover:bg-white/10"
-            >
-              {isRefreshing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <RefreshCw className="w-4 h-4" />
-              )}
-              <span className="ml-2">Actualizar</span>
-            </Button>
-          </div>
-        </div>
-      </header>
+      <BusinessHeader title="Analytics" />
 
       {/* Content */}
       <main className="p-6 max-w-7xl mx-auto">
+        {/* Refresh Button */}
+        <div className="flex justify-end mb-4">
+          <Button
+            onClick={refreshTrafficData}
+            disabled={isRefreshing}
+            variant="outline"
+            size="sm"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            {isRefreshing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+            <span className="ml-2">Actualizar</span>
+          </Button>
+        </div>
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-[#9BFF43]" />
