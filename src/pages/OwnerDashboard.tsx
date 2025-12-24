@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { Billboard } from '@/hooks/useBillboards';
-import OwnerHeader from '@/components/owner/OwnerHeader';
+import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
 import PropertyListItem from '@/components/owner/PropertyListItem';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
@@ -137,12 +137,7 @@ const OwnerDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#121212] flex flex-col">
       {/* Header */}
-      <OwnerHeader
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        userName={displayName}
-        onAddProperty={() => setShowAddDialog(true)}
-      />
+      <OwnerDashboardHeader />
 
       {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">

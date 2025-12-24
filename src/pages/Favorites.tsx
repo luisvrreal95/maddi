@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useFavorites } from '@/hooks/useFavorites';
 import { useFavoriteFolders } from '@/hooks/useFavoriteFolders';
 import { Billboard } from '@/hooks/useBillboards';
-import { ArrowLeft, Heart, MapPin, Trash2, Folder, FolderPlus, MoreVertical, Pencil, X } from 'lucide-react';
+import { Heart, MapPin, Trash2, Folder, FolderPlus, MoreVertical, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import BusinessHeader from '@/components/navigation/BusinessHeader';
 
 const Favorites: React.FC = () => {
   const { user } = useAuth();
@@ -89,12 +90,7 @@ const Favorites: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1A1A]">
-      <header className="bg-[#141414] border-b border-white/5 px-6 py-4">
-        <Link to="/business" className="flex items-center gap-3 text-white/70 hover:text-[#9BFF43] transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-          <span>Volver al dashboard</span>
-        </Link>
-      </header>
+      <BusinessHeader />
 
       <main className="max-w-6xl mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
@@ -104,8 +100,7 @@ const Favorites: React.FC = () => {
           </div>
           <Button
             onClick={() => setIsCreatingFolder(true)}
-            variant="outline"
-            className="border-white/20 text-white hover:bg-white/5"
+            className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]"
           >
             <FolderPlus className="w-4 h-4 mr-2" />
             Nueva Carpeta
