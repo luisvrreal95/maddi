@@ -170,27 +170,33 @@ serve(async (req) => {
     // Road type estimation based on free flow speed
     let baseVehiclesPerHour: number;
     let roadType: string;
+    let peakHours: string;
     
     if (freeFlowSpeed > 100) {
       // Highway/Autopista
       baseVehiclesPerHour = 3000;
       roadType = 'autopista';
+      peakHours = '7:00-9:00, 18:00-20:00';
     } else if (freeFlowSpeed > 70) {
       // Main arterial road / Avenida principal
       baseVehiclesPerHour = 2000;
       roadType = 'avenida_principal';
+      peakHours = '7:30-9:30, 17:30-19:30';
     } else if (freeFlowSpeed > 50) {
       // Secondary road / Calle secundaria
       baseVehiclesPerHour = 1200;
       roadType = 'calle_secundaria';
+      peakHours = '8:00-10:00, 17:00-19:00';
     } else if (freeFlowSpeed > 30) {
       // Urban street / Calle urbana
       baseVehiclesPerHour = 800;
       roadType = 'calle_urbana';
+      peakHours = '12:00-14:00, 18:00-20:00';
     } else {
       // Slow traffic zone / Zona de tráfico lento
       baseVehiclesPerHour = 500;
       roadType = 'zona_lenta';
+      peakHours = '10:00-14:00';
     }
 
     // Congestion factor: higher congestion = more vehicles passing (but slower)
@@ -211,7 +217,17 @@ serve(async (req) => {
       max: Math.round(estimatedDailyTraffic * 1.15),
     };
 
-    console.log(`Estimated traffic: ${estimatedDailyTraffic} (range: ${trafficRange.min}-${trafficRange.max}), road type: ${roadType}`);
+    // Determine confidence level label
+    let confidenceLevel: string;
+    if (confidence >= 0.8) {
+      confidenceLevel = 'Alta';
+    } else if (confidence >= 0.5) {
+      confidenceLevel = 'Media';
+    } else {
+      confidenceLevel = 'Baja';
+    }
+
+    console.log(`Estimated traffic: ${estimatedDailyTraffic} (range: ${trafficRange.min}-${trafficRange.max}), road type: ${roadType}, peak hours: ${peakHours}, confidence: ${confidenceLevel}`);
 
     // Store traffic data in database
     const { error: insertError } = await supabase
@@ -249,7 +265,9 @@ serve(async (req) => {
         current_speed: Math.round(currentSpeed),
         free_flow_speed: Math.round(freeFlowSpeed),
         confidence,
+        confidence_level: confidenceLevel,
         road_type: roadType,
+        peak_hours: peakHours,
         estimated_daily_traffic: estimatedDailyTraffic,
         traffic_range: trafficRange,
         label: 'Tráfico vehicular estimado – Fuente: TomTom',

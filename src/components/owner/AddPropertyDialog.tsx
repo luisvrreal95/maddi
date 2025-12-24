@@ -454,6 +454,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         points_of_interest: pointsOfInterest,
       };
 
+      let savedBillboardId: string | null = null;
+
       if (billboard) {
         const { error } = await supabase
           .from('billboards')
@@ -461,14 +463,44 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
           .eq('id', billboard.id);
 
         if (error) throw error;
+        savedBillboardId = billboard.id;
         toast.success('Propiedad actualizada');
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('billboards')
-          .insert(billboardData);
+          .insert(billboardData)
+          .select('id')
+          .single();
 
         if (error) throw error;
+        savedBillboardId = data?.id || null;
         toast.success('Propiedad agregada');
+      }
+
+      // Automatically fetch traffic data from TomTom after saving
+      if (savedBillboardId && latitude && longitude) {
+        try {
+          console.log('Fetching traffic data for new billboard...');
+          const { data: trafficData, error: trafficError } = await supabase.functions.invoke('get-traffic-data', {
+            body: {
+              billboard_id: savedBillboardId,
+              latitude,
+              longitude,
+              force_refresh: true
+            }
+          });
+          
+          if (trafficError) {
+            console.error('Error fetching traffic data:', trafficError);
+          } else {
+            console.log('Traffic data fetched successfully:', trafficData);
+            if (trafficData?.estimated_daily_traffic) {
+              toast.success(`Datos de tráfico obtenidos: ~${(trafficData.estimated_daily_traffic / 1000).toFixed(0)}K impresiones/día`);
+            }
+          }
+        } catch (trafficErr) {
+          console.error('Error calling traffic function:', trafficErr);
+        }
       }
 
       onSave();
