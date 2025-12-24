@@ -701,27 +701,47 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
             {/* Puntos de Interés */}
             <div>
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-4 h-4 text-[#9BFF43]" />
-                <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                {POINTS_OF_INTEREST.map((point) => (
-                  <div key={point} className="flex items-center gap-2">
-                    <Checkbox
-                      id={point}
-                      checked={pointsOfInterest.includes(point)}
-                      onCheckedChange={(checked) => 
-                        handlePointOfInterestChange(point, checked as boolean)
-                      }
-                      className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
-                    />
-                    <label htmlFor={point} className="text-sm cursor-pointer text-white/80">
-                      {point}
-                    </label>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#9BFF43]" />
+                  <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
+                </div>
+                {isLoadingPOIs && (
+                  <div className="flex items-center gap-2 text-white/50 text-xs">
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    <span>Detectando...</span>
                   </div>
-                ))}
+                )}
               </div>
+              {detectedPOIs.length > 0 && (
+                <p className="text-xs text-[#9BFF43] mb-2">
+                  ✓ Se detectaron {detectedPOIs.length} tipos de lugares cercanos automáticamente
+                </p>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                {POINTS_OF_INTEREST.map((point) => {
+                  const isDetected = detectedPOIs.includes(point);
+                  return (
+                    <div key={point} className={`flex items-center gap-2 p-2 rounded-lg ${isDetected ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30' : ''}`}>
+                      <Checkbox
+                        id={point}
+                        checked={pointsOfInterest.includes(point)}
+                        onCheckedChange={(checked) => 
+                          handlePointOfInterestChange(point, checked as boolean)
+                        }
+                        className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
+                      />
+                      <label htmlFor={point} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
+                        {point}
+                        {isDetected && <span className="text-[#9BFF43] text-xs">(detectado)</span>}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-white/40 mt-2">
+                Los puntos de interés cercanos se detectan automáticamente usando datos de TomTom.
+              </p>
             </div>
 
             {/* Status & Tamaño */}

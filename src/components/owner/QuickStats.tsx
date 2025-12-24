@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, MapPin, Clock, DollarSign } from 'lucide-react';
+import { Eye, MapPin, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Billboard } from '@/hooks/useBillboards';
 
@@ -66,17 +66,10 @@ const QuickStats: React.FC<QuickStatsProps> = ({ billboards, userId }) => {
       color: 'text-yellow-400',
       bgColor: 'bg-yellow-500/10',
     },
-    {
-      label: 'Ganancias Totales',
-      value: `$${totalEarnings.toLocaleString()}`,
-      icon: DollarSign,
-      color: 'text-green-400',
-      bgColor: 'bg-green-500/10',
-    },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
       {stats.map((stat) => {
         const Icon = stat.icon;
         return (

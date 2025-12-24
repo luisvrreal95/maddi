@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Loader2, Sparkles } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, Navigation } from 'lucide-react';
 
 interface LocationSuggestion {
   id: string;
@@ -22,12 +22,32 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const placeholderText = 'Buscar en Mexicali, Ensenada...';
+
+  // Get user's location
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.log('Location access denied or unavailable:', error);
+          // Default to Mexicali if location denied
+          setUserLocation({ lat: 32.6245, lng: -115.4523 });
+        }
+      );
+    }
+  }, []);
 
   // Fetch mapbox token
   useEffect(() => {
@@ -60,7 +80,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch address suggestions
+  // Fetch address suggestions with proximity bias
   useEffect(() => {
     if (!searchQuery || searchQuery.length < 2 || !mapboxToken) {
       setSuggestions([]);
@@ -81,9 +101,14 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address&limit=5&language=es`
-        );
+        // Build URL with proximity bias if user location is available
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address&limit=5&language=es`;
+        
+        if (userLocation) {
+          url += `&proximity=${userLocation.lng},${userLocation.lat}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
 
         if (data.features) {
@@ -102,7 +127,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [searchQuery, mapboxToken]);
+  }, [searchQuery, mapboxToken, userLocation]);
 
   const handleSelectSuggestion = (suggestion: LocationSuggestion) => {
     setSearchQuery(suggestion.place_name);
@@ -217,6 +242,12 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
           ref={dropdownRef}
           className="absolute top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-white/10 rounded-2xl overflow-hidden shadow-xl z-50"
         >
+          {userLocation && (
+            <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40">
+              <Navigation className="w-3 h-3" />
+              <span>Mostrando resultados cerca de ti</span>
+            </div>
+          )}
           {suggestions.map((suggestion) => (
             <button
               key={suggestion.id}
