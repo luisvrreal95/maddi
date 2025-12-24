@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { ArrowLeft, MessageSquare, Send, User, Search } from 'lucide-react';
+import { MessageSquare, Send, User, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
+import BusinessHeader from '@/components/navigation/BusinessHeader';
+import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
 
 interface Conversation {
   id: string;
@@ -176,8 +177,6 @@ const Messages: React.FC = () => {
     }
   };
 
-  const backLink = userRole === 'owner' ? '/owner' : '/business';
-
   const filteredConversations = conversations.filter(conv =>
     conv.other_user?.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.billboard?.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -185,13 +184,8 @@ const Messages: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#1A1A1A] flex flex-col">
-      {/* Header */}
-      <header className="bg-[#141414] border-b border-white/5 px-6 py-4">
-        <Link to={backLink} className="flex items-center gap-3 text-white/70 hover:text-[#9BFF43] transition-colors">
-          <ArrowLeft className="w-5 h-5" />
-          <span className="text-sm">Volver al dashboard</span>
-        </Link>
-      </header>
+      {/* Header - use role-specific header */}
+      {userRole === 'owner' ? <OwnerDashboardHeader /> : <BusinessHeader />}
 
       <div className="flex-1 flex overflow-hidden">
         {/* Conversations List */}
