@@ -68,6 +68,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [latitude, setLatitude] = useState<number>(32.6245);
   const [longitude, setLongitude] = useState<number>(-115.4523);
   
+  // User's current location for proximity bias
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  
   // Address autocomplete
   const [addressSuggestions, setAddressSuggestions] = useState<LocationSuggestion[]>([]);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
@@ -75,6 +78,29 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const debounceRef = useRef<NodeJS.Timeout>();
   const addressInputRef = useRef<HTMLInputElement>(null);
   const isUserTypingRef = useRef(false);
+
+  // Get user's location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLoc = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(userLoc);
+          // Set initial map position to user location if not editing
+          if (!billboard) {
+            setLatitude(userLoc.lat);
+            setLongitude(userLoc.lng);
+          }
+        },
+        (error) => {
+          console.log('Location access denied:', error);
+        }
+      );
+    }
+  }, [billboard]);
   
   // Image upload
   const [imageUrl, setImageUrl] = useState<string>('');
@@ -84,9 +110,11 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
   // Step 2 form data
   const [pointsOfInterest, setPointsOfInterest] = useState<string[]>([]);
+  const [customPOI, setCustomPOI] = useState('');
   const [detectedPOIs, setDetectedPOIs] = useState<string[]>([]);
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
-  const [status, setStatus] = useState('');
+  const [billboardType, setBillboardType] = useState('espectacular');
+  const [isIlluminated, setIsIlluminated] = useState(true);
   const [height, setHeight] = useState('');
   const [width, setWidth] = useState('');
   const [availability, setAvailability] = useState<'immediate' | 'scheduled'>('immediate');
@@ -119,7 +147,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       setLongitude(billboard.longitude);
       setHeight(billboard.height_m.toString());
       setWidth(billboard.width_m.toString());
-      setStatus(billboard.is_available ? 'alto' : 'bajo');
+      setBillboardType(billboard.billboard_type || 'espectacular');
+      setIsIlluminated(billboard.illumination === 'iluminado');
       setImageUrl(billboard.image_url || '');
       setImagePreview(billboard.image_url || null);
       // Load existing POIs
@@ -253,9 +282,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     debounceRef.current = setTimeout(async () => {
       setIsLoadingSuggestions(true);
       try {
-        const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=6&language=es`
-        );
+        // Build URL with proximity bias if user location is available
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=6&language=es`;
+        
+        if (userLocation) {
+          url += `&proximity=${userLocation.lng},${userLocation.lat}`;
+        }
+        
+        const response = await fetch(url);
         const data = await response.json();
         
         if (data.features && isUserTypingRef.current) {
@@ -274,7 +308,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [address, mapboxToken]);
+  }, [address, mapboxToken, userLocation]);
 
   const handleSelectAddress = (suggestion: LocationSuggestion) => {
     // Disable typing flag to prevent dropdown from reopening
@@ -309,7 +343,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setLatitude(32.6245);
     setLongitude(-115.4523);
     setPointsOfInterest([]);
-    setStatus('');
+    setCustomPOI('');
+    setBillboardType('espectacular');
+    setIsIlluminated(true);
     setHeight('');
     setWidth('');
     setAvailability('immediate');
@@ -427,7 +463,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!height || !width || !status) {
+    if (!height || !width || !billboardType) {
       toast.error('Por favor completa todos los campos requeridos');
       return;
     }
@@ -447,8 +483,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         owner_id: user?.id,
         latitude,
         longitude,
-        billboard_type: 'espectacular',
-        illumination: 'iluminado',
+        billboard_type: billboardType,
+        illumination: isIlluminated ? 'iluminado' : 'no_iluminado',
         faces: 1,
         image_url: imageUrl || null,
         points_of_interest: pointsOfInterest,
@@ -774,27 +810,80 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                     </div>
                   );
                 })}
+                {/* POIs personalizados agregados por el usuario */}
+                {pointsOfInterest
+                  .filter(poi => !POINTS_OF_INTEREST.includes(poi))
+                  .map((customPoi) => (
+                    <div key={customPoi} className="flex items-center gap-2 p-2 rounded-lg bg-[#9BFF43]/10 border border-[#9BFF43]/30">
+                      <Checkbox
+                        id={customPoi}
+                        checked={true}
+                        onCheckedChange={() => handlePointOfInterestChange(customPoi, false)}
+                        className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
+                      />
+                      <label htmlFor={customPoi} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
+                        {customPoi}
+                        <span className="text-[#9BFF43] text-xs">(personalizado)</span>
+                      </label>
+                    </div>
+                  ))}
+              </div>
+              {/* Agregar POI personalizado */}
+              <div className="flex gap-2 mt-3">
+                <Input
+                  value={customPOI}
+                  onChange={(e) => setCustomPOI(e.target.value)}
+                  placeholder="Agregar otro punto de interés..."
+                  className="flex-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40 text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && customPOI.trim()) {
+                      e.preventDefault();
+                      if (!pointsOfInterest.includes(customPOI.trim())) {
+                        setPointsOfInterest(prev => [...prev, customPOI.trim()]);
+                      }
+                      setCustomPOI('');
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (customPOI.trim() && !pointsOfInterest.includes(customPOI.trim())) {
+                      setPointsOfInterest(prev => [...prev, customPOI.trim()]);
+                      setCustomPOI('');
+                    }
+                  }}
+                  className="bg-transparent border-[#9BFF43]/50 text-[#9BFF43] hover:bg-[#9BFF43]/10"
+                >
+                  Agregar
+                </Button>
               </div>
               <p className="text-xs text-white/40 mt-2">
-                Los puntos de interés cercanos se detectan automáticamente usando datos de TomTom.
+                Los puntos de interés cercanos se detectan automáticamente. Puedes agregar más manualmente.
               </p>
             </div>
 
-            {/* Status & Tamaño */}
+            {/* Tipo & Tamaño */}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-2">
                   <Eye className="w-4 h-4 text-[#9BFF43]" />
-                  <Label className="text-sm font-medium text-white">Status</Label>
+                  <Label className="text-sm font-medium text-white">Tipo de espacio</Label>
                 </div>
-                <Select value={status} onValueChange={setStatus}>
+                <Select value={billboardType} onValueChange={setBillboardType}>
                   <SelectTrigger className="bg-[#2A2A2A] border-white/10 text-white">
-                    <SelectValue placeholder="Selecciona uno" />
+                    <SelectValue placeholder="Selecciona tipo" />
                   </SelectTrigger>
                   <SelectContent className="bg-[#2A2A2A] border-white/10">
-                    <SelectItem value="bajo">Bajo</SelectItem>
-                    <SelectItem value="medio">Medio</SelectItem>
-                    <SelectItem value="alto">Alto</SelectItem>
+                    <SelectItem value="espectacular">Espectacular</SelectItem>
+                    <SelectItem value="mupi">Mupi</SelectItem>
+                    <SelectItem value="pantalla">Pantalla Digital</SelectItem>
+                    <SelectItem value="valla">Valla</SelectItem>
+                    <SelectItem value="parabuses">Parabuses</SelectItem>
+                    <SelectItem value="puente">Puente Peatonal</SelectItem>
+                    <SelectItem value="muro">Muro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -817,6 +906,48 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                     className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Iluminación */}
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <Eye className="w-4 h-4 text-[#9BFF43]" />
+                <Label className="text-sm font-medium text-white">Iluminación</Label>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsIlluminated(true)}
+                  className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
+                    isIlluminated
+                      ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
+                  }`}>
+                    {isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
+                  </div>
+                  <span className="text-sm text-white">Iluminado</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsIlluminated(false)}
+                  className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
+                    !isIlluminated
+                      ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                    !isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
+                  }`}>
+                    {!isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
+                  </div>
+                  <span className="text-sm text-white">No iluminado</span>
+                </button>
               </div>
             </div>
 
