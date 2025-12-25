@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, List, Map } from 'lucide-react';
-import SearchFilters from '@/components/search/SearchFilters';
-import SearchMap from '@/components/search/SearchMap';
+import SearchFilters, { MapLayers, POICategories } from '@/components/search/SearchFilters';
+import SearchMap, { SearchMapRef } from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
 import LocationAutocomplete from '@/components/search/LocationAutocomplete';
 import BookingDialog from '@/components/booking/BookingDialog';
@@ -58,6 +58,7 @@ const SearchPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, userRole } = useAuth();
   const location = searchParams.get('location') || 'Mexicali, B.C.';
+  const mapRef = useRef<SearchMapRef>(null);
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
@@ -66,6 +67,25 @@ const SearchPage: React.FC = () => {
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
+  
+  // Map layers state
+  const [mapLayers, setMapLayers] = useState<MapLayers>({
+    traffic: false,
+    trafficHistory: false,
+    incidents: false,
+    pois: false,
+    flow: false,
+  });
+  
+  const [poiCategories, setPoiCategories] = useState<POICategories>({
+    restaurants: true,
+    shopping: true,
+    gasStations: true,
+    entertainment: true,
+  });
+  
+  const [trafficHour, setTrafficHour] = useState(8); // Default to 8 AM
+  const [isLoadingLayers, setIsLoadingLayers] = useState(false);
   
   // Booking state
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
@@ -99,6 +119,25 @@ const SearchPage: React.FC = () => {
 
   const handleFiltersChange = (newFilters: Record<string, string[]>) => {
     setFilters(newFilters);
+  };
+
+  const handleMapLayerChange = (layer: keyof MapLayers, enabled: boolean) => {
+    setMapLayers(prev => ({ ...prev, [layer]: enabled }));
+    
+    // If enabling traffic history, disable live traffic and vice versa
+    if (layer === 'trafficHistory' && enabled) {
+      setMapLayers(prev => ({ ...prev, traffic: false, trafficHistory: true }));
+    } else if (layer === 'traffic' && enabled) {
+      setMapLayers(prev => ({ ...prev, traffic: true, trafficHistory: false }));
+    }
+  };
+
+  const handlePOICategoryChange = (category: keyof POICategories, enabled: boolean) => {
+    setPoiCategories(prev => ({ ...prev, [category]: enabled }));
+  };
+
+  const handleTrafficHourChange = (hour: number) => {
+    setTrafficHour(hour);
   };
 
   const handleReserveClick = (property: MapProperty) => {
@@ -190,9 +229,18 @@ const SearchPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Filters */}
+        {/* Filters - now includes map layer controls */}
         <div className="px-6 border-t border-white/5">
-          <SearchFilters onFiltersChange={handleFiltersChange} />
+          <SearchFilters 
+            onFiltersChange={handleFiltersChange}
+            mapLayers={viewMode !== 'list' ? mapLayers : undefined}
+            poiCategories={viewMode !== 'list' ? poiCategories : undefined}
+            trafficHour={trafficHour}
+            onMapLayerChange={viewMode !== 'list' ? handleMapLayerChange : undefined}
+            onPOICategoryChange={viewMode !== 'list' ? handlePOICategoryChange : undefined}
+            onTrafficHourChange={viewMode !== 'list' ? handleTrafficHourChange : undefined}
+            isLoadingLayers={isLoadingLayers}
+          />
         </div>
       </div>
 
@@ -233,12 +281,17 @@ const SearchPage: React.FC = () => {
               </div>
             ) : mapboxToken ? (
               <SearchMap
+                ref={mapRef}
                 properties={properties}
                 selectedPropertyId={selectedPropertyId}
                 onPropertySelect={setSelectedPropertyId}
                 mapboxToken={mapboxToken}
                 searchLocation={confirmedLocation}
                 onReserveClick={handleReserveClick}
+                layers={mapLayers}
+                poiCategories={poiCategories}
+                trafficHour={trafficHour}
+                onLoadingChange={setIsLoadingLayers}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A]">
