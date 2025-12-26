@@ -89,6 +89,41 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_dates: {
+        Row: {
+          billboard_id: string
+          created_at: string
+          end_date: string
+          id: string
+          reason: string | null
+          start_date: string
+        }
+        Insert: {
+          billboard_id: string
+          created_at?: string
+          end_date: string
+          id?: string
+          reason?: string | null
+          start_date: string
+        }
+        Update: {
+          billboard_id?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          reason?: string | null
+          start_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_dates_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: false
+            referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           ad_design_url: string | null
@@ -361,6 +396,47 @@ export type Database = {
             columns: ["related_booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pricing_overrides: {
+        Row: {
+          billboard_id: string
+          created_at: string
+          end_date: string
+          id: string
+          notes: string | null
+          price_per_month: number
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          billboard_id: string
+          created_at?: string
+          end_date: string
+          id?: string
+          notes?: string | null
+          price_per_month: number
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          billboard_id?: string
+          created_at?: string
+          end_date?: string
+          id?: string
+          notes?: string | null
+          price_per_month?: number
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_overrides_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: false
+            referencedRelation: "billboards"
             referencedColumns: ["id"]
           },
         ]
