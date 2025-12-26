@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Menu, LayoutDashboard, Building2, Calendar, BarChart3, MessageSquare, Settings, LogOut } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import {
   DropdownMenu,
@@ -10,16 +10,44 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
 
-const OwnerDashboardHeader: React.FC = () => {
+interface OwnerDashboardHeaderProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+}
+
+const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, onTabChange }) => {
   const { signOut } = useAuth();
+  const [searchParams] = useSearchParams();
+  
+  const currentTab = activeTab || searchParams.get('tab') || 'inicio';
+
+  const navItems = [
+    { id: 'inicio', label: 'Inicio', icon: Home },
+    { id: 'propiedades', label: 'Mis propiedades', icon: Building2 },
+    { id: 'calendario', label: 'Calendario', icon: Calendar },
+    { id: 'mensajes', label: 'Mensajes', icon: MessageSquare },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'stats', label: 'Estadísticas', icon: BarChart3 },
+  ];
+
+  const handleTabClick = (tabId: string) => {
+    if (tabId === 'mensajes') {
+      window.location.href = '/messages';
+      return;
+    }
+    if (onTabChange) {
+      onTabChange(tabId);
+    }
+  };
 
   return (
     <header className="bg-[#1A1A1A] px-4 md:px-8 py-4 border-b border-white/10">
-      <div className="flex items-center justify-between w-full">
+      <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-1 flex-shrink-0">
-          <svg width="120" height="40" viewBox="0 0 169 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="100" height="32" viewBox="0 0 169 56" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M127.637 20.6138H122.966C122.643 20.6138 122.381 20.8777 122.381 21.2039V31.3312C120.357 29.4365 117.485 28.372 114.295 28.372C110.565 28.372 107.157 29.8177 104.693 32.4398C102.255 35.0362 100.912 38.6019 100.912 42.481C100.912 46.3601 102.309 49.6289 104.843 52.1392C107.356 54.6294 110.761 56 114.432 56C117.748 56 120.698 54.8126 122.742 52.7V54.776C122.742 55.1022 123.004 55.366 123.327 55.366H127.639C127.962 55.366 128.223 55.1022 128.223 54.776V21.2039C128.223 20.8777 127.962 20.6138 127.639 20.6138H127.637ZM114.656 50.5103C114.642 50.5103 114.627 50.5103 114.613 50.5103C112.53 50.4993 110.571 49.6528 109.096 48.1264C107.63 46.6093 106.797 44.5937 106.752 42.4517C106.703 40.1081 107.572 37.836 109.14 36.2199C110.613 34.6991 112.572 33.8617 114.656 33.8617C117.022 33.8617 119.054 34.7155 120.533 36.3316C121.957 37.8873 122.742 40.0568 122.742 42.437C122.742 44.5625 121.902 46.5763 120.377 48.1099C118.833 49.6601 116.803 50.514 114.656 50.514V50.5103Z" fill="#FEFEFE"/>
             <path d="M158.181 20.6138H153.509C153.187 20.6138 152.925 20.8777 152.925 21.2039V31.3312C150.901 29.4365 148.029 28.372 144.839 28.372C141.109 28.372 137.701 29.8177 135.237 32.4398C132.799 35.0362 131.456 38.6019 131.456 42.481C131.456 46.3601 132.853 49.6289 135.387 52.1392C137.9 54.6294 141.305 56 144.975 56C148.292 56 151.242 54.8126 153.286 52.7V54.776C153.286 55.1022 153.548 55.366 153.87 55.366H158.183C158.506 55.366 158.767 55.1022 158.767 54.776V21.2039C158.767 20.8777 158.506 20.6138 158.183 20.6138H158.181ZM145.2 50.5103C145.186 50.5103 145.171 50.5103 145.157 50.5103C143.074 50.4993 141.115 49.6528 139.64 48.1264C138.174 46.6093 137.341 44.5937 137.296 42.4517C137.247 40.1081 138.116 37.836 139.683 36.2199C141.157 34.6991 143.116 33.8617 145.2 33.8617C147.566 33.8617 149.598 34.7155 151.077 36.3316C152.501 37.8873 153.286 40.0568 153.286 42.437C153.286 44.5625 152.446 46.5763 150.921 48.1099C149.377 49.6601 147.347 50.514 145.2 50.514V50.5103Z" fill="#FEFEFE"/>
             <path d="M167.673 32.7696H163.241C162.936 32.7696 162.688 33.0151 162.688 33.3193V54.7119C162.688 55.0142 162.936 55.2616 163.241 55.2616H167.673C167.978 55.2616 168.226 55.016 168.226 54.7119V33.3193C168.226 33.017 167.978 32.7696 167.673 32.7696Z" fill="#FEFEFE"/>
@@ -28,6 +56,29 @@ const OwnerDashboardHeader: React.FC = () => {
             <path d="M72.9335 51.1919C73.2129 50.9171 73.681 51.1186 73.6719 51.5126L73.6048 54.9794C73.5993 55.2249 73.7953 55.4265 74.0384 55.4265H78.9911C79.227 55.4265 79.4211 55.2359 79.4247 54.9959L79.5318 49.442L79.6842 41.5996C79.6878 41.3779 79.5281 41.1874 79.3086 41.1562L75.8417 40.6743L70.0961 39.8754L66.5403 39.3807C66.3026 39.3477 66.0831 39.5163 66.0504 39.7563L65.3737 44.7109C65.3411 44.951 65.508 45.1727 65.7457 45.2057L69.1545 45.6802C69.5029 45.7279 69.6535 46.1548 69.414 46.415C67.7576 48.2015 66.2373 49.2093 64.639 49.2093C64.2617 49.2093 63.8788 49.1525 63.4888 49.0371C63.4688 49.0316 63.4507 49.0243 63.4307 49.0169C62.6506 48.6779 61.6311 47.9707 61.2029 45.9423C60.8637 44.3353 60.9761 42.2593 61.5204 40.1008L61.5585 39.9249C61.8705 38.2611 62.8321 35.8241 63.8498 33.2423C65.1089 30.0467 66.5367 26.426 67.2097 23.0545C68.115 18.5286 67.52 15.1461 65.3901 12.7128L65.3139 12.6249L65.2304 12.5442C63.9859 11.3312 62.4112 10.7229 60.6659 10.7229C58.9914 10.7229 57.1609 11.2836 55.3158 12.405L55.2868 12.4233C51.1994 14.9757 48.4328 18.6752 45.755 22.2538C44.0624 24.5167 42.5548 26.7595 40.5936 28.438C38.8229 29.9551 36.2849 32.055 36.2178 27.5767C36.2867 24.6578 37.4968 21.5373 38.6107 18.5708C38.7794 18.1292 38.9445 17.6931 39.1042 17.2643L39.1132 17.2387C39.9278 14.9922 40.8222 12.3775 41.1306 9.77005C41.4535 7.0362 41.1887 3.3147 38.0791 1.10124L37.9666 1.02246C37.9539 1.0133 37.9394 1.00416 37.9267 0.996827L37.807 0.930843C36.6078 0.263871 35.3705 0 34.1641 0C30.5502 0 27.1994 2.36188 25.875 3.29638L25.7643 3.37887C21.7169 6.53049 18.0141 10.2886 14.6814 14.6202C14.5653 14.7705 14.3657 14.8273 14.1879 14.7632C13.0922 14.3711 11.9855 14.175 10.8698 14.175C9.63431 14.175 8.38795 14.415 7.13615 14.8988C4.3822 15.9597 2.05821 18.0302 0.127901 19.9835C-0.0426337 20.1558 -0.0426337 20.4361 0.127901 20.6065L3.65834 24.1154C3.82706 24.284 4.101 24.284 4.26972 24.1154C6.66991 21.7004 8.44237 20.5204 9.93364 20.1722C10.3092 20.0843 10.6031 20.5003 10.3981 20.8319C8.85964 23.3202 7.42279 25.9569 6.08936 28.7384L6.0694 28.7806C3.95949 33.3614 2.90182 37.1379 2.74035 40.6578C2.43194 45.1361 4.17901 49.1544 7.19602 50.9043C7.9598 51.3477 9.14447 51.8351 10.6539 51.8351C12.1633 51.8351 13.8233 51.3935 15.7663 50.0467L15.8969 49.9514C18.3479 48.044 20.3762 45.158 21.764 41.6088C23.0557 38.3032 23.7125 34.6569 23.6635 31.06C23.6236 28.0861 23.1065 25.3486 22.1269 22.9244C21.4484 21.246 20.5721 19.7728 19.5035 18.5195C19.3675 18.3582 19.3584 18.1237 19.4872 17.9569C22.4462 14.153 25.7099 10.853 29.2567 8.08431C31.8328 6.35091 35.9565 3.78196 35.3433 9.07925C35.0893 11.2194 34.1859 13.7132 33.6434 15.2121C33.4892 15.6262 33.3296 16.0458 33.1663 16.4728C31.5643 20.6853 29.7465 25.4604 30.5829 30.208L30.5919 30.2556C31.285 33.8488 33.5727 36.1209 36.7094 36.3316L36.782 36.3353C36.8836 36.339 36.9852 36.3408 37.0868 36.3408C39.496 36.3408 41.9361 35.1718 44.5322 32.7696L44.5613 32.7421C46.7927 30.6184 48.6214 28.1741 50.3885 25.8104C52.8467 22.525 55.1689 19.421 58.322 17.4457C62.2007 15.1187 61.9812 18.8823 61.4914 21.9038C60.9217 24.7549 59.6536 27.9707 58.429 31.0802C57.3205 33.8928 56.2737 36.5497 55.8456 38.7503C53.9588 46.3527 56.0742 52.3976 61.3753 54.5378L61.466 54.5744L61.5585 54.6056C62.6017 54.9464 63.6358 55.1168 64.6626 55.1168C66.9068 55.1168 69.1056 54.3032 71.23 52.6816C71.8178 52.2327 72.3747 51.738 72.9099 51.2157C72.9117 51.2139 72.9154 51.2103 72.9172 51.2084L72.9335 51.1919ZM12.4372 45.2167C12.4264 45.2258 12.4137 45.235 12.401 45.2423C11.8785 45.5923 11.229 45.9313 10.6611 45.9313C10.4616 45.9313 10.2729 45.8892 10.1042 45.792C9.21522 45.2772 8.3934 43.3532 8.56031 41.028L8.56574 40.9455C8.68548 38.2117 9.5708 35.137 11.3505 31.2671C12.606 28.6523 13.9575 26.1787 15.4016 23.8479C15.5758 23.5658 15.9876 23.5786 16.1491 23.8681C17.2177 25.7939 17.82 28.2895 17.8581 31.1241C17.9343 36.8301 15.7119 42.6019 12.4391 45.213L12.4372 45.2167Z" fill="#9BFF43"/>
           </svg>
         </Link>
+
+        {/* Center Navigation - Desktop */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = currentTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => handleTabClick(item.id)}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                  isActive
+                    ? "bg-white text-[#121212]"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {item.label}
+              </button>
+            );
+          })}
+        </nav>
 
         {/* Right - Notifications + Hamburger */}
         <div className="flex items-center gap-3">
@@ -40,37 +91,24 @@ const OwnerDashboardHeader: React.FC = () => {
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/owner?tab=dashboard" className="flex items-center gap-2">
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dashboard
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/owner?tab=propiedades" className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  Propiedades
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/owner?tab=reservas" className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Reservas
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/owner?tab=stats" className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Estadísticas
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/messages" className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Mensajes
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/10" />
+              {/* Mobile Navigation */}
+              <div className="md:hidden">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem
+                      key={item.id}
+                      onClick={() => handleTabClick(item.id)}
+                      className="text-white hover:bg-white/10 cursor-pointer"
+                    >
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.label}
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator className="bg-white/10" />
+              </div>
+              
               <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
                 <Link to="/settings" className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />
