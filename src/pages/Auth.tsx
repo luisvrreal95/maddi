@@ -34,7 +34,12 @@ const Auth: React.FC = () => {
 
   useEffect(() => {
     if (user && userRole) {
-      navigate('/');
+      // Redirect owners to their dashboard, businesses to home
+      if (userRole === 'owner') {
+        navigate('/owner');
+      } else {
+        navigate('/');
+      }
     }
   }, [user, userRole, navigate]);
 
@@ -89,7 +94,7 @@ const Auth: React.FC = () => {
           }
         } else {
           toast.success('¡Bienvenido de nuevo!');
-          navigate('/');
+          // Navigation will be handled by the useEffect above after role is loaded
         }
       } else {
         if (!selectedType) return;

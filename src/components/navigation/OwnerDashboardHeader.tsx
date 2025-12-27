@@ -34,11 +34,15 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
 
   const handleTabClick = (tabId: string) => {
     if (tabId === 'mensajes') {
-      window.location.href = '/messages';
+      // Navigate to messages with owner context
+      window.location.href = '/messages?from=owner';
       return;
     }
     if (onTabChange) {
       onTabChange(tabId);
+    } else {
+      // If no onTabChange provided, navigate directly
+      window.location.href = `/owner?tab=${tabId}`;
     }
   };
 

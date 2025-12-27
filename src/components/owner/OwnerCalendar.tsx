@@ -53,6 +53,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState<Date | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState<'price' | 'block' | null>(null);
   const [newPrice, setNewPrice] = useState('');
@@ -111,6 +113,42 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
       setIsLoading(false);
     }
   };
+
+  const handleDateMouseDown = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
+    if (hasBooking || isBlocked) return;
+    setIsDragging(true);
+    setDragStart(date);
+    setSelectedDates([date]);
+  };
+
+  const handleDateMouseEnter = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
+    if (!isDragging || !dragStart || hasBooking || isBlocked) return;
+    
+    // Create a range from dragStart to current date
+    const start = dragStart < date ? dragStart : date;
+    const end = dragStart < date ? date : dragStart;
+    
+    const datesInRange: Date[] = [];
+    let current = start;
+    while (current <= end) {
+      datesInRange.push(new Date(current));
+      current = addDays(current, 1);
+    }
+    setSelectedDates(datesInRange);
+  };
+
+  const handleDateMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Add global mouse up listener to handle drag end
+  useEffect(() => {
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
+  }, []);
 
   const handleDateClick = (date: Date) => {
     if (selectedDates.some(d => isSameDay(d, date))) {
@@ -259,7 +297,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
     const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     
     return (
-      <div className="grid grid-cols-7 gap-2">
+      <div className="grid grid-cols-7 gap-2 select-none">
         {days.map((day) => {
           const { isBlocked, booking, priceOverride } = getDayStatus(day);
           const isSelected = selectedDates.some(d => isSameDay(d, day));
@@ -268,15 +306,17 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
           return (
             <div
               key={day.toISOString()}
-              onClick={() => !booking && handleDateClick(day)}
+              onMouseDown={() => handleDateMouseDown(day, isBlocked, !!booking)}
+              onMouseEnter={() => handleDateMouseEnter(day, isBlocked, !!booking)}
+              onMouseUp={handleDateMouseUp}
               className={cn(
-                "p-4 rounded-xl border transition-all cursor-pointer min-h-[120px]",
-                isBlocked && "bg-red-500/10 border-red-500/30",
-                booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30",
-                booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30",
-                priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30",
+                "p-4 rounded-xl border transition-all min-h-[120px] select-none",
+                isBlocked && "bg-red-500/10 border-red-500/30 cursor-not-allowed",
+                booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-not-allowed",
+                booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed",
+                priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30 cursor-pointer",
                 isSelected && "ring-2 ring-white",
-                !isBlocked && !booking && "border-white/10 hover:border-white/30"
+                !isBlocked && !booking && "border-white/10 hover:border-white/30 cursor-pointer"
               )}
             >
               <div className="text-white/50 text-sm">
@@ -327,7 +367,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
     }
     
     return (
-      <div>
+      <div className="select-none">
         <div className="grid grid-cols-7 gap-1 mb-2">
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
             <div key={d} className="text-center text-white/50 text-sm py-2">
@@ -345,14 +385,16 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
             return (
               <div
                 key={day.toISOString()}
-                onClick={() => !booking && isCurrentMonth && handleDateClick(day)}
+                onMouseDown={() => isCurrentMonth && handleDateMouseDown(day, isBlocked, !!booking)}
+                onMouseEnter={() => isCurrentMonth && handleDateMouseEnter(day, isBlocked, !!booking)}
+                onMouseUp={handleDateMouseUp}
                 className={cn(
-                  "p-2 rounded-lg border transition-all min-h-[80px]",
+                  "p-2 rounded-lg border transition-all min-h-[80px] select-none",
                   !isCurrentMonth && "opacity-30",
-                  isBlocked && "bg-red-500/10 border-red-500/30",
-                  booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30",
-                  booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30",
-                  priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30",
+                  isBlocked && "bg-red-500/10 border-red-500/30 cursor-not-allowed",
+                  booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-not-allowed",
+                  booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed",
+                  priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30 cursor-pointer",
                   isSelected && "ring-2 ring-white",
                   !isBlocked && !booking && isCurrentMonth && "border-white/10 hover:border-white/30 cursor-pointer"
                 )}
@@ -663,63 +705,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
           </Card>
         )}
 
-        {/* Active Price Overrides */}
-        {pricingOverrides.length > 0 && (
-          <Card className="bg-[#1E1E1E] border-white/10">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-lg">Precios especiales</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {pricingOverrides.map((po) => (
-                <div key={po.id} className="flex items-center justify-between p-2 bg-blue-500/10 rounded-lg">
-                  <div>
-                    <div className="text-white text-sm">
-                      {format(new Date(po.start_date), 'dd MMM', { locale: es })} - {format(new Date(po.end_date), 'dd MMM', { locale: es })}
-                    </div>
-                    <div className="text-blue-400 font-medium">${po.price_per_month.toLocaleString()}</div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeletePricing(po.id)}
-                    className="text-white/50 hover:text-red-400"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Blocked Dates */}
-        {blockedDates.length > 0 && (
-          <Card className="bg-[#1E1E1E] border-white/10">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-lg">Fechas bloqueadas</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {blockedDates.map((bd) => (
-                <div key={bd.id} className="flex items-center justify-between p-2 bg-red-500/10 rounded-lg">
-                  <div>
-                    <div className="text-white text-sm">
-                      {format(new Date(bd.start_date), 'dd MMM', { locale: es })} - {format(new Date(bd.end_date), 'dd MMM', { locale: es })}
-                    </div>
-                    {bd.reason && <div className="text-red-400 text-xs">{bd.reason}</div>}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDeleteBlocked(bd.id)}
-                    className="text-white/50 hover:text-red-400"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+        {/* Note: Pricing overrides and blocked dates are visible on the calendar itself */}
       </div>
     </div>
   );
