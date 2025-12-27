@@ -45,6 +45,7 @@ const OwnerDashboard: React.FC = () => {
   // Property filters
   const [filterCity, setFilterCity] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Auto-select first billboard when billboards load
   useEffect(() => {
@@ -106,12 +107,20 @@ const OwnerDashboard: React.FC = () => {
   // Filter billboards
   const filteredBillboards = useMemo(() => {
     return billboards.filter(b => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesTitle = b.title.toLowerCase().includes(query);
+        const matchesCity = b.city.toLowerCase().includes(query);
+        const matchesAddress = b.address.toLowerCase().includes(query);
+        if (!matchesTitle && !matchesCity && !matchesAddress) return false;
+      }
       if (filterCity !== 'all' && b.city !== filterCity) return false;
       if (filterStatus === 'available' && !b.is_available) return false;
       if (filterStatus === 'unavailable' && b.is_available) return false;
       return true;
     });
-  }, [billboards, filterCity, filterStatus]);
+  }, [billboards, filterCity, filterStatus, searchQuery]);
 
   const handleBillboardSaved = () => {
     fetchBillboards();
@@ -204,8 +213,10 @@ const OwnerDashboard: React.FC = () => {
                 onCityChange={setFilterCity}
                 selectedStatus={filterStatus}
                 onStatusChange={setFilterStatus}
-                onClearFilters={() => { setFilterCity('all'); setFilterStatus('all'); }}
-                hasActiveFilters={filterCity !== 'all' || filterStatus !== 'all'}
+                onClearFilters={() => { setFilterCity('all'); setFilterStatus('all'); setSearchQuery(''); }}
+                hasActiveFilters={filterCity !== 'all' || filterStatus !== 'all' || searchQuery !== ''}
+                searchQuery={searchQuery}
+                onSearchChange={setSearchQuery}
               />
             </div>
             {isLoading ? (

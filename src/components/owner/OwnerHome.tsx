@@ -184,7 +184,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
 
   return (
     <div className="space-y-8">
-      {/* Quick Stats Bar */}
+      {/* Quick Stats Bar - Updated: Total billboards, Reserved today, Occupancy */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5">
           <div className="flex items-center gap-3">
@@ -203,8 +203,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
               <Calendar className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-white/50 text-sm">Activos</p>
-              <p className="text-white text-xl font-bold">{totalActiveBookings}</p>
+              <p className="text-white/50 text-sm">Reservados hoy</p>
+              <p className="text-white text-xl font-bold">{categorizedBookings.today.length}</p>
             </div>
           </div>
         </div>
@@ -214,8 +214,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
               <DollarSign className="w-5 h-5 text-green-400" />
             </div>
             <div>
-              <p className="text-white/50 text-sm">Ingresos</p>
-              <p className="text-white text-xl font-bold">${monthlyRevenue.toLocaleString()}</p>
+              <p className="text-white/50 text-sm">Total espectaculares</p>
+              <p className="text-white text-xl font-bold">{billboards.length}</p>
             </div>
           </div>
         </div>

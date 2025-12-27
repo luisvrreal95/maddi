@@ -60,17 +60,24 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   }, [billboard.id]);
 
   return (
-    <div className="bg-[#1E1E1E] rounded-2xl border border-[#9BFF43]/30 p-5 relative hover:border-[#9BFF43]/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all">
-      {/* Image */}
-      {billboard.image_url && (
-        <div className="relative mb-4 rounded-xl overflow-hidden">
+    <div className="bg-[#1E1E1E] rounded-2xl border border-[#9BFF43]/30 p-5 relative hover:border-[#9BFF43]/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all h-full flex flex-col">
+      {/* Image - Always show with fixed height */}
+      <div className="relative mb-4 rounded-xl overflow-hidden h-40 flex-shrink-0">
+        {billboard.image_url ? (
           <img 
             src={billboard.image_url} 
             alt={billboard.title}
-            className="w-full h-40 object-cover"
+            className="w-full h-full object-cover"
           />
-        </div>
-      )}
+        ) : (
+          <div className="w-full h-full bg-[#2A2A2A] flex items-center justify-center">
+            <div className="text-center">
+              <MapPin className="w-8 h-8 text-white/20 mx-auto mb-2" />
+              <span className="text-white/30 text-sm">Sin imagen</span>
+            </div>
+          </div>
+        )}
+      </div>
       
       {/* Action Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">

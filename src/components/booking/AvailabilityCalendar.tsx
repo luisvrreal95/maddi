@@ -12,6 +12,13 @@ interface Booking {
   status: string;
 }
 
+interface BlockedDate {
+  id: string;
+  start_date: string;
+  end_date: string;
+  reason: string | null;
+}
+
 interface AvailabilityCalendarProps {
   billboardId: string;
   className?: string;
@@ -22,26 +29,38 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   className,
 }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      const { data, error } = await supabase
+    const fetchData = async () => {
+      // Fetch bookings
+      const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('id, start_date, end_date, status')
         .eq('billboard_id', billboardId)
         .in('status', ['approved', 'pending']);
 
-      if (!error && data) {
-        setBookings(data);
+      if (!bookingsError && bookingsData) {
+        setBookings(bookingsData);
+      }
+
+      // Fetch blocked dates (visible to all users)
+      const { data: blockedData, error: blockedError } = await supabase
+        .from('blocked_dates')
+        .select('id, start_date, end_date, reason')
+        .eq('billboard_id', billboardId);
+
+      if (!blockedError && blockedData) {
+        setBlockedDates(blockedData);
       }
     };
 
-    fetchBookings();
+    fetchData();
 
     // Subscribe to realtime updates
     const channel = supabase
-      .channel(`bookings-${billboardId}`)
+      .channel(`availability-${billboardId}`)
       .on(
         'postgres_changes',
         {
@@ -51,7 +70,19 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
           filter: `billboard_id=eq.${billboardId}`,
         },
         () => {
-          fetchBookings();
+          fetchData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'blocked_dates',
+          filter: `billboard_id=eq.${billboardId}`,
+        },
+        () => {
+          fetchData();
         }
       )
       .subscribe();
@@ -61,7 +92,17 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     };
   }, [billboardId]);
 
-  const getDateStatus = (date: Date): 'available' | 'pending' | 'booked' => {
+  const getDateStatus = (date: Date): 'available' | 'pending' | 'booked' | 'blocked' => {
+    // Check blocked dates first
+    for (const blocked of blockedDates) {
+      const start = parseISO(blocked.start_date);
+      const end = parseISO(blocked.end_date);
+      if (isWithinInterval(date, { start, end })) {
+        return 'blocked';
+      }
+    }
+
+    // Check bookings
     for (const booking of bookings) {
       const start = parseISO(booking.start_date);
       const end = parseISO(booking.end_date);
@@ -76,11 +117,19 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   const modifiers = {
     booked: (date: Date) => getDateStatus(date) === 'booked',
     pending: (date: Date) => getDateStatus(date) === 'pending',
+    blocked: (date: Date) => getDateStatus(date) === 'blocked',
   };
 
   const modifiersClassNames = {
     booked: 'bg-red-500/30 text-red-300 hover:bg-red-500/40',
     pending: 'bg-yellow-500/30 text-yellow-300 hover:bg-yellow-500/40',
+    blocked: 'bg-gray-500/30 text-gray-400 cursor-not-allowed',
+  };
+
+  // Disable selection of blocked and booked dates
+  const isDateDisabled = (date: Date) => {
+    const status = getDateStatus(date);
+    return date < new Date() || status === 'blocked' || status === 'booked';
   };
 
   return (
@@ -94,7 +143,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
         locale={es}
         modifiers={modifiers}
         modifiersClassNames={modifiersClassNames}
-        disabled={(date) => date < new Date()}
+        disabled={isDateDisabled}
         className="pointer-events-auto bg-transparent"
       />
       
@@ -111,6 +160,10 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-red-500" />
           <span className="text-white/60 text-sm">Reservado</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 rounded-full bg-gray-500" />
+          <span className="text-white/60 text-sm">Bloqueado</span>
         </div>
       </div>
     </div>

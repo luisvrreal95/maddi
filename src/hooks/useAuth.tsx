@@ -169,6 +169,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
     setUserRole(null);
     setNeedsRoleSelection(false);
+    // Redirect to main page after logout
+    window.location.href = '/';
   };
 
   return (
