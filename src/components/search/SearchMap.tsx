@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import PropertyPopup from './PropertyPopup';
+import EnhancedPropertyPopup from './EnhancedPropertyPopup';
+import PropertyDetailPanel from './PropertyDetailPanel';
+import { createMarkerElement } from './EnhancedPropertyMarker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -66,11 +68,13 @@ interface SearchMapProps {
   mapboxToken: string;
   searchLocation?: string;
   onReserveClick: (property: Property) => void;
-  // Layer controls from parent
   layers: MapLayers;
   poiCategories: POICategories;
   trafficHour: number;
   onLoadingChange?: (loading: boolean) => void;
+  compareIds: string[];
+  onToggleCompare: (id: string) => void;
+  isCompareMode: boolean;
 }
 
 export interface SearchMapRef {
@@ -88,6 +92,9 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   poiCategories,
   trafficHour,
   onLoadingChange,
+  compareIds,
+  onToggleCompare,
+  isCompareMode,
 }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -95,7 +102,9 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   const poiMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const incidentMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const [popupProperty, setPopupProperty] = useState<Property | null>(null);
+  const [detailProperty, setDetailProperty] = useState<Property | null>(null);
   const [flowData, setFlowData] = useState<FlowData | null>(null);
+  const [nearbyPOIs, setNearbyPOIs] = useState<Array<{ name: string; category: string; distance: number }>>([]);
 
   // Expose refresh function to parent
   useImperativeHandle(ref, () => ({
@@ -166,7 +175,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     geocodeLocation();
   }, [searchLocation, mapboxToken]);
 
-  // Property markers
+  // Property markers with enhanced visuals
   useEffect(() => {
     if (!map.current) return;
 
@@ -175,21 +184,10 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
     properties.forEach((property) => {
       const isSelected = property.id === selectedPropertyId;
+      const isInCompare = compareIds.includes(property.id);
+      const viewsNum = parseInt(property.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
       
-      const el = document.createElement('div');
-      el.className = 'custom-marker';
-      el.innerHTML = `
-        <div class="flex flex-col items-center cursor-pointer transition-transform duration-200 ${isSelected ? 'scale-110' : 'hover:scale-105'}">
-          <div class="relative flex flex-col items-center justify-center rounded-full transition-all duration-300 ${
-            isSelected
-              ? 'w-20 h-20 bg-[#9BFF43] shadow-[0_0_30px_rgba(155,255,67,0.5)]'
-              : 'w-16 h-16 bg-[#2A2A2A] border-2 border-[#9BFF43]/50'
-          }">
-            <span class="text-xs font-bold ${isSelected ? 'text-[#202020]' : 'text-white'}">${property.viewsPerDay}</span>
-            <span class="text-[8px] ${isSelected ? 'text-[#202020]/70' : 'text-white/50'}">VISTAS/DÍA</span>
-          </div>
-        </div>
-      `;
+      const el = createMarkerElement(viewsNum, isSelected, isCompareMode, isInCompare);
 
       el.addEventListener('click', () => {
         onPropertySelect(property.id);
@@ -202,7 +200,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
       markersRef.current.push(marker);
     });
-  }, [properties, selectedPropertyId, onPropertySelect]);
+  }, [properties, selectedPropertyId, onPropertySelect, compareIds, isCompareMode]);
 
   // Fly to selected property
   useEffect(() => {
@@ -498,6 +496,19 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     }
   };
 
+  const handleViewDetails = () => {
+    if (popupProperty) {
+      setDetailProperty(popupProperty);
+      setPopupProperty(null);
+    }
+  };
+
+  const handleAddToCompare = () => {
+    if (popupProperty) {
+      onToggleCompare(popupProperty.id);
+    }
+  };
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
@@ -517,11 +528,6 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
               <p className="text-xs text-white/50">Flujo libre</p>
             </div>
           </div>
-          {flowData.confidence && (
-            <p className="text-xs text-white/40 mt-2">
-              Confianza: {Math.round(flowData.confidence * 100)}%
-            </p>
-          )}
         </div>
       )}
 
@@ -535,15 +541,31 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
         </div>
       )}
       
-      {/* Property Popup */}
+      {/* Enhanced Property Popup */}
       {popupProperty && (
         <div className="absolute bottom-4 left-4 z-10">
-          <PropertyPopup
+          <EnhancedPropertyPopup
             property={popupProperty}
+            nearbyPOIs={nearbyPOIs}
             onClose={handleClosePopup}
             onReserve={handleReserve}
+            onViewDetails={handleViewDetails}
+            onAddToCompare={handleAddToCompare}
+            isInCompare={compareIds.includes(popupProperty.id)}
           />
         </div>
+      )}
+
+      {/* Property Detail Panel */}
+      {detailProperty && (
+        <PropertyDetailPanel
+          property={detailProperty}
+          onClose={() => setDetailProperty(null)}
+          onReserve={() => {
+            onReserveClick(detailProperty);
+            setDetailProperty(null);
+          }}
+        />
       )}
     </div>
   );

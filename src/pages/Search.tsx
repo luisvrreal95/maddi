@@ -68,6 +68,11 @@ const SearchPage: React.FC = () => {
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const [filters, setFilters] = useState<Record<string, string[]>>({});
   
+  // Compare mode state
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [showComparison, setShowComparison] = useState(false);
+  const isCompareMode = compareIds.length > 0;
+  
   // Map layers state
   const [mapLayers, setMapLayers] = useState<MapLayers>({
     traffic: false,
@@ -84,12 +89,25 @@ const SearchPage: React.FC = () => {
     entertainment: true,
   });
   
-  const [trafficHour, setTrafficHour] = useState(8); // Default to 8 AM
+  const [trafficHour, setTrafficHour] = useState(8);
   const [isLoadingLayers, setIsLoadingLayers] = useState(false);
   
   // Booking state
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedBillboard, setSelectedBillboard] = useState<Billboard | null>(null);
+
+  const handleToggleCompare = (id: string) => {
+    setCompareIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(i => i !== id);
+      }
+      if (prev.length >= 4) {
+        toast.error('Máximo 4 espectaculares para comparar');
+        return prev;
+      }
+      return [...prev, id];
+    });
+  };
 
   // Fetch billboards from database using confirmed location
   const { billboards, isLoading: isLoadingBillboards } = useBillboards({
@@ -292,6 +310,9 @@ const SearchPage: React.FC = () => {
                 poiCategories={poiCategories}
                 trafficHour={trafficHour}
                 onLoadingChange={setIsLoadingLayers}
+                compareIds={compareIds}
+                onToggleCompare={handleToggleCompare}
+                isCompareMode={isCompareMode}
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A]">
