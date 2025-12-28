@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ interface OwnerDashboardHeaderProps {
 const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, onTabChange }) => {
   const { signOut } = useAuth();
   const [searchParams] = useSearchParams();
+  const { unreadCount } = useUnreadMessages();
   
   const currentTab = activeTab || searchParams.get('tab') || 'inicio';
 
@@ -27,7 +29,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'propiedades', label: 'Mis propiedades', icon: Building2 },
     { id: 'calendario', label: 'Calendario', icon: Calendar },
-    { id: 'mensajes', label: 'Mensajes', icon: MessageSquare },
+    { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'stats', label: 'Estadísticas', icon: BarChart3 },
   ];
@@ -71,7 +73,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
                 key={item.id}
                 onClick={() => handleTabClick(item.id)}
                 className={cn(
-                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2",
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 relative",
                   isActive
                     ? "bg-white text-[#121212]"
                     : "text-white/70 hover:text-white hover:bg-white/10"
@@ -79,6 +81,11 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
               >
                 <Icon className="w-4 h-4" />
                 {item.label}
+                {item.badge && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
               </button>
             );
           })}

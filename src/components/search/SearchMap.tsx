@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import EnhancedPropertyPopup from './EnhancedPropertyPopup';
 import PropertyDetailPanel from './PropertyDetailPanel';
+import MapPopupPortal from './MapPopupPortal';
 import { createMarkerElement } from './EnhancedPropertyMarker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -101,7 +101,9 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const poiMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const incidentMarkersRef = useRef<mapboxgl.Marker[]>([]);
+  const popupRef = useRef<mapboxgl.Popup | null>(null);
   const [popupProperty, setPopupProperty] = useState<Property | null>(null);
+  const [popupCoords, setPopupCoords] = useState<[number, number] | null>(null);
   const [detailProperty, setDetailProperty] = useState<Property | null>(null);
   const [flowData, setFlowData] = useState<FlowData | null>(null);
   const [nearbyPOIs, setNearbyPOIs] = useState<Array<{ name: string; category: string; distance: number }>>([]);
@@ -189,9 +191,11 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       
       const el = createMarkerElement(viewsNum, isSelected, isCompareMode, isInCompare);
 
-      el.addEventListener('click', () => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
         onPropertySelect(property.id);
         setPopupProperty(property);
+        setPopupCoords([property.lng, property.lat]);
       });
 
       const marker = new mapboxgl.Marker({ element: el })
@@ -541,19 +545,19 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
         </div>
       )}
       
-      {/* Enhanced Property Popup */}
-      {popupProperty && (
-        <div className="absolute bottom-4 left-4 z-10">
-          <EnhancedPropertyPopup
-            property={popupProperty}
-            nearbyPOIs={nearbyPOIs}
-            onClose={handleClosePopup}
-            onReserve={handleReserve}
-            onViewDetails={handleViewDetails}
-            onAddToCompare={handleAddToCompare}
-            isInCompare={compareIds.includes(popupProperty.id)}
-          />
-        </div>
+      {/* Popup attached to map coordinates */}
+      {popupProperty && popupCoords && map.current && (
+        <MapPopupPortal
+          map={map.current}
+          coordinates={popupCoords}
+          property={popupProperty}
+          nearbyPOIs={nearbyPOIs}
+          onClose={handleClosePopup}
+          onReserve={handleReserve}
+          onViewDetails={handleViewDetails}
+          onAddToCompare={handleAddToCompare}
+          isInCompare={compareIds.includes(popupProperty.id)}
+        />
       )}
 
       {/* Property Detail Panel */}
