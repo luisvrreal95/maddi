@@ -1,7 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, Heart, MessageSquare, Settings, Search, Calendar, BarChart3, LogOut } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
+import { cn } from '@/lib/utils';
 
 interface BusinessHeaderProps {
   title?: string;
@@ -18,13 +20,30 @@ interface BusinessHeaderProps {
 
 const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton = false }) => {
   const { signOut } = useAuth();
+  const location = useLocation();
+  const { unreadCount } = useUnreadMessages();
+
+  const navItems = [
+    { id: 'search', label: 'Buscar Espacios', icon: Search, path: '/search' },
+    { id: 'reservations', label: 'Mis Reservas', icon: Calendar, path: '/business' },
+    { id: 'favorites', label: 'Favoritos', icon: Heart, path: '/favorites' },
+    { id: 'messages', label: 'Mensajes', icon: MessageSquare, path: '/messages', badge: unreadCount },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/business-analytics' },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === '/search') {
+      return location.pathname === '/search';
+    }
+    return location.pathname.startsWith(path);
+  };
 
   return (
-    <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="bg-[#1A1A1A] border-b border-white/10 px-4 md:px-8 py-4">
+      <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Left - Logo */}
         <Link to="/" className="flex items-center gap-1 flex-shrink-0">
-          <svg width="120" height="40" viewBox="0 0 169 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg width="100" height="32" viewBox="0 0 169 56" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M127.637 20.6138H122.966C122.643 20.6138 122.381 20.8777 122.381 21.2039V31.3312C120.357 29.4365 117.485 28.372 114.295 28.372C110.565 28.372 107.157 29.8177 104.693 32.4398C102.255 35.0362 100.912 38.6019 100.912 42.481C100.912 46.3601 102.309 49.6289 104.843 52.1392C107.356 54.6294 110.761 56 114.432 56C117.748 56 120.698 54.8126 122.742 52.7V54.776C122.742 55.1022 123.004 55.366 123.327 55.366H127.639C127.962 55.366 128.223 55.1022 128.223 54.776V21.2039C128.223 20.8777 127.962 20.6138 127.639 20.6138H127.637ZM114.656 50.5103C114.642 50.5103 114.627 50.5103 114.613 50.5103C112.53 50.4993 110.571 49.6528 109.096 48.1264C107.63 46.6093 106.797 44.5937 106.752 42.4517C106.703 40.1081 107.572 37.836 109.14 36.2199C110.613 34.6991 112.572 33.8617 114.656 33.8617C117.022 33.8617 119.054 34.7155 120.533 36.3316C121.957 37.8873 122.742 40.0568 122.742 42.437C122.742 44.5625 121.902 46.5763 120.377 48.1099C118.833 49.6601 116.803 50.514 114.656 50.514V50.5103Z" fill="#FEFEFE"/>
             <path d="M158.181 20.6138H153.509C153.187 20.6138 152.925 20.8777 152.925 21.2039V31.3312C150.901 29.4365 148.029 28.372 144.839 28.372C141.109 28.372 137.701 29.8177 135.237 32.4398C132.799 35.0362 131.456 38.6019 131.456 42.481C131.456 46.3601 132.853 49.6289 135.387 52.1392C137.9 54.6294 141.305 56 144.975 56C148.292 56 151.242 54.8126 153.286 52.7V54.776C153.286 55.1022 153.548 55.366 153.87 55.366H158.183C158.506 55.366 158.767 55.1022 158.767 54.776V21.2039C158.767 20.8777 158.506 20.6138 158.183 20.6138H158.181ZM145.2 50.5103C145.186 50.5103 145.171 50.5103 145.157 50.5103C143.074 50.4993 141.115 49.6528 139.64 48.1264C138.174 46.6093 137.341 44.5937 137.296 42.4517C137.247 40.1081 138.116 37.836 139.683 36.2199C141.157 34.6991 143.116 33.8617 145.2 33.8617C147.566 33.8617 149.598 34.7155 151.077 36.3316C152.501 37.8873 153.286 40.0568 153.286 42.437C153.286 44.5625 152.446 46.5763 150.921 48.1099C149.377 49.6601 147.347 50.514 145.2 50.514V50.5103Z" fill="#FEFEFE"/>
             <path d="M167.673 32.7696H163.241C162.936 32.7696 162.688 33.0151 162.688 33.3193V54.7119C162.688 55.0142 162.936 55.2616 163.241 55.2616H167.673C167.978 55.2616 168.226 55.016 168.226 54.7119V33.3193C168.226 33.017 167.978 32.7696 167.673 32.7696Z" fill="#FEFEFE"/>
@@ -34,10 +53,33 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton =
           </svg>
         </Link>
 
-        {/* Center - Title (optional) */}
-        {title && (
-          <h1 className="text-white text-xl font-bold absolute left-1/2 transform -translate-x-1/2">{title}</h1>
-        )}
+        {/* Center Navigation - Desktop */}
+        <nav className="hidden md:flex items-center gap-1">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link
+                key={item.id}
+                to={item.path}
+                className={cn(
+                  "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 relative",
+                  active
+                    ? "bg-white text-[#121212]"
+                    : "text-white/70 hover:text-white hover:bg-white/10"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+                {item.label}
+                {item.badge && item.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
         {/* Right - Notifications + Hamburger */}
         <div className="flex items-center gap-3">
@@ -50,38 +92,27 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton =
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/search" className="flex items-center gap-2">
-                  <Search className="w-4 h-4" />
-                  Buscar Espacios
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/business" className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Mis Reservas
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/favorites" className="flex items-center gap-2">
-                  <Heart className="w-4 h-4" />
-                  Favoritos
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/messages" className="flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4" />
-                  Mensajes
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/business-analytics" className="flex items-center gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  Analytics
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/10" />
+              {/* Mobile Navigation */}
+              <div className="md:hidden">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <DropdownMenuItem key={item.id} asChild className="text-white hover:bg-white/10 cursor-pointer">
+                      <Link to={item.path} className="flex items-center gap-2 relative">
+                        <Icon className="w-4 h-4" />
+                        {item.label}
+                        {item.badge && item.badge > 0 && (
+                          <span className="ml-auto min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                            {item.badge > 99 ? '99+' : item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator className="bg-white/10" />
+              </div>
+              
               <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
                 <Link to="/settings" className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />

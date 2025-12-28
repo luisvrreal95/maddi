@@ -103,3 +103,15 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Mapbox popup custom styles */
+.custom-mapbox-popup .mapboxgl-popup-content {
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.custom-mapbox-popup .mapboxgl-popup-tip {
+  display: none;
+}
