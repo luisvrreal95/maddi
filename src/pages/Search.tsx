@@ -116,7 +116,105 @@ const SearchPage: React.FC = () => {
   });
 
   // Transform billboards to property format - only real data, no mocks
-  const properties = billboards.map(transformBillboardToProperty);
+  const allProperties = billboards.map(transformBillboardToProperty);
+
+  // Apply filters to properties
+  const properties = React.useMemo(() => {
+    let filtered = [...allProperties];
+
+    // Filter by availability
+    if (filters.availability?.length > 0) {
+      // For now, all billboards are considered available
+      // This could be enhanced with actual availability data
+    }
+
+    // Filter by traffic level (views per day)
+    if (filters.traffic?.length > 0) {
+      filtered = filtered.filter(p => {
+        const views = parseInt(p.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
+        if (filters.traffic.includes('high') && views >= 30000) return true;
+        if (filters.traffic.includes('medium') && views >= 15000 && views < 30000) return true;
+        if (filters.traffic.includes('low') && views < 15000) return true;
+        return false;
+      });
+    }
+
+    // Filter by size
+    if (filters.size?.length > 0) {
+      filtered = filtered.filter(p => {
+        const sizeParts = p.size.match(/(\d+\.?\d*)/g);
+        if (!sizeParts || sizeParts.length < 2) return false;
+        const area = parseFloat(sizeParts[0]) * parseFloat(sizeParts[1]);
+        if (filters.size.includes('small') && area < 20) return true;
+        if (filters.size.includes('medium') && area >= 20 && area < 50) return true;
+        if (filters.size.includes('large') && area >= 50) return true;
+        return false;
+      });
+    }
+
+    // Filter by price range
+    if (filters.priceRange?.length > 0) {
+      filtered = filtered.filter(p => {
+        const price = parseInt(p.price.replace(/[^0-9]/g, '')) || 0;
+        if (filters.priceRange.includes('budget') && price < 10000) return true;
+        if (filters.priceRange.includes('standard') && price >= 10000 && price < 25000) return true;
+        if (filters.priceRange.includes('premium') && price >= 25000 && price < 50000) return true;
+        if (filters.priceRange.includes('exclusive') && price >= 50000) return true;
+        return false;
+      });
+    }
+
+    // Filter by illumination
+    if (filters.illumination?.length > 0) {
+      filtered = filtered.filter(p => {
+        const billboard = billboards.find(b => b.id === p.id);
+        if (!billboard) return false;
+        if (filters.illumination.includes('led') && billboard.illumination === 'led') return true;
+        if (filters.illumination.includes('traditional') && billboard.illumination === 'tradicional') return true;
+        if (filters.illumination.includes('none') && billboard.illumination === 'ninguna') return true;
+        return false;
+      });
+    }
+
+    // Filter by billboard type
+    if (filters.billboardType?.length > 0) {
+      filtered = filtered.filter(p => {
+        const billboard = billboards.find(b => b.id === p.id);
+        if (!billboard) return false;
+        if (filters.billboardType.includes('spectacular') && billboard.billboard_type === 'espectacular') return true;
+        if (filters.billboardType.includes('mural') && billboard.billboard_type === 'mural') return true;
+        if (filters.billboardType.includes('bridge') && billboard.billboard_type === 'puente') return true;
+        if (filters.billboardType.includes('digital') && billboard.billboard_type === 'digital') return true;
+        return false;
+      });
+    }
+
+    // Sort results
+    if (filters.order?.length > 0) {
+      const order = filters.order[0];
+      if (order === 'price_asc') {
+        filtered.sort((a, b) => {
+          const priceA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
+          const priceB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
+          return priceA - priceB;
+        });
+      } else if (order === 'price_desc') {
+        filtered.sort((a, b) => {
+          const priceA = parseInt(a.price.replace(/[^0-9]/g, '')) || 0;
+          const priceB = parseInt(b.price.replace(/[^0-9]/g, '')) || 0;
+          return priceB - priceA;
+        });
+      } else if (order === 'views_desc') {
+        filtered.sort((a, b) => {
+          const viewsA = parseInt(a.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
+          const viewsB = parseInt(b.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
+          return viewsB - viewsA;
+        });
+      }
+    }
+
+    return filtered;
+  }, [allProperties, filters, billboards]);
 
   useEffect(() => {
     const fetchToken = async () => {
