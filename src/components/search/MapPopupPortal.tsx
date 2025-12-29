@@ -49,18 +49,27 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
     // Create container for React content
     containerRef.current = document.createElement('div');
     containerRef.current.className = 'mapbox-popup-react-content';
+    containerRef.current.style.display = 'block';
 
     // Create popup with offset to position next to marker
     popupRef.current = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
-      offset: [0, -10],
+      offset: [15, 0],
       maxWidth: 'none',
-      className: 'custom-mapbox-popup'
+      className: 'custom-mapbox-popup',
+      anchor: 'left'
     })
       .setLngLat(coordinates)
       .setDOMContent(containerRef.current)
       .addTo(map);
+
+    // Force the popup to show
+    const popupElement = popupRef.current.getElement();
+    if (popupElement) {
+      popupElement.style.zIndex = '50';
+      popupElement.style.pointerEvents = 'auto';
+    }
 
     return () => {
       popupRef.current?.remove();

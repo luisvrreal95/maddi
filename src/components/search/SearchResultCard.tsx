@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapPin, Eye, Users, Clock, Maximize, Phone, Building2, User } from 'lucide-react';
+import FavoriteHeartButton from './FavoriteHeartButton';
 
 interface OwnerInfo {
   full_name: string;
@@ -48,16 +49,19 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelecte
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
-        <div>
+        <div className="flex-1 min-w-0 pr-3">
           <h3 className="text-white font-bold text-lg">{property.name}</h3>
           <div className="flex items-center gap-1 text-white/50 text-sm mt-1">
-            <MapPin className="w-4 h-4" />
+            <MapPin className="w-4 h-4 flex-shrink-0" />
             <span className="line-clamp-1">{property.address}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-[#9BFF43] animate-pulse" />
-          <span className="text-[#9BFF43] text-xs">{property.availability}</span>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <FavoriteHeartButton billboardId={property.id} />
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-[#9BFF43] animate-pulse" />
+            <span className="text-[#9BFF43] text-xs">{property.availability}</span>
+          </div>
         </div>
       </div>
 

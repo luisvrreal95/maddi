@@ -105,13 +105,23 @@ All colors MUST be HSL.
 }
 
 /* Mapbox popup custom styles */
+.custom-mapbox-popup {
+  z-index: 50 !important;
+}
+
 .custom-mapbox-popup .mapboxgl-popup-content {
-  background: transparent;
-  padding: 0;
-  box-shadow: none;
-  border-radius: 0;
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  overflow: visible !important;
 }
 
 .custom-mapbox-popup .mapboxgl-popup-tip {
-  display: none;
+  display: none !important;
+}
+
+.mapbox-popup-react-content {
+  display: block !important;
+  overflow: visible !important;
 }
