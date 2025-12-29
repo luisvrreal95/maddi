@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, List, Map } from 'lucide-react';
+import { ArrowLeft, MapPin, List, Map, BarChart2, X } from 'lucide-react';
 import SearchFilters, { MapLayers, POICategories } from '@/components/search/SearchFilters';
 import SearchMap, { SearchMapRef } from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
 import LocationAutocomplete from '@/components/search/LocationAutocomplete';
 import BookingDialog from '@/components/booking/BookingDialog';
+import ComparisonPanel from '@/components/search/ComparisonPanel';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
@@ -328,6 +329,42 @@ const SearchPage: React.FC = () => {
           </div>
         )}
       </main>
+
+      {/* Floating Compare Button */}
+      {compareIds.length > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4 duration-300">
+          <button
+            onClick={() => setShowComparison(true)}
+            className="flex items-center gap-3 px-6 py-3 bg-[#9BFF43] text-[#1A1A1A] rounded-full font-bold shadow-lg hover:bg-[#8AE63A] transition-colors"
+          >
+            <BarChart2 className="w-5 h-5" />
+            Comparar {compareIds.length} espectacular{compareIds.length > 1 ? 'es' : ''}
+          </button>
+          <button
+            onClick={() => setCompareIds([])}
+            className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Comparison Panel */}
+      {showComparison && (
+        <ComparisonPanel
+          properties={properties.filter(p => compareIds.includes(p.id))}
+          onClose={() => setShowComparison(false)}
+          onRemove={(id) => setCompareIds(prev => prev.filter(i => i !== id))}
+          onReserve={(property) => {
+            const billboard = billboards.find(b => b.id === property.id);
+            if (billboard) {
+              setSelectedBillboard(billboard);
+              setBookingDialogOpen(true);
+              setShowComparison(false);
+            }
+          }}
+        />
+      )}
 
       {/* Booking Dialog */}
       {selectedBillboard && (

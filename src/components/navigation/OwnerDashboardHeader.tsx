@@ -79,10 +79,10 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
                     : "text-white/70 hover:text-white hover:bg-white/10"
                 )}
               >
-                <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4" />
                 {item.label}
-                {item.badge && item.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
+                {item.badge !== undefined && item.badge > 0 && (
+                  <span className="ml-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
                     {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
