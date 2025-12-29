@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
 import EnhancedPropertyPopup from './EnhancedPropertyPopup';
@@ -44,39 +44,55 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
 }) => {
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Create container for React content
-    containerRef.current = document.createElement('div');
-    containerRef.current.className = 'mapbox-popup-react-content';
-    containerRef.current.style.display = 'block';
+    // Create container for React content immediately
+    const container = document.createElement('div');
+    container.className = 'mapbox-popup-react-content';
+    containerRef.current = container;
 
-    // Create popup with offset to position next to marker
-    popupRef.current = new mapboxgl.Popup({
+    // Create popup immediately with proper settings
+    const popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
-      offset: [15, 0],
-      maxWidth: 'none',
+      offset: [20, 0],
+      maxWidth: '420px',
       className: 'custom-mapbox-popup',
       anchor: 'left'
     })
       .setLngLat(coordinates)
-      .setDOMContent(containerRef.current)
+      .setDOMContent(container)
       .addTo(map);
 
-    // Force the popup to show
-    const popupElement = popupRef.current.getElement();
+    popupRef.current = popup;
+
+    // Force popup to be visible immediately
+    const popupElement = popup.getElement();
     if (popupElement) {
-      popupElement.style.zIndex = '50';
+      popupElement.style.zIndex = '100';
       popupElement.style.pointerEvents = 'auto';
+      popupElement.style.opacity = '1';
     }
 
+    // Mark as ready to render React content
+    setIsReady(true);
+
     return () => {
-      popupRef.current?.remove();
+      popup.remove();
+      containerRef.current = null;
+      setIsReady(false);
     };
   }, [map, coordinates]);
 
-  if (!containerRef.current) return null;
+  // Update popup position when coordinates change
+  useEffect(() => {
+    if (popupRef.current) {
+      popupRef.current.setLngLat(coordinates);
+    }
+  }, [coordinates]);
+
+  if (!isReady || !containerRef.current) return null;
 
   return createPortal(
     <EnhancedPropertyPopup
