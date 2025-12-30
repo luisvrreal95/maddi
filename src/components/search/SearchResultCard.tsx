@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Eye, Users, Clock, Maximize, Phone, Building2, User } from 'lucide-react';
+import { MapPin, Eye, Users, Clock, Maximize, Phone, Building2, User, Check } from 'lucide-react';
 import FavoriteHeartButton from './FavoriteHeartButton';
 
 interface OwnerInfo {
@@ -26,9 +26,17 @@ interface SearchResultCardProps {
   };
   isSelected: boolean;
   onClick: () => void;
+  isInCompare?: boolean;
+  onToggleCompare?: (id: string) => void;
 }
 
-const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelected, onClick }) => {
+const SearchResultCard: React.FC<SearchResultCardProps> = ({ 
+  property, 
+  isSelected, 
+  onClick,
+  isInCompare = false,
+  onToggleCompare
+}) => {
   const navigate = useNavigate();
 
   const handleViewDetails = (e: React.MouseEvent) => {
@@ -36,6 +44,11 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelecte
     if (!property.id.startsWith('mock-')) {
       navigate(`/billboard/${property.id}`);
     }
+  };
+
+  const handleCompareToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleCompare?.(property.id);
   };
 
   return (
@@ -49,6 +62,20 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({ property, isSelecte
     >
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
+        {/* Compare Checkbox */}
+        {onToggleCompare && (
+          <button
+            onClick={handleCompareToggle}
+            className={`flex-shrink-0 w-6 h-6 rounded border-2 mr-3 flex items-center justify-center transition-all ${
+              isInCompare 
+                ? 'bg-[#9BFF43] border-[#9BFF43]' 
+                : 'border-white/30 hover:border-[#9BFF43]'
+            }`}
+            title={isInCompare ? 'Quitar del comparador' : 'Agregar al comparador'}
+          >
+            {isInCompare && <Check className="w-4 h-4 text-[#1A1A1A]" />}
+          </button>
+        )}
         <div className="flex-1 min-w-0 pr-3">
           <h3 className="text-white font-bold text-lg">{property.name}</h3>
           <div className="flex items-center gap-1 text-white/50 text-sm mt-1">

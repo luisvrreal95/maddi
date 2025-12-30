@@ -28,6 +28,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
 }) => {
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -70,7 +71,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setIsLoading(true);
       try {
         // Build URL with proximity bias if user location is available
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=8&language=es`;
+        // Prioritize cities and regions over neighborhoods for better zoom
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality&limit=8&language=es`;
         
         if (userLocation) {
           url += `&proximity=${userLocation.lng},${userLocation.lat}`;
@@ -81,7 +83,10 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         
         if (data.features) {
           setSuggestions(data.features);
-          setIsOpen(true);
+          // Only show dropdown if input is focused
+          if (isFocused) {
+            setIsOpen(true);
+          }
         }
       } catch (error) {
         console.error('Error fetching suggestions:', error);
@@ -96,7 +101,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         clearTimeout(debounceRef.current);
       }
     };
-  }, [value, mapboxToken, userLocation]);
+  }, [value, mapboxToken, userLocation, isFocused]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -200,7 +205,16 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          onFocus={() => suggestions.length > 0 && setIsOpen(true)}
+          onFocus={() => {
+            setIsFocused(true);
+            if (suggestions.length > 0) {
+              setIsOpen(true);
+            }
+          }}
+          onBlur={() => {
+            // Delay to allow click on dropdown items
+            setTimeout(() => setIsFocused(false), 200);
+          }}
           className="w-full pl-12 pr-12 py-3 bg-[#2A2A2A] border border-white/10 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-[#9BFF43]/50"
           placeholder={placeholder}
         />
@@ -231,8 +245,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         </div>
       </div>
 
-      {/* Suggestions Dropdown */}
-      {isOpen && suggestions.length > 0 && (
+      {/* Suggestions Dropdown - Only show when focused */}
+      {isOpen && isFocused && suggestions.length > 0 && (
         <div
           ref={dropdownRef}
           className="absolute top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
