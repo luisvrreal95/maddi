@@ -2,15 +2,39 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { Billboard } from '@/hooks/useBillboards';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MapPin, Maximize2, Sun, Eye, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingDialog from '@/components/booking/BookingDialog';
 import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
 import TrafficEstimate from '@/components/billboard/TrafficEstimate';
+import ZoneIndicator from '@/components/billboard/ZoneIndicator';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import StartChatButton from '@/components/chat/StartChatButton';
+
+interface Billboard {
+  id: string;
+  owner_id: string;
+  title: string;
+  description: string | null;
+  address: string;
+  city: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  width_m: number;
+  height_m: number;
+  billboard_type: string;
+  illumination: string;
+  faces: number;
+  daily_impressions: number | null;
+  price_per_month: number;
+  image_url: string | null;
+  is_available: boolean;
+  points_of_interest: string[] | null;
+  created_at: string;
+  updated_at: string;
+}
 
 const BillboardDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -201,6 +225,12 @@ const BillboardDetail: React.FC = () => {
 
             {/* Availability Calendar */}
             <AvailabilityCalendar billboardId={billboard.id} className="mb-6" />
+
+            {/* Zone Indicator */}
+            <div className="bg-[#2A2A2A] rounded-xl p-4 mb-6">
+              <h3 className="text-white/50 text-sm mb-3">Tipo de Zona</h3>
+              <ZoneIndicator pointsOfInterest={billboard.points_of_interest} />
+            </div>
 
             {/* Traffic Estimate */}
             <TrafficEstimate 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Eye, Car, Clock, Building2, MapPin, TrendingUp, Zap, Target } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
+import ZoneIndicator from '@/components/billboard/ZoneIndicator';
 
 interface PropertyDetailPanelProps {
   property: {
@@ -11,6 +12,7 @@ interface PropertyDetailPanelProps {
     price: string;
     viewsPerDay: string;
     pointsOfInterest: string;
+    pointsOfInterestArray?: string[] | null;
     peakHours: string;
     size: string;
     status: string;
@@ -265,10 +267,12 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
                 <span className="text-white/60">Iluminación</span>
                 <span className="text-white font-medium">{property.status === 'Alto' ? 'LED / Digital' : 'Estándar'}</span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60">POIs Cercanos</span>
-                <span className="text-[#9BFF43] font-medium">{property.pointsOfInterest}</span>
-              </div>
+            </div>
+            
+            {/* Zone Indicator */}
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <span className="text-white/60 text-sm block mb-2">Tipo de Zona</span>
+              <ZoneIndicator pointsOfInterest={property.pointsOfInterestArray || null} />
             </div>
           </div>
 
