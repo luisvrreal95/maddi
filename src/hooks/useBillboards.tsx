@@ -55,12 +55,18 @@ export function useBillboards(filters?: BillboardFilters) {
         .select('*')
         .eq('is_available', true);
 
-      // Only filter by location if it's a specific search (not default)
-      if (filters?.location && !filters.location.includes('Mexicali')) {
-        query = query.or(
-          `city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,address.ilike.%${filters.location}%`
-        );
+      // Parse location to extract city name for filtering
+      if (filters?.location) {
+        // Extract city name from location string (e.g., "Mexicali, Baja California, México" -> "Mexicali")
+        const locationParts = filters.location.split(',').map(s => s.trim());
+        const cityName = locationParts[0];
+        
+        if (cityName && cityName.length > 1) {
+          // Filter by exact city match (case insensitive)
+          query = query.ilike('city', cityName);
+        }
       }
+      
       if (filters?.city) {
         query = query.ilike('city', `%${filters.city}%`);
       }

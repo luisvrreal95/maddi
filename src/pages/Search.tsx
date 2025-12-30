@@ -382,6 +382,8 @@ const SearchPage: React.FC = () => {
                     property={property}
                     isSelected={property.id === selectedPropertyId}
                     onClick={() => setSelectedPropertyId(property.id)}
+                    isInCompare={compareIds.includes(property.id)}
+                    onToggleCompare={handleToggleCompare}
                   />
                 ))}
               </div>

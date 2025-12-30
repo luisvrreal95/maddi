@@ -147,24 +147,35 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
     const geocodeLocation = async () => {
       try {
+        // Request types that provide bbox for proper zoom (cities, regions, not neighborhoods)
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchLocation)}.json?access_token=${mapboxToken}&country=mx&limit=1`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchLocation)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,locality&limit=1`
         );
         const data = await response.json();
         
         if (data.features && data.features.length > 0) {
-          const [lng, lat] = data.features[0].center;
-          const bbox = data.features[0].bbox;
+          const feature = data.features[0];
+          const [lng, lat] = feature.center;
+          const bbox = feature.bbox;
+          const placeType = feature.place_type?.[0];
           
           if (bbox) {
+            // Use bounding box for proper city/region view
             map.current?.fitBounds(
               [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
               { padding: 50, duration: 1500 }
             );
           } else {
+            // Determine zoom based on place type
+            let zoom = 12; // default
+            if (placeType === 'country') zoom = 5;
+            else if (placeType === 'region') zoom = 8;
+            else if (placeType === 'place') zoom = 11; // City level - show whole city
+            else if (placeType === 'locality') zoom = 12;
+            
             map.current?.flyTo({
               center: [lng, lat],
-              zoom: 11,
+              zoom,
               duration: 1500,
             });
           }
