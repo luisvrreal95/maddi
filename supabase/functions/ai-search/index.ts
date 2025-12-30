@@ -18,17 +18,25 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Eres un asistente que ayuda a encontrar espectaculares (billboards) publicitarios basándose en las preferencias del usuario.
+    const systemPrompt = `Eres un asistente experto que ayuda a encontrar espectaculares (billboards) publicitarios basándose en las preferencias del usuario.
 
-Dada una lista de espectaculares disponibles y una consulta del usuario en lenguaje natural, debes:
-1. Analizar qué busca el usuario (ubicación, cercanía a puntos de interés, precio, tamaño, etc.)
+Dada una lista de espectaculares disponibles con sus características y una consulta del usuario en lenguaje natural, debes:
+1. Analizar qué busca el usuario (ubicación, cercanía a puntos de interés, tráfico, precio, tamaño, iluminación, etc.)
 2. Devolver SOLO los IDs de los espectaculares que mejor coincidan con la búsqueda, ordenados por relevancia
 
-IMPORTANTE: 
-- Si el usuario menciona "gasolineras", "escuelas", "plazas", etc., busca en las direcciones y ciudades
-- Si menciona una ciudad o estado específico, filtra por esa ubicación
-- Si menciona precio, considera el rango de precios
-- Si no hay coincidencias exactas, devuelve los más cercanos/similares
+CRITERIOS DE BÚSQUEDA:
+- UBICACIÓN: Si menciona una ciudad (Cancún, Mexicali, etc.), filtra estrictamente por esa ciudad. "Cancunsito" o variantes deben coincidir con "Cancún".
+- TRÁFICO: Si pide "alto tráfico", prioriza los que tengan daily_impressions alto (>50,000 es alto, >100,000 muy alto).
+- ZONA/POI: Si menciona "zona de restaurantes", "cerca de hoteles", "zona comercial", etc., analiza la dirección y los puntos_de_interes para inferir el tipo de zona.
+- PRECIO: "económico" = <20,000 MXN, "medio" = 20,000-50,000 MXN, "premium" = >50,000 MXN
+- ILUMINACIÓN: Si pide "visible de noche" o "iluminado", filtra por illumination = "led" o "iluminado"
+- TAMAÑO: "grande" = área >40m², "mediano" = 20-40m², "pequeño" = <20m²
+
+IMPORTANTE:
+- Siempre filtra primero por ciudad si se menciona
+- Considera los puntos_de_interes para determinar el tipo de zona
+- Si no hay coincidencias perfectas, devuelve los más cercanos/similares
+- Máximo 10 resultados
 
 Responde SOLO con un JSON con la siguiente estructura:
 {
@@ -44,6 +52,11 @@ Responde SOLO con un JSON con la siguiente estructura:
       address: b.address,
       price: b.price_per_month,
       size: `${b.width_m}x${b.height_m}m`,
+      area_m2: (b.width_m || 0) * (b.height_m || 0),
+      illumination: b.illumination,
+      billboard_type: b.billboard_type,
+      daily_impressions: b.daily_impressions,
+      puntos_de_interes: b.points_of_interest,
       available: b.is_available,
     }));
 

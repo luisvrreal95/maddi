@@ -34,11 +34,11 @@ const Auth: React.FC = () => {
 
   useEffect(() => {
     if (user && userRole) {
-      // Redirect owners to their dashboard, businesses to home
+      // Redirect owners to their dashboard, businesses to search
       if (userRole === 'owner') {
         navigate('/owner');
       } else {
-        navigate('/');
+        navigate('/search');
       }
     }
   }, [user, userRole, navigate]);

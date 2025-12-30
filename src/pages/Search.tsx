@@ -21,6 +21,7 @@ interface MapProperty {
   price: string;
   viewsPerDay: string;
   pointsOfInterest: string;
+  pointsOfInterestArray: string[] | null;
   peakHours: string;
   size: string;
   status: string;
@@ -43,7 +44,8 @@ const transformBillboardToProperty = (billboard: Billboard): MapProperty => ({
   address: `${billboard.address}, ${billboard.city}, ${billboard.state}`,
   price: `$${billboard.price_per_month.toLocaleString()}`,
   viewsPerDay: billboard.daily_impressions ? `+${billboard.daily_impressions.toLocaleString()}` : 'N/A',
-  pointsOfInterest: '+15',
+  pointsOfInterest: billboard.points_of_interest?.length ? `+${billboard.points_of_interest.length}` : 'N/A',
+  pointsOfInterestArray: billboard.points_of_interest || null,
   peakHours: '8am-8pm',
   size: `${billboard.width_m}m x ${billboard.height_m}m`,
   status: billboard.illumination !== 'ninguna' ? 'Alto' : 'Medio',

@@ -27,6 +27,7 @@ export interface Billboard {
   price_per_month: number;
   image_url: string | null;
   is_available: boolean;
+  points_of_interest: string[] | null;
   created_at: string;
   updated_at: string;
   owner?: BillboardOwner;
@@ -62,8 +63,8 @@ export function useBillboards(filters?: BillboardFilters) {
         const cityName = locationParts[0];
         
         if (cityName && cityName.length > 1) {
-          // Filter by exact city match (case insensitive)
-          query = query.ilike('city', cityName);
+          // Filter by partial city match (case insensitive) - "Cancun" matches "Cancunsito"
+          query = query.ilike('city', `%${cityName}%`);
         }
       }
       
