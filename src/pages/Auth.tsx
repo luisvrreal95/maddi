@@ -24,8 +24,11 @@ const Auth: React.FC = () => {
   const [selectedType, setSelectedType] = useState<UserType>(null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSocialLoading, setIsSocialLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -69,6 +72,9 @@ const Auth: React.FC = () => {
       }
       if (!selectedType) {
         newErrors.type = 'Selecciona un tipo de cuenta';
+      }
+      if (password !== confirmPassword) {
+        newErrors.confirmPassword = 'Las contraseñas no coinciden';
       }
     }
 
@@ -277,6 +283,48 @@ const Auth: React.FC = () => {
               </div>
               {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
             </div>
+
+            {mode === 'signup' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-white/80 text-sm font-medium">Confirmar Contraseña</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl pr-12 focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {errors.confirmPassword && <p className="text-red-400 text-sm">{errors.confirmPassword}</p>}
+                </div>
+
+                {selectedType === 'owner' && (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
+                    <input
+                      type="checkbox"
+                      id="isAnonymous"
+                      checked={isAnonymous}
+                      onChange={(e) => setIsAnonymous(e.target.checked)}
+                      className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#9BFF43] focus:ring-[#9BFF43]/20"
+                    />
+                    <div>
+                      <Label htmlFor="isAnonymous" className="text-white font-medium cursor-pointer">Mantener perfil anónimo</Label>
+                      <p className="text-white/40 text-xs mt-1">Tu información no será visible para otros usuarios en tus espectaculares</p>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
 
             <Button
               type="submit"
