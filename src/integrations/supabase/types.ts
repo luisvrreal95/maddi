@@ -448,6 +448,7 @@ export type Database = {
           created_at: string
           full_name: string
           id: string
+          is_anonymous: boolean
           notification_preferences: Json | null
           phone: string | null
           updated_at: string
@@ -459,6 +460,7 @@ export type Database = {
           created_at?: string
           full_name: string
           id?: string
+          is_anonymous?: boolean
           notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string
@@ -470,6 +472,7 @@ export type Database = {
           created_at?: string
           full_name?: string
           id?: string
+          is_anonymous?: boolean
           notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string

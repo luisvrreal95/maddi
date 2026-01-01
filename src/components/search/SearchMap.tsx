@@ -6,6 +6,7 @@ import MapPopupPortal from './MapPopupPortal';
 import { createMarkerElement } from './EnhancedPropertyMarker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useTheme } from '@/hooks/useTheme';
 
 interface Property {
   id: string;
@@ -96,6 +97,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   onToggleCompare,
   isCompareMode,
 }, ref) => {
+  const { theme } = useTheme();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -122,9 +124,13 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
     mapboxgl.accessToken = mapboxToken;
 
+    const mapStyle = theme === 'dark' 
+      ? 'mapbox://styles/mapbox/dark-v11' 
+      : 'mapbox://styles/mapbox/light-v11';
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/dark-v11',
+      style: mapStyle,
       center: [-115.4523, 32.6245], // Mexicali, B.C.
       zoom: 12,
     });
@@ -140,6 +146,17 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       map.current?.remove();
     };
   }, [mapboxToken]);
+
+  // Update map style when theme changes
+  useEffect(() => {
+    if (!map.current) return;
+    
+    const mapStyle = theme === 'dark' 
+      ? 'mapbox://styles/mapbox/dark-v11' 
+      : 'mapbox://styles/mapbox/light-v11';
+    
+    map.current.setStyle(mapStyle);
+  }, [theme]);
 
   // Geocode search location and fly to it
   useEffect(() => {

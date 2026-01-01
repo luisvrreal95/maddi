@@ -32,6 +32,7 @@ interface Profile {
   company_name: string | null;
   avatar_url: string | null;
   notification_preferences: NotificationPreferences | null;
+  is_anonymous: boolean;
 }
 
 const Settings: React.FC = () => {
@@ -46,6 +47,7 @@ const Settings: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [companyName, setCompanyName] = useState('');
+  const [isAnonymous, setIsAnonymous] = useState(false);
   const [pushNotifications, setPushNotifications] = useState(true);
   const [emailNotifications, setEmailNotifications] = useState(true);
 
@@ -80,11 +82,13 @@ const Settings: React.FC = () => {
         const profileData: Profile = {
           ...data,
           notification_preferences: parsedPrefs,
+          is_anonymous: (data as any).is_anonymous ?? false,
         };
         setProfile(profileData);
         setFullName(data.full_name || '');
         setPhone(data.phone || '');
         setCompanyName(data.company_name || '');
+        setIsAnonymous((data as any).is_anonymous ?? false);
         setPushNotifications(parsedPrefs.push);
         setEmailNotifications(parsedPrefs.email);
       }
@@ -107,6 +111,7 @@ const Settings: React.FC = () => {
           full_name: fullName,
           phone: phone || null,
           company_name: companyName || null,
+          is_anonymous: isAnonymous,
         })
         .eq('user_id', user.id);
 
@@ -376,6 +381,21 @@ const Settings: React.FC = () => {
                     />
                     <p className="text-white/30 text-xs mt-1">El correo no se puede cambiar</p>
                   </div>
+
+                  {userRole === 'owner' && (
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-[#1A1A1A] border border-white/10">
+                      <div>
+                        <Label htmlFor="isAnonymous" className="text-white font-medium cursor-pointer">Perfil Anónimo</Label>
+                        <p className="text-white/40 text-xs mt-1">Tu información no será visible para otros usuarios en tus espectaculares</p>
+                      </div>
+                      <Switch
+                        id="isAnonymous"
+                        checked={isAnonymous}
+                        onCheckedChange={setIsAnonymous}
+                        className="data-[state=checked]:bg-[#9BFF43]"
+                      />
+                    </div>
+                  )}
 
                   <Button
                     onClick={handleSaveProfile}

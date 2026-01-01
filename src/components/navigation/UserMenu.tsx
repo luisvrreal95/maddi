@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, Heart, MessageSquare, Settings, LogOut, User, Palette, LayoutDashboard, Calendar, UserPlus } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
+import { Menu, Heart, MessageSquare, Settings, LogOut, User, Palette, LayoutDashboard, Calendar, UserPlus, Sun, Moon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,7 @@ interface UserMenuProps {
 
 const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
   const { user, userRole, signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleNavigate = (path: string) => {
@@ -44,21 +46,33 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent 
           align="end" 
-          className="w-56 bg-[#1a1a1a] border-white/10"
+          className="w-56 bg-card border-border"
         >
           <DropdownMenuItem 
             onClick={() => handleNavigate('/auth')}
-            className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+            className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
           >
             <User className="w-4 h-4 mr-3 text-[#9BFF43]" />
             <span>Ingresar</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => handleNavigate('/auth')}
-            className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+            className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
           >
             <UserPlus className="w-4 h-4 mr-3 text-[#9BFF43]" />
             <span>Registrarme</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-border" />
+          <DropdownMenuItem 
+            onClick={toggleTheme}
+            className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4 h-4 mr-3 text-[#9BFF43]" />
+            ) : (
+              <Moon className="w-4 h-4 mr-3 text-[#9BFF43]" />
+            )}
+            <span>{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -79,26 +93,26 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-64 bg-[#1a1a1a] border-white/10"
+        className="w-64 bg-card border-border"
       >
         {/* User Info */}
-        <DropdownMenuLabel className="text-white/60 font-normal">
+        <DropdownMenuLabel className="text-muted-foreground font-normal">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
               <User className="w-5 h-5 text-[#9BFF43]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-medium text-sm">
+              <p className="text-foreground font-medium text-sm">
                 {userRole === 'owner' ? 'Propietario' : 'Negocio'}
               </p>
-              <p className="text-white/40 text-xs truncate">
+              <p className="text-muted-foreground text-xs truncate">
                 {user.email}
               </p>
             </div>
           </div>
         </DropdownMenuLabel>
         
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator className="bg-border" />
 
         {/* Dashboard Links */}
         {userRole === 'owner' && (
@@ -121,14 +135,14 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => handleNavigate('/favorites')}
-              className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+              className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
             >
               <Heart className="w-4 h-4 mr-3 text-[#9BFF43]" />
               <span>Favoritos</span>
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => handleNavigate('/templates')}
-              className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+              className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
             >
               <Palette className="w-4 h-4 mr-3 text-[#9BFF43]" />
               <span>Plantillas de diseño</span>
@@ -136,12 +150,12 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           </>
         )}
 
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator className="bg-border" />
 
         {/* Common Links */}
         <DropdownMenuItem 
           onClick={() => handleNavigate('/messages')}
-          className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+          className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
         >
           <MessageSquare className="w-4 h-4 mr-3 text-[#9BFF43]" />
           <span>Mensajes</span>
@@ -152,13 +166,28 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
 
         <DropdownMenuItem 
           onClick={() => handleNavigate('/settings')}
-          className="cursor-pointer text-white hover:bg-white/10 focus:bg-white/10"
+          className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
         >
           <Settings className="w-4 h-4 mr-3 text-[#9BFF43]" />
           <span>Configuración</span>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="bg-white/10" />
+        <DropdownMenuSeparator className="bg-border" />
+
+        {/* Theme Toggle */}
+        <DropdownMenuItem 
+          onClick={toggleTheme}
+          className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-4 h-4 mr-3 text-[#9BFF43]" />
+          ) : (
+            <Moon className="w-4 h-4 mr-3 text-[#9BFF43]" />
+          )}
+          <span>{theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator className="bg-border" />
 
         {/* Sign Out */}
         <DropdownMenuItem 
