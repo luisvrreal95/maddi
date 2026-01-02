@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useTheme } from '@/hooks/useTheme';
-import { Menu, Heart, MessageSquare, Settings, LogOut, User, Palette, LayoutDashboard, Calendar, UserPlus, Sun, Moon, Check, Monitor } from 'lucide-react';
+import { Menu, Heart, MessageSquare, Settings, LogOut, User, Palette, LayoutDashboard, Calendar, UserPlus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,10 +9,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-  DropdownMenuSub,
-  DropdownMenuSubTrigger,
-  DropdownMenuSubContent,
-  DropdownMenuPortal,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import MessageBadge from '@/components/chat/MessageBadge';
@@ -24,7 +19,6 @@ interface UserMenuProps {
 
 const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
   const { user, userRole, signOut } = useAuth();
-  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const handleNavigate = (path: string) => {
@@ -66,33 +60,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
             <UserPlus className="w-4 h-4 mr-3 text-[#9BFF43]" />
             <span>Registrarme</span>
           </DropdownMenuItem>
-          <DropdownMenuSeparator className="bg-border" />
-          <DropdownMenuSub>
-            <DropdownMenuSubTrigger className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted">
-              <Monitor className="w-4 h-4 mr-3 text-[#9BFF43]" />
-              <span>Apariencia</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuPortal>
-              <DropdownMenuSubContent className="bg-card border-border">
-                <DropdownMenuItem 
-                  onClick={() => setTheme('light')}
-                  className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
-                >
-                  <Sun className="w-4 h-4 mr-3 text-[#9BFF43]" />
-                  <span>Modo claro</span>
-                  {theme === 'light' && <Check className="w-4 h-4 ml-auto text-[#9BFF43]" />}
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => setTheme('dark')}
-                  className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
-                >
-                  <Moon className="w-4 h-4 mr-3 text-[#9BFF43]" />
-                  <span>Modo oscuro</span>
-                  {theme === 'dark' && <Check className="w-4 h-4 ml-auto text-[#9BFF43]" />}
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuPortal>
-          </DropdownMenuSub>
         </DropdownMenuContent>
       </DropdownMenu>
     );
@@ -190,36 +157,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           <Settings className="w-4 h-4 mr-3 text-[#9BFF43]" />
           <span>Configuración</span>
         </DropdownMenuItem>
-
-        <DropdownMenuSeparator className="bg-border" />
-
-        {/* Theme Submenu */}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted">
-            <Monitor className="w-4 h-4 mr-3 text-[#9BFF43]" />
-            <span>Apariencia</span>
-          </DropdownMenuSubTrigger>
-          <DropdownMenuPortal>
-            <DropdownMenuSubContent className="bg-card border-border">
-              <DropdownMenuItem 
-                onClick={() => setTheme('light')}
-                className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
-              >
-                <Sun className="w-4 h-4 mr-3 text-[#9BFF43]" />
-                <span>Modo claro</span>
-                {theme === 'light' && <Check className="w-4 h-4 ml-auto text-[#9BFF43]" />}
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setTheme('dark')}
-                className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
-              >
-                <Moon className="w-4 h-4 mr-3 text-[#9BFF43]" />
-                <span>Modo oscuro</span>
-                {theme === 'dark' && <Check className="w-4 h-4 ml-auto text-[#9BFF43]" />}
-              </DropdownMenuItem>
-            </DropdownMenuSubContent>
-          </DropdownMenuPortal>
-        </DropdownMenuSub>
 
         <DropdownMenuSeparator className="bg-border" />
 

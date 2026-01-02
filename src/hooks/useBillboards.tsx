@@ -6,6 +6,7 @@ export interface BillboardOwner {
   company_name: string | null;
   phone: string | null;
   avatar_url: string | null;
+  is_anonymous: boolean;
 }
 
 export interface Billboard {
@@ -96,13 +97,16 @@ export function useBillboards(filters?: BillboardFilters) {
         (data || []).map(async (billboard) => {
           const { data: profileData } = await supabase
             .from('profiles')
-            .select('full_name, company_name, phone, avatar_url')
+            .select('full_name, company_name, phone, avatar_url, is_anonymous')
             .eq('user_id', billboard.owner_id)
             .single();
 
+          // If owner is anonymous, don't include owner info
+          const ownerInfo = profileData?.is_anonymous ? undefined : profileData;
+
           return {
             ...billboard,
-            owner: profileData || undefined
+            owner: ownerInfo || undefined
           };
         })
       );
