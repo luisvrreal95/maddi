@@ -1,38 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, Search, Calendar, Heart, MessageSquare, BarChart3, Settings, LogOut, LayoutDashboard, Building2, UserPlus } from 'lucide-react';
 import NotificationBell from '@/components/notifications/NotificationBell';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import UserMenu from '@/components/navigation/UserMenu';
 
 const Header: React.FC = () => {
-  const { user, userRole, signOut } = useAuth();
-
-  // Menu items for business users
-  const businessMenuItems = [
-    { to: '/search', icon: Search, label: 'Buscar Espacios' },
-    { to: '/business', icon: Calendar, label: 'Mis Reservas' },
-    { to: '/favorites', icon: Heart, label: 'Favoritos' },
-    { to: '/messages', icon: MessageSquare, label: 'Mensajes' },
-    { to: '/business-analytics', icon: BarChart3, label: 'Analytics' },
-  ];
-
-  // Menu items for owner users
-  const ownerMenuItems = [
-    { to: '/owner?tab=dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { to: '/owner?tab=propiedades', icon: Building2, label: 'Propiedades' },
-    { to: '/owner?tab=reservas', icon: Calendar, label: 'Reservas' },
-    { to: '/owner?tab=stats', icon: BarChart3, label: 'Estadísticas' },
-    { to: '/messages', icon: MessageSquare, label: 'Mensajes' },
-  ];
-
-  const menuItems = userRole === 'owner' ? ownerMenuItems : businessMenuItems;
+  const { user } = useAuth();
 
   return (
     <header className="flex items-center justify-between relative w-full px-8 py-5 max-md:px-6 max-md:py-4 max-sm:px-4 max-sm:py-3">
@@ -64,62 +37,7 @@ const Header: React.FC = () => {
         
         {user && <NotificationBell />}
         
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/5 transition-colors">
-                <Menu className="w-5 h-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
-              {menuItems.map((item) => (
-                <DropdownMenuItem key={item.to} asChild className="text-white hover:bg-white/10 cursor-pointer">
-                  <Link to={item.to} className="flex items-center gap-2">
-                    <item.icon className="w-4 h-4" />
-                    {item.label}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/settings" className="flex items-center gap-2">
-                  <Settings className="w-4 h-4" />
-                  Configuración
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem 
-                onClick={() => signOut()}
-                className="text-red-400 hover:bg-red-500/10 cursor-pointer"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Cerrar Sesión
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/5 transition-colors">
-                <Menu className="w-5 h-5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/auth" className="flex items-center gap-2">
-                  <LogOut className="w-4 h-4" />
-                  Iniciar Sesión
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
-                <Link to="/auth?mode=signup" className="flex items-center gap-2">
-                  <UserPlus className="w-4 h-4" />
-                  Registrarse
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <UserMenu />
       </nav>
     </header>
   );
