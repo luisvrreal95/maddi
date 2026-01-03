@@ -11,6 +11,7 @@ import TrafficEstimate from '@/components/billboard/TrafficEstimate';
 import ZoneIndicator from '@/components/billboard/ZoneIndicator';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import StartChatButton from '@/components/chat/StartChatButton';
+import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSection';
 
 interface Billboard {
   id: string;
@@ -86,8 +87,8 @@ const BillboardDetail: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#202020] flex items-center justify-center">
-        <div className="text-white">Cargando...</div>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-foreground">Cargando...</div>
       </div>
     );
   }
@@ -108,10 +109,10 @@ const BillboardDetail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#202020]">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4">
-        <Link to="/search" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors">
+      <header className="bg-card border-b border-border px-6 py-4">
+        <Link to="/search" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
           <ArrowLeft className="w-5 h-5" />
           <span>Volver a búsqueda</span>
         </Link>
@@ -128,8 +129,8 @@ const BillboardDetail: React.FC = () => {
                 className="w-full h-96 object-cover rounded-2xl"
               />
             ) : (
-              <div className="w-full h-96 bg-[#2A2A2A] rounded-2xl flex items-center justify-center">
-                <MapPin className="w-24 h-24 text-white/20" />
+              <div className="w-full h-96 bg-secondary rounded-2xl flex items-center justify-center">
+                <MapPin className="w-24 h-24 text-muted-foreground" />
               </div>
             )}
 
@@ -149,8 +150,8 @@ const BillboardDetail: React.FC = () => {
           <div>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <h1 className="text-white text-3xl font-bold mb-2">{billboard.title}</h1>
-                <p className="text-white/60 flex items-center gap-2">
+                <h1 className="text-foreground text-3xl font-bold mb-2">{billboard.title}</h1>
+                <p className="text-muted-foreground flex items-center gap-2">
                   <MapPin className="w-4 h-4" />
                   {billboard.address}, {billboard.city}, {billboard.state}
                 </p>
@@ -159,8 +160,8 @@ const BillboardDetail: React.FC = () => {
                 <FavoriteButton billboardId={billboard.id} />
                 <span className={`px-3 py-1 rounded-full text-sm ${
                   billboard.is_available 
-                    ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
-                    : 'bg-red-500/20 text-red-400'
+                    ? 'bg-primary/20 text-primary' 
+                    : 'bg-destructive/20 text-destructive'
                 }`}>
                   {billboard.is_available ? 'Disponible' : 'Ocupado'}
                 </span>
@@ -168,55 +169,55 @@ const BillboardDetail: React.FC = () => {
             </div>
 
             {billboard.description && (
-              <p className="text-white/70 mb-6">{billboard.description}</p>
+              <p className="text-muted-foreground mb-6">{billboard.description}</p>
             )}
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-[#2A2A2A] rounded-xl p-4">
-                <Maximize2 className="w-5 h-5 text-[#9BFF43] mb-2" />
-                <p className="text-white/50 text-sm">Dimensiones</p>
-                <p className="text-white font-bold">{billboard.width_m}m x {billboard.height_m}m</p>
+              <div className="bg-secondary rounded-xl p-4">
+                <Maximize2 className="w-5 h-5 text-primary mb-2" />
+                <p className="text-muted-foreground text-sm">Dimensiones</p>
+                <p className="text-foreground font-bold">{billboard.width_m}m x {billboard.height_m}m</p>
               </div>
-              <div className="bg-[#2A2A2A] rounded-xl p-4">
-                <Sun className="w-5 h-5 text-[#9BFF43] mb-2" />
-                <p className="text-white/50 text-sm">Iluminación</p>
-                <p className="text-white font-bold capitalize">{billboard.illumination}</p>
+              <div className="bg-secondary rounded-xl p-4">
+                <Sun className="w-5 h-5 text-primary mb-2" />
+                <p className="text-muted-foreground text-sm">Iluminación</p>
+                <p className="text-foreground font-bold capitalize">{billboard.illumination}</p>
               </div>
-              <div className="bg-[#2A2A2A] rounded-xl p-4">
-                <Eye className="w-5 h-5 text-[#9BFF43] mb-2" />
-                <p className="text-white/50 text-sm">Impresiones/día</p>
-                <p className="text-white font-bold">
+              <div className="bg-secondary rounded-xl p-4">
+                <Eye className="w-5 h-5 text-primary mb-2" />
+                <p className="text-muted-foreground text-sm">Impresiones/día</p>
+                <p className="text-foreground font-bold">
                   {billboard.daily_impressions 
                     ? `+${billboard.daily_impressions.toLocaleString()}`
                     : 'N/A'}
                 </p>
               </div>
-              <div className="bg-[#2A2A2A] rounded-xl p-4">
-                <Calendar className="w-5 h-5 text-[#9BFF43] mb-2" />
-                <p className="text-white/50 text-sm">Tipo</p>
-                <p className="text-white font-bold capitalize">{billboard.billboard_type}</p>
+              <div className="bg-secondary rounded-xl p-4">
+                <Calendar className="w-5 h-5 text-primary mb-2" />
+                <p className="text-muted-foreground text-sm">Tipo</p>
+                <p className="text-foreground font-bold capitalize">{billboard.billboard_type}</p>
               </div>
             </div>
 
             {/* Price & CTA */}
-            <div className="bg-gradient-to-r from-[#9BFF43]/20 to-transparent rounded-2xl p-6 mb-6">
-              <p className="text-white/60 text-sm mb-1">Precio mensual</p>
-              <p className="text-[#9BFF43] text-4xl font-bold mb-4">
+            <div className="bg-gradient-to-r from-primary/20 to-transparent rounded-2xl p-6 mb-6">
+              <p className="text-muted-foreground text-sm mb-1">Precio mensual</p>
+              <p className="text-primary text-4xl font-bold mb-4">
                 ${billboard.price_per_month.toLocaleString()} <span className="text-lg">MXN</span>
               </p>
               
               {billboard.is_available ? (
                 <Button
                   onClick={handleBookingClick}
-                  className="w-full bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] py-6 text-lg font-bold"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-6 text-lg font-bold"
                 >
                   Solicitar Reserva
                 </Button>
               ) : (
                 <Button
                   disabled
-                  className="w-full bg-white/10 text-white/50 py-6 text-lg"
+                  className="w-full bg-muted text-muted-foreground py-6 text-lg"
                 >
                   No Disponible
                 </Button>
@@ -227,8 +228,8 @@ const BillboardDetail: React.FC = () => {
             <AvailabilityCalendar billboardId={billboard.id} className="mb-6" />
 
             {/* Zone Indicator */}
-            <div className="bg-[#2A2A2A] rounded-xl p-4 mb-6">
-              <h3 className="text-white/50 text-sm mb-3">Tipo de Zona</h3>
+            <div className="bg-secondary rounded-xl p-4 mb-6">
+              <h3 className="text-muted-foreground text-sm mb-3">Tipo de Zona</h3>
               <ZoneIndicator pointsOfInterest={billboard.points_of_interest} />
             </div>
 
@@ -249,12 +250,17 @@ const BillboardDetail: React.FC = () => {
             </div>
 
             {/* Additional Info */}
-            <div className="text-white/50 text-sm space-y-2 mt-6">
+            <div className="text-muted-foreground text-sm space-y-2 mt-6">
               <p>• {billboard.faces} cara{billboard.faces > 1 ? 's' : ''}</p>
               <p>• Reserva mínima: 1 mes</p>
               <p>• Instalación incluida</p>
             </div>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mt-12">
+          <BillboardReviewsSection billboardId={billboard.id} />
         </div>
       </main>
 

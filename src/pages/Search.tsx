@@ -10,6 +10,7 @@ import ComparisonPanel from '@/components/search/ComparisonPanel';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
+import { useBillboardReviewStats } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -35,10 +36,12 @@ interface MapProperty {
     phone: string | null;
     avatar_url: string | null;
   };
+  averageRating?: number;
+  totalReviews?: number;
 }
 
 // Transform billboard to property format for existing components
-const transformBillboardToProperty = (billboard: Billboard): MapProperty => ({
+const transformBillboardToProperty = (billboard: Billboard, reviewStats?: { averageRating: number; totalReviews: number }): MapProperty => ({
   id: billboard.id,
   name: billboard.title,
   address: `${billboard.address}, ${billboard.city}, ${billboard.state}`,
@@ -54,6 +57,8 @@ const transformBillboardToProperty = (billboard: Billboard): MapProperty => ({
   lng: Number(billboard.longitude),
   imageUrl: billboard.image_url || null,
   owner: billboard.owner,
+  averageRating: reviewStats?.averageRating || 0,
+  totalReviews: reviewStats?.totalReviews || 0,
 });
 
 const SearchPage: React.FC = () => {
@@ -117,8 +122,11 @@ const SearchPage: React.FC = () => {
     location: confirmedLocation,
   });
 
+  // Fetch review stats for all billboards
+  const { statsMap: reviewStatsMap } = useBillboardReviewStats();
+
   // Transform billboards to property format - only real data, no mocks
-  const allProperties = billboards.map(transformBillboardToProperty);
+  const allProperties = billboards.map(b => transformBillboardToProperty(b, reviewStatsMap[b.id]));
 
   // Apply filters to properties
   const properties = React.useMemo(() => {
@@ -283,16 +291,16 @@ const SearchPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#202020] flex flex-col">
+    <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
       <BusinessHeader />
 
-      {/* Search Controls */}
-      <div className="bg-[#1A1A1A] border-b border-white/10">
+      {/* Search Controls - Fixed */}
+      <div className="bg-card border-b border-border flex-shrink-0">
         <div className="px-6 py-4">
           {/* Search Row */}
           <div className="flex items-center gap-4 mb-4">
-            <Link to="/" className="text-white hover:text-[#9BFF43] transition-colors">
+            <Link to="/" className="text-foreground hover:text-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
 
@@ -310,11 +318,11 @@ const SearchPage: React.FC = () => {
             />
 
             {/* View Toggle */}
-            <div className="flex items-center gap-2 bg-[#2A2A2A] rounded-full p-1">
+            <div className="flex items-center gap-2 bg-secondary rounded-full p-1">
               <button
                 onClick={() => setViewMode('list')}
                 className={`p-2 rounded-full transition-colors ${
-                  viewMode === 'list' ? 'bg-[#9BFF43] text-[#202020]' : 'text-white/50 hover:text-white'
+                  viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <List className="w-5 h-5" />
@@ -322,7 +330,7 @@ const SearchPage: React.FC = () => {
               <button
                 onClick={() => setViewMode('split')}
                 className={`p-2 rounded-full transition-colors ${
-                  viewMode === 'split' ? 'bg-[#9BFF43] text-[#202020]' : 'text-white/50 hover:text-white'
+                  viewMode === 'split' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <div className="flex gap-0.5">
@@ -333,7 +341,7 @@ const SearchPage: React.FC = () => {
               <button
                 onClick={() => setViewMode('map')}
                 className={`p-2 rounded-full transition-colors ${
-                  viewMode === 'map' ? 'bg-[#9BFF43] text-[#202020]' : 'text-white/50 hover:text-white'
+                  viewMode === 'map' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Map className="w-5 h-5" />
@@ -342,14 +350,14 @@ const SearchPage: React.FC = () => {
           </div>
 
           {/* Location Title */}
-          <h1 className="text-white text-2xl font-bold mb-2">{confirmedLocation}</h1>
-          <p className="text-white/50 text-sm">
+          <h1 className="text-foreground text-2xl font-bold mb-2">{confirmedLocation}</h1>
+          <p className="text-muted-foreground text-sm">
             {isLoadingBillboards ? 'Cargando...' : `${properties.length} espectaculares disponibles`}
           </p>
         </div>
 
         {/* Filters - now includes map layer controls */}
-        <div className="px-6 border-t border-white/5">
+        <div className="px-6 border-t border-border/50">
           <SearchFilters 
             onFiltersChange={handleFiltersChange}
             mapLayers={viewMode !== 'list' ? mapLayers : undefined}
@@ -363,16 +371,16 @@ const SearchPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden">
-        {/* Results List */}
+      {/* Main Content - Fills remaining height */}
+      <main className="flex-1 flex min-h-0">
+        {/* Results List - Scrollable */}
         {(viewMode === 'split' || viewMode === 'list') && (
-          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} overflow-y-auto p-6`}>
+          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} h-full overflow-y-auto p-6`}>
             {properties.length === 0 && !isLoadingBillboards ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                <MapPin className="w-12 h-12 text-[#9BFF43] mb-4" />
-                <h3 className="text-white text-lg font-semibold mb-2">No hay espectaculares disponibles</h3>
-                <p className="text-white/50 text-sm max-w-md">
+                <MapPin className="w-12 h-12 text-primary mb-4" />
+                <h3 className="text-foreground text-lg font-semibold mb-2">No hay espectaculares disponibles</h3>
+                <p className="text-muted-foreground text-sm max-w-md">
                   No encontramos espectaculares en esta ubicación. Intenta buscar en otra zona o con diferentes filtros.
                 </p>
               </div>
@@ -393,12 +401,12 @@ const SearchPage: React.FC = () => {
           </div>
         )}
 
-        {/* Map */}
+        {/* Map - Fixed full height */}
         {(viewMode === 'split' || viewMode === 'map') && (
-          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} relative`}>
+          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} h-full relative`}>
             {isLoadingToken ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A]">
-                <div className="text-white/50">Cargando mapa...</div>
+              <div className="absolute inset-0 flex items-center justify-center bg-card">
+                <div className="text-muted-foreground">Cargando mapa...</div>
               </div>
             ) : mapboxToken ? (
               <SearchMap
@@ -418,11 +426,11 @@ const SearchPage: React.FC = () => {
                 isCompareMode={isCompareMode}
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#1A1A1A]">
+              <div className="absolute inset-0 flex items-center justify-center bg-card">
                 <div className="text-center p-8">
-                  <MapPin className="w-12 h-12 text-[#9BFF43] mx-auto mb-4" />
-                  <p className="text-white mb-2">Token de Mapbox no configurado</p>
-                  <p className="text-white/50 text-sm">
+                  <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
+                  <p className="text-foreground mb-2">Token de Mapbox no configurado</p>
+                  <p className="text-muted-foreground text-sm">
                     Configura tu token de Mapbox en las variables de entorno
                   </p>
                 </div>
@@ -437,7 +445,7 @@ const SearchPage: React.FC = () => {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4 duration-300">
           <button
             onClick={() => setShowComparison(true)}
-            className="flex items-center gap-3 px-6 py-3 bg-[#9BFF43] text-[#1A1A1A] rounded-full font-bold shadow-lg hover:bg-[#8AE63A] transition-colors"
+            className="flex items-center gap-3 px-6 py-3 bg-primary text-primary-foreground rounded-full font-bold shadow-lg hover:bg-primary/90 transition-colors"
           >
             <BarChart2 className="w-5 h-5" />
             Comparar {compareIds.length} espectacular{compareIds.length > 1 ? 'es' : ''}
