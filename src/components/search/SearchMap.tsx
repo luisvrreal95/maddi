@@ -6,7 +6,6 @@ import MapPopupPortal from './MapPopupPortal';
 import { createMarkerElement } from './EnhancedPropertyMarker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useTheme } from '@/hooks/useTheme';
 
 interface Property {
   id: string;
@@ -97,7 +96,6 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   onToggleCompare,
   isCompareMode,
 }, ref) => {
-  const { theme } = useTheme();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -124,9 +122,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
     mapboxgl.accessToken = mapboxToken;
 
-    const mapStyle = theme === 'dark' 
-      ? 'mapbox://styles/mapbox/dark-v11' 
-      : 'mapbox://styles/mapbox/light-v11';
+    // Always use dark style
+    const mapStyle = 'mapbox://styles/mapbox/dark-v11';
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -147,16 +144,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     };
   }, [mapboxToken]);
 
-  // Update map style when theme changes
-  useEffect(() => {
-    if (!map.current) return;
-    
-    const mapStyle = theme === 'dark' 
-      ? 'mapbox://styles/mapbox/dark-v11' 
-      : 'mapbox://styles/mapbox/light-v11';
-    
-    map.current.setStyle(mapStyle);
-  }, [theme]);
+  // Map style is fixed to dark mode
 
   // Geocode search location and fly to it
   useEffect(() => {

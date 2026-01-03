@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, Heart, MessageSquare, Settings, LogOut, User, Palette, LayoutDashboard, Calendar, UserPlus } from 'lucide-react';
+import { Menu, Heart, MessageSquare, Settings, LogOut, User, LayoutDashboard, Calendar, UserPlus, Search, Star, BarChart3 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -100,6 +100,17 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
         
         <DropdownMenuSeparator className="bg-border" />
 
+        {/* Search link for business users */}
+        {userRole === 'business' && (
+          <DropdownMenuItem 
+            onClick={() => handleNavigate('/search')}
+            className="cursor-pointer text-[#9BFF43] hover:bg-[#9BFF43]/10 focus:bg-[#9BFF43]/10"
+          >
+            <Search className="w-4 h-4 mr-3" />
+            <span className="font-medium">Buscar Espacios</span>
+          </DropdownMenuItem>
+        )}
+
         {/* Dashboard Links */}
         {userRole === 'owner' && (
           <DropdownMenuItem 
@@ -114,10 +125,10 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           <>
             <DropdownMenuItem 
               onClick={() => handleNavigate('/business')}
-              className="cursor-pointer text-[#9BFF43] hover:bg-[#9BFF43]/10 focus:bg-[#9BFF43]/10"
+              className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
             >
-              <Calendar className="w-4 h-4 mr-3" />
-              <span className="font-medium">Mis Reservas</span>
+              <Calendar className="w-4 h-4 mr-3 text-[#9BFF43]" />
+              <span>Mis Reservas</span>
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => handleNavigate('/favorites')}
@@ -125,13 +136,6 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
             >
               <Heart className="w-4 h-4 mr-3 text-[#9BFF43]" />
               <span>Favoritos</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => handleNavigate('/templates')}
-              className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
-            >
-              <Palette className="w-4 h-4 mr-3 text-[#9BFF43]" />
-              <span>Plantillas de diseño</span>
             </DropdownMenuItem>
           </>
         )}
@@ -148,6 +152,24 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           <div className="ml-auto">
             <MessageBadge />
           </div>
+        </DropdownMenuItem>
+
+        {userRole === 'business' && (
+          <DropdownMenuItem 
+            onClick={() => handleNavigate('/reviews')}
+            className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
+          >
+            <Star className="w-4 h-4 mr-3 text-[#9BFF43]" />
+            <span>Mis Reseñas</span>
+          </DropdownMenuItem>
+        )}
+
+        <DropdownMenuItem 
+          onClick={() => handleNavigate('/business-analytics')}
+          className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
+        >
+          <BarChart3 className="w-4 h-4 mr-3 text-[#9BFF43]" />
+          <span>Analytics</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem 
