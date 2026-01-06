@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Fuel, Store, Clock, ArrowRight, GitCompare, Calendar, AlertCircle,
-  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt, Package,
-  BarChart3
+  X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Fuel, Store, Clock, ArrowRight, GitCompare, Calendar,
+  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +21,7 @@ interface INEGIData {
   dominantSector?: string;
   businessSectors?: Record<string, number>;
   audienceProfile?: string;
+  commercialEnvironment?: string;
 }
 
 interface MaddiScorePopupProps {
@@ -106,8 +106,8 @@ function getMaddiScoreColor(score: number): string {
 function inferAudienceProfiles(dominantSector?: string, trafficLevel?: string): Array<{ icon: React.ElementType; label: string }> {
   const profiles: Array<{ icon: React.ElementType; label: string }> = [];
   const sector = dominantSector?.toLowerCase() || '';
-  if (sector.includes('financier') || sector.includes('profesional')) profiles.push({ icon: Briefcase, label: 'Oficinistas' });
-  if (sector.includes('comercio') || sector.includes('menudeo')) profiles.push({ icon: ShoppingBag, label: 'Consumidores' });
+  if (sector.includes('financier') || sector.includes('profesional') || sector.includes('corporativo')) profiles.push({ icon: Briefcase, label: 'Oficinistas' });
+  if (sector.includes('comercio') || sector.includes('menudeo') || sector.includes('tienda')) profiles.push({ icon: ShoppingBag, label: 'Consumidores' });
   if (sector.includes('alimento') || sector.includes('restaur')) profiles.push({ icon: Coffee, label: 'Familias' });
   if (trafficLevel === 'alto' || trafficLevel === 'medio') profiles.push({ icon: Car, label: 'Conductores' });
   if (profiles.length === 0) {
@@ -125,15 +125,51 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   'Hoteles y alojamiento': Hotel, 'Gimnasios': Dumbbell, 'Belleza y spa': Scissors,
   'Cine y entretenimiento': Film, 'Talleres mecánicos': Wrench, 'Tecnología': Smartphone,
   'Corporativos': Building2, 'Comercio minorista': Store, 'Servicios profesionales': Briefcase,
-  'Otros servicios': MoreHorizontal,
+  'Comercio mayorista': Store, 'Alimentos y hospedaje': Utensils, 'Servicios de salud': Heart,
+  'Educación': GraduationCap, 'Entretenimiento': Film, 'Otros servicios': MoreHorizontal,
+  'Manufactura': Building2, 'Transporte': Car, 'Servicios financieros': Landmark,
 };
 
-function categorizeBusinesses(sectors?: Record<string, number>): Array<{ icon: React.ElementType; label: string; count: number }> {
+// Get top 3 categories excluding generic ones
+function getTop3Categories(sectors?: Record<string, number>): Array<{ label: string; count: number; icon: React.ElementType }> {
   if (!sectors) return [];
+  
   return Object.entries(sectors)
-    .map(([sector, count]) => ({ icon: CATEGORY_ICONS[sector] || MoreHorizontal, label: sector, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
+    .filter(([sector]) => !sector.toLowerCase().includes('otros'))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([sector, count]) => ({
+      label: sector,
+      count,
+      icon: CATEGORY_ICONS[sector] || MoreHorizontal,
+    }));
+}
+
+// Generate interpretive text based on business data
+function getZoneInterpretation(sectors?: Record<string, number>, totalBusinesses?: number): string {
+  if (!sectors || !totalBusinesses) return 'Sin información comercial';
+  
+  const entries = Object.entries(sectors).sort((a, b) => b[1] - a[1]);
+  const top = entries[0];
+  
+  if (!top) return 'Zona sin clasificar';
+  
+  const [sector, count] = top;
+  const percentage = Math.round((count / totalBusinesses) * 100);
+  
+  // High concentration in one sector
+  if (percentage > 30) {
+    if (sector.includes('Restaurante') || sector.includes('Alimento')) return 'Zona gastronómica activa';
+    if (sector.includes('Comercio') || sector.includes('Tienda')) return 'Zona de comercio local activa';
+    if (sector.includes('financier') || sector.includes('Corporat')) return 'Zona corporativa y de negocios';
+    if (sector.includes('Salud') || sector.includes('médico')) return 'Zona de servicios de salud';
+    if (sector.includes('Educación') || sector.includes('Escuela')) return 'Zona educativa';
+  }
+  
+  // Mixed zone
+  if (totalBusinesses > 100) return 'Alta presencia de servicios y consumo';
+  if (totalBusinesses > 50) return 'Entorno comercial mixto';
+  return 'Actividad comercial moderada';
 }
 
 const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
@@ -153,12 +189,13 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
   
   const maddiColor = getMaddiScoreColor(maddiScore);
   const audienceProfiles = inferAudienceProfiles(inegiData?.dominantSector, trafficLevel.level);
-  const businessCategories = categorizeBusinesses(inegiData?.businessSectors);
+  const top3Categories = getTop3Categories(inegiData?.businessSectors);
+  const zoneInterpretation = getZoneInterpretation(inegiData?.businessSectors, inegiData?.nearbyBusinessesCount);
 
   return (
-    <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[320px]">
-      {/* Header */}
-      <div className="relative h-28">
+    <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[320px] max-h-[85vh] flex flex-col">
+      {/* Header - Fixed */}
+      <div className="relative h-24 flex-shrink-0">
         <img src={property.image_url || '/placeholder.svg'} alt={property.title} className="w-full h-full object-cover" />
         <button onClick={onClose} className="absolute top-2 right-2 p-1.5 bg-background/80 backdrop-blur-sm rounded-full hover:bg-background">
           <X className="w-4 h-4" />
@@ -168,127 +205,151 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
         </Badge>
       </div>
       
-      {/* Content */}
-      <div className="p-3 space-y-3">
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-2">
         {/* Title */}
         <div>
-          <h3 className="font-semibold text-foreground line-clamp-1">{property.title}</h3>
-          <div className="flex items-center gap-1 text-muted-foreground text-xs mt-0.5">
+          <h3 className="font-semibold text-foreground text-sm line-clamp-1">{property.title}</h3>
+          <div className="flex items-center gap-1 text-muted-foreground text-xs">
             <MapPin className="w-3 h-3" />
             <span className="line-clamp-1">{property.address}</span>
           </div>
         </div>
         
-        {/* Maddi Score */}
-        <div className="bg-muted/50 rounded-lg p-2.5 flex items-center justify-between">
+        {/* Maddi Score - Compact */}
+        <div className="bg-muted/50 rounded-lg p-2 flex items-center justify-between">
           <div>
-            <span className="text-xs font-medium text-muted-foreground">MADDI SCORE</span>
-            <Progress value={maddiScore} className="h-1.5 w-24 mt-1" />
+            <span className="text-[10px] font-medium text-muted-foreground uppercase">MADDI SCORE</span>
+            <Progress value={maddiScore} className="h-1.5 w-20 mt-0.5" />
           </div>
-          <span className="text-2xl font-bold" style={{ color: maddiColor }}>{maddiScore}</span>
+          <span className="text-xl font-bold" style={{ color: maddiColor }}>{maddiScore}</span>
         </div>
 
-        {/* Tabs */}
+        {/* Tabs - Compact */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-8">
-            <TabsTrigger value="zona" className="text-xs px-1">Zona</TabsTrigger>
-            <TabsTrigger value="trafico" className="text-xs px-1">Tráfico</TabsTrigger>
-            <TabsTrigger value="comercio" className="text-xs px-1">Comercio</TabsTrigger>
-            <TabsTrigger value="audiencia" className="text-xs px-1">Audiencia</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 h-7">
+            <TabsTrigger value="zona" className="text-[10px] px-1">Zona</TabsTrigger>
+            <TabsTrigger value="trafico" className="text-[10px] px-1">Tráfico</TabsTrigger>
+            <TabsTrigger value="comercio" className="text-[10px] px-1">Comercio</TabsTrigger>
+            <TabsTrigger value="audiencia" className="text-[10px] px-1">Audiencia</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="zona" className="mt-2 space-y-2 min-h-[100px]">
+          <TabsContent value="zona" className="mt-2 space-y-2">
             {inegiData?.socioeconomicLevel && (
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <span className="text-xs font-medium">Nivel Socioeconómico</span>
-                  <Badge variant="outline" className="text-xs" style={{ borderColor: getNSEColor(inegiData.socioeconomicLevel), color: getNSEColor(inegiData.socioeconomicLevel) }}>
+                  <Badge variant="outline" className="text-[10px] h-5" style={{ borderColor: getNSEColor(inegiData.socioeconomicLevel), color: getNSEColor(inegiData.socioeconomicLevel) }}>
                     {getNSELabel(inegiData.socioeconomicLevel)}
                   </Badge>
                 </div>
-                <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
+                <div className="relative h-1 bg-muted rounded-full overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${getNSEPosition(inegiData.socioeconomicLevel)}%`, backgroundColor: getNSEColor(inegiData.socioeconomicLevel) }} />
                 </div>
               </div>
             )}
-            <div className="text-xs text-muted-foreground">
-              <Building2 className="w-3 h-3 inline mr-1" />
-              {inegiData?.nearbyBusinessesCount || 0} negocios en 500m
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Building2 className="w-3 h-3" />
+              <span>{inegiData?.nearbyBusinessesCount || 0} negocios en 500m</span>
             </div>
-            <p className="text-[10px] text-muted-foreground">Fuente: INEGI (DENUE)</p>
+            <p className="text-xs font-medium text-primary">{zoneInterpretation}</p>
+            <p className="text-[9px] text-muted-foreground">Fuente: INEGI DENUE (actividad económica)</p>
           </TabsContent>
           
-          <TabsContent value="trafico" className="mt-2 space-y-2 min-h-[100px]">
+          <TabsContent value="trafico" className="mt-2 space-y-2">
             {isLoadingTraffic ? (
-              <div className="animate-pulse h-16 bg-muted rounded" />
+              <div className="animate-pulse h-12 bg-muted rounded" />
             ) : (
               <>
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: trafficLevel.color }} />
-                  <span className="text-sm font-medium">Tráfico {trafficLevel.label}</span>
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: trafficLevel.color }} />
+                  <span className="text-xs font-medium">Tráfico {trafficLevel.label}</span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="bg-muted/50 rounded p-2 text-center">
-                    <Clock className="w-3 h-3 mx-auto mb-1 text-muted-foreground" />
-                    <span>Pico: 7-9AM</span>
+                  <div className="bg-muted/50 rounded p-1.5 text-center">
+                    <Clock className="w-3 h-3 mx-auto mb-0.5 text-muted-foreground" />
+                    <span className="text-[10px]">Pico: 7-9AM</span>
                   </div>
-                  <div className="bg-muted/50 rounded p-2 text-center">
-                    <Car className="w-3 h-3 mx-auto mb-1 text-muted-foreground" />
-                    <span>{property.daily_impressions?.toLocaleString() || 'N/A'}/día</span>
+                  <div className="bg-muted/50 rounded p-1.5 text-center">
+                    <Car className="w-3 h-3 mx-auto mb-0.5 text-muted-foreground" />
+                    <span className="text-[10px]">{property.daily_impressions?.toLocaleString() || 'N/A'}/día</span>
                   </div>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Fuente: TomTom</p>
+                <p className="text-[9px] text-muted-foreground">Fuente: TomTom</p>
               </>
             )}
           </TabsContent>
           
-          <TabsContent value="comercio" className="mt-2 space-y-2 min-h-[100px]">
+          <TabsContent value="comercio" className="mt-2 space-y-2">
             {isLoadingInegi ? (
-              <div className="animate-pulse h-16 bg-muted rounded" />
-            ) : businessCategories.length > 0 ? (
-              <div className="grid grid-cols-2 gap-1">
-                {businessCategories.map((cat, idx) => (
-                  <div key={idx} className="flex items-center gap-1 text-xs">
-                    <cat.icon className="w-3 h-3 text-muted-foreground" />
-                    <span className="truncate">{cat.label.replace('Tiendas de ', '')}: <strong>{cat.count}</strong></span>
-                  </div>
-                ))}
-              </div>
+              <div className="animate-pulse h-12 bg-muted rounded" />
+            ) : top3Categories.length > 0 ? (
+              <>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase">Top categorías</p>
+                <div className="space-y-1">
+                  {top3Categories.map((cat, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs bg-muted/30 rounded px-2 py-1">
+                      <div className="flex items-center gap-1.5">
+                        <cat.icon className="w-3 h-3 text-primary" />
+                        <span className="truncate max-w-[160px]">{cat.label}</span>
+                      </div>
+                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{cat.count}</Badge>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[9px] text-muted-foreground">Fuente: INEGI DENUE (actividad económica)</p>
+              </>
             ) : (
               <p className="text-xs text-muted-foreground">Sin datos comerciales</p>
             )}
-            <p className="text-[10px] text-muted-foreground">Fuente: INEGI (DENUE)</p>
           </TabsContent>
           
-          <TabsContent value="audiencia" className="mt-2 space-y-2 min-h-[100px]">
-            <div className="flex flex-wrap gap-1.5">
+          <TabsContent value="audiencia" className="mt-2 space-y-2">
+            <div className="flex flex-wrap gap-1">
               {audienceProfiles.map((profile, idx) => (
-                <Badge key={idx} variant="secondary" className="text-xs gap-1">
-                  <profile.icon className="w-3 h-3" />{profile.label}
+                <Badge key={idx} variant="secondary" className="text-[10px] gap-1 h-5">
+                  <profile.icon className="w-2.5 h-2.5" />{profile.label}
                 </Badge>
               ))}
             </div>
-            <p className="text-[10px] text-muted-foreground">Perfil inferido según movilidad y negocios</p>
+            {inegiData?.commercialEnvironment && (
+              <p className="text-xs text-muted-foreground">{inegiData.commercialEnvironment}</p>
+            )}
+            <p className="text-[9px] text-muted-foreground">Perfil inferido según movilidad y negocios</p>
           </TabsContent>
         </Tabs>
-        
-        {/* Price & Actions */}
-        <div className="flex items-center justify-between pt-2 border-t border-border">
-          <div>
-            <span className="text-lg font-bold">${property.price_per_month?.toLocaleString()}</span>
-            <span className="text-xs text-muted-foreground">/mes</span>
+      </div>
+      
+      {/* Footer - Fixed */}
+      <div className="flex-shrink-0 p-3 pt-2 border-t border-border bg-card">
+        <div className="flex items-center gap-2">
+          <div className="flex-1 min-w-0">
+            <span className="text-base font-bold">${property.price_per_month?.toLocaleString()}</span>
+            <span className="text-[10px] text-muted-foreground">/mes</span>
           </div>
-          <div className="flex gap-1.5">
-            <Button variant={isSelected ? "secondary" : "outline"} size="sm" className="h-8 px-2 text-xs" onClick={() => onCompare?.(property.id)}>
-              <GitCompare className="w-3.5 h-3.5 mr-1" />Comparar
-            </Button>
-            <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => navigate(`/billboard/${property.id}`)}>
-              <ArrowRight className="w-3.5 h-3.5 mr-1" />Detalles
-            </Button>
-            <Button size="sm" className="h-8 text-xs" onClick={() => navigate(`/billboard/${property.id}?book=true`)}>
-              <Calendar className="w-3.5 h-3.5 mr-1" />Reservar
-            </Button>
-          </div>
+          <Button 
+            variant={isSelected ? "secondary" : "outline"} 
+            size="sm" 
+            className="h-7 px-2 text-[10px]" 
+            onClick={() => onCompare?.(property.id)}
+          >
+            <GitCompare className="w-3 h-3 mr-1" />Comparar
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-7 px-2 text-[10px]" 
+            onClick={() => navigate(`/billboard/${property.id}`)}
+          >
+            <ArrowRight className="w-3 h-3 mr-1" />Detalles
+          </Button>
+          <Button 
+            size="sm" 
+            className="h-7 px-2 text-[10px]" 
+            onClick={() => navigate(`/billboard/${property.id}?book=true`)}
+          >
+            <Calendar className="w-3 h-3 mr-1" />Reservar
+          </Button>
         </div>
       </div>
     </div>

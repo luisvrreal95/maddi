@@ -436,13 +436,6 @@ const SearchPage: React.FC = () => {
             resultsCount={properties.length}
           />
 
-          {/* View indicator - Split mode only */}
-          <div className="flex items-center bg-muted rounded-lg p-1 gap-1 flex-shrink-0">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-background text-foreground shadow-sm">
-              <BarChart2 className="w-4 h-4" />
-              <span className="hidden md:inline">Lista + Mapa</span>
-            </div>
-          </div>
         </div>
       </div>
 
