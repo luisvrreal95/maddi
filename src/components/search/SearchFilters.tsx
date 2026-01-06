@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, X, DollarSign, Lightbulb, LayoutGrid } from 'lucide-react';
+import { ChevronDown, X, DollarSign, Lightbulb, LayoutGrid, Wallet } from 'lucide-react';
 
 interface FilterOption {
   label: string;
@@ -56,34 +56,40 @@ const FilterDropdown: React.FC<FilterProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-[#2A2A2A] rounded-xl border border-white/10 shadow-xl z-50 min-w-[200px] overflow-hidden">
-          {options.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => handleSelect(option.value)}
-              className={`w-full px-4 py-3 text-left text-sm transition-colors ${
-                selectedValues.includes(option.value)
-                  ? 'bg-[#9BFF43]/20 text-[#9BFF43]'
-                  : 'text-white hover:bg-white/5'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-4 h-4 rounded border ${
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => setIsOpen(false)} 
+          />
+          <div className="absolute top-full left-0 mt-2 bg-[#2A2A2A] rounded-xl border border-white/10 shadow-xl z-50 min-w-[200px] overflow-hidden">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleSelect(option.value)}
+                className={`w-full px-4 py-3 text-left text-sm transition-colors ${
                   selectedValues.includes(option.value)
-                    ? 'bg-[#9BFF43] border-[#9BFF43]'
-                    : 'border-white/30'
-                }`}>
-                  {selectedValues.includes(option.value) && (
-                    <svg className="w-4 h-4 text-[#202020]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
+                    ? 'bg-[#9BFF43]/20 text-[#9BFF43]'
+                    : 'text-white hover:bg-white/5'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className={`w-4 h-4 rounded border ${
+                    selectedValues.includes(option.value)
+                      ? 'bg-[#9BFF43] border-[#9BFF43]'
+                      : 'border-white/30'
+                  }`}>
+                    {selectedValues.includes(option.value) && (
+                      <svg className="w-4 h-4 text-[#202020]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                  </div>
+                  {option.label}
                 </div>
-                {option.label}
-              </div>
-            </button>
-          ))}
-        </div>
+              </button>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
@@ -137,6 +143,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
     illumination: [],
     billboardType: [],
     order: [],
+    socioeconomicLevel: [],
   });
 
   const updateFilter = (key: string, values: string[]) => {
@@ -201,6 +208,20 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         ]}
         selectedValues={filters.size}
         onSelect={(values) => updateFilter('size', values)}
+        multiSelect
+      />
+
+      {/* Socioeconomic Level Filter */}
+      <FilterDropdown
+        label="Nivel Socioeconómico"
+        options={[
+          { label: 'Alto', value: 'alto' },
+          { label: 'Medio-Alto', value: 'medio-alto' },
+          { label: 'Medio', value: 'medio' },
+          { label: 'Bajo', value: 'bajo' },
+        ]}
+        selectedValues={filters.socioeconomicLevel}
+        onSelect={(values) => updateFilter('socioeconomicLevel', values)}
         multiSelect
       />
 
