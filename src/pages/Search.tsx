@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, List, Map, BarChart2, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import SearchFilters, { MapLayers, POICategories } from '@/components/search/SearchFilters';
 import SearchMap, { SearchMapRef } from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
@@ -352,11 +353,11 @@ const SearchPage: React.FC = () => {
       {/* Header */}
       <BusinessHeader />
 
-      {/* Search Controls - Fixed */}
+      {/* Search Controls - Compact */}
       <div className="bg-card border-b border-border flex-shrink-0">
-        <div className="px-6 py-4">
+        <div className="px-4 py-2">
           {/* Search Row */}
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-3">
             <Link to="/" className="text-foreground hover:text-primary transition-colors">
               <ArrowLeft className="w-5 h-5" />
             </Link>
@@ -371,51 +372,56 @@ const SearchPage: React.FC = () => {
               }}
               mapboxToken={mapboxToken}
               placeholder="Buscar ubicación..."
-              className="flex-1 max-w-xl"
+              className="flex-1 max-w-lg"
             />
+            
+            {/* Results count badge */}
+            <Badge variant="secondary" className="hidden sm:flex">
+              {isLoadingBillboards ? '...' : properties.length} resultados
+            </Badge>
 
-            {/* View Toggle */}
-            <div className="flex items-center gap-2 bg-secondary rounded-full p-1">
+            {/* View Toggle - Airbnb style */}
+            <div className="flex items-center bg-muted rounded-lg p-1 gap-1">
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-full transition-colors ${
-                  viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'list' 
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <List className="w-5 h-5" />
+                <List className="w-4 h-4" />
+                <span className="hidden md:inline">Lista</span>
               </button>
               <button
                 onClick={() => setViewMode('split')}
-                className={`p-2 rounded-full transition-colors ${
-                  viewMode === 'split' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'split' 
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <div className="flex gap-0.5">
-                  <div className="w-2 h-4 bg-current rounded-sm" />
-                  <div className="w-2 h-4 bg-current rounded-sm" />
-                </div>
+                <BarChart2 className="w-4 h-4" />
+                <span className="hidden md:inline">Split</span>
               </button>
               <button
                 onClick={() => setViewMode('map')}
-                className={`p-2 rounded-full transition-colors ${
-                  viewMode === 'map' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                  viewMode === 'map' 
+                    ? 'bg-background text-foreground shadow-sm' 
+                    : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Map className="w-5 h-5" />
+                <Map className="w-4 h-4" />
+                <span className="hidden md:inline">Mapa</span>
               </button>
             </div>
           </div>
-
-          {/* Location Title */}
-          <h1 className="text-foreground text-2xl font-bold mb-2">{confirmedLocation}</h1>
-          <p className="text-muted-foreground text-sm">
-            {isLoadingBillboards ? 'Cargando...' : `${properties.length} espectaculares disponibles`}
-          </p>
         </div>
 
-        {/* Filters - now includes map layer controls */}
-        <div className="px-6 border-t border-border/50">
-          <SearchFilters 
+        {/* Filters - compact row */}
+        <div className="px-4 py-1.5 border-t border-border/50">
+          <SearchFilters
             onFiltersChange={handleFiltersChange}
             mapLayers={viewMode !== 'list' ? mapLayers : undefined}
             poiCategories={viewMode !== 'list' ? poiCategories : undefined}
@@ -429,10 +435,10 @@ const SearchPage: React.FC = () => {
       </div>
 
       {/* Main Content - Fills remaining height */}
-      <main className="flex-1 flex min-h-0">
+      <main className="flex-1 flex min-h-0 relative">
         {/* Results List - Scrollable */}
         {(viewMode === 'split' || viewMode === 'list') && (
-          <div className={`${viewMode === 'split' ? 'w-2/5' : 'w-full'} h-full overflow-y-auto p-6`}>
+          <div className={`${viewMode === 'split' ? 'w-[320px] flex-shrink-0' : 'w-full'} h-full overflow-y-auto p-4`}>
             {properties.length === 0 && !isLoadingBillboards ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
                 <MapPin className="w-12 h-12 text-primary mb-4" />
