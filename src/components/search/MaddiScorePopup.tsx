@@ -1,7 +1,8 @@
 import React from 'react';
 import { 
   X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Fuel, Store, Clock, ArrowRight, GitCompare, Calendar, AlertCircle,
-  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt, Package
+  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt, Package,
+  BarChart3
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -84,14 +85,32 @@ function getCommercialActivityLevel(count: number): { level: string; color: stri
   return { level: 'Baja', color: 'hsl(var(--muted-foreground))' };
 }
 
-// NSE color function - temporarily disabled until AGEB integration
-// function getNSEColor(level: string): string {
-//   const normalized = level?.toLowerCase() || '';
-//   if (normalized.includes('alto') && !normalized.includes('medio')) return 'hsl(var(--success))';
-//   if (normalized.includes('medio-alto') || normalized.includes('medio alto')) return 'hsl(142 71% 45%)';
-//   if (normalized.includes('medio')) return 'hsl(var(--warning))';
-//   return 'hsl(var(--muted-foreground))';
-// }
+function getNSEColor(level: string): string {
+  const normalized = level?.toLowerCase() || '';
+  if (normalized.includes('alto') && !normalized.includes('medio')) return 'hsl(var(--success))';
+  if (normalized.includes('medio-alto') || normalized.includes('medio alto')) return 'hsl(142 71% 45%)';
+  if (normalized.includes('medio') && !normalized.includes('alto')) return 'hsl(var(--warning))';
+  if (normalized.includes('bajo')) return 'hsl(var(--destructive))';
+  return 'hsl(var(--muted-foreground))';
+}
+
+function getNSEPosition(level: string): number {
+  const normalized = level?.toLowerCase() || '';
+  if (normalized.includes('alto') && !normalized.includes('medio')) return 100;
+  if (normalized.includes('medio-alto') || normalized.includes('medio alto')) return 75;
+  if (normalized.includes('medio') && !normalized.includes('alto')) return 50;
+  if (normalized.includes('bajo')) return 25;
+  return 50;
+}
+
+function getNSELabel(level: string): string {
+  const normalized = level?.toLowerCase() || '';
+  if (normalized.includes('alto') && !normalized.includes('medio')) return 'Alto';
+  if (normalized.includes('medio-alto') || normalized.includes('medio alto')) return 'Medio-Alto';
+  if (normalized.includes('medio') && !normalized.includes('alto')) return 'Medio';
+  if (normalized.includes('bajo')) return 'Bajo';
+  return 'Sin datos';
+}
 
 function getMaddiScoreColor(score: number): string {
   if (score >= 81) return 'hsl(var(--success))';
@@ -380,7 +399,59 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
         
         <Separator />
         
-        {/* Precio (NSE temporarily disabled) */}
+        {/* Nivel Socioeconómico */}
+        {inegiData?.socioeconomicLevel && (
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <BarChart3 className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Nivel Socioeconómico Estimado</span>
+            </div>
+            
+            <div className="relative">
+              <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                <span>Bajo</span>
+                <span>Medio</span>
+                <span>Alto</span>
+              </div>
+              <div className="relative h-2 bg-muted rounded-full overflow-hidden">
+                <div 
+                  className="absolute h-full rounded-full transition-all duration-500"
+                  style={{ 
+                    width: `${getNSEPosition(inegiData.socioeconomicLevel)}%`,
+                    backgroundColor: getNSEColor(inegiData.socioeconomicLevel),
+                  }}
+                />
+              </div>
+              <div 
+                className="absolute w-3 h-3 rounded-full border-2 border-background shadow-sm transition-all duration-500"
+                style={{ 
+                  left: `calc(${getNSEPosition(inegiData.socioeconomicLevel)}% - 6px)`,
+                  top: '16px',
+                  backgroundColor: getNSEColor(inegiData.socioeconomicLevel),
+                }}
+              />
+            </div>
+            
+            <Badge 
+              variant="outline" 
+              className="mt-2 text-xs"
+              style={{ 
+                borderColor: getNSEColor(inegiData.socioeconomicLevel), 
+                color: getNSEColor(inegiData.socioeconomicLevel) 
+              }}
+            >
+              {getNSELabel(inegiData.socioeconomicLevel)}
+            </Badge>
+            
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              Estimación basada en actividad económica · INEGI (DENUE)
+            </p>
+          </div>
+        )}
+        
+        <Separator />
+        
+        {/* Precio */}
         <div className="flex items-center justify-end">
           <div className="text-right">
             <span className="text-xl font-bold text-foreground">
