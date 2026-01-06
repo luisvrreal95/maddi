@@ -6,27 +6,252 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// SCIAN sector categories mapping
-const SECTOR_CATEGORIES: Record<string, string> = {
-  '43': 'Comercio al por mayor',
-  '46': 'Comercio al por menor',
-  '72': 'Alojamiento y alimentos',
+// Improved SCIAN sector categories mapping using first 3 digits
+const SECTOR_CATEGORIES_3: Record<string, string> = {
+  // Restaurantes y alimentos (72)
+  '722': 'Restaurantes y bares',
+  '721': 'Hoteles y alojamiento',
+  '723': 'Servicios de comida',
+  
+  // Comercio al por menor (46)
+  '461': 'Tiendas de abarrotes',
+  '462': 'Tiendas departamentales',
+  '463': 'Papelerías y librerías',
+  '464': 'Farmacias y perfumerías',
+  '465': 'Gasolineras',
+  '466': 'Ferreterías',
+  '467': 'Tiendas de ropa',
+  '468': 'Venta de vehículos',
+  '469': 'Otros comercios',
+  
+  // Comercio al por mayor (43)
+  '431': 'Mayoristas de alimentos',
+  '432': 'Mayoristas de textiles',
+  '433': 'Mayoristas de farmacia',
+  '434': 'Mayoristas de materiales',
+  '435': 'Mayoristas de maquinaria',
+  '436': 'Mayoristas de muebles',
+  '437': 'Mayoristas de materias primas',
+  
+  // Servicios financieros (52)
+  '521': 'Banca central',
+  '522': 'Bancos y financieras',
+  '523': 'Casas de bolsa',
+  '524': 'Seguros y fianzas',
+  
+  // Servicios de salud (62)
+  '621': 'Consultorios médicos',
+  '622': 'Hospitales',
+  '623': 'Asilos y guarderías',
+  '624': 'Asistencia social',
+  
+  // Servicios educativos (61)
+  '611': 'Escuelas y educación',
+  
+  // Servicios profesionales (54)
+  '541': 'Servicios legales y contables',
+  '542': 'Diseño y arquitectura',
+  
+  // Entretenimiento (71)
+  '711': 'Artes y espectáculos',
+  '712': 'Museos',
+  '713': 'Entretenimiento y recreación',
+  
+  // Transporte (48, 49)
+  '481': 'Transporte aéreo',
+  '482': 'Transporte ferroviario',
+  '483': 'Transporte marítimo',
+  '484': 'Autotransporte de carga',
+  '485': 'Transporte de pasajeros',
+  '486': 'Transporte por ductos',
+  '487': 'Turismo y transporte',
+  '488': 'Servicios de transporte',
+  '491': 'Servicios postales',
+  '492': 'Mensajería y paquetería',
+  '493': 'Almacenamiento',
+  
+  // Información (51)
+  '511': 'Edición',
+  '512': 'Cine y video',
+  '515': 'Radio y televisión',
+  '517': 'Telecomunicaciones',
+  '518': 'Servicios de internet',
+  '519': 'Servicios de información',
+  
+  // Inmobiliarios (53)
+  '531': 'Servicios inmobiliarios',
+  '532': 'Alquiler de bienes',
+  '533': 'Arrendadoras',
+  
+  // Corporativos (55)
+  '551': 'Corporativos',
+  
+  // Servicios de apoyo (56)
+  '561': 'Servicios administrativos',
+  '562': 'Manejo de residuos',
+  
+  // Otros servicios (81)
+  '811': 'Reparación y mantenimiento',
+  '812': 'Servicios personales',
+  '813': 'Asociaciones',
+  '814': 'Hogares con empleados',
+  
+  // Manufactura (31-33)
+  '311': 'Alimentos procesados',
+  '312': 'Bebidas y tabaco',
+  '313': 'Textiles',
+  '314': 'Productos textiles',
+  '315': 'Prendas de vestir',
+  '316': 'Cuero y calzado',
+  '321': 'Productos de madera',
+  '322': 'Papel',
+  '323': 'Impresión',
+  '324': 'Derivados del petróleo',
+  '325': 'Química',
+  '326': 'Plástico y hule',
+  '327': 'Minerales no metálicos',
+  '331': 'Metales básicos',
+  '332': 'Productos metálicos',
+  '333': 'Maquinaria',
+  '334': 'Electrónicos',
+  '335': 'Equipos eléctricos',
+  '336': 'Automotriz',
+  '337': 'Muebles',
+  '339': 'Otras manufacturas',
+};
+
+// Fallback mapping using first 2 digits
+const SECTOR_CATEGORIES_2: Record<string, string> = {
+  '43': 'Comercio mayorista',
+  '46': 'Comercio minorista',
+  '72': 'Alimentos y hospedaje',
   '52': 'Servicios financieros',
   '62': 'Servicios de salud',
-  '61': 'Servicios educativos',
+  '61': 'Educación',
   '71': 'Entretenimiento',
   '81': 'Otros servicios',
   '31': 'Manufactura',
   '32': 'Manufactura',
   '33': 'Manufactura',
   '48': 'Transporte',
-  '49': 'Transporte',
-  '51': 'Información y medios',
-  '53': 'Servicios inmobiliarios',
+  '49': 'Mensajería',
+  '51': 'Medios e información',
+  '53': 'Inmobiliarios',
   '54': 'Servicios profesionales',
   '55': 'Corporativos',
   '56': 'Servicios de apoyo',
 };
+
+// Categorize by activity text as fallback
+function categorizeByActivity(claseActividad: string): string {
+  const text = claseActividad.toLowerCase();
+  
+  // Restaurantes y comida
+  if (text.includes('restaurante') || text.includes('comida') || text.includes('preparación de alimentos') || text.includes('taquería') || text.includes('pizzería') || text.includes('mariscos')) 
+    return 'Restaurantes y bares';
+  if (text.includes('cafetería') || text.includes('café') || text.includes('nevería') || text.includes('heladería'))
+    return 'Cafeterías';
+  if (text.includes('bar') || text.includes('cantina') || text.includes('bebidas alcohólicas') || text.includes('antro') || text.includes('discoteca'))
+    return 'Bares y antros';
+  
+  // Gasolineras
+  if (text.includes('gasolinera') || text.includes('combustible') || text.includes('gasolina') || text.includes('diesel'))
+    return 'Gasolineras';
+  
+  // Comercio
+  if (text.includes('tienda') || text.includes('abarrote') || text.includes('minisuper') || text.includes('miscelánea') || text.includes('conveniencia'))
+    return 'Tiendas de abarrotes';
+  if (text.includes('supermercado') || text.includes('autoservicio'))
+    return 'Supermercados';
+  if (text.includes('farmacia') || text.includes('medicamento') || text.includes('botica'))
+    return 'Farmacias y perfumerías';
+  if (text.includes('ropa') || text.includes('vestir') || text.includes('calzado') || text.includes('zapatería'))
+    return 'Tiendas de ropa';
+  if (text.includes('ferretería') || text.includes('material') || text.includes('construcción'))
+    return 'Ferreterías';
+  
+  // Servicios financieros
+  if (text.includes('banco') || text.includes('financier') || text.includes('cajero') || text.includes('crédito'))
+    return 'Bancos y financieras';
+  if (text.includes('seguro') || text.includes('asegurador'))
+    return 'Seguros y fianzas';
+  
+  // Salud
+  if (text.includes('hospital') || text.includes('clínica') || text.includes('sanatorio'))
+    return 'Hospitales';
+  if (text.includes('consultorio') || text.includes('médico') || text.includes('dental') || text.includes('dentista') || text.includes('doctor'))
+    return 'Consultorios médicos';
+  if (text.includes('óptica') || text.includes('lentes') || text.includes('optometría'))
+    return 'Ópticas';
+  if (text.includes('laboratorio') || text.includes('análisis clínicos'))
+    return 'Laboratorios';
+  
+  // Educación
+  if (text.includes('escuela') || text.includes('colegio') || text.includes('universidad') || text.includes('instituto') || text.includes('educativ'))
+    return 'Escuelas y educación';
+  if (text.includes('guardería') || text.includes('estancia infantil') || text.includes('kinder'))
+    return 'Asilos y guarderías';
+  
+  // Entretenimiento
+  if (text.includes('cine') || text.includes('película') || text.includes('teatro'))
+    return 'Cine y entretenimiento';
+  if (text.includes('gimnasio') || text.includes('deportivo') || text.includes('fitness') || text.includes('gym'))
+    return 'Gimnasios';
+  if (text.includes('spa') || text.includes('masaje') || text.includes('estética') || text.includes('belleza') || text.includes('salón'))
+    return 'Belleza y spa';
+  
+  // Hospedaje
+  if (text.includes('hotel') || text.includes('hospedaje') || text.includes('alojamiento') || text.includes('motel'))
+    return 'Hoteles y alojamiento';
+  
+  // Automotriz
+  if (text.includes('taller') || text.includes('mecánico') || text.includes('automotriz') || text.includes('reparación de automóvil'))
+    return 'Talleres mecánicos';
+  if (text.includes('refaccion') || text.includes('autopartes'))
+    return 'Refacciones';
+  if (text.includes('lavado') || text.includes('autolavado') || text.includes('car wash'))
+    return 'Autolavados';
+  if (text.includes('estacionamiento') || text.includes('parking'))
+    return 'Estacionamientos';
+  
+  // Servicios profesionales
+  if (text.includes('abogado') || text.includes('legal') || text.includes('notaría') || text.includes('jurídic'))
+    return 'Servicios legales';
+  if (text.includes('contabl') || text.includes('contador') || text.includes('fiscal'))
+    return 'Contabilidad';
+  if (text.includes('arquitect') || text.includes('diseño') || text.includes('ingeniería'))
+    return 'Diseño y arquitectura';
+  
+  // Tecnología
+  if (text.includes('computadora') || text.includes('cómputo') || text.includes('software') || text.includes('tecnología') || text.includes('internet'))
+    return 'Tecnología';
+  if (text.includes('celular') || text.includes('telefonía') || text.includes('comunicación'))
+    return 'Telecomunicaciones';
+  
+  return 'Otros servicios';
+}
+
+// Get sector name from SCIAN code
+function getSectorFromCode(codigoAct: string, claseActividad: string): string {
+  if (!codigoAct || codigoAct.length < 3) {
+    return categorizeByActivity(claseActividad);
+  }
+  
+  // Try 3-digit code first
+  const code3 = codigoAct.substring(0, 3);
+  if (SECTOR_CATEGORIES_3[code3]) {
+    return SECTOR_CATEGORIES_3[code3];
+  }
+  
+  // Try 2-digit code
+  const code2 = codigoAct.substring(0, 2);
+  if (SECTOR_CATEGORIES_2[code2]) {
+    return SECTOR_CATEGORIES_2[code2];
+  }
+  
+  // Fallback to text analysis
+  return categorizeByActivity(claseActividad);
+}
 
 // Predefined profiles by socioeconomic level
 const PROFILES: Record<string, { audienceProfile: string; commercialEnvironment: string }> = {
@@ -79,29 +304,28 @@ function calculateSocioeconomicLevel(
   let score = 0;
   
   // Servicios financieros y profesionales (+3 puntos cada 5 negocios)
-  const financial = sectorCounts['Servicios financieros'] || 0;
-  const professional = sectorCounts['Servicios profesionales'] || 0;
+  const financial = (sectorCounts['Bancos y financieras'] || 0) + (sectorCounts['Seguros y fianzas'] || 0);
+  const professional = (sectorCounts['Servicios legales'] || 0) + (sectorCounts['Contabilidad'] || 0) + (sectorCounts['Diseño y arquitectura'] || 0);
   const corporate = sectorCounts['Corporativos'] || 0;
   score += Math.floor((financial + professional + corporate) / 5) * 3;
   
   // Entretenimiento y alojamiento (+2 puntos cada 5)
-  const entertainment = sectorCounts['Entretenimiento'] || 0;
-  const hotels = sectorCounts['Alojamiento y alimentos'] || 0;
+  const entertainment = (sectorCounts['Cine y entretenimiento'] || 0) + (sectorCounts['Gimnasios'] || 0);
+  const hotels = sectorCounts['Hoteles y alojamiento'] || 0;
   score += Math.floor((entertainment + hotels) / 5) * 2;
   
   // Comercio al por menor (neutro, +1 cada 10)
-  const retail = sectorCounts['Comercio al por menor'] || 0;
+  const retail = (sectorCounts['Comercio minorista'] || 0) + (sectorCounts['Tiendas de abarrotes'] || 0) + (sectorCounts['Supermercados'] || 0);
   score += Math.floor(retail / 10);
   
   // Servicios de salud y educativos (+1 cada 3)
-  const health = sectorCounts['Servicios de salud'] || 0;
-  const education = sectorCounts['Servicios educativos'] || 0;
+  const health = (sectorCounts['Hospitales'] || 0) + (sectorCounts['Consultorios médicos'] || 0);
+  const education = sectorCounts['Escuelas y educación'] || 0;
   score += Math.floor((health + education) / 3);
   
-  // Count large companies by employee stratum (per_ocu contains ranges like "0 a 5 personas")
+  // Count large companies by employee stratum
   const largeCompanies = denueData.filter(b => {
     const perOcu = b.Per_ocu || '';
-    // Check for larger employee counts
     return perOcu.includes('101') || 
            perOcu.includes('251') || 
            perOcu.includes('51 a') ||
@@ -186,29 +410,31 @@ serve(async (req) => {
     const denueData: DenueRecord[] = await denueResponse.json();
     console.log(`Found ${denueData.length} businesses from DENUE`);
 
-    // Process and categorize businesses
+    // Process and categorize businesses using improved mapping
     const sectorCounts: Record<string, number> = {};
-    const businessTypes: Record<string, string[]> = {};
+    const businessesBySector: Record<string, string[]> = {};
 
     for (const business of denueData) {
-      const code = business.Codigo_act?.substring(0, 2) || '';
-      const sectorName = SECTOR_CATEGORIES[code] || 'Otros';
+      const sectorName = getSectorFromCode(business.Codigo_act || '', business.Clase_actividad || '');
       
       sectorCounts[sectorName] = (sectorCounts[sectorName] || 0) + 1;
       
-      if (!businessTypes[sectorName]) {
-        businessTypes[sectorName] = [];
+      if (!businessesBySector[sectorName]) {
+        businessesBySector[sectorName] = [];
       }
-      if (businessTypes[sectorName].length < 5) {
-        businessTypes[sectorName].push(business.Nombre);
+      if (businessesBySector[sectorName].length < 10) {
+        businessesBySector[sectorName].push(business.Nombre);
       }
     }
+
+    // Log sector breakdown for debugging
+    console.log('Sector breakdown:', JSON.stringify(sectorCounts, null, 2));
 
     // Find dominant sector
     let dominantSector = 'Sin datos';
     let maxCount = 0;
     for (const [sector, count] of Object.entries(sectorCounts)) {
-      if (count > maxCount) {
+      if (count > maxCount && sector !== 'Otros servicios') {
         maxCount = count;
         dominantSector = sector;
       }

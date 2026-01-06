@@ -1,9 +1,13 @@
 import React from 'react';
-import { X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Fuel, Store, Clock, ArrowRight, GitCompare, Calendar, AlertCircle } from 'lucide-react';
+import { 
+  X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Fuel, Store, Clock, ArrowRight, GitCompare, Calendar, AlertCircle,
+  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt, Package
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
 
 interface TrafficData {
@@ -122,32 +126,61 @@ function inferAudienceProfiles(dominantSector?: string, trafficLevel?: string): 
   return profiles.slice(0, 4);
 }
 
+// Complete icon mapping for all business categories
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  'Restaurantes y bares': Utensils,
+  'Cafeterías': Coffee,
+  'Bares y antros': Wine,
+  'Gasolineras': Fuel,
+  'Tiendas de abarrotes': Store,
+  'Supermercados': ShoppingBag,
+  'Tiendas de ropa': Shirt,
+  'Tiendas departamentales': ShoppingBag,
+  'Farmacias y perfumerías': Pill,
+  'Ferreterías': Wrench,
+  'Bancos y financieras': Landmark,
+  'Seguros y fianzas': Landmark,
+  'Hospitales': Heart,
+  'Consultorios médicos': Heart,
+  'Ópticas': Heart,
+  'Laboratorios': Heart,
+  'Escuelas y educación': GraduationCap,
+  'Asilos y guarderías': GraduationCap,
+  'Hoteles y alojamiento': Hotel,
+  'Gimnasios': Dumbbell,
+  'Belleza y spa': Scissors,
+  'Cine y entretenimiento': Film,
+  'Talleres mecánicos': Wrench,
+  'Refacciones': Wrench,
+  'Autolavados': Car,
+  'Estacionamientos': Car,
+  'Servicios legales': Briefcase,
+  'Contabilidad': Briefcase,
+  'Diseño y arquitectura': Building2,
+  'Tecnología': Smartphone,
+  'Telecomunicaciones': Smartphone,
+  'Corporativos': Building2,
+  'Comercio minorista': Store,
+  'Comercio mayorista': Package,
+  'Servicios profesionales': Briefcase,
+  'Otros servicios': MoreHorizontal,
+};
+
 function categorizeBusinesses(sectors?: Record<string, number>): Array<{ icon: React.ElementType; label: string; count: number }> {
   if (!sectors) return [];
   
   const categories: Array<{ icon: React.ElementType; label: string; count: number }> = [];
   
-  // Mapear sectores INEGI a categorías visuales
+  // Map all sectors directly - they now come properly categorized from the edge function
   Object.entries(sectors).forEach(([sector, count]) => {
-    const sectorLower = sector.toLowerCase();
-    if (sectorLower.includes('alimento') || sectorLower.includes('restaur') || sectorLower.includes('bebida')) {
-      const existing = categories.find(c => c.label === 'Restaurantes');
-      if (existing) existing.count += count;
-      else categories.push({ icon: Coffee, label: 'Restaurantes', count });
-    } else if (sectorLower.includes('gasoliner') || sectorLower.includes('combustible')) {
-      categories.push({ icon: Fuel, label: 'Gasolineras', count });
-    } else if (sectorLower.includes('comercio') || sectorLower.includes('menudeo') || sectorLower.includes('tienda')) {
-      const existing = categories.find(c => c.label === 'Comercios');
-      if (existing) existing.count += count;
-      else categories.push({ icon: Store, label: 'Comercios', count });
-    } else if (sectorLower.includes('profesional') || sectorLower.includes('oficina') || sectorLower.includes('financier')) {
-      const existing = categories.find(c => c.label === 'Oficinas');
-      if (existing) existing.count += count;
-      else categories.push({ icon: Building2, label: 'Oficinas', count });
-    }
+    const icon = CATEGORY_ICONS[sector] || MoreHorizontal;
+    categories.push({ icon, label: sector, count });
   });
   
-  return categories.slice(0, 4);
+  // Sort by count descending
+  categories.sort((a, b) => b.count - a.count);
+  
+  return categories;
 }
 
 const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
@@ -300,14 +333,18 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
                 {inegiData?.nearbyBusinessesCount || 0} establecimientos cercanos
               </p>
               {businessCategories.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
-                  {businessCategories.map((cat, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-sm">
-                      <cat.icon className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span>{cat.label}: {cat.count}</span>
-                    </div>
-                  ))}
-                </div>
+                <ScrollArea className={businessCategories.length > 6 ? 'h-32' : ''}>
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-1.5">
+                    {businessCategories.map((cat, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 text-sm">
+                        <cat.icon className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate text-xs">
+                          {cat.label.replace(' y ', '/').replace('Tiendas de ', '').replace(' y alojamiento', '')}: <strong>{cat.count}</strong>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               ) : (
                 <p className="text-sm text-muted-foreground italic">
                   Analizando establecimientos cercanos...
