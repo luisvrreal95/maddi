@@ -2,6 +2,11 @@ import React from 'react';
 import { X, Eye, Car, DollarSign, TrendingUp, MapPin, Zap, Check, Minus } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
+interface INEGIData {
+  socioeconomicLevel?: string;
+  nearbyBusinessesCount?: number;
+}
+
 interface CompareProperty {
   id: string;
   name: string;
@@ -14,6 +19,7 @@ interface CompareProperty {
   status: string;
   availability: string;
   imageUrl?: string | null;
+  inegiData?: INEGIData;
 }
 
 interface ComparisonPanelProps {
@@ -263,6 +269,34 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                   {propertiesWithMetrics.map(p => (
                     <td key={p.id} className={`text-center py-2 px-2 font-medium ${p.valueScore === maxValue ? 'text-[#9BFF43]' : ''}`}>
                       ${p.cpm.toFixed(2)}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-2 pr-4 text-white/70">Nivel Socioeconómico</td>
+                  {propertiesWithMetrics.map(p => (
+                    <td key={p.id} className="text-center py-2 px-2 font-medium">
+                      {p.inegiData?.socioeconomicLevel ? (
+                        <span className={`px-2 py-0.5 rounded text-xs ${
+                          p.inegiData.socioeconomicLevel.toLowerCase().includes('alto') && !p.inegiData.socioeconomicLevel.toLowerCase().includes('medio') 
+                            ? 'bg-green-500/20 text-green-400' 
+                            : p.inegiData.socioeconomicLevel.toLowerCase().includes('medio-alto') 
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : p.inegiData.socioeconomicLevel.toLowerCase().includes('medio')
+                                ? 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-red-500/20 text-red-400'
+                        }`}>
+                          {p.inegiData.socioeconomicLevel.charAt(0).toUpperCase() + p.inegiData.socioeconomicLevel.slice(1)}
+                        </span>
+                      ) : <Minus className="inline w-4 h-4 text-white/30" />}
+                    </td>
+                  ))}
+                </tr>
+                <tr className="border-b border-white/5">
+                  <td className="py-2 pr-4 text-white/70">Negocios Cercanos</td>
+                  {propertiesWithMetrics.map(p => (
+                    <td key={p.id} className="text-center py-2 px-2 font-medium">
+                      {p.inegiData?.nearbyBusinessesCount ? `${p.inegiData.nearbyBusinessesCount}` : <Minus className="inline w-4 h-4 text-white/30" />}
                     </td>
                   ))}
                 </tr>

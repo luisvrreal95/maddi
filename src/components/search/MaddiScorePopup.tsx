@@ -279,13 +279,13 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
             <span className="text-xs text-muted-foreground">/mes</span>
           </div>
           <div className="flex gap-1.5">
-            <Button variant={isSelected ? "secondary" : "outline"} size="sm" className="h-8 px-2" onClick={() => onCompare?.(property.id)}>
-              <GitCompare className="w-3.5 h-3.5" />
+            <Button variant={isSelected ? "secondary" : "outline"} size="sm" className="h-8 px-2 text-xs" onClick={() => onCompare?.(property.id)}>
+              <GitCompare className="w-3.5 h-3.5 mr-1" />Comparar
             </Button>
-            <Button variant="outline" size="sm" className="h-8 px-2" onClick={() => navigate(`/billboard/${property.id}`)}>
-              <ArrowRight className="w-3.5 h-3.5" />
+            <Button variant="outline" size="sm" className="h-8 px-2 text-xs" onClick={() => navigate(`/billboard/${property.id}`)}>
+              <ArrowRight className="w-3.5 h-3.5 mr-1" />Detalles
             </Button>
-            <Button size="sm" className="h-8" onClick={() => navigate(`/billboard/${property.id}?book=true`)}>
+            <Button size="sm" className="h-8 text-xs" onClick={() => navigate(`/billboard/${property.id}?book=true`)}>
               <Calendar className="w-3.5 h-3.5 mr-1" />Reservar
             </Button>
           </div>
