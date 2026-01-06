@@ -10,6 +10,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import CampaignMetrics from './CampaignMetrics';
 import CampaignZoneProfile from './CampaignZoneProfile';
+import CampaignTrendChart from './CampaignTrendChart';
 import { Link } from 'react-router-dom';
 
 interface Billboard {
@@ -262,6 +263,16 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack }) => {
           </Button>
         </div>
       </Card>
+
+      {/* Trend Chart */}
+      {(isOngoing || isPast) && billboard && (
+        <CampaignTrendChart
+          startDate={booking.start_date}
+          endDate={booking.end_date}
+          dailyImpressions={dailyImpressions}
+          isActive={isOngoing}
+        />
+      )}
 
       {/* Metrics */}
       {(isOngoing || isPast) && (
