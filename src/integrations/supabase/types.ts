@@ -314,6 +314,59 @@ export type Database = {
           },
         ]
       }
+      inegi_demographics: {
+        Row: {
+          ai_summary: string | null
+          audience_profile: string | null
+          billboard_id: string
+          business_sectors: Json | null
+          commercial_environment: string | null
+          created_at: string | null
+          dominant_sector: string | null
+          id: string
+          last_updated: string | null
+          nearby_businesses_count: number | null
+          raw_denue_data: Json | null
+          socioeconomic_level: string | null
+        }
+        Insert: {
+          ai_summary?: string | null
+          audience_profile?: string | null
+          billboard_id: string
+          business_sectors?: Json | null
+          commercial_environment?: string | null
+          created_at?: string | null
+          dominant_sector?: string | null
+          id?: string
+          last_updated?: string | null
+          nearby_businesses_count?: number | null
+          raw_denue_data?: Json | null
+          socioeconomic_level?: string | null
+        }
+        Update: {
+          ai_summary?: string | null
+          audience_profile?: string | null
+          billboard_id?: string
+          business_sectors?: Json | null
+          commercial_environment?: string | null
+          created_at?: string | null
+          dominant_sector?: string | null
+          id?: string
+          last_updated?: string | null
+          nearby_businesses_count?: number | null
+          raw_denue_data?: Json | null
+          socioeconomic_level?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inegi_demographics_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: true
+            referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
