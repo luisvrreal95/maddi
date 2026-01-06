@@ -12,6 +12,7 @@ import ZoneIndicator from '@/components/billboard/ZoneIndicator';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSection';
+import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 
 interface Billboard {
   id: string;
@@ -239,6 +240,17 @@ const BillboardDetail: React.FC = () => {
               latitude={Number(billboard.latitude)}
               longitude={Number(billboard.longitude)}
             />
+
+            {/* INEGI Demographics */}
+            <div className="mt-6">
+              <INEGIInsights 
+                billboard={{
+                  id: billboard.id,
+                  latitude: Number(billboard.latitude),
+                  longitude: Number(billboard.longitude),
+                }}
+              />
+            </div>
 
             {/* Contact Owner Button */}
             <div className="mt-6">
