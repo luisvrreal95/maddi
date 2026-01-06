@@ -7,6 +7,44 @@ const corsHeaders = {
 };
 
 // Improved SCIAN sector categories mapping using first 3 digits
+// Known brands to detect
+const KNOWN_BRANDS = [
+  // Conveniencia
+  'OXXO', '7-ELEVEN', 'EXTRA', 'CIRCLE K', 'KIOSKO',
+  // Comida rápida
+  'STARBUCKS', 'MCDONALDS', "MCDONALD'S", 'BURGER KING', 'CARLS JR', "CARL'S JR", 
+  'DOMINOS', "DOMINO'S", 'LITTLE CAESARS', 'SUBWAY', 'KFC', 'WENDYS', "WENDY'S",
+  'PIZZA HUT', 'CHILIS', "CHILI'S", 'APPLEBEES', "APPLEBEE'S", 'VIPS', 'TOKS',
+  'ITALIANNIS', "ITALIANNI'S", 'OLIVE GARDEN', 'JOHNNY ROCKETS', 'WINGS',
+  // Cafeterías
+  'STARBUCKS', 'PUNTA DEL CIELO', 'CIELITO QUERIDO', 'COFFEE FACTORY', 'ANDATTI',
+  // Supermercados
+  'WALMART', 'SORIANA', 'CHEDRAUI', 'HEB', 'H-E-B', 'COSTCO', 'SAMS CLUB', "SAM'S CLUB",
+  'LA COMER', 'CITY MARKET', 'FRESKO', 'SUPERAMA', 'BODEGA AURRERA', 'MEGA',
+  // Bancos
+  'BBVA', 'BANORTE', 'SANTANDER', 'HSBC', 'CITIBANAMEX', 'BANAMEX', 'AZTECA', 
+  'SCOTIABANK', 'INBURSA', 'BANCOPPEL', 'BANREGIO',
+  // Gasolineras
+  'PEMEX', 'MOBIL', 'SHELL', 'TOTAL', 'BP', 'G500', 'REDCO', 'ORSAN',
+  // Entretenimiento
+  'CINEPOLIS', 'CINEMEX', 'CINEMARK', 'LIVERPOOL', 'PALACIO DE HIERRO', 
+  'SEARS', 'SUBURBIA', 'COPPEL', 'ELEKTRA', 'FAMSA',
+  // Farmacias
+  'FARMACIAS GUADALAJARA', 'BENAVIDES', 'DEL AHORRO', 'SIMILARES', 'SAN PABLO',
+  'FARMACIA YZA', 'FARMAPRONTO',
+  // Telecomunicaciones
+  'TELCEL', 'MOVISTAR', 'AT&T', 'IZZI', 'TOTALPLAY', 'TELMEX',
+  // Muebles y hogar
+  'HOME DEPOT', 'LOWES', 'IKEA', 'OFFICE DEPOT', 'OFFICE MAX',
+];
+
+// Shopping center indicators
+const SHOPPING_CENTER_KEYWORDS = [
+  'PLAZA', 'CENTRO COMERCIAL', 'MALL', 'GALERIAS', 'GALERÍAS', 'TOWN CENTER',
+  'OUTLET', 'FASHION', 'PASEO', 'ANTEA', 'PARQUE', 'FORUM', 'ALTACIA',
+  'ARBOLEDAS', 'MULTIPLAZA', 'SENDERO', 'PUNTO', 'CITY CENTER',
+];
+
 const SECTOR_CATEGORIES_3: Record<string, string> = {
   // Restaurantes y alimentos (72)
   '722': 'Restaurantes y bares',
@@ -296,6 +334,114 @@ interface DenueRecord {
   Per_ocu?: string;
 }
 
+// Extract known brands from business data
+function extractKnownBrands(denueData: DenueRecord[]): string[] {
+  const foundBrands = new Set<string>();
+  
+  for (const business of denueData) {
+    const name = business.Nombre?.toUpperCase() || '';
+    
+    for (const brand of KNOWN_BRANDS) {
+      if (name.includes(brand.toUpperCase())) {
+        // Normalize brand name
+        const normalizedBrand = brand.replace(/[']/g, '').toUpperCase();
+        foundBrands.add(normalizedBrand);
+        break;
+      }
+    }
+  }
+  
+  return Array.from(foundBrands).slice(0, 20);
+}
+
+// Extract shopping centers
+function extractShoppingCenters(denueData: DenueRecord[]): string[] {
+  const centers = new Set<string>();
+  
+  for (const business of denueData) {
+    const centroComercial = business.CentroComercial?.trim();
+    if (centroComercial && centroComercial.length > 2) {
+      centers.add(centroComercial);
+    }
+    
+    // Also check business name for shopping center indicators
+    const name = business.Nombre?.toUpperCase() || '';
+    for (const keyword of SHOPPING_CENTER_KEYWORDS) {
+      if (name.includes(keyword) && name.length < 50) {
+        // Skip generic names
+        if (!name.includes('TIENDA') && !name.includes('LOCAL')) {
+          centers.add(business.Nombre);
+          break;
+        }
+      }
+    }
+  }
+  
+  return Array.from(centers).slice(0, 5);
+}
+
+// Calculate business size distribution
+function calculateSizeDistribution(denueData: DenueRecord[]): { micro: number; small: number; medium: number; large: number } {
+  const distribution = { micro: 0, small: 0, medium: 0, large: 0 };
+  
+  for (const business of denueData) {
+    const perOcu = business.Per_ocu?.toLowerCase() || '';
+    
+    if (perOcu.includes('251') || perOcu.includes('más de')) {
+      distribution.large++;
+    } else if (perOcu.includes('51 a') || perOcu.includes('101')) {
+      distribution.medium++;
+    } else if (perOcu.includes('11 a') || perOcu.includes('31 a')) {
+      distribution.small++;
+    } else {
+      distribution.micro++;
+    }
+  }
+  
+  return distribution;
+}
+
+// Get top businesses for display
+function getTopBusinesses(denueData: DenueRecord[], sectorCounts: Record<string, number>): Array<{ name: string; category: string; size: string }> {
+  const topBusinesses: Array<{ name: string; category: string; size: string; score: number }> = [];
+  
+  for (const business of denueData) {
+    const perOcu = business.Per_ocu?.toLowerCase() || '';
+    let sizeScore = 0;
+    let sizeLabel = 'Micro';
+    
+    if (perOcu.includes('251') || perOcu.includes('más de')) {
+      sizeScore = 4;
+      sizeLabel = 'Grande';
+    } else if (perOcu.includes('51 a') || perOcu.includes('101')) {
+      sizeScore = 3;
+      sizeLabel = 'Mediana';
+    } else if (perOcu.includes('11 a') || perOcu.includes('31 a')) {
+      sizeScore = 2;
+      sizeLabel = 'Pequeña';
+    } else {
+      sizeScore = 1;
+    }
+    
+    // Skip very generic names
+    const name = business.Nombre || '';
+    if (name.length > 3 && name.length < 60) {
+      topBusinesses.push({
+        name: name,
+        category: getSectorFromCode(business.Codigo_act || '', business.Clase_actividad || ''),
+        size: sizeLabel,
+        score: sizeScore,
+      });
+    }
+  }
+  
+  // Sort by size score and return top 10
+  return topBusinesses
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10)
+    .map(({ name, category, size }) => ({ name, category, size }));
+}
+
 // Calculate socioeconomic level based on business types and sizes
 function calculateSocioeconomicLevel(
   sectorCounts: Record<string, number>,
@@ -443,6 +589,12 @@ serve(async (req) => {
     // Calculate socioeconomic level using predefined rules
     const socioeconomicLevel = calculateSocioeconomicLevel(sectorCounts, denueData);
     
+    // Extract additional insights
+    const knownBrands = extractKnownBrands(denueData);
+    const shoppingCenters = extractShoppingCenters(denueData);
+    const sizeDistribution = calculateSizeDistribution(denueData);
+    const topBusinesses = getTopBusinesses(denueData, sectorCounts);
+    
     // Get predefined profile texts
     const profile = PROFILES[socioeconomicLevel];
     const audienceProfile = profile.audienceProfile;
@@ -455,9 +607,20 @@ serve(async (req) => {
         ? 'con actividad comercial activa' 
         : 'con actividad comercial moderada';
     
-    const summary = `Zona ${densityText} con ${denueData.length} negocios en 500m. Predomina el sector de ${dominantSector.toLowerCase()}.`;
+    const brandsText = knownBrands.length > 0 
+      ? ` Marcas reconocidas: ${knownBrands.slice(0, 3).join(', ')}.`
+      : '';
+    
+    const summary = `Zona ${densityText} con ${denueData.length} negocios en 500m. Predomina el sector de ${dominantSector.toLowerCase()}.${brandsText}`;
 
-    // Save to database
+    // Save to database - include new fields in raw_denue_data as JSON
+    const enrichedData = {
+      known_brands: knownBrands,
+      shopping_centers: shoppingCenters,
+      size_distribution: sizeDistribution,
+      top_businesses: topBusinesses,
+    };
+
     const demographicsData = {
       billboard_id,
       nearby_businesses_count: denueData.length,
@@ -467,7 +630,7 @@ serve(async (req) => {
       socioeconomic_level: socioeconomicLevel,
       commercial_environment: commercialEnvironment,
       ai_summary: summary,
-      raw_denue_data: denueData.slice(0, 50), // Store first 50 for reference
+      raw_denue_data: { ...enrichedData, sample: denueData.slice(0, 20) },
       last_updated: new Date().toISOString(),
     };
 
