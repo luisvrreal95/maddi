@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, List, Map, BarChart2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import SearchFilters, { MapLayers, POICategories } from '@/components/search/SearchFilters';
+import { MapLayers, POICategories } from '@/components/search/SearchFilters';
+import FiltersDialog from '@/components/search/FiltersDialog';
 import SearchMap, { SearchMapRef } from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
 import LocationAutocomplete from '@/components/search/LocationAutocomplete';
@@ -353,84 +354,73 @@ const SearchPage: React.FC = () => {
       {/* Header */}
       <BusinessHeader />
 
-      {/* Search Controls - Compact */}
-      <div className="bg-card border-b border-border flex-shrink-0">
-        <div className="px-4 py-2">
-          {/* Search Row */}
-          <div className="flex items-center gap-3">
-            <Link to="/" className="text-foreground hover:text-primary transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
+      {/* Search Controls - Compact single row */}
+      <div className="bg-card border-b border-border flex-shrink-0 px-4 py-2">
+        <div className="flex items-center gap-3">
+          <Link to="/" className="text-foreground hover:text-primary transition-colors flex-shrink-0">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
 
-            {/* Search Bar with Autocomplete */}
-            <LocationAutocomplete
-              value={searchQuery}
-              onChange={setSearchQuery}
-              onSelect={(location) => {
-                setSearchQuery(location.place_name);
-                setConfirmedLocation(location.place_name);
-              }}
-              mapboxToken={mapboxToken}
-              placeholder="Buscar ubicación..."
-              className="flex-1 max-w-lg"
-            />
-            
-            {/* Results count badge */}
-            <Badge variant="secondary" className="hidden sm:flex">
-              {isLoadingBillboards ? '...' : properties.length} resultados
-            </Badge>
-
-            {/* View Toggle - Airbnb style */}
-            <div className="flex items-center bg-muted rounded-lg p-1 gap-1">
-              <button
-                onClick={() => setViewMode('list')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'list' 
-                    ? 'bg-background text-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <List className="w-4 h-4" />
-                <span className="hidden md:inline">Lista</span>
-              </button>
-              <button
-                onClick={() => setViewMode('split')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'split' 
-                    ? 'bg-background text-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <BarChart2 className="w-4 h-4" />
-                <span className="hidden md:inline">Split</span>
-              </button>
-              <button
-                onClick={() => setViewMode('map')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  viewMode === 'map' 
-                    ? 'bg-background text-foreground shadow-sm' 
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Map className="w-4 h-4" />
-                <span className="hidden md:inline">Mapa</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters - compact row */}
-        <div className="px-4 py-1.5 border-t border-border/50">
-          <SearchFilters
-            onFiltersChange={handleFiltersChange}
-            mapLayers={viewMode !== 'list' ? mapLayers : undefined}
-            poiCategories={viewMode !== 'list' ? poiCategories : undefined}
-            trafficHour={trafficHour}
-            onMapLayerChange={viewMode !== 'list' ? handleMapLayerChange : undefined}
-            onPOICategoryChange={viewMode !== 'list' ? handlePOICategoryChange : undefined}
-            onTrafficHourChange={viewMode !== 'list' ? handleTrafficHourChange : undefined}
-            isLoadingLayers={isLoadingLayers}
+          {/* Search Bar with Autocomplete */}
+          <LocationAutocomplete
+            value={searchQuery}
+            onChange={setSearchQuery}
+            onSelect={(location) => {
+              setSearchQuery(location.place_name);
+              setConfirmedLocation(location.place_name);
+            }}
+            mapboxToken={mapboxToken}
+            placeholder="Buscar ubicación..."
+            className="flex-1 max-w-md"
           />
+          
+          {/* Results count badge */}
+          <Badge variant="secondary" className="hidden sm:flex flex-shrink-0">
+            {isLoadingBillboards ? '...' : properties.length} resultados
+          </Badge>
+
+          {/* Filters Button - Airbnb style */}
+          <FiltersDialog 
+            onFiltersChange={handleFiltersChange}
+            resultsCount={properties.length}
+          />
+
+          {/* View Toggle - Airbnb style */}
+          <div className="flex items-center bg-muted rounded-lg p-1 gap-1 flex-shrink-0">
+            <button
+              onClick={() => setViewMode('list')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'list' 
+                  ? 'bg-background text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <List className="w-4 h-4" />
+              <span className="hidden md:inline">Lista</span>
+            </button>
+            <button
+              onClick={() => setViewMode('split')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'split' 
+                  ? 'bg-background text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <BarChart2 className="w-4 h-4" />
+              <span className="hidden md:inline">Split</span>
+            </button>
+            <button
+              onClick={() => setViewMode('map')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                viewMode === 'map' 
+                  ? 'bg-background text-foreground shadow-sm' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Map className="w-4 h-4" />
+              <span className="hidden md:inline">Mapa</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -438,7 +428,7 @@ const SearchPage: React.FC = () => {
       <main className="flex-1 flex min-h-0 relative">
         {/* Results List - Scrollable */}
         {(viewMode === 'split' || viewMode === 'list') && (
-          <div className={`${viewMode === 'split' ? 'w-[320px] flex-shrink-0' : 'w-full'} h-full overflow-y-auto p-4`}>
+          <div className={`${viewMode === 'split' ? 'w-[380px] flex-shrink-0' : 'w-full'} h-full overflow-y-auto p-4`}>
             {properties.length === 0 && !isLoadingBillboards ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
                 <MapPin className="w-12 h-12 text-primary mb-4" />
@@ -465,9 +455,9 @@ const SearchPage: React.FC = () => {
           </div>
         )}
 
-        {/* Map - Fixed full height - Larger in split mode (3/5) */}
+        {/* Map - Fills remaining space completely */}
         {(viewMode === 'split' || viewMode === 'map') && (
-          <div className={`${viewMode === 'split' ? 'w-3/5' : 'w-full'} h-full relative`}>
+          <div className="flex-1 h-full relative">
             {isLoadingToken ? (
               <div className="absolute inset-0 flex items-center justify-center bg-card">
                 <div className="text-muted-foreground">Cargando mapa...</div>
