@@ -12,6 +12,7 @@ interface INEGIData {
   nearbyBusinessesCount: number;
   dominantSector: string;
   audienceProfile?: string;
+  businessSectors?: Record<string, number>;
 }
 
 interface Property {
@@ -222,11 +223,18 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
         .single();
 
       if (cached) {
+        // Parse business_sectors from JSON if available
+        let businessSectors: Record<string, number> | undefined;
+        if (cached.business_sectors && typeof cached.business_sectors === 'object') {
+          businessSectors = cached.business_sectors as Record<string, number>;
+        }
+        
         setInegiData({
           socioeconomicLevel: cached.socioeconomic_level as INEGIData['socioeconomicLevel'],
           nearbyBusinessesCount: cached.nearby_businesses_count || 0,
           dominantSector: cached.dominant_sector || 'Sin datos',
           audienceProfile: cached.audience_profile || undefined,
+          businessSectors,
         });
         setIsLoadingInegi(false);
         return;
@@ -244,11 +252,18 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       if (error) throw error;
 
       if (data?.data) {
+        // Parse business_sectors if available
+        let businessSectors: Record<string, number> | undefined;
+        if (data.data.business_sectors && typeof data.data.business_sectors === 'object') {
+          businessSectors = data.data.business_sectors as Record<string, number>;
+        }
+        
         setInegiData({
           socioeconomicLevel: data.data.socioeconomic_level,
           nearbyBusinessesCount: data.data.nearby_businesses_count || 0,
           dominantSector: data.data.dominant_sector || 'Sin datos',
           audienceProfile: data.data.audience_profile || undefined,
+          businessSectors,
         });
       }
     } catch (error) {

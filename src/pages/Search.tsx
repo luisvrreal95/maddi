@@ -432,7 +432,7 @@ const SearchPage: React.FC = () => {
       <main className="flex-1 flex min-h-0">
         {/* Results List - Scrollable */}
         {(viewMode === 'split' || viewMode === 'list') && (
-          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} h-full overflow-y-auto p-6`}>
+          <div className={`${viewMode === 'split' ? 'w-2/5' : 'w-full'} h-full overflow-y-auto p-6`}>
             {properties.length === 0 && !isLoadingBillboards ? (
               <div className="flex flex-col items-center justify-center h-full text-center py-12">
                 <MapPin className="w-12 h-12 text-primary mb-4" />
@@ -459,9 +459,9 @@ const SearchPage: React.FC = () => {
           </div>
         )}
 
-        {/* Map - Fixed full height */}
+        {/* Map - Fixed full height - Larger in split mode (3/5) */}
         {(viewMode === 'split' || viewMode === 'map') && (
-          <div className={`${viewMode === 'split' ? 'w-1/2' : 'w-full'} h-full relative`}>
+          <div className={`${viewMode === 'split' ? 'w-3/5' : 'w-full'} h-full relative`}>
             {isLoadingToken ? (
               <div className="absolute inset-0 flex items-center justify-center bg-card">
                 <div className="text-muted-foreground">Cargando mapa...</div>

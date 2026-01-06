@@ -40,34 +40,26 @@ interface MaddiScorePopupProps {
   isSelected?: boolean;
 }
 
-// Calcula el Maddi Score (0-100)
+// Calcula el Maddi Score (0-100) - NSE temporalmente excluido hasta integración AGEB
 function calculateMaddiScore(data: {
   trafficLevel: 'bajo' | 'medio' | 'alto';
   congestionRatio: number;
   nearbyBusinessesCount: number;
-  socioeconomicLevel: string;
 }): number {
   let score = 0;
   
-  // Tráfico (30%)
-  if (data.trafficLevel === 'alto') score += 30;
-  else if (data.trafficLevel === 'medio') score += 20;
-  else score += 10;
+  // Tráfico (40% - aumentado ya que NSE está deshabilitado)
+  if (data.trafficLevel === 'alto') score += 40;
+  else if (data.trafficLevel === 'medio') score += 25;
+  else score += 12;
   
-  // Ratio de congestión = mayor exposición (20%)
-  score += Math.min(20, Math.round(data.congestionRatio * 20));
+  // Ratio de congestión = mayor exposición (25%)
+  score += Math.min(25, Math.round(data.congestionRatio * 25));
   
-  // Actividad comercial (25%)
-  if (data.nearbyBusinessesCount >= 100) score += 25;
-  else if (data.nearbyBusinessesCount >= 50) score += 18;
-  else if (data.nearbyBusinessesCount >= 20) score += 12;
-  else score += 5;
-  
-  // NSE (25%)
-  const nseNormalized = data.socioeconomicLevel?.toLowerCase() || '';
-  if (nseNormalized.includes('alto') && !nseNormalized.includes('medio')) score += 25;
-  else if (nseNormalized.includes('medio-alto') || nseNormalized.includes('medio alto')) score += 20;
-  else if (nseNormalized.includes('medio')) score += 15;
+  // Actividad comercial (35% - aumentado ya que NSE está deshabilitado)
+  if (data.nearbyBusinessesCount >= 100) score += 35;
+  else if (data.nearbyBusinessesCount >= 50) score += 25;
+  else if (data.nearbyBusinessesCount >= 20) score += 15;
   else score += 8;
   
   return Math.min(100, score);
@@ -88,13 +80,14 @@ function getCommercialActivityLevel(count: number): { level: string; color: stri
   return { level: 'Baja', color: 'hsl(var(--muted-foreground))' };
 }
 
-function getNSEColor(level: string): string {
-  const normalized = level?.toLowerCase() || '';
-  if (normalized.includes('alto') && !normalized.includes('medio')) return 'hsl(var(--success))';
-  if (normalized.includes('medio-alto') || normalized.includes('medio alto')) return 'hsl(142 71% 45%)';
-  if (normalized.includes('medio')) return 'hsl(var(--warning))';
-  return 'hsl(var(--muted-foreground))';
-}
+// NSE color function - temporarily disabled until AGEB integration
+// function getNSEColor(level: string): string {
+//   const normalized = level?.toLowerCase() || '';
+//   if (normalized.includes('alto') && !normalized.includes('medio')) return 'hsl(var(--success))';
+//   if (normalized.includes('medio-alto') || normalized.includes('medio alto')) return 'hsl(142 71% 45%)';
+//   if (normalized.includes('medio')) return 'hsl(var(--warning))';
+//   return 'hsl(var(--muted-foreground))';
+// }
 
 function getMaddiScoreColor(score: number): string {
   if (score >= 81) return 'hsl(var(--success))';
@@ -178,11 +171,9 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
     trafficLevel: trafficLevel.level,
     congestionRatio,
     nearbyBusinessesCount: inegiData?.nearbyBusinessesCount || 0,
-    socioeconomicLevel: inegiData?.socioeconomicLevel || 'medio',
   });
   
   const commercialActivity = getCommercialActivityLevel(inegiData?.nearbyBusinessesCount || 0);
-  const nseColor = getNSEColor(inegiData?.socioeconomicLevel || '');
   const maddiColor = getMaddiScoreColor(maddiScore);
   const audienceProfiles = inferAudienceProfiles(inegiData?.dominantSector, trafficLevel.level);
   const businessCategories = categorizeBusinesses(inegiData?.businessSectors);
@@ -308,23 +299,20 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
               <p className="text-sm text-muted-foreground mb-2">
                 {inegiData?.nearbyBusinessesCount || 0} establecimientos cercanos
               </p>
-              <div className="grid grid-cols-2 gap-2">
-                {businessCategories.length > 0 ? (
-                  businessCategories.map((cat, idx) => (
+              {businessCategories.length > 0 ? (
+                <div className="grid grid-cols-2 gap-2">
+                  {businessCategories.map((cat, idx) => (
                     <div key={idx} className="flex items-center gap-2 text-sm">
                       <cat.icon className="w-3.5 h-3.5 text-muted-foreground" />
                       <span>{cat.label}: {cat.count}</span>
                     </div>
-                  ))
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Store className="w-3.5 h-3.5" />
-                      <span>Sin datos detallados</span>
-                    </div>
-                  </>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  Analizando establecimientos cercanos...
+                </p>
+              )}
             </>
           )}
           <p className="text-[10px] text-muted-foreground mt-1.5">
@@ -355,17 +343,8 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
         
         <Separator />
         
-        {/* NSE y Precio */}
-        <div className="flex items-center justify-between">
-          <div>
-            <span className="text-xs text-muted-foreground">NSE:</span>
-            <Badge 
-              className="ml-2 text-xs"
-              style={{ backgroundColor: nseColor }}
-            >
-              {inegiData?.socioeconomicLevel || 'N/A'}
-            </Badge>
-          </div>
+        {/* Precio (NSE temporarily disabled) */}
+        <div className="flex items-center justify-end">
           <div className="text-right">
             <span className="text-xl font-bold text-foreground">
               ${property.price_per_month?.toLocaleString()}

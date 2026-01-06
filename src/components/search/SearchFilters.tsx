@@ -211,8 +211,8 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         multiSelect
       />
 
-      {/* Socioeconomic Level Filter */}
-      <FilterDropdown
+      {/* NSE Filter - Temporarily disabled until AGEB integration */}
+      {/* <FilterDropdown
         label="Nivel Socioeconómico"
         options={[
           { label: 'Alto', value: 'alto' },
@@ -223,7 +223,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
         selectedValues={filters.socioeconomicLevel}
         onSelect={(values) => updateFilter('socioeconomicLevel', values)}
         multiSelect
-      />
+      /> */}
 
       {/* Billboard Type Filter */}
       <FilterDropdown

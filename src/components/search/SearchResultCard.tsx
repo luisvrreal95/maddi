@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Eye, Users, Clock, Maximize, Phone, Building2, User, Check, Star, Wallet, Store } from 'lucide-react';
+import { MapPin, Eye, Users, Clock, Maximize, Phone, Building2, User, Check, Star, Store } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import FavoriteHeartButton from './FavoriteHeartButton';
 
@@ -39,27 +39,9 @@ interface SearchResultCardProps {
   inegiData?: INEGIData;
 }
 
-function getNSEColor(level: string): { bg: string; text: string } {
-  const normalized = level?.toLowerCase() || '';
-  if (normalized.includes('alto') && !normalized.includes('medio')) {
-    return { bg: 'bg-green-500/20', text: 'text-green-400' };
-  }
-  if (normalized.includes('medio-alto') || normalized.includes('medio alto')) {
-    return { bg: 'bg-lime-500/20', text: 'text-lime-400' };
-  }
-  if (normalized.includes('medio')) {
-    return { bg: 'bg-yellow-500/20', text: 'text-yellow-400' };
-  }
-  return { bg: 'bg-orange-500/20', text: 'text-orange-400' };
-}
-
-function getNSELabel(level: string): string {
-  const normalized = level?.toLowerCase() || '';
-  if (normalized.includes('alto') && !normalized.includes('medio')) return 'Alto';
-  if (normalized.includes('medio-alto') || normalized.includes('medio alto')) return 'Medio-Alto';
-  if (normalized.includes('medio')) return 'Medio';
-  return 'Bajo';
-}
+// NSE functions temporarily disabled until AGEB integration
+// function getNSEColor(level: string): { bg: string; text: string } { ... }
+// function getNSELabel(level: string): string { ... }
 
 const SearchResultCard: React.FC<SearchResultCardProps> = ({ 
   property, 
@@ -83,7 +65,7 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
     onToggleCompare?.(property.id);
   };
 
-  const nseColors = inegiData?.socioeconomicLevel ? getNSEColor(inegiData.socioeconomicLevel) : null;
+  
 
   return (
     <article
@@ -138,22 +120,13 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
         </div>
       </div>
 
-      {/* INEGI Data Badges - NSE and Nearby Businesses */}
-      {inegiData && inegiData.socioeconomicLevel && (
+      {/* INEGI Data Badges - Nearby Businesses only (NSE disabled until AGEB) */}
+      {inegiData && inegiData.nearbyBusinessesCount !== undefined && inegiData.nearbyBusinessesCount > 0 && (
         <div className="flex items-center gap-2 mb-4">
-          <Badge 
-            variant="outline" 
-            className={`gap-1.5 ${nseColors?.bg} ${nseColors?.text} border-0`}
-          >
-            <Wallet className="w-3 h-3" />
-            NSE: {getNSELabel(inegiData.socioeconomicLevel)}
+          <Badge variant="outline" className="gap-1.5 bg-muted/50 text-muted-foreground border-0">
+            <Store className="w-3 h-3" />
+            {inegiData.nearbyBusinessesCount} negocios cercanos
           </Badge>
-          {inegiData.nearbyBusinessesCount !== undefined && inegiData.nearbyBusinessesCount > 0 && (
-            <Badge variant="outline" className="gap-1.5 bg-muted/50 text-muted-foreground border-0">
-              <Store className="w-3 h-3" />
-              {inegiData.nearbyBusinessesCount} negocios
-            </Badge>
-          )}
         </div>
       )}
 
