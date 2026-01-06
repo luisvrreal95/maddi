@@ -53,6 +53,12 @@ interface FlowData {
   confidence: number;
 }
 
+interface TrafficData {
+  currentSpeed?: number;
+  freeFlowSpeed?: number;
+  confidence?: number;
+}
+
 export interface MapLayers {
   traffic: boolean;
   trafficHistory: boolean;
@@ -632,6 +638,12 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
           nearbyPOIs={nearbyPOIs}
           inegiData={inegiData}
           isLoadingInegi={isLoadingInegi}
+          trafficData={flowData ? {
+            currentSpeed: flowData.currentSpeed,
+            freeFlowSpeed: flowData.freeFlowSpeed,
+            confidence: flowData.confidence,
+          } : null}
+          isLoadingTraffic={false}
           onClose={handleClosePopup}
           onReserve={handleReserve}
           onViewDetails={handleViewDetails}

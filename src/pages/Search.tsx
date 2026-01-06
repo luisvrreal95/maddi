@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, List, Map, BarChart2, X } from 'lucide-react';
 import SearchFilters, { MapLayers, POICategories } from '@/components/search/SearchFilters';
@@ -13,6 +13,12 @@ import { useBillboards, Billboard } from '@/hooks/useBillboards';
 import { useBillboardReviewStats } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+
+// INEGI data type for cards
+interface INEGICardData {
+  socioeconomicLevel?: string;
+  nearbyBusinessesCount?: number;
+}
 
 // Property type used in map components
 interface MapProperty {
@@ -103,6 +109,9 @@ const SearchPage: React.FC = () => {
   // Booking state
   const [bookingDialogOpen, setBookingDialogOpen] = useState(false);
   const [selectedBillboard, setSelectedBillboard] = useState<Billboard | null>(null);
+  
+  // INEGI data for search cards
+  const [inegiDataMap, setInegiDataMap] = useState<Record<string, INEGICardData>>({});
 
   const handleToggleCompare = (id: string) => {
     setCompareIds(prev => {
@@ -125,11 +134,41 @@ const SearchPage: React.FC = () => {
   // Fetch review stats for all billboards
   const { statsMap: reviewStatsMap } = useBillboardReviewStats();
 
+  // Fetch INEGI data for all billboards (cached data only for performance)
+  useEffect(() => {
+    const fetchINEGIDataForBillboards = async () => {
+      if (billboards.length === 0) return;
+      
+      const billboardIds = billboards.map(b => b.id);
+      
+      const { data, error } = await supabase
+        .from('inegi_demographics')
+        .select('billboard_id, socioeconomic_level, nearby_businesses_count')
+        .in('billboard_id', billboardIds);
+      
+      if (data && !error) {
+        const map: Record<string, INEGICardData> = {};
+        data.forEach(d => {
+          map[d.billboard_id] = {
+            socioeconomicLevel: d.socioeconomic_level || undefined,
+            nearbyBusinessesCount: d.nearby_businesses_count || undefined,
+          };
+        });
+        setInegiDataMap(map);
+      }
+    };
+    
+    fetchINEGIDataForBillboards();
+  }, [billboards]);
+
   // Transform billboards to property format - only real data, no mocks
-  const allProperties = billboards.map(b => transformBillboardToProperty(b, reviewStatsMap[b.id]));
+  const allProperties = useMemo(() => 
+    billboards.map(b => transformBillboardToProperty(b, reviewStatsMap[b.id])),
+    [billboards, reviewStatsMap]
+  );
 
   // Apply filters to properties
-  const properties = React.useMemo(() => {
+  const properties = useMemo(() => {
     let filtered = [...allProperties];
 
     // Filter by availability
@@ -199,6 +238,24 @@ const SearchPage: React.FC = () => {
       });
     }
 
+    // Filter by socioeconomic level (NSE)
+    if (filters.socioeconomicLevel?.length > 0) {
+      filtered = filtered.filter(p => {
+        const inegiData = inegiDataMap[p.id];
+        if (!inegiData?.socioeconomicLevel) return false;
+        
+        const nse = inegiData.socioeconomicLevel.toLowerCase();
+        
+        for (const filterValue of filters.socioeconomicLevel) {
+          if (filterValue === 'alto' && nse.includes('alto') && !nse.includes('medio')) return true;
+          if (filterValue === 'medio-alto' && (nse.includes('medio-alto') || nse.includes('medio alto'))) return true;
+          if (filterValue === 'medio' && nse === 'medio') return true;
+          if (filterValue === 'bajo' && nse.includes('bajo')) return true;
+        }
+        return false;
+      });
+    }
+
     // Sort results
     if (filters.order?.length > 0) {
       const order = filters.order[0];
@@ -224,7 +281,7 @@ const SearchPage: React.FC = () => {
     }
 
     return filtered;
-  }, [allProperties, filters, billboards]);
+  }, [allProperties, filters, billboards, inegiDataMap]);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -394,6 +451,7 @@ const SearchPage: React.FC = () => {
                     onClick={() => setSelectedPropertyId(property.id)}
                     isInCompare={compareIds.includes(property.id)}
                     onToggleCompare={handleToggleCompare}
+                    inegiData={inegiDataMap[property.id]}
                   />
                 ))}
               </div>

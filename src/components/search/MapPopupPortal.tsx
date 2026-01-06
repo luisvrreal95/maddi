@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import mapboxgl from 'mapbox-gl';
-import EnhancedPropertyPopup from './EnhancedPropertyPopup';
+import MaddiScorePopup from './MaddiScorePopup';
 
 interface Property {
   id: string;
@@ -24,6 +24,13 @@ interface INEGIData {
   nearbyBusinessesCount: number;
   dominantSector: string;
   audienceProfile?: string;
+  businessSectors?: Record<string, number>;
+}
+
+interface TrafficData {
+  currentSpeed?: number;
+  freeFlowSpeed?: number;
+  confidence?: number;
 }
 
 interface MapPopupPortalProps {
@@ -33,6 +40,8 @@ interface MapPopupPortalProps {
   nearbyPOIs: Array<{ name: string; category: string; distance: number }>;
   inegiData?: INEGIData | null;
   isLoadingInegi?: boolean;
+  trafficData?: TrafficData | null;
+  isLoadingTraffic?: boolean;
   onClose: () => void;
   onReserve: () => void;
   onViewDetails: () => void;
@@ -47,6 +56,8 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
   nearbyPOIs,
   inegiData,
   isLoadingInegi,
+  trafficData,
+  isLoadingTraffic,
   onClose,
   onReserve,
   onViewDetails,
@@ -56,6 +67,18 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  // Transform Property to MaddiScorePopup format
+  const transformedProperty = {
+    id: property.id,
+    title: property.name,
+    address: property.address,
+    city: '', // Extracted from address if needed
+    price_per_month: parseInt(property.price.replace(/[^0-9]/g, '')) || 0,
+    image_url: property.imageUrl || undefined,
+    daily_impressions: parseInt(property.viewsPerDay.replace(/[^0-9]/g, '')) || 0,
+    billboard_type: 'Espectacular',
+  };
 
   useEffect(() => {
     // Create container for React content immediately
@@ -68,7 +91,7 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
       closeButton: false,
       closeOnClick: false,
       offset: [20, 0],
-      maxWidth: '420px',
+      maxWidth: '360px',
       className: 'custom-mapbox-popup',
       anchor: 'left'
     })
@@ -106,16 +129,18 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
   if (!isReady || !containerRef.current) return null;
 
   return createPortal(
-    <EnhancedPropertyPopup
-      property={property}
-      nearbyPOIs={nearbyPOIs}
-      inegiData={inegiData}
+    <MaddiScorePopup
+      property={transformedProperty}
+      trafficData={trafficData || undefined}
+      inegiData={inegiData ? {
+        ...inegiData,
+        socioeconomicLevel: inegiData.socioeconomicLevel,
+      } : undefined}
+      isLoadingTraffic={isLoadingTraffic}
       isLoadingInegi={isLoadingInegi}
       onClose={onClose}
-      onReserve={onReserve}
-      onViewDetails={onViewDetails}
-      onAddToCompare={onAddToCompare}
-      isInCompare={isInCompare}
+      onCompare={onAddToCompare}
+      isSelected={isInCompare}
     />,
     containerRef.current
   );
