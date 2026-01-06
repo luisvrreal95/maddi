@@ -82,7 +82,9 @@ const SearchPage: React.FC = () => {
   const [confirmedLocation, setConfirmedLocation] = useState(location);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
-  const [filters, setFilters] = useState<Record<string, string[]>>({});
+  const [filters, setFilters] = useState<Record<string, any>>({});
+  const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | undefined>();
+  const [unavailableBillboardIds, setUnavailableBillboardIds] = useState<Set<string>>(new Set());
   
   // Compare mode state
   const [compareIds, setCompareIds] = useState<string[]>([]);
@@ -162,6 +164,44 @@ const SearchPage: React.FC = () => {
     
     fetchINEGIDataForBillboards();
   }, [billboards]);
+
+  // Check availability when date filter changes
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!dateFilter?.from || !dateFilter?.to || billboards.length === 0) {
+        setUnavailableBillboardIds(new Set());
+        return;
+      }
+
+      const billboardIds = billboards.map(b => b.id);
+      
+      // Check bookings that overlap with the selected date range
+      const { data: conflictingBookings } = await supabase
+        .from('bookings')
+        .select('billboard_id')
+        .in('billboard_id', billboardIds)
+        .in('status', ['approved', 'pending'])
+        .lte('start_date', dateFilter.to)
+        .gte('end_date', dateFilter.from);
+      
+      // Check blocked dates that overlap
+      const { data: conflictingBlocked } = await supabase
+        .from('blocked_dates')
+        .select('billboard_id')
+        .in('billboard_id', billboardIds)
+        .lte('start_date', dateFilter.to)
+        .gte('end_date', dateFilter.from);
+      
+      const conflictIds = new Set([
+        ...(conflictingBookings?.map(b => b.billboard_id) || []),
+        ...(conflictingBlocked?.map(b => b.billboard_id) || []),
+      ]);
+      
+      setUnavailableBillboardIds(conflictIds);
+    };
+
+    checkAvailability();
+  }, [dateFilter, billboards]);
 
   // Transform billboards to property format - only real data, no mocks
   const allProperties = useMemo(() => 
@@ -258,6 +298,11 @@ const SearchPage: React.FC = () => {
       });
     }
 
+    // Filter by date availability
+    if (dateFilter?.from && dateFilter?.to) {
+      filtered = filtered.filter(p => !unavailableBillboardIds.has(p.id));
+    }
+
     // Sort results
     if (filters.order?.length > 0) {
       const order = filters.order[0];
@@ -283,7 +328,7 @@ const SearchPage: React.FC = () => {
     }
 
     return filtered;
-  }, [allProperties, filters, billboards, inegiDataMap]);
+  }, [allProperties, filters, billboards, inegiDataMap, dateFilter, unavailableBillboardIds]);
 
   useEffect(() => {
     const fetchToken = async () => {
@@ -303,7 +348,13 @@ const SearchPage: React.FC = () => {
     fetchToken();
   }, []);
 
-  const handleFiltersChange = (newFilters: Record<string, string[]>) => {
+  const handleFiltersChange = (newFilters: Record<string, any>) => {
+    // Extract date range and set separately
+    if (newFilters.dateRange) {
+      setDateFilter(newFilters.dateRange);
+    } else {
+      setDateFilter(undefined);
+    }
     setFilters(newFilters);
   };
 

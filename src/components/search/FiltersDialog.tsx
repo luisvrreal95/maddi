@@ -65,9 +65,16 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
     if (priceRange[0] <= 50000 && priceRange[1] >= 25000) priceFilters.push('premium');
     if (priceRange[1] >= 50000) priceFilters.push('exclusive');
 
-    const finalFilters = {
+    // Include date range if selected
+    const dateRangeFilter = dateRange?.from && dateRange?.to ? {
+      from: dateRange.from.toISOString().split('T')[0],
+      to: dateRange.to.toISOString().split('T')[0],
+    } : undefined;
+
+    const finalFilters: Record<string, any> = {
       ...filters,
       priceRange: priceFilters,
+      dateRange: dateRangeFilter,
     };
     onFiltersChange(finalFilters);
     setOpen(false);
