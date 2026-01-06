@@ -157,18 +157,11 @@ const BillboardDetail: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/search" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors">
+        <div className="max-w-6xl mx-auto">
+          <Link to="/search" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors w-fit">
             <ArrowLeft className="w-5 h-5" />
             <span>Volver a búsqueda</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <FavoriteButton billboardId={billboard.id} />
-            <StartChatButton 
-              billboardId={billboard.id} 
-              ownerId={billboard.owner_id}
-            />
-          </div>
         </div>
       </header>
 
@@ -176,7 +169,7 @@ const BillboardDetail: React.FC = () => {
         {/* Hero Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Image */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-3">
             {billboard.image_url ? (
               <img
                 src={billboard.image_url}
@@ -188,6 +181,15 @@ const BillboardDetail: React.FC = () => {
                 <MapPin className="w-24 h-24 text-muted-foreground" />
               </div>
             )}
+            
+            {/* Action buttons below image */}
+            <div className="flex items-center gap-3">
+              <StartChatButton 
+                billboardId={billboard.id} 
+                ownerId={billboard.owner_id}
+              />
+              <FavoriteButton billboardId={billboard.id} variant="button" />
+            </div>
           </div>
 
           {/* Sidebar - Price & CTA */}
