@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -29,6 +28,26 @@ const SECTOR_CATEGORIES: Record<string, string> = {
   '56': 'Servicios de apoyo',
 };
 
+// Predefined profiles by socioeconomic level
+const PROFILES: Record<string, { audienceProfile: string; commercialEnvironment: string }> = {
+  'alto': {
+    audienceProfile: 'Profesionistas y ejecutivos de alto poder adquisitivo',
+    commercialEnvironment: 'Zona corporativa y de servicios premium',
+  },
+  'medio-alto': {
+    audienceProfile: 'Familias y profesionistas con buen poder adquisitivo',
+    commercialEnvironment: 'Zona comercial desarrollada con servicios variados',
+  },
+  'medio': {
+    audienceProfile: 'Público general con poder adquisitivo moderado',
+    commercialEnvironment: 'Zona comercial activa con comercio diverso',
+  },
+  'bajo': {
+    audienceProfile: 'Público popular con poder adquisitivo básico',
+    commercialEnvironment: 'Zona de comercio local y servicios básicos',
+  },
+};
+
 interface DenueRecord {
   Nombre: string;
   Clase_actividad: string;
@@ -48,6 +67,53 @@ interface DenueRecord {
   CentroComercial: string;
   TipoCentroComercial: string;
   NumLocal: string;
+  Estrato?: string;
+  Per_ocu?: string;
+}
+
+// Calculate socioeconomic level based on business types and sizes
+function calculateSocioeconomicLevel(
+  sectorCounts: Record<string, number>,
+  denueData: DenueRecord[]
+): 'bajo' | 'medio' | 'medio-alto' | 'alto' {
+  let score = 0;
+  
+  // Servicios financieros y profesionales (+3 puntos cada 5 negocios)
+  const financial = sectorCounts['Servicios financieros'] || 0;
+  const professional = sectorCounts['Servicios profesionales'] || 0;
+  const corporate = sectorCounts['Corporativos'] || 0;
+  score += Math.floor((financial + professional + corporate) / 5) * 3;
+  
+  // Entretenimiento y alojamiento (+2 puntos cada 5)
+  const entertainment = sectorCounts['Entretenimiento'] || 0;
+  const hotels = sectorCounts['Alojamiento y alimentos'] || 0;
+  score += Math.floor((entertainment + hotels) / 5) * 2;
+  
+  // Comercio al por menor (neutro, +1 cada 10)
+  const retail = sectorCounts['Comercio al por menor'] || 0;
+  score += Math.floor(retail / 10);
+  
+  // Servicios de salud y educativos (+1 cada 3)
+  const health = sectorCounts['Servicios de salud'] || 0;
+  const education = sectorCounts['Servicios educativos'] || 0;
+  score += Math.floor((health + education) / 3);
+  
+  // Count large companies by employee stratum (per_ocu contains ranges like "0 a 5 personas")
+  const largeCompanies = denueData.filter(b => {
+    const perOcu = b.Per_ocu || '';
+    // Check for larger employee counts
+    return perOcu.includes('101') || 
+           perOcu.includes('251') || 
+           perOcu.includes('51 a') ||
+           perOcu.includes('31 a');
+  }).length;
+  score += largeCompanies * 2;
+  
+  // Clasificación final
+  if (score >= 15) return 'alto';
+  if (score >= 8) return 'medio-alto';
+  if (score >= 3) return 'medio';
+  return 'bajo';
 }
 
 serve(async (req) => {
@@ -148,98 +214,22 @@ serve(async (req) => {
       }
     }
 
-    // Generate AI insights using Lovable AI
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
-    let aiSummary = '';
-    let audienceProfile = '';
-    let socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto' = 'medio';
-    let commercialEnvironment = '';
-
-    if (lovableApiKey && denueData.length > 0) {
-      try {
-        const prompt = `Analiza los siguientes datos de negocios cercanos a un espectacular publicitario en México y genera insights en español:
-
-Total de negocios en 500m: ${denueData.length}
-Distribución por sector:
-${Object.entries(sectorCounts).map(([s, c]) => `- ${s}: ${c} negocios`).join('\n')}
-
-Sector dominante: ${dominantSector}
-
-Genera una respuesta JSON con exactamente estos campos:
-{
-  "audienceProfile": "Descripción breve del perfil de audiencia predominante (máximo 100 caracteres)",
-  "socioeconomicLevel": "bajo" | "medio" | "medio-alto" | "alto",
-  "commercialEnvironment": "Descripción del entorno comercial (máximo 100 caracteres)",
-  "summary": "Resumen ejecutivo de 2-3 oraciones sobre el potencial publicitario de la zona"
-}
-
-Basa tu análisis en:
-- Cantidad y tipo de negocios (más servicios financieros/profesionales = nivel más alto)
-- Densidad comercial (más negocios = más tráfico potencial)
-- Mix de sectores (diversidad indica zona comercial activa)`;
-
-        const aiResponse = await fetch('https://api.lovable.dev/api/llm/chat', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { role: 'user', content: prompt }
-            ],
-          }),
-        });
-
-        if (aiResponse.ok) {
-          const aiData = await aiResponse.json();
-          const content = aiData.choices?.[0]?.message?.content || '';
-          
-          // Parse JSON from response
-          const jsonMatch = content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            audienceProfile = parsed.audienceProfile || '';
-            socioeconomicLevel = parsed.socioeconomicLevel || 'medio';
-            commercialEnvironment = parsed.commercialEnvironment || '';
-            aiSummary = parsed.summary || '';
-          }
-        }
-      } catch (aiError) {
-        console.error('AI analysis error:', aiError);
-      }
-    }
-
-    // Fallback insights if AI fails
-    if (!audienceProfile) {
-      const hasServices = (sectorCounts['Servicios financieros'] || 0) + 
-                         (sectorCounts['Servicios profesionales'] || 0);
-      const hasRetail = sectorCounts['Comercio al por menor'] || 0;
-      const hasFood = sectorCounts['Alojamiento y alimentos'] || 0;
-
-      if (hasServices > 5) {
-        audienceProfile = 'Profesionistas y ejecutivos';
-        socioeconomicLevel = 'medio-alto';
-      } else if (hasRetail > 10) {
-        audienceProfile = 'Consumidores y familias';
-        socioeconomicLevel = 'medio';
-      } else if (hasFood > 5) {
-        audienceProfile = 'Público general con alta movilidad';
-        socioeconomicLevel = 'medio';
-      } else {
-        audienceProfile = 'Público general';
-        socioeconomicLevel = 'medio';
-      }
-
-      commercialEnvironment = denueData.length > 50 
-        ? 'Zona comercial de alta densidad' 
-        : denueData.length > 20 
-          ? 'Zona comercial activa' 
-          : 'Zona con actividad comercial moderada';
-
-      aiSummary = `Zona con ${denueData.length} negocios cercanos. Predomina el sector de ${dominantSector.toLowerCase()}. ${commercialEnvironment.toLowerCase()}.`;
-    }
+    // Calculate socioeconomic level using predefined rules
+    const socioeconomicLevel = calculateSocioeconomicLevel(sectorCounts, denueData);
+    
+    // Get predefined profile texts
+    const profile = PROFILES[socioeconomicLevel];
+    const audienceProfile = profile.audienceProfile;
+    const commercialEnvironment = profile.commercialEnvironment;
+    
+    // Generate summary based on data
+    const densityText = denueData.length > 50 
+      ? 'de alta densidad comercial' 
+      : denueData.length > 20 
+        ? 'con actividad comercial activa' 
+        : 'con actividad comercial moderada';
+    
+    const summary = `Zona ${densityText} con ${denueData.length} negocios en 500m. Predomina el sector de ${dominantSector.toLowerCase()}.`;
 
     // Save to database
     const demographicsData = {
@@ -250,7 +240,7 @@ Basa tu análisis en:
       audience_profile: audienceProfile,
       socioeconomic_level: socioeconomicLevel,
       commercial_environment: commercialEnvironment,
-      ai_summary: aiSummary,
+      ai_summary: summary,
       raw_denue_data: denueData.slice(0, 50), // Store first 50 for reference
       last_updated: new Date().toISOString(),
     };

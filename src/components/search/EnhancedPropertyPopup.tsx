@@ -1,6 +1,13 @@
 import React from 'react';
-import { X, MapPin, Eye, Car, Clock, Building2, TrendingUp, ChevronRight, Plus } from 'lucide-react';
+import { X, MapPin, Eye, Car, Clock, Building2, TrendingUp, ChevronRight, Plus, Store, Wallet } from 'lucide-react';
 import { getTrafficLevel, formatViews } from './EnhancedPropertyMarker';
+
+interface INEGIData {
+  socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto';
+  nearbyBusinessesCount: number;
+  dominantSector: string;
+  audienceProfile?: string;
+}
 
 interface EnhancedPropertyPopupProps {
   property: {
@@ -23,6 +30,8 @@ interface EnhancedPropertyPopupProps {
     congestionLevel: number;
   };
   nearbyPOIs?: Array<{ name: string; category: string; distance: number }>;
+  inegiData?: INEGIData | null;
+  isLoadingInegi?: boolean;
   onClose: () => void;
   onReserve: () => void;
   onViewDetails: () => void;
@@ -30,10 +39,33 @@ interface EnhancedPropertyPopupProps {
   isInCompare?: boolean;
 }
 
+const SOCIOECONOMIC_COLORS: Record<string, string> = {
+  'bajo': '#F97316',
+  'medio': '#EAB308',
+  'medio-alto': '#84CC16',
+  'alto': '#22C55E',
+};
+
+const SOCIOECONOMIC_LABELS: Record<string, string> = {
+  'bajo': 'Bajo',
+  'medio': 'Medio',
+  'medio-alto': 'Medio-Alto',
+  'alto': 'Alto',
+};
+
+const SOCIOECONOMIC_PERCENT: Record<string, number> = {
+  'bajo': 25,
+  'medio': 50,
+  'medio-alto': 75,
+  'alto': 100,
+};
+
 const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({ 
   property, 
   trafficData,
   nearbyPOIs = [],
+  inegiData,
+  isLoadingInegi,
   onClose, 
   onReserve,
   onViewDetails,
@@ -144,6 +176,60 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
                   +{nearbyPOIs.length - 4} más
                 </span>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* INEGI Zone Profile */}
+        {isLoadingInegi && (
+          <div className="mb-4 p-3 bg-[#2A2A2A] rounded-xl">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-[#9BFF43] border-t-transparent rounded-full animate-spin" />
+              <span className="text-white/60 text-xs">Analizando zona...</span>
+            </div>
+          </div>
+        )}
+        
+        {inegiData && !isLoadingInegi && (
+          <div className="mb-4 p-3 bg-[#2A2A2A] rounded-xl">
+            <div className="flex items-center gap-2 mb-2">
+              <Wallet className="w-4 h-4 text-[#9BFF43]" />
+              <span className="text-white text-xs font-medium">Perfil de Zona</span>
+            </div>
+            
+            {/* Socioeconomic Level */}
+            <div className="mb-2">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-white/60 text-[10px]">Nivel Socioeconómico</span>
+                <span 
+                  className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                  style={{ 
+                    backgroundColor: SOCIOECONOMIC_COLORS[inegiData.socioeconomicLevel] + '20',
+                    color: SOCIOECONOMIC_COLORS[inegiData.socioeconomicLevel]
+                  }}
+                >
+                  {SOCIOECONOMIC_LABELS[inegiData.socioeconomicLevel]}
+                </span>
+              </div>
+              <div className="h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
+                <div 
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{ 
+                    width: `${SOCIOECONOMIC_PERCENT[inegiData.socioeconomicLevel]}%`,
+                    backgroundColor: SOCIOECONOMIC_COLORS[inegiData.socioeconomicLevel]
+                  }}
+                />
+              </div>
+            </div>
+            
+            {/* Business Stats */}
+            <div className="flex items-center gap-3 text-[10px]">
+              <div className="flex items-center gap-1 text-white/70">
+                <Store className="w-3 h-3" />
+                <span>{inegiData.nearbyBusinessesCount} negocios</span>
+              </div>
+              <span className="text-white/40">|</span>
+              <span className="text-white/70 truncate">{inegiData.dominantSector}</span>
             </div>
           </div>
         )}

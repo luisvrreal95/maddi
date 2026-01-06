@@ -15,7 +15,7 @@ import {
   GraduationCap,
   Heart,
   Car,
-  Sparkles
+  BarChart3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -142,7 +142,7 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
               Analiza el entorno comercial y demográfico en un radio de 500m
             </p>
             <Button onClick={() => fetchAnalysis()} disabled={isLoading}>
-              <Sparkles className="h-4 w-4 mr-2" />
+              <BarChart3 className="h-4 w-4 mr-2" />
               Analizar zona con INEGI
             </Button>
           </div>
@@ -264,12 +264,12 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
           </div>
         )}
 
-        {/* AI Summary */}
+        {/* Summary */}
         {data.ai_summary && (
           <div className="p-3 rounded-lg border border-primary/20 bg-primary/5">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              <p className="text-sm font-medium text-foreground">Análisis</p>
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <p className="text-sm font-medium text-foreground">Resumen de zona</p>
             </div>
             <p className="text-sm text-muted-foreground">{data.ai_summary}</p>
           </div>
@@ -277,7 +277,7 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
 
         {/* Attribution */}
         <p className="text-xs text-muted-foreground text-center pt-2 border-t border-border">
-          Datos demográficos estimados · Fuente: INEGI/DENUE · 
+          Estimación basada en actividad económica · Fuente: INEGI/DENUE · 
           Actualizado: {new Date(data.last_updated).toLocaleDateString('es-MX')}
         </p>
       </CardContent>
