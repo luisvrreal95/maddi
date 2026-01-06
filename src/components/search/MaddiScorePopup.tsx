@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Fuel, Store, Clock, ArrowRight, GitCompare, Calendar,
-  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt
+  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt, Factory
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,13 +15,22 @@ interface TrafficData {
   confidence?: number;
 }
 
+interface ConsolidatedSector {
+  count: number;
+  percentage: number;
+}
+
 interface INEGIData {
   socioeconomicLevel?: string;
   nearbyBusinessesCount?: number;
   dominantSector?: string;
   businessSectors?: Record<string, number>;
+  consolidatedSectors?: Record<string, ConsolidatedSector>;
   audienceProfile?: string;
   commercialEnvironment?: string;
+  rawDenueData?: {
+    consolidated_sectors?: Record<string, ConsolidatedSector>;
+  };
 }
 
 interface MaddiScorePopupProps {
@@ -106,9 +115,9 @@ function getMaddiScoreColor(score: number): string {
 function inferAudienceProfiles(dominantSector?: string, trafficLevel?: string): Array<{ icon: React.ElementType; label: string }> {
   const profiles: Array<{ icon: React.ElementType; label: string }> = [];
   const sector = dominantSector?.toLowerCase() || '';
-  if (sector.includes('financier') || sector.includes('profesional') || sector.includes('corporativo')) profiles.push({ icon: Briefcase, label: 'Oficinistas' });
-  if (sector.includes('comercio') || sector.includes('menudeo') || sector.includes('tienda')) profiles.push({ icon: ShoppingBag, label: 'Consumidores' });
-  if (sector.includes('alimento') || sector.includes('restaur')) profiles.push({ icon: Coffee, label: 'Familias' });
+  if (sector.includes('financier') || sector.includes('profesional') || sector.includes('corporativo') || sector.includes('oficina')) profiles.push({ icon: Briefcase, label: 'Oficinistas' });
+  if (sector.includes('comercio') || sector.includes('menudeo') || sector.includes('tienda') || sector.includes('minorista')) profiles.push({ icon: ShoppingBag, label: 'Consumidores' });
+  if (sector.includes('alimento') || sector.includes('restaur') || sector.includes('bebida')) profiles.push({ icon: Coffee, label: 'Familias' });
   if (trafficLevel === 'alto' || trafficLevel === 'medio') profiles.push({ icon: Car, label: 'Conductores' });
   if (profiles.length === 0) {
     profiles.push({ icon: Users, label: 'Público general' });
@@ -117,53 +126,61 @@ function inferAudienceProfiles(dominantSector?: string, trafficLevel?: string): 
   return profiles.slice(0, 4);
 }
 
-const CATEGORY_ICONS: Record<string, React.ElementType> = {
-  'Restaurantes y bares': Utensils, 'Cafeterías': Coffee, 'Bares y antros': Wine, 'Gasolineras': Fuel,
-  'Tiendas de abarrotes': Store, 'Supermercados': ShoppingBag, 'Tiendas de ropa': Shirt,
-  'Farmacias y perfumerías': Pill, 'Ferreterías': Wrench, 'Bancos y financieras': Landmark,
-  'Hospitales': Heart, 'Consultorios médicos': Heart, 'Escuelas y educación': GraduationCap,
-  'Hoteles y alojamiento': Hotel, 'Gimnasios': Dumbbell, 'Belleza y spa': Scissors,
-  'Cine y entretenimiento': Film, 'Talleres mecánicos': Wrench, 'Tecnología': Smartphone,
-  'Corporativos': Building2, 'Comercio minorista': Store, 'Servicios profesionales': Briefcase,
-  'Comercio mayorista': Store, 'Alimentos y hospedaje': Utensils, 'Servicios de salud': Heart,
-  'Educación': GraduationCap, 'Entretenimiento': Film, 'Otros servicios': MoreHorizontal,
-  'Manufactura': Building2, 'Transporte': Car, 'Servicios financieros': Landmark,
+// Display configuration for the 8 consolidated categories
+const CATEGORY_DISPLAY: Record<string, { emoji: string; icon: React.ElementType }> = {
+  'Alimentos y Bebidas': { emoji: '🍔', icon: Utensils },
+  'Comercio Minorista': { emoji: '🛒', icon: ShoppingBag },
+  'Servicios Financieros': { emoji: '🏦', icon: Landmark },
+  'Salud': { emoji: '🏥', icon: Heart },
+  'Servicios Personales': { emoji: '💇', icon: Scissors },
+  'Educación': { emoji: '🎓', icon: GraduationCap },
+  'Industrial / Bodegas': { emoji: '🏭', icon: Factory },
+  'Oficinas / Profesionales': { emoji: '🏢', icon: Building2 },
+  'Otros': { emoji: '📦', icon: MoreHorizontal },
 };
 
-// Get top 3 categories excluding generic ones
-function getTop3Categories(sectors?: Record<string, number>): Array<{ label: string; count: number; icon: React.ElementType }> {
-  if (!sectors) return [];
+// Get consolidated sectors sorted by percentage
+function getConsolidatedCategories(inegiData?: INEGIData): Array<{ name: string; emoji: string; percentage: number; count: number }> {
+  // Try to get from rawDenueData first, then from consolidatedSectors
+  const consolidated = inegiData?.rawDenueData?.consolidated_sectors || inegiData?.consolidatedSectors;
   
-  return Object.entries(sectors)
-    .filter(([sector]) => !sector.toLowerCase().includes('otros'))
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([sector, count]) => ({
-      label: sector,
-      count,
-      icon: CATEGORY_ICONS[sector] || MoreHorizontal,
+  if (!consolidated) return [];
+  
+  return Object.entries(consolidated)
+    .sort((a, b) => b[1].percentage - a[1].percentage)
+    .slice(0, 5)
+    .map(([name, data]) => ({
+      name,
+      emoji: CATEGORY_DISPLAY[name]?.emoji || '📦',
+      percentage: data.percentage,
+      count: data.count,
     }));
 }
 
-// Generate interpretive text based on business data
-function getZoneInterpretation(sectors?: Record<string, number>, totalBusinesses?: number): string {
-  if (!sectors || !totalBusinesses) return 'Sin información comercial';
+// Generate interpretive text based on consolidated business data
+function getZoneInterpretation(inegiData?: INEGIData): string {
+  const consolidated = inegiData?.rawDenueData?.consolidated_sectors || inegiData?.consolidatedSectors;
+  const totalBusinesses = inegiData?.nearbyBusinessesCount || 0;
   
-  const entries = Object.entries(sectors).sort((a, b) => b[1] - a[1]);
+  if (!consolidated || totalBusinesses === 0) return 'Sin información comercial';
+  
+  const entries = Object.entries(consolidated).sort((a, b) => b[1].percentage - a[1].percentage);
   const top = entries[0];
   
   if (!top) return 'Zona sin clasificar';
   
-  const [sector, count] = top;
-  const percentage = Math.round((count / totalBusinesses) * 100);
+  const [sector, data] = top;
   
   // High concentration in one sector
-  if (percentage > 30) {
-    if (sector.includes('Restaurante') || sector.includes('Alimento')) return 'Zona gastronómica activa';
-    if (sector.includes('Comercio') || sector.includes('Tienda')) return 'Zona de comercio local activa';
-    if (sector.includes('financier') || sector.includes('Corporat')) return 'Zona corporativa y de negocios';
-    if (sector.includes('Salud') || sector.includes('médico')) return 'Zona de servicios de salud';
-    if (sector.includes('Educación') || sector.includes('Escuela')) return 'Zona educativa';
+  if (data.percentage >= 30) {
+    if (sector === 'Alimentos y Bebidas') return 'Zona gastronómica activa';
+    if (sector === 'Comercio Minorista') return 'Zona de comercio local activa';
+    if (sector === 'Oficinas / Profesionales') return 'Zona corporativa y de negocios';
+    if (sector === 'Servicios Financieros') return 'Zona financiera y de servicios';
+    if (sector === 'Salud') return 'Zona de servicios de salud';
+    if (sector === 'Educación') return 'Zona educativa';
+    if (sector === 'Industrial / Bodegas') return 'Zona industrial y logística';
+    if (sector === 'Servicios Personales') return 'Zona de servicios diversos';
   }
   
   // Mixed zone
@@ -189,11 +206,11 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
   
   const maddiColor = getMaddiScoreColor(maddiScore);
   const audienceProfiles = inferAudienceProfiles(inegiData?.dominantSector, trafficLevel.level);
-  const top3Categories = getTop3Categories(inegiData?.businessSectors);
-  const zoneInterpretation = getZoneInterpretation(inegiData?.businessSectors, inegiData?.nearbyBusinessesCount);
+  const consolidatedCategories = getConsolidatedCategories(inegiData);
+  const zoneInterpretation = getZoneInterpretation(inegiData);
 
   return (
-    <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[320px] max-h-[85vh] flex flex-col">
+    <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[340px] max-h-[90vh] flex flex-col">
       {/* Header - Fixed */}
       <div className="relative h-24 flex-shrink-0">
         <img src={property.image_url || '/placeholder.svg'} alt={property.title} className="w-full h-full object-cover" />
@@ -206,7 +223,7 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
       </div>
       
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
         {/* Title */}
         <div>
           <h3 className="font-semibold text-foreground text-sm line-clamp-1">{property.title}</h3>
@@ -283,17 +300,25 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
           <TabsContent value="comercio" className="mt-2 space-y-2">
             {isLoadingInegi ? (
               <div className="animate-pulse h-12 bg-muted rounded" />
-            ) : top3Categories.length > 0 ? (
+            ) : consolidatedCategories.length > 0 ? (
               <>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase">Top categorías</p>
-                <div className="space-y-1">
-                  {top3Categories.map((cat, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs bg-muted/30 rounded px-2 py-1">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase">Distribución</p>
+                <div className="space-y-1.5">
+                  {consolidatedCategories.map((cat, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs">
                       <div className="flex items-center gap-1.5">
-                        <cat.icon className="w-3 h-3 text-primary" />
-                        <span className="truncate max-w-[160px]">{cat.label}</span>
+                        <span>{cat.emoji}</span>
+                        <span className="truncate max-w-[140px]">{cat.name}</span>
                       </div>
-                      <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{cat.count}</Badge>
+                      <div className="flex items-center gap-2">
+                        <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full" 
+                            style={{ width: `${cat.percentage}%` }} 
+                          />
+                        </div>
+                        <span className="text-muted-foreground w-7 text-right">{cat.percentage}%</span>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -320,37 +345,42 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
         </Tabs>
       </div>
       
-      {/* Footer - Fixed */}
-      <div className="flex-shrink-0 p-3 pt-2 border-t border-border bg-card">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 min-w-0">
-            <span className="text-base font-bold">${property.price_per_month?.toLocaleString()}</span>
-            <span className="text-[10px] text-muted-foreground">/mes</span>
-          </div>
+      {/* Footer - Fixed with prominent price */}
+      <div className="flex-shrink-0 p-3 border-t border-border bg-card space-y-2">
+        {/* Price - Prominent */}
+        <div className="text-center">
+          <span className="text-2xl font-bold text-foreground">${property.price_per_month?.toLocaleString()}</span>
+          <span className="text-sm text-muted-foreground ml-1">MXN/mes</span>
+        </div>
+        
+        {/* Secondary Buttons */}
+        <div className="flex gap-2">
           <Button 
             variant={isSelected ? "secondary" : "outline"} 
             size="sm" 
-            className="h-7 px-2 text-[10px]" 
+            className="flex-1 h-8 text-xs" 
             onClick={() => onCompare?.(property.id)}
           >
-            <GitCompare className="w-3 h-3 mr-1" />Comparar
+            <GitCompare className="w-3.5 h-3.5 mr-1" />Comparar
           </Button>
           <Button 
             variant="outline" 
             size="sm" 
-            className="h-7 px-2 text-[10px]" 
+            className="flex-1 h-8 text-xs" 
             onClick={() => navigate(`/billboard/${property.id}`)}
           >
-            <ArrowRight className="w-3 h-3 mr-1" />Detalles
-          </Button>
-          <Button 
-            size="sm" 
-            className="h-7 px-2 text-[10px]" 
-            onClick={() => navigate(`/billboard/${property.id}?book=true`)}
-          >
-            <Calendar className="w-3 h-3 mr-1" />Reservar
+            <ArrowRight className="w-3.5 h-3.5 mr-1" />Detalles
           </Button>
         </div>
+        
+        {/* Primary Button */}
+        <Button 
+          size="sm" 
+          className="w-full h-9" 
+          onClick={() => navigate(`/billboard/${property.id}?book=true`)}
+        >
+          <Calendar className="w-4 h-4 mr-2" />Reservar Ahora
+        </Button>
       </div>
     </div>
   );

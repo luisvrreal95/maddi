@@ -158,6 +158,159 @@ const SECTOR_CATEGORIES_3: Record<string, string> = {
   '339': 'Otras manufacturas',
 };
 
+// Consolidated 8 main categories for user-friendly display
+const CONSOLIDATED_MAPPING: Record<string, string> = {
+  // 🍔 Alimentos y Bebidas
+  'Restaurantes y bares': 'Alimentos y Bebidas',
+  'Cafeterías': 'Alimentos y Bebidas',
+  'Bares y antros': 'Alimentos y Bebidas',
+  'Hoteles y alojamiento': 'Alimentos y Bebidas',
+  'Servicios de comida': 'Alimentos y Bebidas',
+  'Alimentos y hospedaje': 'Alimentos y Bebidas',
+  
+  // 🛒 Comercio Minorista
+  'Tiendas de abarrotes': 'Comercio Minorista',
+  'Supermercados': 'Comercio Minorista',
+  'Tiendas departamentales': 'Comercio Minorista',
+  'Tiendas de ropa': 'Comercio Minorista',
+  'Farmacias y perfumerías': 'Comercio Minorista',
+  'Ferreterías': 'Comercio Minorista',
+  'Gasolineras': 'Comercio Minorista',
+  'Papelerías y librerías': 'Comercio Minorista',
+  'Venta de vehículos': 'Comercio Minorista',
+  'Otros comercios': 'Comercio Minorista',
+  'Comercio minorista': 'Comercio Minorista',
+  'Comercio mayorista': 'Comercio Minorista',
+  'Mayoristas de alimentos': 'Comercio Minorista',
+  'Mayoristas de textiles': 'Comercio Minorista',
+  'Mayoristas de farmacia': 'Comercio Minorista',
+  'Mayoristas de materiales': 'Comercio Minorista',
+  'Mayoristas de maquinaria': 'Comercio Minorista',
+  'Mayoristas de muebles': 'Comercio Minorista',
+  'Mayoristas de materias primas': 'Comercio Minorista',
+  'Refacciones': 'Comercio Minorista',
+  
+  // 🏦 Servicios Financieros
+  'Banca central': 'Servicios Financieros',
+  'Bancos y financieras': 'Servicios Financieros',
+  'Casas de bolsa': 'Servicios Financieros',
+  'Seguros y fianzas': 'Servicios Financieros',
+  'Servicios financieros': 'Servicios Financieros',
+  
+  // 🏥 Salud
+  'Consultorios médicos': 'Salud',
+  'Hospitales': 'Salud',
+  'Asilos y guarderías': 'Salud',
+  'Asistencia social': 'Salud',
+  'Laboratorios': 'Salud',
+  'Ópticas': 'Salud',
+  'Servicios de salud': 'Salud',
+  
+  // 💇 Servicios Personales
+  'Belleza y spa': 'Servicios Personales',
+  'Gimnasios': 'Servicios Personales',
+  'Servicios personales': 'Servicios Personales',
+  'Reparación y mantenimiento': 'Servicios Personales',
+  'Talleres mecánicos': 'Servicios Personales',
+  'Autolavados': 'Servicios Personales',
+  'Otros servicios': 'Servicios Personales',
+  'Estacionamientos': 'Servicios Personales',
+  'Entretenimiento': 'Servicios Personales',
+  'Artes y espectáculos': 'Servicios Personales',
+  'Museos': 'Servicios Personales',
+  'Entretenimiento y recreación': 'Servicios Personales',
+  'Cine y entretenimiento': 'Servicios Personales',
+  
+  // 🎓 Educación
+  'Escuelas y educación': 'Educación',
+  'Educación': 'Educación',
+  
+  // 🏭 Industrial / Bodegas
+  'Almacenamiento': 'Industrial / Bodegas',
+  'Manufactura': 'Industrial / Bodegas',
+  'Alimentos procesados': 'Industrial / Bodegas',
+  'Bebidas y tabaco': 'Industrial / Bodegas',
+  'Textiles': 'Industrial / Bodegas',
+  'Productos textiles': 'Industrial / Bodegas',
+  'Prendas de vestir': 'Industrial / Bodegas',
+  'Cuero y calzado': 'Industrial / Bodegas',
+  'Productos de madera': 'Industrial / Bodegas',
+  'Papel': 'Industrial / Bodegas',
+  'Impresión': 'Industrial / Bodegas',
+  'Derivados del petróleo': 'Industrial / Bodegas',
+  'Química': 'Industrial / Bodegas',
+  'Plástico y hule': 'Industrial / Bodegas',
+  'Minerales no metálicos': 'Industrial / Bodegas',
+  'Metales básicos': 'Industrial / Bodegas',
+  'Productos metálicos': 'Industrial / Bodegas',
+  'Maquinaria': 'Industrial / Bodegas',
+  'Electrónicos': 'Industrial / Bodegas',
+  'Equipos eléctricos': 'Industrial / Bodegas',
+  'Automotriz': 'Industrial / Bodegas',
+  'Muebles': 'Industrial / Bodegas',
+  'Otras manufacturas': 'Industrial / Bodegas',
+  'Transporte aéreo': 'Industrial / Bodegas',
+  'Transporte ferroviario': 'Industrial / Bodegas',
+  'Transporte marítimo': 'Industrial / Bodegas',
+  'Autotransporte de carga': 'Industrial / Bodegas',
+  'Transporte de pasajeros': 'Industrial / Bodegas',
+  'Transporte por ductos': 'Industrial / Bodegas',
+  'Turismo y transporte': 'Industrial / Bodegas',
+  'Servicios de transporte': 'Industrial / Bodegas',
+  'Servicios postales': 'Industrial / Bodegas',
+  'Mensajería y paquetería': 'Industrial / Bodegas',
+  'Transporte': 'Industrial / Bodegas',
+  'Mensajería': 'Industrial / Bodegas',
+  
+  // 🏢 Oficinas / Profesionales
+  'Corporativos': 'Oficinas / Profesionales',
+  'Servicios legales y contables': 'Oficinas / Profesionales',
+  'Servicios legales': 'Oficinas / Profesionales',
+  'Contabilidad': 'Oficinas / Profesionales',
+  'Diseño y arquitectura': 'Oficinas / Profesionales',
+  'Servicios profesionales': 'Oficinas / Profesionales',
+  'Servicios administrativos': 'Oficinas / Profesionales',
+  'Tecnología': 'Oficinas / Profesionales',
+  'Telecomunicaciones': 'Oficinas / Profesionales',
+  'Edición': 'Oficinas / Profesionales',
+  'Cine y video': 'Oficinas / Profesionales',
+  'Radio y televisión': 'Oficinas / Profesionales',
+  'Servicios de internet': 'Oficinas / Profesionales',
+  'Servicios de información': 'Oficinas / Profesionales',
+  'Medios e información': 'Oficinas / Profesionales',
+  'Servicios inmobiliarios': 'Oficinas / Profesionales',
+  'Alquiler de bienes': 'Oficinas / Profesionales',
+  'Arrendadoras': 'Oficinas / Profesionales',
+  'Inmobiliarios': 'Oficinas / Profesionales',
+  'Manejo de residuos': 'Oficinas / Profesionales',
+  'Asociaciones': 'Oficinas / Profesionales',
+  'Hogares con empleados': 'Servicios Personales',
+  'Servicios de apoyo': 'Oficinas / Profesionales',
+};
+
+// Consolidate detailed sectors into 8 main categories with percentages
+function consolidateSectors(sectorCounts: Record<string, number>): Record<string, { count: number; percentage: number }> {
+  const consolidated: Record<string, number> = {};
+  let total = 0;
+  
+  for (const [sector, count] of Object.entries(sectorCounts)) {
+    const category = CONSOLIDATED_MAPPING[sector] || 'Otros';
+    consolidated[category] = (consolidated[category] || 0) + count;
+    total += count;
+  }
+  
+  // Convert to percentages
+  const result: Record<string, { count: number; percentage: number }> = {};
+  for (const [category, count] of Object.entries(consolidated)) {
+    result[category] = {
+      count,
+      percentage: total > 0 ? Math.round((count / total) * 100) : 0,
+    };
+  }
+  
+  return result;
+};
+
 // Fallback mapping using first 2 digits
 const SECTOR_CATEGORIES_2: Record<string, string> = {
   '43': 'Comercio mayorista',
@@ -589,6 +742,10 @@ serve(async (req) => {
     // Calculate socioeconomic level using predefined rules
     const socioeconomicLevel = calculateSocioeconomicLevel(sectorCounts, denueData);
     
+    // Consolidate sectors into 8 main categories
+    const consolidatedSectors = consolidateSectors(sectorCounts);
+    console.log('Consolidated sectors:', JSON.stringify(consolidatedSectors, null, 2));
+    
     // Extract additional insights
     const knownBrands = extractKnownBrands(denueData);
     const shoppingCenters = extractShoppingCenters(denueData);
@@ -619,6 +776,7 @@ serve(async (req) => {
       shopping_centers: shoppingCenters,
       size_distribution: sizeDistribution,
       top_businesses: topBusinesses,
+      consolidated_sectors: consolidatedSectors,
     };
 
     const demographicsData = {
