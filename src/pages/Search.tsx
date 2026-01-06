@@ -436,41 +436,12 @@ const SearchPage: React.FC = () => {
             resultsCount={properties.length}
           />
 
-          {/* View Toggle - Airbnb style */}
+          {/* View indicator - Split mode only */}
           <div className="flex items-center bg-muted rounded-lg p-1 gap-1 flex-shrink-0">
-            <button
-              onClick={() => setViewMode('list')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'list' 
-                  ? 'bg-background text-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <List className="w-4 h-4" />
-              <span className="hidden md:inline">Lista</span>
-            </button>
-            <button
-              onClick={() => setViewMode('split')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'split' 
-                  ? 'bg-background text-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium bg-background text-foreground shadow-sm">
               <BarChart2 className="w-4 h-4" />
-              <span className="hidden md:inline">Split</span>
-            </button>
-            <button
-              onClick={() => setViewMode('map')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
-                viewMode === 'map' 
-                  ? 'bg-background text-foreground shadow-sm' 
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Map className="w-4 h-4" />
-              <span className="hidden md:inline">Mapa</span>
-            </button>
+              <span className="hidden md:inline">Lista + Mapa</span>
+            </div>
           </div>
         </div>
       </div>
@@ -478,71 +449,67 @@ const SearchPage: React.FC = () => {
       {/* Main Content - Fills remaining height */}
       <main className="flex-1 flex min-h-0 relative">
         {/* Results List - Scrollable */}
-        {(viewMode === 'split' || viewMode === 'list') && (
-          <div className={`${viewMode === 'split' ? 'w-[380px] flex-shrink-0' : 'w-full'} h-full overflow-y-auto p-4`}>
-            {properties.length === 0 && !isLoadingBillboards ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                <MapPin className="w-12 h-12 text-primary mb-4" />
-                <h3 className="text-foreground text-lg font-semibold mb-2">No hay espectaculares disponibles</h3>
-                <p className="text-muted-foreground text-sm max-w-md">
-                  No encontramos espectaculares en esta ubicación. Intenta buscar en otra zona o con diferentes filtros.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {properties.map((property) => (
-                  <SearchResultCard
-                    key={property.id}
-                    property={property}
-                    isSelected={property.id === selectedPropertyId}
-                    onClick={() => setSelectedPropertyId(property.id)}
-                    isInCompare={compareIds.includes(property.id)}
-                    onToggleCompare={handleToggleCompare}
-                    inegiData={inegiDataMap[property.id]}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+        <div className="w-[480px] flex-shrink-0 h-full overflow-y-auto p-4">
+          {properties.length === 0 && !isLoadingBillboards ? (
+            <div className="flex flex-col items-center justify-center h-full text-center py-12">
+              <MapPin className="w-12 h-12 text-primary mb-4" />
+              <h3 className="text-foreground text-lg font-semibold mb-2">No hay espectaculares disponibles</h3>
+              <p className="text-muted-foreground text-sm max-w-md">
+                No encontramos espectaculares en esta ubicación. Intenta buscar en otra zona o con diferentes filtros.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {properties.map((property) => (
+                <SearchResultCard
+                  key={property.id}
+                  property={property}
+                  isSelected={property.id === selectedPropertyId}
+                  onClick={() => setSelectedPropertyId(property.id)}
+                  isInCompare={compareIds.includes(property.id)}
+                  onToggleCompare={handleToggleCompare}
+                  inegiData={inegiDataMap[property.id]}
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Map - Fills remaining space completely */}
-        {(viewMode === 'split' || viewMode === 'map') && (
-          <div className="flex-1 h-full relative">
-            {isLoadingToken ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-card">
-                <div className="text-muted-foreground">Cargando mapa...</div>
+        <div className="flex-1 h-full relative">
+          {isLoadingToken ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-card">
+              <div className="text-muted-foreground">Cargando mapa...</div>
+            </div>
+          ) : mapboxToken ? (
+            <SearchMap
+              ref={mapRef}
+              properties={properties}
+              selectedPropertyId={selectedPropertyId}
+              onPropertySelect={setSelectedPropertyId}
+              mapboxToken={mapboxToken}
+              searchLocation={confirmedLocation}
+              onReserveClick={handleReserveClick}
+              layers={mapLayers}
+              poiCategories={poiCategories}
+              trafficHour={trafficHour}
+              onLoadingChange={setIsLoadingLayers}
+              compareIds={compareIds}
+              onToggleCompare={handleToggleCompare}
+              isCompareMode={isCompareMode}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center bg-card">
+              <div className="text-center p-8">
+                <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
+                <p className="text-foreground mb-2">Token de Mapbox no configurado</p>
+                <p className="text-muted-foreground text-sm">
+                  Configura tu token de Mapbox en las variables de entorno
+                </p>
               </div>
-            ) : mapboxToken ? (
-              <SearchMap
-                ref={mapRef}
-                properties={properties}
-                selectedPropertyId={selectedPropertyId}
-                onPropertySelect={setSelectedPropertyId}
-                mapboxToken={mapboxToken}
-                searchLocation={confirmedLocation}
-                onReserveClick={handleReserveClick}
-                layers={mapLayers}
-                poiCategories={poiCategories}
-                trafficHour={trafficHour}
-                onLoadingChange={setIsLoadingLayers}
-                compareIds={compareIds}
-                onToggleCompare={handleToggleCompare}
-                isCompareMode={isCompareMode}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-card">
-                <div className="text-center p-8">
-                  <MapPin className="w-12 h-12 text-primary mx-auto mb-4" />
-                  <p className="text-foreground mb-2">Token de Mapbox no configurado</p>
-                  <p className="text-muted-foreground text-sm">
-                    Configura tu token de Mapbox en las variables de entorno
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Floating Compare Button */}
@@ -567,7 +534,7 @@ const SearchPage: React.FC = () => {
       {/* Comparison Panel */}
       {showComparison && (
         <ComparisonPanel
-          properties={properties.filter(p => compareIds.includes(p.id))}
+          properties={properties.filter(p => compareIds.includes(p.id)).map(p => ({ ...p, inegiData: inegiDataMap[p.id] }))}
           onClose={() => setShowComparison(false)}
           onRemove={(id) => setCompareIds(prev => prev.filter(i => i !== id))}
           onReserve={(property) => {
