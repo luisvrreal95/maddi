@@ -19,11 +19,20 @@ interface Property {
   imageUrl?: string | null;
 }
 
+interface INEGIData {
+  socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto';
+  nearbyBusinessesCount: number;
+  dominantSector: string;
+  audienceProfile?: string;
+}
+
 interface MapPopupPortalProps {
   map: mapboxgl.Map;
   coordinates: [number, number];
   property: Property;
   nearbyPOIs: Array<{ name: string; category: string; distance: number }>;
+  inegiData?: INEGIData | null;
+  isLoadingInegi?: boolean;
   onClose: () => void;
   onReserve: () => void;
   onViewDetails: () => void;
@@ -36,6 +45,8 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
   coordinates,
   property,
   nearbyPOIs,
+  inegiData,
+  isLoadingInegi,
   onClose,
   onReserve,
   onViewDetails,
@@ -98,6 +109,8 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
     <EnhancedPropertyPopup
       property={property}
       nearbyPOIs={nearbyPOIs}
+      inegiData={inegiData}
+      isLoadingInegi={isLoadingInegi}
       onClose={onClose}
       onReserve={onReserve}
       onViewDetails={onViewDetails}

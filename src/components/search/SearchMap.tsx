@@ -7,6 +7,13 @@ import { createMarkerElement } from './EnhancedPropertyMarker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface INEGIData {
+  socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto';
+  nearbyBusinessesCount: number;
+  dominantSector: string;
+  audienceProfile?: string;
+}
+
 interface Property {
   id: string;
   name: string;
@@ -107,6 +114,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   const [detailProperty, setDetailProperty] = useState<Property | null>(null);
   const [flowData, setFlowData] = useState<FlowData | null>(null);
   const [nearbyPOIs, setNearbyPOIs] = useState<Array<{ name: string; category: string; distance: number }>>([]);
+  const [inegiData, setInegiData] = useState<INEGIData | null>(null);
+  const [isLoadingInegi, setIsLoadingInegi] = useState(false);
 
   // Expose refresh function to parent
   useImperativeHandle(ref, () => ({
@@ -193,6 +202,56 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     geocodeLocation();
   }, [searchLocation, mapboxToken]);
 
+  // Fetch INEGI data for a property
+  const fetchINEGIData = useCallback(async (billboardId: string, lat: number, lng: number) => {
+    setIsLoadingInegi(true);
+    setInegiData(null);
+    
+    try {
+      // First check cache
+      const { data: cached } = await supabase
+        .from('inegi_demographics')
+        .select('*')
+        .eq('billboard_id', billboardId)
+        .single();
+
+      if (cached) {
+        setInegiData({
+          socioeconomicLevel: cached.socioeconomic_level as INEGIData['socioeconomicLevel'],
+          nearbyBusinessesCount: cached.nearby_businesses_count || 0,
+          dominantSector: cached.dominant_sector || 'Sin datos',
+          audienceProfile: cached.audience_profile || undefined,
+        });
+        setIsLoadingInegi(false);
+        return;
+      }
+
+      // Fetch from edge function if not cached
+      const { data, error } = await supabase.functions.invoke('analyze-inegi-data', {
+        body: {
+          billboard_id: billboardId,
+          latitude: lat,
+          longitude: lng,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.data) {
+        setInegiData({
+          socioeconomicLevel: data.data.socioeconomic_level,
+          nearbyBusinessesCount: data.data.nearby_businesses_count || 0,
+          dominantSector: data.data.dominant_sector || 'Sin datos',
+          audienceProfile: data.data.audience_profile || undefined,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching INEGI data:', error);
+    } finally {
+      setIsLoadingInegi(false);
+    }
+  }, []);
+
   // Property markers with enhanced visuals
   useEffect(() => {
     if (!map.current) return;
@@ -212,6 +271,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
         onPropertySelect(property.id);
         setPopupProperty(property);
         setPopupCoords([property.lng, property.lat]);
+        // Fetch INEGI data for this property
+        fetchINEGIData(property.id, property.lat, property.lng);
       });
 
       const marker = new mapboxgl.Marker({ element: el })
@@ -220,7 +281,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
       markersRef.current.push(marker);
     });
-  }, [properties, selectedPropertyId, onPropertySelect, compareIds, isCompareMode]);
+  }, [properties, selectedPropertyId, onPropertySelect, compareIds, isCompareMode, fetchINEGIData]);
 
   // Fly to selected property
   useEffect(() => {
@@ -507,6 +568,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
   const handleClosePopup = () => {
     setPopupProperty(null);
+    setInegiData(null);
     onPropertySelect(null);
   };
 
@@ -568,6 +630,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
           coordinates={popupCoords}
           property={popupProperty}
           nearbyPOIs={nearbyPOIs}
+          inegiData={inegiData}
+          isLoadingInegi={isLoadingInegi}
           onClose={handleClosePopup}
           onReserve={handleReserve}
           onViewDetails={handleViewDetails}
