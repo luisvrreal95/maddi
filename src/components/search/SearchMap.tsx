@@ -7,22 +7,23 @@ import { createMarkerElement } from './EnhancedPropertyMarker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface ConsolidatedSector {
-  count: number;
+interface CategoryDistribution {
+  label: string;
   percentage: number;
+  count: number;
 }
 
 interface INEGIData {
-  socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto';
-  nearbyBusinessesCount: number;
-  dominantSector: string;
+  socioeconomicLevel?: string;
+  nearbyBusinessesCount?: number;
+  dominantSector?: string;
   audienceProfile?: string;
-  businessSectors?: Record<string, number>;
-  consolidatedSectors?: Record<string, ConsolidatedSector>;
+  commercialEnvironment?: string;
   rawDenueData?: {
-    consolidated_sectors?: Record<string, ConsolidatedSector>;
+    distribution?: CategoryDistribution[];
     known_brands?: string[];
-    shopping_centers?: string[];
+    interpretation?: string;
+    zone_type?: 'mixed' | 'specialized' | 'limited';
   };
 }
 
@@ -245,28 +246,21 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
         .single();
 
       if (cached) {
-        // Parse business_sectors from JSON if available
-        let businessSectors: Record<string, number> | undefined;
-        if (cached.business_sectors && typeof cached.business_sectors === 'object') {
-          businessSectors = cached.business_sectors as Record<string, number>;
-        }
-        
-        // Extract consolidated_sectors from raw_denue_data
+        // Extract data from the new format
         const rawData = cached.raw_denue_data as any;
-        const consolidatedSectors = rawData?.consolidated_sectors;
         
         setInegiData({
-          socioeconomicLevel: cached.socioeconomic_level as INEGIData['socioeconomicLevel'],
+          socioeconomicLevel: cached.socioeconomic_level || undefined,
           nearbyBusinessesCount: cached.nearby_businesses_count || 0,
           dominantSector: cached.dominant_sector || 'Sin datos',
           audienceProfile: cached.audience_profile || undefined,
-          businessSectors,
-          consolidatedSectors,
-          rawDenueData: {
-            consolidated_sectors: consolidatedSectors,
-            known_brands: rawData?.known_brands,
-            shopping_centers: rawData?.shopping_centers,
-          },
+          commercialEnvironment: cached.commercial_environment || undefined,
+          rawDenueData: rawData ? {
+            distribution: rawData.distribution,
+            known_brands: rawData.known_brands,
+            interpretation: rawData.interpretation,
+            zone_type: rawData.zone_type,
+          } : undefined,
         });
         setIsLoadingInegi(false);
         return;
@@ -284,28 +278,20 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       if (error) throw error;
 
       if (data?.data) {
-        // Parse business_sectors if available
-        let businessSectors: Record<string, number> | undefined;
-        if (data.data.business_sectors && typeof data.data.business_sectors === 'object') {
-          businessSectors = data.data.business_sectors as Record<string, number>;
-        }
-        
-        // Extract consolidated_sectors from raw_denue_data
         const rawData = data.data.raw_denue_data;
-        const consolidatedSectors = rawData?.consolidated_sectors;
         
         setInegiData({
-          socioeconomicLevel: data.data.socioeconomic_level,
+          socioeconomicLevel: data.data.socioeconomic_level || undefined,
           nearbyBusinessesCount: data.data.nearby_businesses_count || 0,
           dominantSector: data.data.dominant_sector || 'Sin datos',
           audienceProfile: data.data.audience_profile || undefined,
-          businessSectors,
-          consolidatedSectors,
-          rawDenueData: {
-            consolidated_sectors: consolidatedSectors,
-            known_brands: rawData?.known_brands,
-            shopping_centers: rawData?.shopping_centers,
-          },
+          commercialEnvironment: data.data.commercial_environment || undefined,
+          rawDenueData: rawData ? {
+            distribution: rawData.distribution,
+            known_brands: rawData.known_brands,
+            interpretation: rawData.interpretation,
+            zone_type: rawData.zone_type,
+          } : undefined,
         });
       }
     } catch (error) {
