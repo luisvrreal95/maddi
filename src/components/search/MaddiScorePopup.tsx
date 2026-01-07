@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
-  X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Fuel, Store, Clock, ArrowRight, GitCompare, Calendar,
-  Utensils, Wine, Pill, GraduationCap, Heart, Hotel, Dumbbell, Wrench, Scissors, Landmark, Film, MoreHorizontal, Smartphone, Shirt, Factory
+  X, MapPin, Car, Building2, Users, Briefcase, ShoppingBag, Coffee, Clock, ArrowRight, GitCompare, Calendar,
+  Utensils, Heart, GraduationCap, Scissors, Landmark, Film, Factory, Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,9 +15,10 @@ interface TrafficData {
   confidence?: number;
 }
 
-interface ConsolidatedSector {
-  count: number;
+interface CategoryDistribution {
+  label: string;
   percentage: number;
+  count: number;
 }
 
 interface INEGIData {
@@ -25,11 +26,13 @@ interface INEGIData {
   nearbyBusinessesCount?: number;
   dominantSector?: string;
   businessSectors?: Record<string, number>;
-  consolidatedSectors?: Record<string, ConsolidatedSector>;
   audienceProfile?: string;
   commercialEnvironment?: string;
   rawDenueData?: {
-    consolidated_sectors?: Record<string, ConsolidatedSector>;
+    distribution?: CategoryDistribution[];
+    known_brands?: string[];
+    interpretation?: string;
+    zone_type?: 'mixed' | 'specialized' | 'limited';
   };
 }
 
@@ -52,6 +55,20 @@ interface MaddiScorePopupProps {
   onCompare?: (id: string) => void;
   isSelected?: boolean;
 }
+
+// Display config for categories
+const CATEGORY_DISPLAY: Record<string, { emoji: string; icon: React.ElementType }> = {
+  'Alimentos y Bebidas': { emoji: '🍔', icon: Utensils },
+  'Comercio Minorista': { emoji: '🛒', icon: ShoppingBag },
+  'Servicios Financieros': { emoji: '🏦', icon: Landmark },
+  'Salud': { emoji: '🏥', icon: Heart },
+  'Servicios Personales': { emoji: '💇', icon: Scissors },
+  'Educación': { emoji: '🎓', icon: GraduationCap },
+  'Servicios Profesionales': { emoji: '🏢', icon: Building2 },
+  'Entretenimiento': { emoji: '🎬', icon: Film },
+  'Automotriz y Transporte': { emoji: '🚗', icon: Truck },
+  'Industria y Manufactura': { emoji: '🏭', icon: Factory },
+};
 
 function calculateMaddiScore(data: {
   trafficLevel: 'bajo' | 'medio' | 'alto';
@@ -115,9 +132,9 @@ function getMaddiScoreColor(score: number): string {
 function inferAudienceProfiles(dominantSector?: string, trafficLevel?: string): Array<{ icon: React.ElementType; label: string }> {
   const profiles: Array<{ icon: React.ElementType; label: string }> = [];
   const sector = dominantSector?.toLowerCase() || '';
-  if (sector.includes('financier') || sector.includes('profesional') || sector.includes('corporativo') || sector.includes('oficina')) profiles.push({ icon: Briefcase, label: 'Oficinistas' });
-  if (sector.includes('comercio') || sector.includes('menudeo') || sector.includes('tienda') || sector.includes('minorista')) profiles.push({ icon: ShoppingBag, label: 'Consumidores' });
-  if (sector.includes('alimento') || sector.includes('restaur') || sector.includes('bebida')) profiles.push({ icon: Coffee, label: 'Familias' });
+  if (sector.includes('financier') || sector.includes('profesional') || sector.includes('corporativo')) profiles.push({ icon: Briefcase, label: 'Oficinistas' });
+  if (sector.includes('comercio') || sector.includes('minorista')) profiles.push({ icon: ShoppingBag, label: 'Consumidores' });
+  if (sector.includes('alimento') || sector.includes('bebida')) profiles.push({ icon: Coffee, label: 'Familias' });
   if (trafficLevel === 'alto' || trafficLevel === 'medio') profiles.push({ icon: Car, label: 'Conductores' });
   if (profiles.length === 0) {
     profiles.push({ icon: Users, label: 'Público general' });
@@ -126,67 +143,23 @@ function inferAudienceProfiles(dominantSector?: string, trafficLevel?: string): 
   return profiles.slice(0, 4);
 }
 
-// Display configuration for the 8 consolidated categories
-const CATEGORY_DISPLAY: Record<string, { emoji: string; icon: React.ElementType }> = {
-  'Alimentos y Bebidas': { emoji: '🍔', icon: Utensils },
-  'Comercio Minorista': { emoji: '🛒', icon: ShoppingBag },
-  'Servicios Financieros': { emoji: '🏦', icon: Landmark },
-  'Salud': { emoji: '🏥', icon: Heart },
-  'Servicios Personales': { emoji: '💇', icon: Scissors },
-  'Educación': { emoji: '🎓', icon: GraduationCap },
-  'Industrial / Bodegas': { emoji: '🏭', icon: Factory },
-  'Oficinas / Profesionales': { emoji: '🏢', icon: Building2 },
-  'Otros': { emoji: '📦', icon: MoreHorizontal },
-};
-
-// Get consolidated sectors sorted by percentage
-function getConsolidatedCategories(inegiData?: INEGIData): Array<{ name: string; emoji: string; percentage: number; count: number }> {
-  // Try to get from rawDenueData first, then from consolidatedSectors
-  const consolidated = inegiData?.rawDenueData?.consolidated_sectors || inegiData?.consolidatedSectors;
-  
-  if (!consolidated) return [];
-  
-  return Object.entries(consolidated)
-    .sort((a, b) => b[1].percentage - a[1].percentage)
-    .slice(0, 5)
-    .map(([name, data]) => ({
-      name,
-      emoji: CATEGORY_DISPLAY[name]?.emoji || '📦',
-      percentage: data.percentage,
-      count: data.count,
-    }));
+// Get top 3 categories from distribution
+function getTopCategories(inegiData?: INEGIData): CategoryDistribution[] {
+  const distribution = inegiData?.rawDenueData?.distribution;
+  if (distribution && distribution.length > 0) {
+    return distribution.slice(0, 3);
+  }
+  return [];
 }
 
-// Generate interpretive text based on consolidated business data
-function getZoneInterpretation(inegiData?: INEGIData): string {
-  const consolidated = inegiData?.rawDenueData?.consolidated_sectors || inegiData?.consolidatedSectors;
-  const totalBusinesses = inegiData?.nearbyBusinessesCount || 0;
-  
-  if (!consolidated || totalBusinesses === 0) return 'Sin información comercial';
-  
-  const entries = Object.entries(consolidated).sort((a, b) => b[1].percentage - a[1].percentage);
-  const top = entries[0];
-  
-  if (!top) return 'Zona sin clasificar';
-  
-  const [sector, data] = top;
-  
-  // High concentration in one sector
-  if (data.percentage >= 30) {
-    if (sector === 'Alimentos y Bebidas') return 'Zona gastronómica activa';
-    if (sector === 'Comercio Minorista') return 'Zona de comercio local activa';
-    if (sector === 'Oficinas / Profesionales') return 'Zona corporativa y de negocios';
-    if (sector === 'Servicios Financieros') return 'Zona financiera y de servicios';
-    if (sector === 'Salud') return 'Zona de servicios de salud';
-    if (sector === 'Educación') return 'Zona educativa';
-    if (sector === 'Industrial / Bodegas') return 'Zona industrial y logística';
-    if (sector === 'Servicios Personales') return 'Zona de servicios diversos';
-  }
-  
-  // Mixed zone
-  if (totalBusinesses > 100) return 'Alta presencia de servicios y consumo';
-  if (totalBusinesses > 50) return 'Entorno comercial mixto';
-  return 'Actividad comercial moderada';
+// Get known brands
+function getKnownBrands(inegiData?: INEGIData): string[] {
+  return inegiData?.rawDenueData?.known_brands || [];
+}
+
+// Get interpretation text
+function getInterpretation(inegiData?: INEGIData): string {
+  return inegiData?.rawDenueData?.interpretation || 'Sin información comercial';
 }
 
 const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
@@ -206,8 +179,9 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
   
   const maddiColor = getMaddiScoreColor(maddiScore);
   const audienceProfiles = inferAudienceProfiles(inegiData?.dominantSector, trafficLevel.level);
-  const consolidatedCategories = getConsolidatedCategories(inegiData);
-  const zoneInterpretation = getZoneInterpretation(inegiData);
+  const topCategories = getTopCategories(inegiData);
+  const knownBrands = getKnownBrands(inegiData);
+  const interpretation = getInterpretation(inegiData);
 
   return (
     <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[360px] max-h-[90vh] flex flex-col">
@@ -272,7 +246,19 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
               <Building2 className="w-3 h-3" />
               <span>{inegiData?.nearbyBusinessesCount || 0} negocios en 500m</span>
             </div>
-            <p className="text-xs font-medium text-primary">{zoneInterpretation}</p>
+            <p className="text-xs font-medium text-primary">{interpretation}</p>
+            
+            {/* Known Brands in Zona tab */}
+            {knownBrands.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {knownBrands.slice(0, 5).map((brand, idx) => (
+                  <Badge key={idx} variant="secondary" className="text-[9px] h-4 px-1.5">
+                    {brand}
+                  </Badge>
+                ))}
+              </div>
+            )}
+            
             <p className="text-[9px] text-muted-foreground">Fuente: INEGI DENUE (actividad económica)</p>
           </TabsContent>
           
@@ -303,32 +289,53 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
           <TabsContent value="comercio" className="mt-2 space-y-2">
             {isLoadingInegi ? (
               <div className="animate-pulse h-12 bg-muted rounded" />
-            ) : consolidatedCategories.length > 0 ? (
+            ) : topCategories.length > 0 ? (
               <>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase">Distribución</p>
+                {/* Top 3 categories with bars */}
                 <div className="space-y-1.5">
-                  {consolidatedCategories.map((cat, idx) => (
-                    <div key={idx} className="flex items-center justify-between text-xs">
-                      <div className="flex items-center gap-1.5">
-                        <span>{cat.emoji}</span>
-                        <span className="truncate max-w-[140px]">{cat.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-primary rounded-full" 
-                            style={{ width: `${cat.percentage}%` }} 
-                          />
+                  {topCategories.map((cat, idx) => {
+                    const display = CATEGORY_DISPLAY[cat.label] || { emoji: '📦', icon: Building2 };
+                    return (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span>{display.emoji}</span>
+                          <span className="truncate">{cat.label}</span>
                         </div>
-                        <span className="text-muted-foreground w-7 text-right">{cat.percentage}%</span>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="w-14 h-1.5 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary rounded-full" 
+                              style={{ width: `${cat.percentage}%` }} 
+                            />
+                          </div>
+                          <span className="text-muted-foreground w-8 text-right">{cat.percentage}%</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
-                <p className="text-[9px] text-muted-foreground">Fuente: INEGI DENUE (actividad económica)</p>
+                
+                {/* Interpretation text */}
+                <p className="text-xs text-primary font-medium">{interpretation}</p>
+                
+                {/* Known Brands as badges */}
+                {knownBrands.length > 0 && (
+                  <div>
+                    <p className="text-[10px] text-muted-foreground mb-1">Marcas detectadas:</p>
+                    <div className="flex flex-wrap gap-1">
+                      {knownBrands.slice(0, 6).map((brand, idx) => (
+                        <Badge key={idx} variant="outline" className="text-[9px] h-4 px-1.5">
+                          {brand}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <p className="text-[9px] text-muted-foreground">Fuente: INEGI DENUE</p>
               </>
             ) : (
-              <p className="text-xs text-muted-foreground">Sin datos comerciales</p>
+              <p className="text-xs text-muted-foreground">Sin datos comerciales disponibles</p>
             )}
           </TabsContent>
           

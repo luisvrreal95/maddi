@@ -15,12 +15,12 @@ import {
   Briefcase,
   GraduationCap,
   Heart,
-  Car,
+  Truck,
   BarChart3,
   Scissors,
   Factory,
   Landmark,
-  MoreHorizontal
+  Film
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -33,9 +33,10 @@ interface INEGIInsightsProps {
   };
 }
 
-interface ConsolidatedSector {
-  count: number;
+interface CategoryDistribution {
+  label: string;
   percentage: number;
+  count: number;
 }
 
 interface DemographicsData {
@@ -50,34 +51,25 @@ interface DemographicsData {
   ai_summary: string;
   last_updated: string;
   raw_denue_data?: {
-    consolidated_sectors?: Record<string, ConsolidatedSector>;
+    distribution?: CategoryDistribution[];
     known_brands?: string[];
-    shopping_centers?: string[];
+    interpretation?: string;
+    zone_type?: 'mixed' | 'specialized' | 'limited';
   };
 }
 
-const SECTOR_ICONS: Record<string, React.ReactNode> = {
-  'Comercio al por menor': <ShoppingBag className="h-4 w-4" />,
-  'Comercio al por mayor': <Building2 className="h-4 w-4" />,
-  'Alojamiento y alimentos': <Utensils className="h-4 w-4" />,
-  'Servicios financieros': <TrendingUp className="h-4 w-4" />,
-  'Servicios de salud': <Heart className="h-4 w-4" />,
-  'Servicios educativos': <GraduationCap className="h-4 w-4" />,
-  'Servicios profesionales': <Briefcase className="h-4 w-4" />,
-  'Transporte': <Car className="h-4 w-4" />,
-};
-
-// Display configuration for the 8 consolidated categories
-const CATEGORY_DISPLAY: Record<string, { emoji: string; icon: React.ReactNode }> = {
-  'Alimentos y Bebidas': { emoji: '🍔', icon: <Utensils className="h-4 w-4" /> },
-  'Comercio Minorista': { emoji: '🛒', icon: <ShoppingBag className="h-4 w-4" /> },
-  'Servicios Financieros': { emoji: '🏦', icon: <Landmark className="h-4 w-4" /> },
-  'Salud': { emoji: '🏥', icon: <Heart className="h-4 w-4" /> },
-  'Servicios Personales': { emoji: '💇', icon: <Scissors className="h-4 w-4" /> },
-  'Educación': { emoji: '🎓', icon: <GraduationCap className="h-4 w-4" /> },
-  'Industrial / Bodegas': { emoji: '🏭', icon: <Factory className="h-4 w-4" /> },
-  'Oficinas / Profesionales': { emoji: '🏢', icon: <Building2 className="h-4 w-4" /> },
-  'Otros': { emoji: '📦', icon: <MoreHorizontal className="h-4 w-4" /> },
+// Display configuration for categories
+const CATEGORY_DISPLAY: Record<string, { emoji: string; icon: React.ReactNode; color: string }> = {
+  'Alimentos y Bebidas': { emoji: '🍔', icon: <Utensils className="h-4 w-4" />, color: 'bg-orange-500' },
+  'Comercio Minorista': { emoji: '🛒', icon: <ShoppingBag className="h-4 w-4" />, color: 'bg-blue-500' },
+  'Servicios Financieros': { emoji: '🏦', icon: <Landmark className="h-4 w-4" />, color: 'bg-emerald-500' },
+  'Salud': { emoji: '🏥', icon: <Heart className="h-4 w-4" />, color: 'bg-red-500' },
+  'Servicios Personales': { emoji: '💇', icon: <Scissors className="h-4 w-4" />, color: 'bg-purple-500' },
+  'Educación': { emoji: '🎓', icon: <GraduationCap className="h-4 w-4" />, color: 'bg-indigo-500' },
+  'Servicios Profesionales': { emoji: '🏢', icon: <Building2 className="h-4 w-4" />, color: 'bg-slate-500' },
+  'Entretenimiento': { emoji: '🎬', icon: <Film className="h-4 w-4" />, color: 'bg-pink-500' },
+  'Automotriz y Transporte': { emoji: '🚗', icon: <Truck className="h-4 w-4" />, color: 'bg-amber-500' },
+  'Industria y Manufactura': { emoji: '🏭', icon: <Factory className="h-4 w-4" />, color: 'bg-gray-500' },
 };
 
 const SOCIOECONOMIC_COLORS: Record<string, string> = {
@@ -146,12 +138,14 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
     }
   };
 
-  // Get top sectors for display
-  const getTopSectors = () => {
-    if (!data?.business_sectors) return [];
-    return Object.entries(data.business_sectors)
-      .sort(([, a], [, b]) => b - a)
-      .slice(0, 4);
+  // Get distribution from raw_denue_data
+  const getDistribution = (): CategoryDistribution[] => {
+    return data?.raw_denue_data?.distribution || [];
+  };
+
+  // Get known brands
+  const getKnownBrands = (): string[] => {
+    return data?.raw_denue_data?.known_brands || [];
   };
 
   if (!hasAnalyzed && !isLoading) {
@@ -202,7 +196,9 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
 
   if (!data) return null;
 
-  const topSectors = getTopSectors();
+  const distribution = getDistribution();
+  const knownBrands = getKnownBrands();
+  const interpretation = data.raw_denue_data?.interpretation;
 
   return (
     <Card className="bg-card border-border">
@@ -272,46 +268,48 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
           </div>
         </div>
 
-        {/* Commercial Distribution - Consolidated Sectors */}
-        {data.raw_denue_data?.consolidated_sectors && Object.keys(data.raw_denue_data.consolidated_sectors).length > 0 ? (
+        {/* Known Brands - NEW SECTION */}
+        {knownBrands.length > 0 && (
           <div className="p-3 rounded-lg bg-muted/50">
-            <p className="text-sm font-medium text-foreground mb-3">Distribución Comercial</p>
-            <div className="space-y-2.5">
-              {Object.entries(data.raw_denue_data.consolidated_sectors)
-                .sort((a, b) => b[1].percentage - a[1].percentage)
-                .slice(0, 6)
-                .map(([sector, sectorData]) => (
-                  <div key={sector} className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 min-w-[140px]">
-                      <span className="text-base">{CATEGORY_DISPLAY[sector]?.emoji || '📦'}</span>
-                      <span className="text-sm truncate">{sector}</span>
-                    </div>
-                    <div className="flex-1 flex items-center gap-2">
-                      <Progress value={sectorData.percentage} className="h-2 flex-1" />
-                      <span className="text-sm text-muted-foreground w-10 text-right font-medium">
-                        {sectorData.percentage}%
-                      </span>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
-        ) : topSectors.length > 0 && (
-          <div>
-            <p className="text-sm font-medium text-foreground mb-2">Sectores Dominantes</p>
+            <p className="text-sm font-medium text-foreground mb-2">Marcas Reconocidas Cercanas</p>
             <div className="flex flex-wrap gap-2">
-              {topSectors.map(([sector, count]) => (
-                <Badge 
-                  key={sector} 
-                  variant="outline" 
-                  className="flex items-center gap-1.5 py-1"
-                >
-                  {SECTOR_ICONS[sector] || <Building2 className="h-3 w-3" />}
-                  <span className="text-xs">{sector}</span>
-                  <span className="text-xs text-muted-foreground">({count})</span>
+              {knownBrands.map((brand, idx) => (
+                <Badge key={idx} variant="secondary" className="text-xs">
+                  {brand}
                 </Badge>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Commercial Distribution */}
+        {distribution.length > 0 && (
+          <div className="p-3 rounded-lg bg-muted/50">
+            <p className="text-sm font-medium text-foreground mb-3">Distribución Comercial</p>
+            <div className="space-y-3">
+              {distribution.slice(0, 6).map((cat, idx) => {
+                const display = CATEGORY_DISPLAY[cat.label] || { emoji: '📦', icon: <Building2 className="h-4 w-4" />, color: 'bg-gray-500' };
+                return (
+                  <div key={idx} className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 min-w-[160px]">
+                      <span className="text-base">{display.emoji}</span>
+                      <span className="text-sm truncate">{cat.label}</span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <Progress value={cat.percentage} className="h-2 flex-1" />
+                      <span className="text-sm text-muted-foreground w-12 text-right font-medium">
+                        {cat.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Interpretation */}
+            {interpretation && (
+              <p className="text-sm text-primary font-medium mt-3">{interpretation}</p>
+            )}
           </div>
         )}
 
@@ -328,7 +326,7 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
 
         {/* Attribution */}
         <p className="text-xs text-muted-foreground text-center pt-2 border-t border-border">
-          Estimación basada en actividad económica · Fuente: INEGI/DENUE · 
+          Estimación basada en actividad económica · Fuente: INEGI DENUE · 
           Actualizado: {new Date(data.last_updated).toLocaleDateString('es-MX')}
         </p>
       </CardContent>
