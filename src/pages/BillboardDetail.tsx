@@ -13,6 +13,7 @@ import StartChatButton from '@/components/chat/StartChatButton';
 import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSection';
 import LocationMetrics from '@/components/billboard/LocationMetrics';
 import NearbyBrands from '@/components/billboard/NearbyBrands';
+import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 
 interface Billboard {
   id: string;
@@ -279,6 +280,11 @@ const BillboardDetail: React.FC = () => {
             commercialEnvironment={inegiData?.commercial_environment}
             isLoadingInegi={isLoadingInegi}
           />
+        </div>
+
+        {/* INEGI Insights - Commercial Categories */}
+        <div className="mb-8">
+          <INEGIInsights billboard={{ id: billboard.id, latitude: billboard.latitude, longitude: billboard.longitude }} />
         </div>
 
         {/* Nearby Brands */}
