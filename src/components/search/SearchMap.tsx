@@ -7,12 +7,23 @@ import { createMarkerElement } from './EnhancedPropertyMarker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+interface ConsolidatedSector {
+  count: number;
+  percentage: number;
+}
+
 interface INEGIData {
   socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto';
   nearbyBusinessesCount: number;
   dominantSector: string;
   audienceProfile?: string;
   businessSectors?: Record<string, number>;
+  consolidatedSectors?: Record<string, ConsolidatedSector>;
+  rawDenueData?: {
+    consolidated_sectors?: Record<string, ConsolidatedSector>;
+    known_brands?: string[];
+    shopping_centers?: string[];
+  };
 }
 
 interface Property {
@@ -240,12 +251,22 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
           businessSectors = cached.business_sectors as Record<string, number>;
         }
         
+        // Extract consolidated_sectors from raw_denue_data
+        const rawData = cached.raw_denue_data as any;
+        const consolidatedSectors = rawData?.consolidated_sectors;
+        
         setInegiData({
           socioeconomicLevel: cached.socioeconomic_level as INEGIData['socioeconomicLevel'],
           nearbyBusinessesCount: cached.nearby_businesses_count || 0,
           dominantSector: cached.dominant_sector || 'Sin datos',
           audienceProfile: cached.audience_profile || undefined,
           businessSectors,
+          consolidatedSectors,
+          rawDenueData: {
+            consolidated_sectors: consolidatedSectors,
+            known_brands: rawData?.known_brands,
+            shopping_centers: rawData?.shopping_centers,
+          },
         });
         setIsLoadingInegi(false);
         return;
@@ -269,12 +290,22 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
           businessSectors = data.data.business_sectors as Record<string, number>;
         }
         
+        // Extract consolidated_sectors from raw_denue_data
+        const rawData = data.data.raw_denue_data;
+        const consolidatedSectors = rawData?.consolidated_sectors;
+        
         setInegiData({
           socioeconomicLevel: data.data.socioeconomic_level,
           nearbyBusinessesCount: data.data.nearby_businesses_count || 0,
           dominantSector: data.data.dominant_sector || 'Sin datos',
           audienceProfile: data.data.audience_profile || undefined,
           businessSectors,
+          consolidatedSectors,
+          rawDenueData: {
+            consolidated_sectors: consolidatedSectors,
+            known_brands: rawData?.known_brands,
+            shopping_centers: rawData?.shopping_centers,
+          },
         });
       }
     } catch (error) {

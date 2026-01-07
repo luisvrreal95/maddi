@@ -19,12 +19,23 @@ interface Property {
   imageUrl?: string | null;
 }
 
+interface ConsolidatedSector {
+  count: number;
+  percentage: number;
+}
+
 interface INEGIData {
   socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto';
   nearbyBusinessesCount: number;
   dominantSector: string;
   audienceProfile?: string;
   businessSectors?: Record<string, number>;
+  consolidatedSectors?: Record<string, ConsolidatedSector>;
+  rawDenueData?: {
+    consolidated_sectors?: Record<string, ConsolidatedSector>;
+    known_brands?: string[];
+    shopping_centers?: string[];
+  };
 }
 
 interface TrafficData {
@@ -133,8 +144,13 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
       property={transformedProperty}
       trafficData={trafficData || undefined}
       inegiData={inegiData ? {
-        ...inegiData,
         socioeconomicLevel: inegiData.socioeconomicLevel,
+        nearbyBusinessesCount: inegiData.nearbyBusinessesCount,
+        dominantSector: inegiData.dominantSector,
+        audienceProfile: inegiData.audienceProfile,
+        businessSectors: inegiData.businessSectors,
+        consolidatedSectors: inegiData.consolidatedSectors,
+        rawDenueData: inegiData.rawDenueData,
       } : undefined}
       isLoadingTraffic={isLoadingTraffic}
       isLoadingInegi={isLoadingInegi}
