@@ -150,8 +150,7 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
         nearbyBusinessesCount: inegiData.nearbyBusinessesCount,
         dominantSector: inegiData.dominantSector,
         audienceProfile: inegiData.audienceProfile,
-        businessSectors: inegiData.businessSectors,
-        consolidatedSectors: inegiData.consolidatedSectors,
+        commercialEnvironment: inegiData.commercialEnvironment,
         rawDenueData: inegiData.rawDenueData,
       } : undefined}
       isLoadingTraffic={isLoadingTraffic}
