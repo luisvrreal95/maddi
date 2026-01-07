@@ -103,11 +103,34 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
       if (cached) {
         setData(cached as DemographicsData);
         setHasAnalyzed(true);
+
+        // Backfill: if this row was generated before the new processed format (distribution), refresh it.
+        const raw = (cached as any).raw_denue_data as any;
+        const hasDistribution = Array.isArray(raw?.distribution) && raw.distribution.length > 0;
+
+        if (!hasDistribution) {
+          try {
+            const { data: result, error } = await supabase.functions.invoke('analyze-inegi-data', {
+              body: {
+                billboard_id: billboard.id,
+                latitude: billboard.latitude,
+                longitude: billboard.longitude,
+                force_refresh: true,
+              },
+            });
+
+            if (!error && result?.data) {
+              setData(result.data as DemographicsData);
+            }
+          } catch (e) {
+            console.error('Error backfilling INEGI distribution:', e);
+          }
+        }
       }
     };
 
     checkCached();
-  }, [billboard.id]);
+  }, [billboard.id, billboard.latitude, billboard.longitude]);
 
   const fetchAnalysis = async (forceRefresh = false) => {
     setIsLoading(true);
