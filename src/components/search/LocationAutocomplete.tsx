@@ -1,18 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MapPin, Search, Loader2, Navigation } from 'lucide-react';
 
-interface LocationSuggestion {
+export interface LocationSuggestion {
   id: string;
   place_name: string;
   text: string;
   place_type: string[];
   center: [number, number];
+  bbox?: [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
+  context?: Array<{ id: string; text: string; short_code?: string }>;
+}
+
+export interface SelectedLocation {
+  placeName: string;
+  center: [number, number];
+  bbox?: [number, number, number, number];
+  city?: string;
+  state?: string;
+  placeType: string;
 }
 
 interface LocationAutocompleteProps {
   value: string;
   onChange: (value: string) => void;
-  onSelect: (location: LocationSuggestion) => void;
+  onSelect: (location: LocationSuggestion, structured: SelectedLocation) => void;
   mapboxToken: string;
   placeholder?: string;
   className?: string;
@@ -120,6 +131,38 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Extract city and state from context
+  const extractLocationInfo = (suggestion: LocationSuggestion): SelectedLocation => {
+    let city: string | undefined;
+    let state: string | undefined;
+    const placeType = suggestion.place_type[0] || 'place';
+
+    // If the suggestion itself is a city (place), use its text
+    if (placeType === 'place') {
+      city = suggestion.text;
+    }
+
+    // Extract from context
+    if (suggestion.context) {
+      for (const ctx of suggestion.context) {
+        if (ctx.id.startsWith('place.')) {
+          city = ctx.text;
+        } else if (ctx.id.startsWith('region.')) {
+          state = ctx.text;
+        }
+      }
+    }
+
+    return {
+      placeName: suggestion.place_name,
+      center: suggestion.center,
+      bbox: suggestion.bbox,
+      city,
+      state,
+      placeType,
+    };
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen || suggestions.length === 0) {
       if (e.key === 'Enter') {
@@ -127,13 +170,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         // Submit current value even without selection
         if (value.trim()) {
           setIsOpen(false);
-          onSelect({
+          const manualSuggestion: LocationSuggestion = {
             id: 'manual',
             place_name: value,
             text: value,
             place_type: ['place'],
             center: [0, 0],
-          });
+          };
+          onSelect(manualSuggestion, extractLocationInfo(manualSuggestion));
         }
       }
       return;
@@ -156,13 +200,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           handleSelect(suggestions[selectedIndex]);
         } else if (value.trim()) {
           setIsOpen(false);
-          onSelect({
+          const manualSuggestion: LocationSuggestion = {
             id: 'manual',
             place_name: value,
             text: value,
             place_type: ['place'],
             center: [0, 0],
-          });
+          };
+          onSelect(manualSuggestion, extractLocationInfo(manualSuggestion));
         }
         break;
       case 'Escape':
@@ -176,7 +221,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     onChange(suggestion.place_name);
     setIsOpen(false);
     setSelectedIndex(-1);
-    onSelect(suggestion);
+    onSelect(suggestion, extractLocationInfo(suggestion));
   };
 
   const getPlaceTypeLabel = (types: string[]) => {
@@ -228,13 +273,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
               type="button"
               onClick={() => {
                 if (value.trim()) {
-                  onSelect({
+                  const manualSuggestion: LocationSuggestion = {
                     id: 'manual',
                     place_name: value,
                     text: value,
                     place_type: ['place'],
                     center: [0, 0],
-                  });
+                  };
+                  onSelect(manualSuggestion, extractLocationInfo(manualSuggestion));
                 }
               }}
               className="w-10 h-10 bg-[#9BFF43] rounded-full flex items-center justify-center hover:bg-[#8AE63A] transition-colors"

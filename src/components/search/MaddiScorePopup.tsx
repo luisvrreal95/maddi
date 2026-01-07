@@ -210,7 +210,7 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
   const zoneInterpretation = getZoneInterpretation(inegiData);
 
   return (
-    <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[340px] max-h-[90vh] flex flex-col">
+    <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[360px] max-h-[90vh] flex flex-col">
       {/* Header - Fixed */}
       <div className="relative h-24 flex-shrink-0">
         <img src={property.image_url || '/placeholder.svg'} alt={property.title} className="w-full h-full object-cover" />
@@ -244,11 +244,11 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
 
         {/* Tabs - Compact */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-7">
-            <TabsTrigger value="zona" className="text-[10px] px-1">Zona</TabsTrigger>
-            <TabsTrigger value="trafico" className="text-[10px] px-1">Tráfico</TabsTrigger>
-            <TabsTrigger value="comercio" className="text-[10px] px-1">Comercio</TabsTrigger>
-            <TabsTrigger value="audiencia" className="text-[10px] px-1">Audiencia</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 h-8 p-0.5">
+            <TabsTrigger value="zona" className="text-[11px] px-2 h-full">Zona</TabsTrigger>
+            <TabsTrigger value="trafico" className="text-[11px] px-2 h-full">Tráfico</TabsTrigger>
+            <TabsTrigger value="comercio" className="text-[11px] px-2 h-full">Comercio</TabsTrigger>
+            <TabsTrigger value="audiencia" className="text-[11px] px-2 h-full">Audiencia</TabsTrigger>
           </TabsList>
           
           <TabsContent value="zona" className="mt-2 space-y-2">
@@ -260,8 +260,11 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
                     {getNSELabel(inegiData.socioeconomicLevel)}
                   </Badge>
                 </div>
-                <div className="relative h-1 bg-muted rounded-full overflow-hidden">
-                  <div className="h-full rounded-full" style={{ width: `${getNSEPosition(inegiData.socioeconomicLevel)}%`, backgroundColor: getNSEColor(inegiData.socioeconomicLevel) }} />
+                <div className="relative h-2 bg-gradient-to-r from-red-400 via-amber-400 to-emerald-400 rounded-full overflow-visible">
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-white border-2 border-foreground shadow-md transition-all"
+                    style={{ left: `calc(${getNSEPosition(inegiData.socioeconomicLevel)}% - 6px)` }}
+                  />
                 </div>
               </div>
             )}

@@ -6,7 +6,7 @@ import { MapLayers, POICategories } from '@/components/search/SearchFilters';
 import FiltersDialog from '@/components/search/FiltersDialog';
 import SearchMap, { SearchMapRef } from '@/components/search/SearchMap';
 import SearchResultCard from '@/components/search/SearchResultCard';
-import LocationAutocomplete from '@/components/search/LocationAutocomplete';
+import LocationAutocomplete, { SelectedLocation } from '@/components/search/LocationAutocomplete';
 import BookingDialog from '@/components/booking/BookingDialog';
 import ComparisonPanel from '@/components/search/ComparisonPanel';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
@@ -80,6 +80,7 @@ const SearchPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
   const [searchQuery, setSearchQuery] = useState(location);
   const [confirmedLocation, setConfirmedLocation] = useState(location);
+  const [selectedLocationData, setSelectedLocationData] = useState<SelectedLocation | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   const [filters, setFilters] = useState<Record<string, any>>({});
@@ -130,9 +131,11 @@ const SearchPage: React.FC = () => {
     });
   };
 
-  // Fetch billboards from database using confirmed location
+  // Fetch billboards from database using confirmed location and structured data
   const { billboards, isLoading: isLoadingBillboards } = useBillboards({
     location: confirmedLocation,
+    city: selectedLocationData?.city,
+    bbox: selectedLocationData?.bbox,
   });
 
   // Fetch review stats for all billboards
@@ -416,9 +419,10 @@ const SearchPage: React.FC = () => {
           <LocationAutocomplete
             value={searchQuery}
             onChange={setSearchQuery}
-            onSelect={(location) => {
+            onSelect={(location, structured) => {
               setSearchQuery(location.place_name);
               setConfirmedLocation(location.place_name);
+              setSelectedLocationData(structured);
             }}
             mapboxToken={mapboxToken}
             placeholder="Buscar ubicación..."
@@ -482,6 +486,7 @@ const SearchPage: React.FC = () => {
               onPropertySelect={setSelectedPropertyId}
               mapboxToken={mapboxToken}
               searchLocation={confirmedLocation}
+              selectedBounds={selectedLocationData?.bbox}
               onReserveClick={handleReserveClick}
               layers={mapLayers}
               poiCategories={poiCategories}

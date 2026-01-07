@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ArrowLeft, Calendar, MapPin, ExternalLink, Eye, Clock, Check, X } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, ExternalLink, Eye, Clock, Check, X, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
-import { format, differenceInDays, isAfter, isBefore } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import mapboxgl from 'mapbox-gl';
@@ -12,6 +12,7 @@ import CampaignMetrics from './CampaignMetrics';
 import CampaignZoneProfile from './CampaignZoneProfile';
 import CampaignTrendChart from './CampaignTrendChart';
 import { Link } from 'react-router-dom';
+import { parseDateOnlyStart, parseDateOnlyEnd, getTodayStart } from '@/lib/dateUtils';
 
 interface Billboard {
   id: string;
@@ -52,19 +53,22 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
-  const startDate = new Date(booking.start_date);
-  const endDate = new Date(booking.end_date);
-  const now = new Date();
+  // Use date-only parsing to avoid timezone issues
+  const startDate = parseDateOnlyStart(booking.start_date);
+  const endDate = parseDateOnlyEnd(booking.end_date);
+  const today = getTodayStart();
   
-  const isOngoing = booking.status === 'approved' && isBefore(startDate, now) && isAfter(endDate, now);
-  const isScheduled = booking.status === 'approved' && isAfter(startDate, now);
-  const isPast = booking.status === 'approved' && isBefore(endDate, now);
+  // Campaign status based on correct date comparisons
+  const isOngoing = booking.status === 'approved' && startDate <= today && endDate >= today;
+  const isScheduled = booking.status === 'approved' && startDate > today;
+  const isPast = booking.status === 'approved' && endDate < today;
   const isPending = booking.status === 'pending';
   const isRejected = booking.status === 'rejected';
 
+  // Calculate days
   const totalDays = differenceInDays(endDate, startDate) + 1;
   const activeDays = isOngoing 
-    ? differenceInDays(now, startDate) + 1 
+    ? differenceInDays(today, startDate) + 1 
     : isPast 
       ? totalDays 
       : 0;
@@ -264,8 +268,8 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack }) => {
         </div>
       </Card>
 
-      {/* Trend Chart - Show for active, scheduled, pending, and past campaigns */}
-      {(isOngoing || isPast || isScheduled || isPending) && billboard && (
+      {/* Trend Chart - Only for active or past campaigns */}
+      {(isOngoing || isPast) && billboard && (
         <CampaignTrendChart
           startDate={booking.start_date}
           endDate={booking.end_date}
@@ -274,18 +278,41 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack }) => {
         />
       )}
 
-      {/* Metrics - Show for active, scheduled, pending, and past campaigns */}
-      {(isOngoing || isPast || isScheduled || isPending) && (
+      {/* Message for scheduled/pending campaigns - no data yet */}
+      {(isScheduled || isPending) && (
+        <Card className="p-6">
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-full bg-muted">
+              <Info className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground mb-1">Campaña aún no iniciada</h3>
+              <p className="text-sm text-muted-foreground mb-2">
+                Los datos de impresiones y métricas estarán disponibles cuando la campaña esté activa.
+              </p>
+              <div className="text-sm">
+                <span className="text-muted-foreground">Inicia el </span>
+                <span className="font-medium text-foreground">{format(startDate, "d 'de' MMMM yyyy", { locale: es })}</span>
+                <span className="text-muted-foreground"> · Duración: </span>
+                <span className="font-medium text-foreground">{totalDays} días</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {/* Metrics - Only for active or past campaigns */}
+      {(isOngoing || isPast) && (
         <div>
-          <h2 className="font-semibold text-foreground mb-3">Métricas de Impacto {isScheduled || isPending ? '(Estimadas)' : ''}</h2>
+          <h2 className="font-semibold text-foreground mb-3">Métricas de Impacto</h2>
           <CampaignMetrics
-            totalImpressions={isScheduled || isPending ? dailyImpressions * totalDays : totalImpressions}
+            totalImpressions={totalImpressions}
             averageDaily={dailyImpressions}
-            activeDays={isScheduled || isPending ? 0 : activeDays}
+            activeDays={activeDays}
             totalDays={totalDays}
           />
           <p className="text-xs text-muted-foreground mt-2">
-            {isScheduled || isPending ? 'Proyección basada en' : 'Estimaciones basadas en'} datos de movilidad · Fuente: TomTom
+            Estimaciones basadas en datos de movilidad · Fuente: TomTom
           </p>
         </div>
       )}
