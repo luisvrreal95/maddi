@@ -264,8 +264,8 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack }) => {
         </div>
       </Card>
 
-      {/* Trend Chart */}
-      {(isOngoing || isPast) && billboard && (
+      {/* Trend Chart - Show for active, scheduled, pending, and past campaigns */}
+      {(isOngoing || isPast || isScheduled || isPending) && billboard && (
         <CampaignTrendChart
           startDate={booking.start_date}
           endDate={booking.end_date}
@@ -274,18 +274,18 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack }) => {
         />
       )}
 
-      {/* Metrics */}
-      {(isOngoing || isPast) && (
+      {/* Metrics - Show for active, scheduled, pending, and past campaigns */}
+      {(isOngoing || isPast || isScheduled || isPending) && (
         <div>
-          <h2 className="font-semibold text-foreground mb-3">Métricas de Impacto</h2>
+          <h2 className="font-semibold text-foreground mb-3">Métricas de Impacto {isScheduled || isPending ? '(Estimadas)' : ''}</h2>
           <CampaignMetrics
-            totalImpressions={totalImpressions}
+            totalImpressions={isScheduled || isPending ? dailyImpressions * totalDays : totalImpressions}
             averageDaily={dailyImpressions}
-            activeDays={activeDays}
+            activeDays={isScheduled || isPending ? 0 : activeDays}
             totalDays={totalDays}
           />
           <p className="text-xs text-muted-foreground mt-2">
-            Estimaciones basadas en datos de movilidad · Fuente: TomTom
+            {isScheduled || isPending ? 'Proyección basada en' : 'Estimaciones basadas en'} datos de movilidad · Fuente: TomTom
           </p>
         </div>
       )}

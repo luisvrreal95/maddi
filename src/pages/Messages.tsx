@@ -1,13 +1,29 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Send, User, Search, Check, CheckCheck } from 'lucide-react';
+import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
 import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Conversation {
   id: string;
@@ -15,6 +31,8 @@ interface Conversation {
   business_id: string;
   owner_id: string;
   last_message_at: string;
+  is_pinned?: boolean;
+  is_manually_unread?: boolean;
   billboard?: {
     title: string;
     image_url: string | null;
@@ -47,6 +65,8 @@ const Messages: React.FC = () => {
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -181,9 +201,74 @@ const Messages: React.FC = () => {
     // Update local state
     setConversations(prev => prev.map(conv => 
       conv.id === conversationId 
-        ? { ...conv, unread_count: 0, last_message: conv.last_message ? { ...conv.last_message, is_read: true } : undefined }
+        ? { ...conv, unread_count: 0, is_manually_unread: false, last_message: conv.last_message ? { ...conv.last_message, is_read: true } : undefined }
         : conv
     ));
+  };
+
+  const togglePinConversation = (conversationId: string) => {
+    setConversations(prev => {
+      const updated = prev.map(conv => 
+        conv.id === conversationId 
+          ? { ...conv, is_pinned: !conv.is_pinned }
+          : conv
+      );
+      // Sort: pinned first, then by last_message_at
+      return updated.sort((a, b) => {
+        if (a.is_pinned && !b.is_pinned) return -1;
+        if (!a.is_pinned && b.is_pinned) return 1;
+        return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+      });
+    });
+    toast.success('Conversación actualizada');
+  };
+
+  const markAsUnread = (conversationId: string) => {
+    setConversations(prev => prev.map(conv => 
+      conv.id === conversationId 
+        ? { ...conv, is_manually_unread: true, unread_count: Math.max(1, conv.unread_count || 0) }
+        : conv
+    ));
+    toast.success('Marcada como no leída');
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent, conversationId: string) => {
+    e.stopPropagation();
+    setConversationToDelete(conversationId);
+    setDeleteDialogOpen(true);
+  };
+
+  const deleteConversation = async () => {
+    if (!conversationToDelete) return;
+    
+    try {
+      // Delete all messages first
+      await supabase
+        .from('messages')
+        .delete()
+        .eq('conversation_id', conversationToDelete);
+      
+      // Then delete conversation
+      const { error } = await supabase
+        .from('conversations')
+        .delete()
+        .eq('id', conversationToDelete);
+
+      if (error) throw error;
+
+      setConversations(prev => prev.filter(c => c.id !== conversationToDelete));
+      if (selectedConversation?.id === conversationToDelete) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+      toast.success('Conversación eliminada');
+    } catch (error) {
+      console.error('Error deleting conversation:', error);
+      toast.error('Error al eliminar conversación');
+    } finally {
+      setDeleteDialogOpen(false);
+      setConversationToDelete(null);
+    }
   };
 
   const sendMessage = async () => {
@@ -262,62 +347,105 @@ const Messages: React.FC = () => {
             ) : (
               <div className="p-2">
                 {filteredConversations.map(conv => {
-                  const hasUnread = (conv.unread_count || 0) > 0;
+                  const hasUnread = (conv.unread_count || 0) > 0 || conv.is_manually_unread;
                   const isMyLastMessage = conv.last_message?.sender_id === user?.id;
                   
                   return (
-                    <button
+                    <div
                       key={conv.id}
-                      onClick={() => setSelectedConversation(conv)}
-                      className={`w-full p-3 rounded-lg text-left transition-all duration-200 ${
+                      className={`relative group rounded-lg transition-all duration-200 ${
                         selectedConversation?.id === conv.id 
                           ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30' 
                           : 'hover:bg-white/5 border border-transparent'
                       }`}
                     >
-                      <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
-                          <User className="w-5 h-5 text-white/40" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className={`truncate ${
-                              hasUnread 
-                                ? 'font-bold text-white' 
-                                : selectedConversation?.id === conv.id 
-                                  ? 'font-medium text-[#9BFF43]' 
-                                  : 'font-medium text-white'
-                            }`}>
-                              {conv.other_user?.full_name}
-                            </p>
-                            {hasUnread && (
-                              <span className="min-w-[18px] h-[18px] rounded-full bg-[#9BFF43] text-[#1A1A1A] text-[10px] font-bold flex items-center justify-center px-1 ml-1">
-                                {conv.unread_count}
-                              </span>
+                      <button
+                        onClick={() => setSelectedConversation(conv)}
+                        className="w-full p-3 text-left"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="relative w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
+                            <User className="w-5 h-5 text-white/40" />
+                            {conv.is_pinned && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#9BFF43] flex items-center justify-center">
+                                <Pin className="w-2.5 h-2.5 text-[#1A1A1A]" />
+                              </div>
                             )}
                           </div>
-                          <p className="text-white/40 text-xs truncate mt-0.5">
-                            {conv.billboard?.title}
-                          </p>
-                          {conv.last_message && (
-                            <div className="flex items-center gap-1 mt-1">
-                              {isMyLastMessage && (
-                                conv.last_message.is_read 
-                                  ? <CheckCheck className="w-3 h-3 text-[#9BFF43] flex-shrink-0" />
-                                  : <Check className="w-3 h-3 text-white/40 flex-shrink-0" />
-                              )}
-                              <p className={`text-xs truncate ${
-                                hasUnread && !isMyLastMessage
-                                  ? 'font-semibold text-white/80' 
-                                  : 'text-white/50'
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className={`truncate ${
+                                hasUnread 
+                                  ? 'font-bold text-white' 
+                                  : selectedConversation?.id === conv.id 
+                                    ? 'font-medium text-[#9BFF43]' 
+                                    : 'font-medium text-white'
                               }`}>
-                                {isMyLastMessage ? 'Tú: ' : ''}{truncateMessage(conv.last_message.content)}
+                                {conv.other_user?.full_name}
                               </p>
+                              {hasUnread && (
+                                <span className="min-w-[18px] h-[18px] rounded-full bg-[#9BFF43] text-[#1A1A1A] text-[10px] font-bold flex items-center justify-center px-1 ml-1">
+                                  {conv.unread_count || 1}
+                                </span>
+                              )}
                             </div>
-                          )}
+                            <p className="text-white/40 text-xs truncate mt-0.5">
+                              {conv.billboard?.title}
+                            </p>
+                            {conv.last_message && (
+                              <div className="flex items-center gap-1 mt-1">
+                                {isMyLastMessage && (
+                                  conv.last_message.is_read 
+                                    ? <CheckCheck className="w-3 h-3 text-[#9BFF43] flex-shrink-0" />
+                                    : <Check className="w-3 h-3 text-white/40 flex-shrink-0" />
+                                )}
+                                <p className={`text-xs truncate ${
+                                  hasUnread && !isMyLastMessage
+                                    ? 'font-semibold text-white/80' 
+                                    : 'text-white/50'
+                                }`}>
+                                  {isMyLastMessage ? 'Tú: ' : ''}{truncateMessage(conv.last_message.content)}
+                                </p>
+                              </div>
+                            )}
+                          </div>
                         </div>
+                      </button>
+                      
+                      {/* Context Menu */}
+                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-white/40 hover:text-white hover:bg-white/10">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-[#2A2A2A] border-white/10">
+                            <DropdownMenuItem 
+                              onClick={(e) => { e.stopPropagation(); togglePinConversation(conv.id); }}
+                              className="text-white hover:bg-white/10 gap-2"
+                            >
+                              <Pin className="w-4 h-4" />
+                              {conv.is_pinned ? 'Quitar fijado' : 'Fijar conversación'}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => { e.stopPropagation(); markAsUnread(conv.id); }}
+                              className="text-white hover:bg-white/10 gap-2"
+                            >
+                              {hasUnread ? <MailOpen className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
+                              Marcar como no leído
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => handleDeleteClick(e, conv.id)}
+                              className="text-destructive hover:bg-destructive/10 gap-2"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Eliminar conversación
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -426,6 +554,29 @@ const Messages: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-[#2A2A2A] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">¿Eliminar conversación?</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
+              Esta acción no se puede deshacer. Se eliminarán todos los mensajes de esta conversación.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-white/10 text-white border-white/10 hover:bg-white/20">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={deleteConversation}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
