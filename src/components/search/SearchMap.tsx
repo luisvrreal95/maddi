@@ -236,63 +236,63 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   const fetchINEGIData = useCallback(async (billboardId: string, lat: number, lng: number) => {
     setIsLoadingInegi(true);
     setInegiData(null);
-    
+
+    const setFromRecord = (record: any) => {
+      const rawData = record?.raw_denue_data as any;
+
+      setInegiData({
+        socioeconomicLevel: record?.socioeconomic_level ?? undefined,
+        nearbyBusinessesCount: record?.nearby_businesses_count ?? 0,
+        dominantSector: record?.dominant_sector ?? 'Sin datos',
+        audienceProfile: record?.audience_profile ?? undefined,
+        commercialEnvironment: record?.commercial_environment ?? undefined,
+        rawDenueData: rawData
+          ? {
+              distribution: rawData.distribution,
+              known_brands: rawData.known_brands,
+              interpretation: rawData.interpretation,
+              zone_type: rawData.zone_type,
+            }
+          : undefined,
+      });
+
+      return rawData;
+    };
+
     try {
-      // First check cache
+      // 1) Try cached row first
       const { data: cached } = await supabase
         .from('inegi_demographics')
         .select('*')
         .eq('billboard_id', billboardId)
         .single();
 
+      let forceRefresh = false;
+
       if (cached) {
-        // Extract data from the new format
-        const rawData = cached.raw_denue_data as any;
-        
-        setInegiData({
-          socioeconomicLevel: cached.socioeconomic_level || undefined,
-          nearbyBusinessesCount: cached.nearby_businesses_count || 0,
-          dominantSector: cached.dominant_sector || 'Sin datos',
-          audienceProfile: cached.audience_profile || undefined,
-          commercialEnvironment: cached.commercial_environment || undefined,
-          rawDenueData: rawData ? {
-            distribution: rawData.distribution,
-            known_brands: rawData.known_brands,
-            interpretation: rawData.interpretation,
-            zone_type: rawData.zone_type,
-          } : undefined,
-        });
-        setIsLoadingInegi(false);
-        return;
+        const raw = setFromRecord(cached);
+        const hasDistribution = Array.isArray(raw?.distribution) && raw.distribution.length > 0;
+
+        // If the cached row is from the old format (no distribution), force a refresh.
+        forceRefresh = !hasDistribution;
+
+        if (!forceRefresh) return;
       }
 
-      // Fetch from edge function if not cached
+      // 2) Fetch (and optionally refresh) from backend function
       const { data, error } = await supabase.functions.invoke('analyze-inegi-data', {
         body: {
           billboard_id: billboardId,
           latitude: lat,
           longitude: lng,
+          force_refresh: forceRefresh,
         },
       });
 
       if (error) throw error;
 
       if (data?.data) {
-        const rawData = data.data.raw_denue_data;
-        
-        setInegiData({
-          socioeconomicLevel: data.data.socioeconomic_level || undefined,
-          nearbyBusinessesCount: data.data.nearby_businesses_count || 0,
-          dominantSector: data.data.dominant_sector || 'Sin datos',
-          audienceProfile: data.data.audience_profile || undefined,
-          commercialEnvironment: data.data.commercial_environment || undefined,
-          rawDenueData: rawData ? {
-            distribution: rawData.distribution,
-            known_brands: rawData.known_brands,
-            interpretation: rawData.interpretation,
-            zone_type: rawData.zone_type,
-          } : undefined,
-        });
+        setFromRecord(data.data);
       }
     } catch (error) {
       console.error('Error fetching INEGI data:', error);

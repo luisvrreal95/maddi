@@ -473,6 +473,7 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Check cache (7 días)
+    // Importante: si el cache viene de un formato viejo (sin distribution procesada), NO lo usamos.
     if (!force_refresh) {
       const { data: cached } = await supabase
         .from('inegi_demographics')
@@ -483,13 +484,20 @@ serve(async (req) => {
       if (cached) {
         const lastUpdated = new Date(cached.last_updated);
         const daysSinceUpdate = (Date.now() - lastUpdated.getTime()) / (1000 * 60 * 60 * 24);
-        
-        if (daysSinceUpdate < 7) {
+
+        const raw = (cached as any).raw_denue_data as any;
+        const hasDistribution = Array.isArray(raw?.distribution) && raw.distribution.length > 0;
+
+        if (daysSinceUpdate < 7 && hasDistribution) {
           console.log('Returning cached INEGI data');
           return new Response(
             JSON.stringify({ data: cached, source: 'cache', cached_at: cached.last_updated }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
           );
+        }
+
+        if (daysSinceUpdate < 7 && !hasDistribution) {
+          console.log('Cached INEGI data found but missing processed distribution. Recomputing...');
         }
       }
     }
