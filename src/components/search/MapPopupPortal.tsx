@@ -19,22 +19,24 @@ interface Property {
   imageUrl?: string | null;
 }
 
-interface ConsolidatedSector {
-  count: number;
+interface CategoryDistribution {
+  label: string;
   percentage: number;
+  count: number;
 }
 
 interface INEGIData {
-  socioeconomicLevel: 'bajo' | 'medio' | 'medio-alto' | 'alto';
-  nearbyBusinessesCount: number;
-  dominantSector: string;
+  socioeconomicLevel?: string;
+  nearbyBusinessesCount?: number;
+  dominantSector?: string;
   audienceProfile?: string;
+  commercialEnvironment?: string;
   businessSectors?: Record<string, number>;
-  consolidatedSectors?: Record<string, ConsolidatedSector>;
   rawDenueData?: {
-    consolidated_sectors?: Record<string, ConsolidatedSector>;
+    distribution?: CategoryDistribution[];
     known_brands?: string[];
-    shopping_centers?: string[];
+    interpretation?: string;
+    zone_type?: 'mixed' | 'specialized' | 'limited';
   };
 }
 
