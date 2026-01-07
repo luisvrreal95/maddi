@@ -2,8 +2,9 @@ import React, { useMemo } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp } from 'lucide-react';
-import { format, eachDayOfInterval, isBefore, isAfter } from 'date-fns';
+import { format, eachDayOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { parseDateOnlyStart, parseDateOnlyEnd, getTodayStart } from '@/lib/dateUtils';
 
 interface CampaignTrendChartProps {
   startDate: string;
@@ -19,18 +20,19 @@ const CampaignTrendChart: React.FC<CampaignTrendChartProps> = ({
   isActive = false,
 }) => {
   const chartData = useMemo(() => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const now = new Date();
+    const start = parseDateOnlyStart(startDate);
+    const end = parseDateOnlyEnd(endDate);
+    const today = getTodayStart();
     
-    // Calculate end date for chart (today if active, else end date)
-    const chartEnd = isActive && isBefore(now, end) ? now : end;
+    // For active campaigns: show only up to today
+    // For past campaigns: show full range
+    const chartEnd = isActive && today < end ? today : parseDateOnlyStart(endDate);
     
     // Get all days in range
     const days = eachDayOfInterval({ start, end: chartEnd });
     
     // Generate data with natural variation (+/- 20%)
-    return days.map((day, index) => {
+    return days.map((day) => {
       // Create reproducible "random" variation based on day
       const seed = day.getDate() * 7 + day.getMonth() * 31;
       const variation = (Math.sin(seed) * 0.2); // -20% to +20%
@@ -44,15 +46,14 @@ const CampaignTrendChart: React.FC<CampaignTrendChartProps> = ({
         date: format(day, 'dd MMM', { locale: es }),
         fullDate: format(day, "d 'de' MMMM", { locale: es }),
         impressions: Math.round(impressions * weekendBoost),
-        isFuture: isAfter(day, now),
       };
     });
   }, [startDate, endDate, dailyImpressions, isActive]);
 
-  const totalImpressions = chartData.reduce((sum, day) => sum + (day.isFuture ? 0 : day.impressions), 0);
+  const totalImpressions = chartData.reduce((sum, day) => sum + day.impressions, 0);
   const averageImpressions = Math.round(
-    chartData.filter(d => !d.isFuture).reduce((sum, d) => sum + d.impressions, 0) / 
-    Math.max(1, chartData.filter(d => !d.isFuture).length)
+    chartData.reduce((sum, d) => sum + d.impressions, 0) / 
+    Math.max(1, chartData.length)
   );
 
   const CustomTooltip = ({ active, payload, label }: any) => {

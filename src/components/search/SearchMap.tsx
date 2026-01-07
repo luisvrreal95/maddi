@@ -81,6 +81,7 @@ interface SearchMapProps {
   onPropertySelect: (id: string | null) => void;
   mapboxToken: string;
   searchLocation?: string;
+  selectedBounds?: [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
   onReserveClick: (property: Property) => void;
   layers: MapLayers;
   poiCategories: POICategories;
@@ -101,6 +102,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   onPropertySelect,
   mapboxToken,
   searchLocation,
+  selectedBounds,
   onReserveClick,
   layers,
   poiCategories,
@@ -162,13 +164,24 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
   // Map style is fixed to dark mode
 
-  // Geocode search location and fly to it
+  // Geocode search location and fly to it - prefer bbox if available
   useEffect(() => {
-    if (!map.current || !mapboxToken || !searchLocation) return;
+    if (!map.current || !mapboxToken) return;
+
+    // If we have selectedBounds, use them directly
+    if (selectedBounds) {
+      map.current.fitBounds(
+        [[selectedBounds[0], selectedBounds[1]], [selectedBounds[2], selectedBounds[3]]],
+        { padding: 50, duration: 1500 }
+      );
+      return;
+    }
+
+    // Otherwise geocode the search location
+    if (!searchLocation) return;
 
     const geocodeLocation = async () => {
       try {
-        // Request types that provide bbox for proper zoom (cities, regions, not neighborhoods)
         const response = await fetch(
           `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchLocation)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,locality&limit=1`
         );
@@ -181,17 +194,15 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
           const placeType = feature.place_type?.[0];
           
           if (bbox) {
-            // Use bounding box for proper city/region view
             map.current?.fitBounds(
               [[bbox[0], bbox[1]], [bbox[2], bbox[3]]],
               { padding: 50, duration: 1500 }
             );
           } else {
-            // Determine zoom based on place type
-            let zoom = 12; // default
+            let zoom = 12;
             if (placeType === 'country') zoom = 5;
             else if (placeType === 'region') zoom = 8;
-            else if (placeType === 'place') zoom = 11; // City level - show whole city
+            else if (placeType === 'place') zoom = 11;
             else if (placeType === 'locality') zoom = 12;
             
             map.current?.flyTo({
@@ -207,7 +218,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     };
 
     geocodeLocation();
-  }, [searchLocation, mapboxToken]);
+  }, [searchLocation, selectedBounds, mapboxToken]);
 
   // Fetch INEGI data for a property
   const fetchINEGIData = useCallback(async (billboardId: string, lat: number, lng: number) => {

@@ -42,6 +42,7 @@ export interface BillboardFilters {
   maxPrice?: number;
   billboardType?: string;
   illumination?: string;
+  bbox?: [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
 }
 
 export function useBillboards(filters?: BillboardFilters) {
@@ -57,21 +58,31 @@ export function useBillboards(filters?: BillboardFilters) {
         .select('*')
         .eq('is_available', true);
 
-      // Parse location to extract city name for filtering
-      if (filters?.location) {
+      // Priority 1: Use bbox if available (most precise)
+      if (filters?.bbox) {
+        const [minLng, minLat, maxLng, maxLat] = filters.bbox;
+        query = query
+          .gte('latitude', minLat)
+          .lte('latitude', maxLat)
+          .gte('longitude', minLng)
+          .lte('longitude', maxLng);
+      }
+      // Priority 2: Use structured city if available
+      else if (filters?.city) {
+        query = query.ilike('city', `%${filters.city}%`);
+      }
+      // Priority 3: Parse location to extract city name for filtering (fallback)
+      else if (filters?.location) {
         // Extract city name from location string (e.g., "Mexicali, Baja California, México" -> "Mexicali")
         const locationParts = filters.location.split(',').map(s => s.trim());
         const cityName = locationParts[0];
         
         if (cityName && cityName.length > 1) {
-          // Filter by partial city match (case insensitive) - "Cancun" matches "Cancunsito"
+          // Filter by partial city match (case insensitive)
           query = query.ilike('city', `%${cityName}%`);
         }
       }
       
-      if (filters?.city) {
-        query = query.ilike('city', `%${filters.city}%`);
-      }
       if (filters?.state) {
         query = query.ilike('state', `%${filters.state}%`);
       }
@@ -117,7 +128,7 @@ export function useBillboards(filters?: BillboardFilters) {
     } finally {
       setIsLoading(false);
     }
-  }, [filters?.location, filters?.city, filters?.state, filters?.minPrice, filters?.maxPrice, filters?.billboardType, filters?.illumination]);
+  }, [filters?.location, filters?.city, filters?.state, filters?.minPrice, filters?.maxPrice, filters?.billboardType, filters?.illumination, filters?.bbox]);
 
   useEffect(() => {
     fetchBillboards();
