@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import { 
   Users, 
   TrendingUp, 
@@ -15,7 +16,11 @@ import {
   GraduationCap,
   Heart,
   Car,
-  BarChart3
+  BarChart3,
+  Scissors,
+  Factory,
+  Landmark,
+  MoreHorizontal
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -26,6 +31,11 @@ interface INEGIInsightsProps {
     latitude: number;
     longitude: number;
   };
+}
+
+interface ConsolidatedSector {
+  count: number;
+  percentage: number;
 }
 
 interface DemographicsData {
@@ -39,6 +49,11 @@ interface DemographicsData {
   commercial_environment: string;
   ai_summary: string;
   last_updated: string;
+  raw_denue_data?: {
+    consolidated_sectors?: Record<string, ConsolidatedSector>;
+    known_brands?: string[];
+    shopping_centers?: string[];
+  };
 }
 
 const SECTOR_ICONS: Record<string, React.ReactNode> = {
@@ -50,6 +65,19 @@ const SECTOR_ICONS: Record<string, React.ReactNode> = {
   'Servicios educativos': <GraduationCap className="h-4 w-4" />,
   'Servicios profesionales': <Briefcase className="h-4 w-4" />,
   'Transporte': <Car className="h-4 w-4" />,
+};
+
+// Display configuration for the 8 consolidated categories
+const CATEGORY_DISPLAY: Record<string, { emoji: string; icon: React.ReactNode }> = {
+  'Alimentos y Bebidas': { emoji: '🍔', icon: <Utensils className="h-4 w-4" /> },
+  'Comercio Minorista': { emoji: '🛒', icon: <ShoppingBag className="h-4 w-4" /> },
+  'Servicios Financieros': { emoji: '🏦', icon: <Landmark className="h-4 w-4" /> },
+  'Salud': { emoji: '🏥', icon: <Heart className="h-4 w-4" /> },
+  'Servicios Personales': { emoji: '💇', icon: <Scissors className="h-4 w-4" /> },
+  'Educación': { emoji: '🎓', icon: <GraduationCap className="h-4 w-4" /> },
+  'Industrial / Bodegas': { emoji: '🏭', icon: <Factory className="h-4 w-4" /> },
+  'Oficinas / Profesionales': { emoji: '🏢', icon: <Building2 className="h-4 w-4" /> },
+  'Otros': { emoji: '📦', icon: <MoreHorizontal className="h-4 w-4" /> },
 };
 
 const SOCIOECONOMIC_COLORS: Record<string, string> = {
@@ -244,8 +272,31 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
           </div>
         </div>
 
-        {/* Top Sectors */}
-        {topSectors.length > 0 && (
+        {/* Commercial Distribution - Consolidated Sectors */}
+        {data.raw_denue_data?.consolidated_sectors && Object.keys(data.raw_denue_data.consolidated_sectors).length > 0 ? (
+          <div className="p-3 rounded-lg bg-muted/50">
+            <p className="text-sm font-medium text-foreground mb-3">Distribución Comercial</p>
+            <div className="space-y-2.5">
+              {Object.entries(data.raw_denue_data.consolidated_sectors)
+                .sort((a, b) => b[1].percentage - a[1].percentage)
+                .slice(0, 6)
+                .map(([sector, sectorData]) => (
+                  <div key={sector} className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 min-w-[140px]">
+                      <span className="text-base">{CATEGORY_DISPLAY[sector]?.emoji || '📦'}</span>
+                      <span className="text-sm truncate">{sector}</span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-2">
+                      <Progress value={sectorData.percentage} className="h-2 flex-1" />
+                      <span className="text-sm text-muted-foreground w-10 text-right font-medium">
+                        {sectorData.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        ) : topSectors.length > 0 && (
           <div>
             <p className="text-sm font-medium text-foreground mb-2">Sectores Dominantes</p>
             <div className="flex flex-wrap gap-2">
