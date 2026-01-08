@@ -14,6 +14,7 @@ import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSectio
 import LocationMetrics from '@/components/billboard/LocationMetrics';
 import NearbyBrands from '@/components/billboard/NearbyBrands';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
+import { TrafficAnalyticsPublic } from '@/components/billboard/TrafficAnalyticsPublic';
 
 interface Billboard {
   id: string;
@@ -285,6 +286,15 @@ const BillboardDetail: React.FC = () => {
         {/* INEGI Insights - Commercial Categories */}
         <div className="mb-8">
           <INEGIInsights billboard={{ id: billboard.id, latitude: billboard.latitude, longitude: billboard.longitude }} />
+        </div>
+
+        {/* Traffic Analytics */}
+        <div className="mb-8">
+          <TrafficAnalyticsPublic 
+            billboardId={billboard.id} 
+            dailyImpressions={billboard.daily_impressions}
+            city={billboard.city}
+          />
         </div>
 
         {/* Nearby Brands */}

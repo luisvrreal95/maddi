@@ -16,6 +16,7 @@ import RecommendedActions from '@/components/owner/RecommendedActions';
 import OwnerHome from '@/components/owner/OwnerHome';
 import OwnerCalendar from '@/components/owner/OwnerCalendar';
 import PropertyFilters from '@/components/owner/PropertyFilters';
+import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -260,7 +261,22 @@ const OwnerDashboard: React.FC = () => {
               <BillboardSelector billboards={billboards} selectedId={selectedBillboard?.id || null} onSelect={setSelectedBillboard} isLoading={isLoading} />
             </div>
             <RecommendedActions billboards={billboards} userId={user?.id || ''} />
-            {selectedBillboard && <div className="mt-8"><TrafficAnalytics key={selectedBillboard.id} billboard={selectedBillboard} /></div>}
+            {selectedBillboard && (
+              <>
+                <div className="mt-8">
+                  <TrafficAnalytics key={selectedBillboard.id} billboard={selectedBillboard} />
+                </div>
+                <div className="mt-8">
+                  <INEGIInsights 
+                    billboard={{ 
+                      id: selectedBillboard.id, 
+                      latitude: selectedBillboard.latitude, 
+                      longitude: selectedBillboard.longitude 
+                    }} 
+                  />
+                </div>
+              </>
+            )}
           </>
         )}
 
