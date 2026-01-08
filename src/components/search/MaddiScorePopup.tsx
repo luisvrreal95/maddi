@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
+import { ZoneTypeIndicator, UrbanZoneType } from '@/components/billboard/ZoneTypeIndicator';
 
 interface TrafficData {
   currentSpeed?: number;
@@ -19,6 +20,12 @@ interface CategoryDistribution {
   label: string;
   percentage: number;
   count: number;
+}
+
+interface UrbanZoneData {
+  type: UrbanZoneType;
+  confidence: number;
+  signals: string[];
 }
 
 interface INEGIData {
@@ -33,6 +40,7 @@ interface INEGIData {
     known_brands?: string[];
     interpretation?: string;
     zone_type?: 'mixed' | 'specialized' | 'limited';
+    urban_zone?: UrbanZoneData;
   };
 }
 
@@ -162,6 +170,11 @@ function getInterpretation(inegiData?: INEGIData): string {
   return inegiData?.rawDenueData?.interpretation || 'Sin información comercial';
 }
 
+// Get urban zone classification
+function getUrbanZone(inegiData?: INEGIData): UrbanZoneData | undefined {
+  return inegiData?.rawDenueData?.urban_zone;
+}
+
 const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
   property, trafficData, inegiData, isLoadingTraffic, isLoadingInegi, onClose, onCompare, isSelected = false,
 }) => {
@@ -182,6 +195,7 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
   const topCategories = getTopCategories(inegiData);
   const knownBrands = getKnownBrands(inegiData);
   const interpretation = getInterpretation(inegiData);
+  const urbanZone = getUrbanZone(inegiData);
 
   return (
     <div className="bg-card rounded-xl shadow-xl border border-border overflow-hidden w-[360px] max-h-[90vh] flex flex-col">
@@ -226,6 +240,15 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
           </TabsList>
           
           <TabsContent value="zona" className="mt-2 space-y-2">
+            {/* Urban Zone Classification - NEW */}
+            {urbanZone && (
+              <ZoneTypeIndicator 
+                zoneType={urbanZone.type}
+                variant="compact"
+                showTooltip={true}
+              />
+            )}
+            
             {inegiData?.socioeconomicLevel && (
               <div>
                 <div className="flex items-center justify-between mb-1">
@@ -246,7 +269,6 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({
               <Building2 className="w-3 h-3" />
               <span>{inegiData?.nearbyBusinessesCount || 0} negocios en 500m</span>
             </div>
-            <p className="text-xs font-medium text-primary">{interpretation}</p>
             
             {/* Known Brands in Zona tab */}
             {knownBrands.length > 0 && (
