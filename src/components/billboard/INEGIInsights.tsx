@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ZoneTypeIndicator, UrbanZoneType } from './ZoneTypeIndicator';
 
 interface INEGIInsightsProps {
   billboard: {
@@ -37,6 +38,12 @@ interface CategoryDistribution {
   label: string;
   percentage: number;
   count: number;
+}
+
+interface UrbanZoneData {
+  type: UrbanZoneType;
+  confidence: number;
+  signals: string[];
 }
 
 interface DemographicsData {
@@ -55,6 +62,7 @@ interface DemographicsData {
     known_brands?: string[];
     interpretation?: string;
     zone_type?: 'mixed' | 'specialized' | 'limited';
+    urban_zone?: UrbanZoneData;
   };
 }
 
@@ -104,11 +112,12 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
         setData(cached as DemographicsData);
         setHasAnalyzed(true);
 
-        // Backfill: if this row was generated before the new processed format (distribution), refresh it.
+        // Check for both distribution and urban_zone
         const raw = (cached as any).raw_denue_data as any;
         const hasDistribution = Array.isArray(raw?.distribution) && raw.distribution.length > 0;
+        const hasUrbanZone = raw?.urban_zone?.type;
 
-        if (!hasDistribution) {
+        if (!hasDistribution || !hasUrbanZone) {
           try {
             const { data: result, error } = await supabase.functions.invoke('analyze-inegi-data', {
               body: {
@@ -123,7 +132,7 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
               setData(result.data as DemographicsData);
             }
           } catch (e) {
-            console.error('Error backfilling INEGI distribution:', e);
+            console.error('Error backfilling INEGI data:', e);
           }
         }
       }
@@ -169,6 +178,11 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
   // Get known brands
   const getKnownBrands = (): string[] => {
     return data?.raw_denue_data?.known_brands || [];
+  };
+
+  // Get urban zone classification
+  const getUrbanZone = (): UrbanZoneData | undefined => {
+    return data?.raw_denue_data?.urban_zone;
   };
 
   if (!hasAnalyzed && !isLoading) {
@@ -221,6 +235,7 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
 
   const distribution = getDistribution();
   const knownBrands = getKnownBrands();
+  const urbanZone = getUrbanZone();
   const interpretation = data.raw_denue_data?.interpretation;
 
   return (
@@ -240,6 +255,16 @@ export const INEGIInsights = ({ billboard }: INEGIInsightsProps) => {
         </Button>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Urban Zone Classification - NEW PROMINENT SECTION */}
+        {urbanZone && (
+          <ZoneTypeIndicator 
+            zoneType={urbanZone.type} 
+            confidence={urbanZone.confidence}
+            variant="full"
+            showCampaigns={true}
+          />
+        )}
+
         {/* Audience Profile */}
         <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
           <div className="p-2 rounded-full bg-primary/10">

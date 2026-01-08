@@ -188,12 +188,30 @@ interface CategoryDistribution {
   count: number;
 }
 
+// ============================================================
+// TIPOS DE ZONA URBANA
+// ============================================================
+type UrbanZoneType = 
+  | 'industrial'
+  | 'commercial'
+  | 'corporate'
+  | 'residential'
+  | 'transit'
+  | 'mixed';
+
+interface ZoneClassification {
+  type: UrbanZoneType;
+  confidence: number;
+  signals: string[];
+}
+
 interface ProcessedData {
   distribution: CategoryDistribution[];
   totalBusinesses: number;
   knownBrands: string[];
   interpretation: string;
   zoneType: 'mixed' | 'specialized' | 'limited';
+  urbanZone: ZoneClassification;
 }
 
 // ============================================================
@@ -271,6 +289,188 @@ function extractKnownBrands(denueData: DenueRecord[]): string[] {
 // ============================================================
 // Procesar y agrupar negocios por categoría
 // ============================================================
+// ============================================================
+// CLASIFICACIÓN DE ZONA URBANA
+// Combina múltiples señales para inferir el tipo de zona
+// ============================================================
+function classifyUrbanZone(
+  distribution: CategoryDistribution[],
+  totalBusinesses: number,
+  knownBrands: string[]
+): ZoneClassification {
+  const signals: string[] = [];
+  let scores: Record<UrbanZoneType, number> = {
+    industrial: 0,
+    commercial: 0,
+    corporate: 0,
+    residential: 0,
+    transit: 0,
+    mixed: 0,
+  };
+
+  // Helper to get percentage for a category
+  const getPct = (label: string): number => {
+    const found = distribution.find(d => d.label === label);
+    return found?.percentage || 0;
+  };
+
+  // ========== SIGNAL 1: Category Distribution ==========
+  const industrialPct = getPct('Industria y Manufactura');
+  const automotrizPct = getPct('Automotriz y Transporte');
+  const comercioPct = getPct('Comercio Minorista');
+  const alimentosPct = getPct('Alimentos y Bebidas');
+  const financieroPct = getPct('Servicios Financieros');
+  const profesionalPct = getPct('Servicios Profesionales');
+  const entretenimientoPct = getPct('Entretenimiento');
+  const saludPct = getPct('Salud');
+  const educacionPct = getPct('Educación');
+  const personalPct = getPct('Servicios Personales');
+
+  // Industrial signals
+  if (industrialPct >= 10) {
+    scores.industrial += 30;
+    signals.push(`Industria/Manufactura: ${industrialPct}%`);
+  }
+  if (automotrizPct >= 15 && alimentosPct < 15 && entretenimientoPct < 10) {
+    scores.industrial += 20;
+    scores.transit += 15;
+    signals.push(`Alto Automotriz (${automotrizPct}%) con bajo entretenimiento`);
+  }
+  if (financieroPct >= 12 && comercioPct < 30 && alimentosPct < 15) {
+    scores.industrial += 15;
+    signals.push(`Servicios Financieros sin retail dominante`);
+  }
+
+  // Commercial signals
+  if (comercioPct >= 35) {
+    scores.commercial += 35;
+    signals.push(`Comercio dominante: ${comercioPct}%`);
+  }
+  if (alimentosPct >= 20 && comercioPct >= 20) {
+    scores.commercial += 20;
+    signals.push(`Comercio + Alimentos fuerte`);
+  }
+  if (entretenimientoPct >= 8) {
+    scores.commercial += 15;
+    signals.push(`Entretenimiento presente: ${entretenimientoPct}%`);
+  }
+
+  // Corporate signals
+  if (profesionalPct >= 15 && financieroPct >= 10) {
+    scores.corporate += 30;
+    signals.push(`Servicios profesionales + financieros`);
+  }
+  if (profesionalPct >= 20) {
+    scores.corporate += 20;
+    signals.push(`Alta concentración profesional: ${profesionalPct}%`);
+  }
+
+  // Residential signals
+  if (personalPct >= 15 && comercioPct >= 20 && comercioPct < 40) {
+    scores.residential += 20;
+    signals.push(`Servicios personales + comercio de proximidad`);
+  }
+  if (saludPct >= 10 && educacionPct >= 5) {
+    scores.residential += 15;
+    signals.push(`Salud + Educación (servicios familiares)`);
+  }
+
+  // Transit signals
+  if (automotrizPct >= 20) {
+    scores.transit += 25;
+    signals.push(`Automotriz dominante: ${automotrizPct}%`);
+  }
+
+  // ========== SIGNAL 2: Business Diversity ==========
+  const categoriesWithData = distribution.filter(d => d.percentage >= 5).length;
+  const diversityScore = categoriesWithData / 10; // 0-1
+  
+  if (diversityScore < 0.3) {
+    // Low diversity = specialized zone
+    if (industrialPct >= 8 || automotrizPct >= 15) {
+      scores.industrial += 15;
+      signals.push('Baja diversidad comercial');
+    }
+  } else if (diversityScore > 0.6) {
+    scores.mixed += 20;
+    scores.commercial += 10;
+    signals.push('Alta diversidad comercial');
+  }
+
+  // ========== SIGNAL 3: Business Density ==========
+  // Few businesses with certain patterns = industrial
+  if (totalBusinesses < 30) {
+    if (automotrizPct >= 10 || financieroPct >= 10) {
+      scores.industrial += 20;
+      signals.push(`Baja densidad (${totalBusinesses} negocios) con servicios de soporte`);
+    } else {
+      scores.residential += 15;
+    }
+  } else if (totalBusinesses > 80) {
+    scores.commercial += 15;
+    signals.push(`Alta densidad: ${totalBusinesses} negocios`);
+  }
+
+  // ========== SIGNAL 4: Brand Types ==========
+  const bankBrands = ['BBVA', 'BANORTE', 'SANTANDER', 'HSBC', 'CITIBANAMEX', 'BANAMEX', 'SCOTIABANK', 'INBURSA'];
+  const retailBrands = ['WALMART', 'SORIANA', 'CHEDRAUI', 'COSTCO', 'SAMS CLUB', 'LIVERPOOL', 'COPPEL'];
+  const foodBrands = ['STARBUCKS', 'MCDONALDS', 'BURGER KING', 'DOMINOS', 'OXXO', 'VIPS'];
+  
+  const hasBanks = knownBrands.some(b => bankBrands.some(bb => b.toUpperCase().includes(bb)));
+  const hasRetail = knownBrands.some(b => retailBrands.some(rb => b.toUpperCase().includes(rb)));
+  const hasFood = knownBrands.some(b => foodBrands.some(fb => b.toUpperCase().includes(fb)));
+
+  if (hasBanks && !hasRetail && !hasFood) {
+    scores.industrial += 10;
+    scores.corporate += 10;
+    signals.push('Bancos sin retail/restaurantes');
+  }
+  if (hasRetail && hasFood) {
+    scores.commercial += 15;
+    signals.push('Presencia de retail y restaurantes');
+  }
+
+  // ========== SIGNAL 5: Industrial Pattern Detection ==========
+  // Key pattern: High automotive/transport + financial services + low entertainment/food = Industrial
+  const industrialPattern = 
+    automotrizPct >= 12 && 
+    (financieroPct >= 8 || comercioPct >= 30) && 
+    entretenimientoPct < 8 && 
+    alimentosPct < 18;
+  
+  if (industrialPattern) {
+    scores.industrial += 25;
+    signals.push('Patrón industrial detectado: servicios de soporte laboral');
+  }
+
+  // ========== Determine Winner ==========
+  const maxScore = Math.max(...Object.values(scores));
+  let winnerType: UrbanZoneType = 'mixed';
+  
+  // Find the type with highest score
+  for (const [type, score] of Object.entries(scores)) {
+    if (score === maxScore && score > 0) {
+      winnerType = type as UrbanZoneType;
+      break;
+    }
+  }
+
+  // If top score is too low or tied, default to mixed
+  const totalScore = Object.values(scores).reduce((a, b) => a + b, 0);
+  const confidence = totalScore > 0 ? Math.min(0.95, maxScore / 100) : 0.3;
+
+  // Override: If no clear winner (score < 25), it's mixed
+  if (maxScore < 25) {
+    winnerType = 'mixed';
+  }
+
+  return {
+    type: winnerType,
+    confidence,
+    signals: signals.slice(0, 5), // Top 5 signals
+  };
+}
+
 function processBusinessData(denueData: DenueRecord[]): ProcessedData {
   const categoryCounts: Record<FinalCategory, number> = {} as Record<FinalCategory, number>;
   
@@ -307,12 +507,16 @@ function processBusinessData(denueData: DenueRecord[]): ProcessedData {
   // Determinar tipo de zona e interpretación
   const { interpretation, zoneType } = generateInterpretation(distribution, totalBusinesses, knownBrands);
   
+  // Clasificar zona urbana con múltiples señales
+  const urbanZone = classifyUrbanZone(distribution, totalBusinesses, knownBrands);
+  
   return {
     distribution,
     totalBusinesses,
     knownBrands,
     interpretation,
     zoneType,
+    urbanZone,
   };
 }
 
@@ -487,8 +691,9 @@ serve(async (req) => {
 
         const raw = (cached as any).raw_denue_data as any;
         const hasDistribution = Array.isArray(raw?.distribution) && raw.distribution.length > 0;
+        const hasUrbanZone = raw?.urban_zone?.type;
 
-        if (daysSinceUpdate < 7 && hasDistribution) {
+        if (daysSinceUpdate < 7 && hasDistribution && hasUrbanZone) {
           console.log('Returning cached INEGI data');
           return new Response(
             JSON.stringify({ data: cached, source: 'cache', cached_at: cached.last_updated }),
@@ -496,8 +701,8 @@ serve(async (req) => {
           );
         }
 
-        if (daysSinceUpdate < 7 && !hasDistribution) {
-          console.log('Cached INEGI data found but missing processed distribution. Recomputing...');
+        if (daysSinceUpdate < 7 && (!hasDistribution || !hasUrbanZone)) {
+          console.log('Cached INEGI data found but missing processed data. Recomputing...');
         }
       }
     }
@@ -562,10 +767,13 @@ serve(async (req) => {
         known_brands: processed.knownBrands,
         interpretation: processed.interpretation,
         zone_type: processed.zoneType,
+        urban_zone: processed.urbanZone,
         sample: denueData.slice(0, 10),
       },
       last_updated: new Date().toISOString(),
     };
+
+    console.log('Urban Zone Classification:', JSON.stringify(processed.urbanZone, null, 2));
 
     // Guardar
     const { data: saved, error: saveError } = await supabase
