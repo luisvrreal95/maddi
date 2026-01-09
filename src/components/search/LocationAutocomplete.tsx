@@ -81,9 +81,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        // Build URL with proximity bias if user location is available
-        // Prioritize cities and regions over neighborhoods for better zoom
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality&limit=8&language=es`;
+        // Include neighborhood and address types for more precise searches
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address&limit=8&language=es`;
         
         if (userLocation) {
           url += `&proximity=${userLocation.lng},${userLocation.lat}`;

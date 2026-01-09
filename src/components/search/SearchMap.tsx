@@ -94,6 +94,8 @@ interface SearchMapProps {
   mapboxToken: string;
   searchLocation?: string;
   selectedBounds?: [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
+  selectedCenter?: [number, number]; // [lng, lat] for when no bbox is available
+  selectedPlaceType?: string; // place type for appropriate zoom level
   onReserveClick: (property: Property) => void;
   layers: MapLayers;
   poiCategories: POICategories;
@@ -115,6 +117,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   mapboxToken,
   searchLocation,
   selectedBounds,
+  selectedCenter,
+  selectedPlaceType,
   onReserveClick,
   layers,
   poiCategories,
@@ -176,6 +180,20 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
   // Map style is fixed to dark mode
 
+  // Helper function to get appropriate zoom level based on place type
+  const getZoomForPlaceType = (placeType: string): number => {
+    switch (placeType) {
+      case 'country': return 5;
+      case 'region': return 8;
+      case 'place': return 11; // City
+      case 'district': return 13;
+      case 'locality': return 14;
+      case 'neighborhood': return 15; // Colonia - closer zoom
+      case 'address': return 17; // Address - very close zoom
+      default: return 12;
+    }
+  };
+
   // Geocode search location and fly to it - prefer bbox if available
   useEffect(() => {
     if (!map.current || !mapboxToken) return;
@@ -189,13 +207,24 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       return;
     }
 
+    // If we have a center point and place type (e.g., for neighborhoods without bbox)
+    if (selectedCenter && selectedCenter[0] !== 0 && selectedCenter[1] !== 0) {
+      const zoom = getZoomForPlaceType(selectedPlaceType || 'place');
+      map.current.flyTo({
+        center: selectedCenter,
+        zoom,
+        duration: 1500,
+      });
+      return;
+    }
+
     // Otherwise geocode the search location
     if (!searchLocation) return;
 
     const geocodeLocation = async () => {
       try {
         const response = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchLocation)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,locality&limit=1`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchLocation)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address&limit=1`
         );
         const data = await response.json();
         
@@ -211,11 +240,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
               { padding: 50, duration: 1500 }
             );
           } else {
-            let zoom = 12;
-            if (placeType === 'country') zoom = 5;
-            else if (placeType === 'region') zoom = 8;
-            else if (placeType === 'place') zoom = 11;
-            else if (placeType === 'locality') zoom = 12;
+            const zoom = getZoomForPlaceType(placeType);
             
             map.current?.flyTo({
               center: [lng, lat],
@@ -230,7 +255,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     };
 
     geocodeLocation();
-  }, [searchLocation, selectedBounds, mapboxToken]);
+  }, [searchLocation, selectedBounds, selectedCenter, selectedPlaceType, mapboxToken]);
 
   // Fetch INEGI data for a property
   const fetchINEGIData = useCallback(async (billboardId: string, lat: number, lng: number) => {
