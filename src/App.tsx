@@ -17,6 +17,9 @@ import Messages from "./pages/Messages";
 import Reviews from "./pages/Reviews";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminResetPassword from "./pages/AdminResetPassword";
+import AdminAcceptInvite from "./pages/AdminAcceptInvite";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -39,6 +42,8 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/reviews" element={<Reviews />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/reset-password" element={<AdminResetPassword />} />
+            <Route path="/admin/accept-invite" element={<AdminAcceptInvite />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
