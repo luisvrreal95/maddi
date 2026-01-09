@@ -21,6 +21,30 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSendingReset, setIsSendingReset] = useState(false);
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      toast.error("Ingresa tu email de administrador");
+      return;
+    }
+
+    setIsSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/admin`,
+      });
+
+      if (error) throw error;
+
+      toast.success("Correo de recuperación enviado. Revisa tu bandeja.");
+    } catch (err: any) {
+      console.error("Reset password error:", err);
+      toast.error(err?.message ?? "Error al enviar correo de recuperación");
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -185,6 +209,15 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
                 'Acceder al Panel'
               )}
             </Button>
+
+            <button
+              type="button"
+              onClick={handlePasswordReset}
+              disabled={isSendingReset || isLoggingIn}
+              className="w-full text-center text-white/50 hover:text-[#9BFF43] text-sm transition-colors mt-2 disabled:opacity-50"
+            >
+              {isSendingReset ? "Enviando..." : "¿Olvidaste tu contraseña?"}
+            </button>
           </form>
 
           {/* Footer */}
