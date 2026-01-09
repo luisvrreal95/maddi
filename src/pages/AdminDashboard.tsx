@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AdminGuard from "@/components/admin/AdminGuard";
 import AdminHeader from "@/components/admin/AdminHeader";
 import AdminStats from "@/components/admin/AdminStats";
+import AdminCharts from "@/components/admin/AdminCharts";
 import CampaignManagement from "@/components/admin/CampaignManagement";
 import PropertyManagement from "@/components/admin/PropertyManagement";
 import UserManagement from "@/components/admin/UserManagement";
@@ -48,6 +49,7 @@ const AdminDashboard = () => {
               <p className="text-muted-foreground">Vista general de la plataforma Maddi</p>
             </div>
             <AdminStats />
+            <AdminCharts />
           </div>
         );
       case 'campaigns':
