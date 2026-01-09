@@ -1,16 +1,17 @@
-import { Link, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Users, 
-  Building2, 
-  BarChart3, 
+import { Link } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  Building2,
+  BarChart3,
   CreditCard,
   ArrowLeft,
-  Shield
+  Shield,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const tabs = [
+const baseTabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'campaigns', label: 'Campañas', icon: CreditCard },
   { id: 'properties', label: 'Propiedades', icon: Building2 },
@@ -18,12 +19,19 @@ const tabs = [
   { id: 'api-analytics', label: 'API Analytics', icon: BarChart3 },
 ];
 
+const superAdminTabs = [
+  ...baseTabs,
+  { id: 'settings', label: 'Configuración', icon: Settings },
+];
+
 interface AdminHeaderProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  isSuperAdmin?: boolean;
 }
 
-const AdminHeader = ({ activeTab, onTabChange }: AdminHeaderProps) => {
+const AdminHeader = ({ activeTab, onTabChange, isSuperAdmin = false }: AdminHeaderProps) => {
+  const tabs = isSuperAdmin ? superAdminTabs : baseTabs;
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto px-4">
