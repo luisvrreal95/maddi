@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface BookingDialogProps {
   open: boolean;
@@ -34,12 +35,22 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   billboard,
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [startDate, setStartDate] = useState<Date | undefined>(addMonths(new Date(), 1));
   const [endDate, setEndDate] = useState<Date | undefined>(addMonths(new Date(), 2));
   const [notes, setNotes] = useState('');
   const [adDesignUrl, setAdDesignUrl] = useState('');
   const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
+
+  // Redirect to auth if user is not logged in
+  useEffect(() => {
+    if (open && !user) {
+      toast.error('Debes iniciar sesión para reservar');
+      onOpenChange(false);
+      navigate('/auth');
+    }
+  }, [open, user, navigate, onOpenChange]);
   const [dateConflict, setDateConflict] = useState(false);
 
   useEffect(() => {
