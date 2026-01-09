@@ -14,6 +14,74 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string | null
+          id: string
+          permissions: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          permissions?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          permissions?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      api_usage_logs: {
+        Row: {
+          api_name: string
+          billboard_id: string | null
+          endpoint_type: string
+          id: string
+          latency_ms: number | null
+          metadata: Json | null
+          request_timestamp: string | null
+          response_status: number | null
+          source_screen: string | null
+          user_id: string | null
+        }
+        Insert: {
+          api_name: string
+          billboard_id?: string | null
+          endpoint_type: string
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json | null
+          request_timestamp?: string | null
+          response_status?: number | null
+          source_screen?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          api_name?: string
+          billboard_id?: string | null
+          endpoint_type?: string
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json | null
+          request_timestamp?: string | null
+          response_status?: number | null
+          source_screen?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_usage_logs_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: false
+            referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       billboards: {
         Row: {
           address: string
@@ -448,6 +516,53 @@ export type Database = {
             foreignKeyName: "notifications_related_booking_id_fkey"
             columns: ["related_booking_id"]
             isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_commissions: {
+        Row: {
+          booking_id: string
+          commission_amount: number
+          commission_rate: number | null
+          created_at: string | null
+          id: string
+          owner_payout: number
+          payment_date: string | null
+          payment_status: string | null
+          total_amount: number
+          updated_at: string | null
+        }
+        Insert: {
+          booking_id: string
+          commission_amount: number
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          owner_payout: number
+          payment_date?: string | null
+          payment_status?: string | null
+          total_amount: number
+          updated_at?: string | null
+        }
+        Update: {
+          booking_id?: string
+          commission_amount?: number
+          commission_rate?: number | null
+          created_at?: string | null
+          id?: string
+          owner_payout?: number
+          payment_date?: string | null
+          payment_status?: string | null
+          total_amount?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_commissions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
             referencedRelation: "bookings"
             referencedColumns: ["id"]
           },
