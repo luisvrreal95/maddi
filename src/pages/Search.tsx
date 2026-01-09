@@ -487,6 +487,8 @@ const SearchPage: React.FC = () => {
               mapboxToken={mapboxToken}
               searchLocation={confirmedLocation}
               selectedBounds={selectedLocationData?.bbox}
+              selectedCenter={selectedLocationData?.center}
+              selectedPlaceType={selectedLocationData?.placeType}
               onReserveClick={handleReserveClick}
               layers={mapLayers}
               poiCategories={poiCategories}
