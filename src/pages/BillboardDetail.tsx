@@ -15,6 +15,7 @@ import LocationMetrics from '@/components/billboard/LocationMetrics';
 import NearbyBrands from '@/components/billboard/NearbyBrands';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import { TrafficAnalyticsPublic } from '@/components/billboard/TrafficAnalyticsPublic';
+import ShareDialog from '@/components/share/ShareDialog';
 
 interface Billboard {
   id: string;
@@ -159,11 +160,17 @@ const BillboardDetail: React.FC = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/search" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors w-fit">
             <ArrowLeft className="w-5 h-5" />
             <span>Volver a búsqueda</span>
           </Link>
+          <ShareDialog
+            title={billboard.title}
+            subtitle={`${billboard.city}, ${billboard.state} · $${billboard.price_per_month.toLocaleString()}/mes`}
+            imageUrl={billboard.image_url}
+            shareUrl={`/billboard/${billboard.id}`}
+          />
         </div>
       </header>
 
