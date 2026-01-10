@@ -27,6 +27,7 @@ export interface Billboard {
   daily_impressions: number | null;
   price_per_month: number;
   image_url: string | null;
+  image_urls: string[] | null;
   is_available: boolean;
   points_of_interest: string[] | null;
   created_at: string;

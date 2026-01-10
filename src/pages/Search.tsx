@@ -40,6 +40,7 @@ interface MapProperty {
   lat: number;
   lng: number;
   imageUrl: string | null;
+  imageUrls: string[] | null;
   owner?: {
     full_name: string;
     company_name: string | null;
@@ -65,7 +66,8 @@ const transformBillboardToProperty = (billboard: Billboard, reviewStats?: { aver
   availability: 'Inmediata',
   lat: Number(billboard.latitude),
   lng: Number(billboard.longitude),
-  imageUrl: billboard.image_url || null,
+  imageUrl: billboard.image_url || (billboard.image_urls?.[0]) || null,
+  imageUrls: billboard.image_urls || (billboard.image_url ? [billboard.image_url] : null),
   owner: billboard.owner,
   averageRating: reviewStats?.averageRating || 0,
   totalReviews: reviewStats?.totalReviews || 0,

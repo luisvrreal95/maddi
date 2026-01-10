@@ -24,6 +24,7 @@ interface MapProperty {
   lat: number;
   lng: number;
   imageUrl: string | null;
+  imageUrls: string[] | null;
   averageRating?: number;
   totalReviews?: number;
 }
@@ -221,8 +222,11 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
 
   const listingHeight = listingState === 'collapsed' ? 'h-[28vh]' : 'h-[85vh]';
 
-  // Get images for carousel (for now just the main image, but structure allows multiple)
+  // Get images for carousel - use image_urls array if available, fallback to imageUrl
   const getPropertyImages = (property: MapProperty): string[] => {
+    if (property.imageUrls && property.imageUrls.length > 0) {
+      return property.imageUrls;
+    }
     if (property.imageUrl) {
       return [property.imageUrl];
     }

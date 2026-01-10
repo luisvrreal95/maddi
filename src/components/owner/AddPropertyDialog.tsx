@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
-import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon, Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon, Upload, X, Loader2, Image as ImageIcon, Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import mapboxgl from 'mapbox-gl';
@@ -102,9 +102,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     }
   }, [billboard]);
   
-  // Image upload
-  const [imageUrl, setImageUrl] = useState<string>('');
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  // Multiple images upload
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,8 +148,15 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       setWidth(billboard.width_m.toString());
       setBillboardType(billboard.billboard_type || 'espectacular');
       setIsIlluminated(billboard.illumination === 'iluminado');
-      setImageUrl(billboard.image_url || '');
-      setImagePreview(billboard.image_url || null);
+      // Load images - prioritize image_urls array, fallback to image_url
+      const existingImages = (billboard as any).image_urls || [];
+      if (existingImages.length > 0) {
+        setImageUrls(existingImages);
+      } else if (billboard.image_url) {
+        setImageUrls([billboard.image_url]);
+      } else {
+        setImageUrls([]);
+      }
       // Load existing POIs
       const existingPois = (billboard as any).points_of_interest || [];
       setPointsOfInterest(existingPois);
@@ -350,8 +356,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setWidth('');
     setAvailability('immediate');
     setAvailableFrom(undefined);
-    setImageUrl('');
-    setImagePreview(null);
+    setImageUrls([]);
     setAddressSuggestions([]);
   };
 
@@ -412,54 +417,74 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     }
   };
 
-  // Image upload handlers
-  const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  // Multi-image upload handler
+  const handleImagesChange = (urls: string[]) => {
+    setImageUrls(urls);
+  };
 
-    if (!file.type.startsWith('image/')) {
-      toast.error('Solo se permiten imágenes');
+  const handleSingleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user) return;
+
+    const remainingSlots = 6 - imageUrls.length;
+    if (remainingSlots <= 0) {
+      toast.error('Máximo 6 imágenes permitidas');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('La imagen no debe superar 5MB');
-      return;
-    }
-
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
     setIsUploadingImage(true);
+    const newUrls: string[] = [];
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      for (const file of filesToUpload) {
+        if (!file.type.startsWith('image/')) {
+          toast.error(`${file.name}: Solo se permiten imágenes`);
+          continue;
+        }
 
-      const { data, error } = await supabase.storage
-        .from('billboard-images')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false,
-        });
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name}: La imagen no debe superar 5MB`);
+          continue;
+        }
 
-      if (error) throw error;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
 
-      const { data: urlData } = supabase.storage
-        .from('billboard-images')
-        .getPublicUrl(data.path);
+        const { data, error } = await supabase.storage
+          .from('billboard-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false,
+          });
 
-      setImagePreview(urlData.publicUrl);
-      setImageUrl(urlData.publicUrl);
-      toast.success('Imagen subida correctamente');
+        if (error) {
+          console.error('Error uploading:', error);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('billboard-images')
+          .getPublicUrl(data.path);
+
+        newUrls.push(urlData.publicUrl);
+      }
+
+      if (newUrls.length > 0) {
+        setImageUrls(prev => [...prev, ...newUrls]);
+        toast.success(`${newUrls.length} imagen(es) subida(s)`);
+      }
     } catch (error: any) {
       console.error('Error uploading image:', error);
       toast.error(error.message || 'Error al subir imagen');
     } finally {
       setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
-  const handleRemoveImage = () => {
-    setImagePreview(null);
-    setImageUrl('');
+  const handleRemoveImage = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -486,7 +511,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         billboard_type: billboardType,
         illumination: isIlluminated ? 'iluminado' : 'no_iluminado',
         faces: 1,
-        image_url: imageUrl || null,
+        image_url: imageUrls[0] || null,
+        image_urls: imageUrls.length > 0 ? imageUrls : null,
         points_of_interest: pointsOfInterest,
       };
 
@@ -690,51 +716,63 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               </p>
             </div>
 
-            {/* Image Upload */}
+            {/* Multi-Image Upload */}
             <div>
-              <Label className="text-sm text-white/60 mb-2 block">Imagen del espectacular</Label>
-              {imagePreview ? (
-                <div className="relative rounded-xl overflow-hidden border border-white/10">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-40 object-cover"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={handleRemoveImage}
+              <Label className="text-sm text-white/60 mb-2 block">Imágenes del espectacular (máx. 6)</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {imageUrls.map((url, index) => (
+                  <div key={url} className="relative aspect-video rounded-lg overflow-hidden border border-white/10 group">
+                    <img
+                      src={url}
+                      alt={`Image ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleRemoveImage(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    {index === 0 && (
+                      <span className="absolute bottom-1 left-1 text-xs bg-[#9BFF43] text-[#121212] px-1.5 py-0.5 rounded font-medium">
+                        Principal
+                      </span>
+                    )}
+                  </div>
+                ))}
+
+                {imageUrls.length < 6 && (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#2A2A2A]"
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#2A2A2A]"
-                >
-                  {isUploadingImage ? (
-                    <>
-                      <Loader2 className="h-8 w-8 text-[#9BFF43] animate-spin mb-2" />
-                      <p className="text-white/60 text-sm">Subiendo...</p>
-                    </>
-                  ) : (
-                    <>
-                      <ImageIcon className="h-8 w-8 text-white/40 mb-2" />
-                      <p className="text-white/60 text-sm">Haz clic para subir imagen</p>
-                      <p className="text-white/40 text-xs mt-1">JPG, PNG, WebP (máx 5MB)</p>
-                    </>
-                  )}
-                </div>
-              )}
+                    {isUploadingImage ? (
+                      <>
+                        <Loader2 className="h-6 w-6 text-[#9BFF43] animate-spin mb-1" />
+                        <p className="text-white/60 text-xs">Subiendo...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-6 w-6 text-white/40 mb-1" />
+                        <p className="text-white/60 text-xs text-center px-2">Agregar foto</p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              <p className="text-white/40 text-xs mt-2">
+                {imageUrls.length}/6 imágenes · La primera será la principal · JPG, PNG, WebP (máx 5MB c/u)
+              </p>
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={handleImageSelect}
+                onChange={handleSingleImageSelect}
                 className="hidden"
+                multiple
               />
             </div>
 
