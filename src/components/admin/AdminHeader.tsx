@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Shield,
   Settings,
+  BadgeCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,7 @@ const baseTabs = [
   { id: 'campaigns', label: 'Campañas', icon: CreditCard },
   { id: 'properties', label: 'Propiedades', icon: Building2 },
   { id: 'users', label: 'Usuarios', icon: Users },
+  { id: 'verifications', label: 'Verificaciones', icon: BadgeCheck },
   { id: 'api-analytics', label: 'API Analytics', icon: BarChart3 },
 ];
 
