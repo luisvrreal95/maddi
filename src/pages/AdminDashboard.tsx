@@ -6,8 +6,9 @@ import AdminCharts from "@/components/admin/AdminCharts";
 import CampaignManagement from "@/components/admin/CampaignManagement";
 import PropertyManagement from "@/components/admin/PropertyManagement";
 import UserManagement from "@/components/admin/UserManagement";
-import APIUsageChart from "@/components/admin/APIUsageChart";
+import EnhancedAPIAnalytics from "@/components/admin/EnhancedAPIAnalytics";
 import AdminSettings from "@/components/admin/AdminSettings";
+import VerificationManagement from "@/components/admin/VerificationManagement";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -58,16 +59,18 @@ const AdminDashboard = () => {
         return <PropertyManagement />;
       case 'users':
         return <UserManagement />;
+      case 'verifications':
+        return <VerificationManagement />;
       case 'api-analytics':
         return (
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl font-bold mb-2">Analítica de APIs</h2>
               <p className="text-muted-foreground">
-                Monitoreo del uso de APIs externas (TomTom, Mapbox, INEGI)
+                Monitoreo del uso de APIs externas (TomTom, Mapbox, INEGI) con costos estimados
               </p>
             </div>
-            <APIUsageChart />
+            <EnhancedAPIAnalytics />
           </div>
         );
       case 'settings':

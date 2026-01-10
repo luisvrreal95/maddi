@@ -659,10 +659,18 @@ export type Database = {
           full_name: string
           id: string
           is_anonymous: boolean
+          is_verified: boolean
           notification_preferences: Json | null
           phone: string | null
           updated_at: string
           user_id: string
+          verification_document_type: string | null
+          verification_document_url: string | null
+          verification_notes: string | null
+          verification_reviewed_at: string | null
+          verification_reviewed_by: string | null
+          verification_status: string | null
+          verification_submitted_at: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -671,10 +679,18 @@ export type Database = {
           full_name: string
           id?: string
           is_anonymous?: boolean
+          is_verified?: boolean
           notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string
           user_id: string
+          verification_document_type?: string | null
+          verification_document_url?: string | null
+          verification_notes?: string | null
+          verification_reviewed_at?: string | null
+          verification_reviewed_by?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -683,10 +699,18 @@ export type Database = {
           full_name?: string
           id?: string
           is_anonymous?: boolean
+          is_verified?: boolean
           notification_preferences?: Json | null
           phone?: string | null
           updated_at?: string
           user_id?: string
+          verification_document_type?: string | null
+          verification_document_url?: string | null
+          verification_notes?: string | null
+          verification_reviewed_at?: string | null
+          verification_reviewed_by?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
         }
         Relationships: []
       }

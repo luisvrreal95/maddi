@@ -17,6 +17,8 @@ interface OwnerProfile {
   avatar_url: string | null;
   created_at: string;
   is_anonymous: boolean;
+  is_verified: boolean;
+  verification_status: string | null;
 }
 
 interface Billboard {
@@ -229,10 +231,18 @@ const PublicProfile = () => {
                 {profile.full_name}
               </h1>
               {profile.company_name && (
-                <p className="text-muted-foreground flex items-center gap-1 mb-4">
+                <p className="text-muted-foreground flex items-center gap-1 mb-2">
                   <Building2 className="w-4 h-4" />
                   {profile.company_name}
                 </p>
+              )}
+              
+              {/* Verified Badge */}
+              {profile.is_verified && (
+                <Badge className="bg-primary/20 text-primary hover:bg-primary/30 mb-2">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Identidad Verificada
+                </Badge>
               )}
 
               {/* Stats Row */}
@@ -271,10 +281,12 @@ const PublicProfile = () => {
             </h2>
 
             <div className="flex flex-wrap gap-3 mb-6">
-              <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
-                <CheckCircle className="w-4 h-4" />
-                Identidad verificada
-              </Badge>
+              {profile.is_verified && (
+                <Badge variant="outline" className="flex items-center gap-1 px-3 py-1 border-primary text-primary">
+                  <CheckCircle className="w-4 h-4" />
+                  Identidad verificada
+                </Badge>
+              )}
               <Badge variant="outline" className="flex items-center gap-1 px-3 py-1">
                 <Calendar className="w-4 h-4" />
                 Miembro desde{" "}

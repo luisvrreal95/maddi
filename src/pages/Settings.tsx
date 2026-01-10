@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Bell, Shield, Camera, Save, Loader2, Menu, LogOut, Settings as SettingsIcon } from 'lucide-react';
+import { User, Bell, Shield, Camera, Save, Loader2, Menu, LogOut, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import NotificationBell from '@/components/notifications/NotificationBell';
+import VerificationSection from '@/components/settings/VerificationSection';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -284,7 +285,7 @@ const Settings: React.FC = () => {
           </div>
         ) : (
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-[#2A2A2A] mb-6">
+            <TabsList className={`grid w-full ${userRole === 'owner' ? 'grid-cols-4' : 'grid-cols-3'} bg-[#2A2A2A] mb-6`}>
               <TabsTrigger value="profile" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
                 <User className="w-4 h-4 mr-2" />
                 Perfil
@@ -293,6 +294,12 @@ const Settings: React.FC = () => {
                 <Bell className="w-4 h-4 mr-2" />
                 Notificaciones
               </TabsTrigger>
+              {userRole === 'owner' && (
+                <TabsTrigger value="verification" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
+                  <BadgeCheck className="w-4 h-4 mr-2" />
+                  Verificación
+                </TabsTrigger>
+              )}
               <TabsTrigger value="security" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
                 <Shield className="w-4 h-4 mr-2" />
                 Seguridad
@@ -458,6 +465,16 @@ const Settings: React.FC = () => {
                 </div>
               </div>
             </TabsContent>
+
+            {/* Verification Tab - Only for owners */}
+            {userRole === 'owner' && (
+              <TabsContent value="verification">
+                <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+                  <h2 className="text-white text-lg font-bold mb-6">Verificación de Identidad</h2>
+                  <VerificationSection onVerificationChange={fetchProfile} />
+                </div>
+              </TabsContent>
+            )}
 
             {/* Security Tab */}
             <TabsContent value="security">
