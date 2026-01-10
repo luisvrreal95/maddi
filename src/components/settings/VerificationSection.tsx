@@ -65,7 +65,14 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
     }
   };
 
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // State for staged document before submission
+  const [stagedDocument, setStagedDocument] = useState<{
+    url: string;
+    type: string;
+    file: File;
+  } | null>(null);
+
+  const handleDocumentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
@@ -95,12 +102,32 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
         .from('billboard-images')
         .getPublicUrl(fileName);
 
-      // Update profile with verification request
+      // Stage the document for confirmation
+      setStagedDocument({
+        url: urlData.publicUrl,
+        type: documentType,
+        file: file
+      });
+      
+      toast.success('Documento cargado. Confirma para enviar a verificación.');
+    } catch (error) {
+      console.error('Error uploading document:', error);
+      toast.error('Error al subir documento');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSubmitVerification = async () => {
+    if (!stagedDocument || !user) return;
+
+    setIsUploading(true);
+    try {
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          verification_document_url: urlData.publicUrl,
-          verification_document_type: documentType,
+          verification_document_url: stagedDocument.url,
+          verification_document_type: stagedDocument.type,
           verification_status: 'pending',
           verification_submitted_at: new Date().toISOString(),
         })
@@ -108,14 +135,32 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
 
       if (updateError) throw updateError;
 
-      toast.success('Documento enviado para verificación');
+      toast.success('Solicitud de verificación enviada');
+      setStagedDocument(null);
       fetchVerificationStatus();
       onVerificationChange?.();
     } catch (error) {
-      console.error('Error uploading document:', error);
-      toast.error('Error al subir documento');
+      console.error('Error submitting verification:', error);
+      toast.error('Error al enviar verificación');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleCancelVerification = async () => {
+    if (!stagedDocument || !user) return;
+
+    try {
+      // Delete uploaded file from storage
+      const filePath = stagedDocument.url.split('/billboard-images/')[1];
+      if (filePath) {
+        await supabase.storage.from('billboard-images').remove([filePath]);
+      }
+      setStagedDocument(null);
+      toast.info('Documento eliminado');
+    } catch (error) {
+      console.error('Error canceling:', error);
+      setStagedDocument(null);
     }
   };
 
@@ -206,46 +251,90 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
         </Select>
       </div>
 
-      <div className="space-y-3">
-        <Label className="text-white">Subir Documento</Label>
-        <div className="relative">
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp,application/pdf"
-            onChange={handleDocumentUpload}
-            className="hidden"
-            id="verification-doc"
-            disabled={isUploading}
-          />
-          <label
-            htmlFor="verification-doc"
-            className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
-              isUploading
-                ? 'border-white/20 bg-white/5'
-                : 'border-white/20 hover:border-[#9BFF43]/50 hover:bg-[#9BFF43]/5'
-            }`}
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="w-8 h-8 text-[#9BFF43] animate-spin mb-2" />
-                <span className="text-white/70">Subiendo documento...</span>
-              </>
-            ) : (
-              <>
-                <Upload className="w-8 h-8 text-white/50 mb-2" />
-                <span className="text-white/70 text-center">
-                  Arrastra o haz clic para subir
-                </span>
-                <span className="text-white/40 text-xs mt-1">
-                  JPG, PNG, WebP o PDF (máx 10MB)
-                </span>
-              </>
-            )}
-          </label>
+      {!stagedDocument ? (
+        <div className="space-y-3">
+          <Label className="text-white">Subir Documento</Label>
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,application/pdf"
+              onChange={handleDocumentSelect}
+              className="hidden"
+              id="verification-doc"
+              disabled={isUploading}
+            />
+            <label
+              htmlFor="verification-doc"
+              className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
+                isUploading
+                  ? 'border-white/20 bg-white/5'
+                  : 'border-white/20 hover:border-[#9BFF43]/50 hover:bg-[#9BFF43]/5'
+              }`}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-8 h-8 text-[#9BFF43] animate-spin mb-2" />
+                  <span className="text-white/70">Subiendo documento...</span>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-8 h-8 text-white/50 mb-2" />
+                  <span className="text-white/70 text-center">
+                    Arrastra o haz clic para subir
+                  </span>
+                  <span className="text-white/40 text-xs mt-1">
+                    JPG, PNG, WebP o PDF (máx 10MB)
+                  </span>
+                </>
+              )}
+            </label>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-[#9BFF43]/10 border border-[#9BFF43]/30">
+            <FileText className="w-5 h-5 text-[#9BFF43]" />
+            <span className="text-white/70 text-sm flex-1">
+              Documento listo: {stagedDocument.type.toUpperCase()}
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => window.open(stagedDocument.url, '_blank')}
+              className="text-[#9BFF43] hover:text-[#9BFF43]/80"
+            >
+              Ver
+            </Button>
+          </div>
+          
+          <div className="flex gap-3">
+            <Button
+              onClick={handleCancelVerification}
+              variant="outline"
+              className="flex-1 border-white/20 text-white hover:bg-white/10"
+              disabled={isUploading}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSubmitVerification}
+              className="flex-1 bg-[#9BFF43] text-black hover:bg-[#9BFF43]/90"
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                'Verificar'
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
 
-      {verification?.verification_document_url && (
+      {verification?.verification_document_url && !stagedDocument && (
         <div className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
           <FileText className="w-5 h-5 text-[#9BFF43]" />
           <span className="text-white/70 text-sm flex-1">

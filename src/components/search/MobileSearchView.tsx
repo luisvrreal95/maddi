@@ -38,6 +38,7 @@ interface MobileSearchViewProps {
   selectedPropertyId: string | null;
   onPropertySelect: (id: string | null) => void;
   onFiltersChange: (filters: Record<string, any>) => void;
+  onFiltersPreview?: (filters: Record<string, any>) => number;
   resultsCount: number;
   isLoading: boolean;
   inegiDataMap: Record<string, INEGICardData>;
@@ -123,6 +124,7 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
   selectedPropertyId,
   onPropertySelect,
   onFiltersChange,
+  onFiltersPreview,
   resultsCount,
   isLoading,
   inegiDataMap,
@@ -242,6 +244,7 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
       <div className="absolute top-4 right-4 z-30">
         <FiltersDialog 
           onFiltersChange={onFiltersChange}
+          onFiltersPreview={onFiltersPreview}
           resultsCount={resultsCount}
         />
       </div>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { SlidersHorizontal, Zap, Sun, Monitor, LayoutGrid, CalendarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -14,9 +14,10 @@ import { DateRange } from 'react-day-picker';
 interface FiltersDialogProps {
   onFiltersChange: (filters: Record<string, string[]>) => void;
   resultsCount: number;
+  onFiltersPreview?: (filters: Record<string, any>) => number;
 }
 
-const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsCount }) => {
+const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsCount, onFiltersPreview }) => {
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState<Record<string, string[]>>({
     priceRange: [],
@@ -84,6 +85,36 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
   const hasActiveFilters = Object.values(filters).some(arr => arr.length > 0) || priceRange[0] > 0 || priceRange[1] < 100000 || hasDateFilter;
   const activeFiltersCount = Object.values(filters).reduce((acc, arr) => acc + arr.length, 0) + (priceRange[0] > 0 || priceRange[1] < 100000 ? 1 : 0) + (hasDateFilter ? 1 : 0);
 
+  // Calculate preview count based on current filter state
+  const previewCount = useMemo(() => {
+    if (!onFiltersPreview) return resultsCount;
+    
+    const priceFilters: string[] = [];
+    if (priceRange[0] <= 10000 && priceRange[1] >= 0) priceFilters.push('budget');
+    if (priceRange[0] <= 25000 && priceRange[1] >= 10000) priceFilters.push('standard');
+    if (priceRange[0] <= 50000 && priceRange[1] >= 25000) priceFilters.push('premium');
+    if (priceRange[1] >= 50000) priceFilters.push('exclusive');
+
+    const dateRangeFilter = dateRange?.from && dateRange?.to ? {
+      from: dateRange.from.toISOString().split('T')[0],
+      to: dateRange.to.toISOString().split('T')[0],
+    } : undefined;
+
+    const currentFilters = {
+      ...filters,
+      priceRange: priceFilters,
+      dateRange: dateRangeFilter,
+    };
+    
+    return onFiltersPreview(currentFilters);
+  }, [filters, priceRange, dateRange, onFiltersPreview, resultsCount]);
+
+  // Format the count display (10+ for many results)
+  const formatCount = (count: number) => {
+    if (count >= 10) return '10+';
+    return count.toString();
+  };
+
   const ToggleButton = ({ label, value, filterKey, icon: Icon }: { label: string; value: string; filterKey: string; icon?: React.ElementType }) => {
     const isSelected = filters[filterKey]?.includes(value);
     return (
@@ -134,12 +165,12 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto data-[state=open]:animate-enter data-[state=closed]:animate-exit">
-        <DialogHeader className="border-b border-border pb-4">
+      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col data-[state=open]:animate-enter data-[state=closed]:animate-exit">
+        <DialogHeader className="border-b border-border pb-4 flex-shrink-0">
           <DialogTitle className="text-center text-lg font-semibold">Filtros</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-8 py-4">
+        <div className="space-y-8 py-4 overflow-y-auto flex-1 pb-20">
           {/* Date Availability Filter */}
           <div className="animate-fade-in" style={{ animationDelay: '0ms' }}>
             <h3 className="text-lg font-semibold mb-2">Disponibilidad</h3>
@@ -353,8 +384,8 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-border sticky bottom-0 bg-background">
+        {/* Footer - Fixed at bottom */}
+        <div className="flex items-center justify-between pt-4 border-t border-border bg-background flex-shrink-0 -mx-6 px-6 -mb-6 pb-6 mt-auto">
           <Button 
             variant="ghost" 
             onClick={clearFilters}
@@ -366,7 +397,7 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
             onClick={applyFilters} 
             className="px-8 transition-all duration-200 hover:scale-105 hover:shadow-md"
           >
-            Mostrar {resultsCount} resultado{resultsCount !== 1 ? 's' : ''}
+            Mostrar {previewCount >= 10 ? '10+' : previewCount} resultado{previewCount !== 1 ? 's' : ''}
           </Button>
         </div>
       </DialogContent>
