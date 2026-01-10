@@ -28,7 +28,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, Trash2, ToggleLeft, ToggleRight, Loader2, MapPin, ExternalLink } from "lucide-react";
+import { Eye, Trash2, ToggleLeft, ToggleRight, Loader2, MapPin, ExternalLink, EyeOff, Power, PowerOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -321,8 +321,21 @@ const PropertyManagement = () => {
                         <Badge variant="outline">{property.bookingsCount}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={property.is_available ? 'default' : 'secondary'}>
-                          {property.is_available ? 'Disponible' : 'No disponible'}
+                        <Badge 
+                          variant={property.is_available ? 'default' : 'destructive'}
+                          className={property.is_available ? '' : 'bg-red-500/20 text-red-400 border-red-500/30'}
+                        >
+                          {property.is_available ? (
+                            <span className="flex items-center gap-1">
+                              <Power className="w-3 h-3" />
+                              Activo
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1">
+                              <PowerOff className="w-3 h-3" />
+                              Desactivado
+                            </span>
+                          )}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
@@ -337,16 +350,17 @@ const PropertyManagement = () => {
                           </Button>
                           <Button
                             size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
+                            variant={property.is_available ? "ghost" : "outline"}
+                            className={`h-8 w-8 p-0 ${!property.is_available ? 'border-green-500/50 hover:bg-green-500/10' : ''}`}
                             onClick={() => setDialog({ 
                               type: 'toggle', 
                               propertyId: property.id, 
                               currentStatus: property.is_available 
                             })}
+                            title={property.is_available ? 'Desactivar propiedad' : 'Activar propiedad'}
                           >
                             {property.is_available ? (
-                              <ToggleRight className="h-4 w-4 text-primary" />
+                              <ToggleRight className="h-4 w-4 text-green-500" />
                             ) : (
                               <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                             )}
