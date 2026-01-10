@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, List, Map, BarChart2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -364,6 +364,70 @@ const SearchPage: React.FC = () => {
     setFilters(newFilters);
   };
 
+  // Preview filter count without applying
+  const handleFiltersPreview = useCallback((previewFilters: Record<string, any>): number => {
+    let filtered = [...allProperties];
+
+    // Apply same filter logic as properties useMemo
+    if (previewFilters.traffic?.length > 0) {
+      filtered = filtered.filter(p => {
+        const views = parseInt(p.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
+        if (previewFilters.traffic.includes('high') && views >= 30000) return true;
+        if (previewFilters.traffic.includes('medium') && views >= 15000 && views < 30000) return true;
+        if (previewFilters.traffic.includes('low') && views < 15000) return true;
+        return false;
+      });
+    }
+
+    if (previewFilters.size?.length > 0) {
+      filtered = filtered.filter(p => {
+        const sizeParts = p.size.match(/(\d+\.?\d*)/g);
+        if (!sizeParts || sizeParts.length < 2) return false;
+        const area = parseFloat(sizeParts[0]) * parseFloat(sizeParts[1]);
+        if (previewFilters.size.includes('small') && area < 20) return true;
+        if (previewFilters.size.includes('medium') && area >= 20 && area < 50) return true;
+        if (previewFilters.size.includes('large') && area >= 50) return true;
+        return false;
+      });
+    }
+
+    if (previewFilters.priceRange?.length > 0) {
+      filtered = filtered.filter(p => {
+        const price = parseInt(p.price.replace(/[^0-9]/g, '')) || 0;
+        if (previewFilters.priceRange.includes('budget') && price < 10000) return true;
+        if (previewFilters.priceRange.includes('standard') && price >= 10000 && price < 25000) return true;
+        if (previewFilters.priceRange.includes('premium') && price >= 25000 && price < 50000) return true;
+        if (previewFilters.priceRange.includes('exclusive') && price >= 50000) return true;
+        return false;
+      });
+    }
+
+    if (previewFilters.illumination?.length > 0) {
+      filtered = filtered.filter(p => {
+        const billboard = billboards.find(b => b.id === p.id);
+        if (!billboard) return false;
+        if (previewFilters.illumination.includes('led') && billboard.illumination === 'led') return true;
+        if (previewFilters.illumination.includes('traditional') && billboard.illumination === 'tradicional') return true;
+        if (previewFilters.illumination.includes('none') && billboard.illumination === 'ninguna') return true;
+        return false;
+      });
+    }
+
+    if (previewFilters.billboardType?.length > 0) {
+      filtered = filtered.filter(p => {
+        const billboard = billboards.find(b => b.id === p.id);
+        if (!billboard) return false;
+        if (previewFilters.billboardType.includes('spectacular') && billboard.billboard_type === 'espectacular') return true;
+        if (previewFilters.billboardType.includes('mural') && billboard.billboard_type === 'mural') return true;
+        if (previewFilters.billboardType.includes('bridge') && billboard.billboard_type === 'puente') return true;
+        if (previewFilters.billboardType.includes('digital') && billboard.billboard_type === 'digital') return true;
+        return false;
+      });
+    }
+
+    return filtered.length;
+  }, [allProperties, billboards]);
+
   const handleMapLayerChange = (layer: keyof MapLayers, enabled: boolean) => {
     setMapLayers(prev => ({ ...prev, [layer]: enabled }));
     
@@ -441,6 +505,7 @@ const SearchPage: React.FC = () => {
           selectedPropertyId={selectedPropertyId}
           onPropertySelect={setSelectedPropertyId}
           onFiltersChange={handleFiltersChange}
+          onFiltersPreview={handleFiltersPreview}
           resultsCount={properties.length}
           isLoading={isLoadingBillboards}
           inegiDataMap={inegiDataMap}
@@ -495,6 +560,7 @@ const SearchPage: React.FC = () => {
           {/* Filters Button - Airbnb style */}
           <FiltersDialog 
             onFiltersChange={handleFiltersChange}
+            onFiltersPreview={handleFiltersPreview}
             resultsCount={properties.length}
           />
 
