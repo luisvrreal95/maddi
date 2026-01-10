@@ -509,6 +509,43 @@ const Settings: React.FC = () => {
                       Cerrar Sesión
                     </Button>
                   </div>
+
+                  <div className="border-t border-white/10 pt-6">
+                    <h3 className="text-red-400 font-medium mb-2">Zona de Peligro</h3>
+                    <p className="text-white/50 text-sm mb-4">
+                      Esta acción eliminará permanentemente tu cuenta y todos tus datos. No se puede deshacer.
+                    </p>
+                    <Button
+                      onClick={async () => {
+                        if (!confirm('¿Estás seguro de que deseas eliminar tu cuenta? Esta acción no se puede deshacer.')) return;
+                        if (!confirm('Última confirmación: Se eliminarán TODOS tus datos permanentemente. ¿Continuar?')) return;
+                        
+                        try {
+                          const { data: { session } } = await supabase.auth.getSession();
+                          if (!session) {
+                            toast.error('Sesión no válida');
+                            return;
+                          }
+                          
+                          const { error } = await supabase.functions.invoke('delete-user-account', {
+                            headers: { Authorization: `Bearer ${session.access_token}` }
+                          });
+                          
+                          if (error) throw error;
+                          
+                          toast.success('Cuenta eliminada exitosamente');
+                          await signOut();
+                        } catch (error: any) {
+                          console.error('Error deleting account:', error);
+                          toast.error(error.message || 'Error al eliminar cuenta');
+                        }
+                      }}
+                      variant="destructive"
+                      className="bg-red-600 text-white hover:bg-red-700"
+                    >
+                      Eliminar mi cuenta
+                    </Button>
+                  </div>
                 </div>
               </div>
             </TabsContent>

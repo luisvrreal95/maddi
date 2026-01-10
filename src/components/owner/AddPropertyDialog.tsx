@@ -578,7 +578,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
             )}
             <h2 className="text-xl font-bold">{billboard ? 'Editar' : 'Agregar'} propiedad</h2>
           </div>
-          <span className="text-3xl font-black italic text-[#9BFF43]">M</span>
+          <img src="/favicon.svg" alt="Maddi" className="w-8 h-8" />
         </div>
 
         {step === 1 ? (
