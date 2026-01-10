@@ -10,10 +10,12 @@ import LocationAutocomplete, { SelectedLocation } from '@/components/search/Loca
 import BookingDialog from '@/components/booking/BookingDialog';
 import ComparisonPanel from '@/components/search/ComparisonPanel';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
+import MobileSearchView from '@/components/search/MobileSearchView';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
 import { useBillboardReviewStats } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
 // INEGI data type for cards
@@ -73,6 +75,7 @@ const SearchPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, userRole } = useAuth();
+  const isMobile = useIsMobile();
   const location = searchParams.get('location') || 'Mexicali, B.C.';
   const mapRef = useRef<SearchMapRef>(null);
   
@@ -403,6 +406,61 @@ const SearchPage: React.FC = () => {
     }
   };
 
+  // Map component for mobile view
+  const mapComponent = useMemo(() => {
+    if (isLoadingToken || !mapboxToken) return null;
+    return (
+      <SearchMap
+        ref={mapRef}
+        properties={properties}
+        selectedPropertyId={selectedPropertyId}
+        onPropertySelect={setSelectedPropertyId}
+        mapboxToken={mapboxToken}
+        searchLocation={confirmedLocation}
+        selectedBounds={selectedLocationData?.bbox}
+        selectedCenter={selectedLocationData?.center}
+        selectedPlaceType={selectedLocationData?.placeType}
+        onReserveClick={handleReserveClick}
+        layers={mapLayers}
+        poiCategories={poiCategories}
+        trafficHour={trafficHour}
+        onLoadingChange={setIsLoadingLayers}
+        compareIds={compareIds}
+        onToggleCompare={handleToggleCompare}
+        isCompareMode={isCompareMode}
+      />
+    );
+  }, [isLoadingToken, mapboxToken, properties, selectedPropertyId, confirmedLocation, selectedLocationData, mapLayers, poiCategories, trafficHour, compareIds, isCompareMode]);
+
+  // Mobile View - Airbnb-like experience
+  if (isMobile) {
+    return (
+      <>
+        <MobileSearchView
+          properties={properties}
+          selectedPropertyId={selectedPropertyId}
+          onPropertySelect={setSelectedPropertyId}
+          onFiltersChange={handleFiltersChange}
+          resultsCount={properties.length}
+          isLoading={isLoadingBillboards}
+          inegiDataMap={inegiDataMap}
+          onReserveClick={handleReserveClick}
+          mapComponent={mapComponent}
+        />
+        
+        {/* Booking Dialog */}
+        {selectedBillboard && (
+          <BookingDialog
+            open={bookingDialogOpen}
+            onOpenChange={setBookingDialogOpen}
+            billboard={selectedBillboard}
+          />
+        )}
+      </>
+    );
+  }
+
+  // Desktop View - Original layout
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
       {/* Header */}
