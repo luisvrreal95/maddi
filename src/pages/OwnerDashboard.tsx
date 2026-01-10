@@ -17,6 +17,7 @@ import OwnerHome from '@/components/owner/OwnerHome';
 import OwnerCalendar from '@/components/owner/OwnerCalendar';
 import PropertyFilters from '@/components/owner/PropertyFilters';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
+import ShareDialog from '@/components/share/ShareDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -203,9 +204,16 @@ const OwnerDashboard: React.FC = () => {
           <>
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-3xl md:text-4xl font-bold text-white">Mis Propiedades</h1>
-              <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium">
-                Agregar Propiedad
-              </Button>
+              <div className="flex items-center gap-3">
+                <ShareDialog
+                  title={displayName}
+                  subtitle={`${billboards.length} propiedades en Maddi`}
+                  shareUrl={`/profile/${user?.id}`}
+                />
+                <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium">
+                  Agregar Propiedad
+                </Button>
+              </div>
             </div>
             <div className="mb-6">
               <PropertyFilters

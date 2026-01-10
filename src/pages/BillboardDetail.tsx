@@ -16,6 +16,7 @@ import NearbyBrands from '@/components/billboard/NearbyBrands';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import { TrafficAnalyticsPublic } from '@/components/billboard/TrafficAnalyticsPublic';
 import ShareDialog from '@/components/share/ShareDialog';
+import OwnerSection from '@/components/billboard/OwnerSection';
 
 interface Billboard {
   id: string;
@@ -332,6 +333,9 @@ const BillboardDetail: React.FC = () => {
           </h3>
           <AvailabilityCalendar billboardId={billboard.id} />
         </div>
+
+        {/* Owner Section */}
+        <OwnerSection ownerId={billboard.owner_id} />
 
         {billboard.description && (
           <div className="bg-card border border-border rounded-xl p-6 mb-8">

@@ -124,6 +124,8 @@ const PropertyManagement = () => {
     setProcessing(true);
     try {
       const newStatus = !dialog.currentStatus;
+      const property = properties.find(p => p.id === dialog.propertyId);
+      
       const { error } = await supabase
         .from('billboards')
         .update({ is_available: newStatus })
@@ -131,9 +133,22 @@ const PropertyManagement = () => {
 
       if (error) throw error;
 
+      // Create notification for the owner
+      if (property) {
+        await supabase.from('notifications').insert({
+          user_id: property.owner_id,
+          title: newStatus ? 'Propiedad habilitada' : 'Propiedad deshabilitada',
+          message: newStatus 
+            ? `Tu propiedad "${property.title}" ha sido habilitada por un administrador y ahora está visible para los usuarios.`
+            : `Tu propiedad "${property.title}" ha sido deshabilitada por un administrador y ya no está visible para los usuarios.`,
+          type: 'admin_action',
+          related_billboard_id: property.id
+        });
+      }
+
       toast({
         title: "Éxito",
-        description: `Propiedad ${newStatus ? 'activada' : 'desactivada'}. ${!newStatus ? 'Ya no será visible para los usuarios.' : ''}`
+        description: `Propiedad ${newStatus ? 'habilitada' : 'deshabilitada'} correctamente. Se notificó al propietario.`
       });
 
       fetchProperties();
