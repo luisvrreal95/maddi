@@ -28,9 +28,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, Trash2, ToggleLeft, ToggleRight, Loader2, MapPin } from "lucide-react";
+import { Eye, Trash2, ToggleLeft, ToggleRight, Loader2, MapPin, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 interface Property {
   id: string;
@@ -42,19 +42,27 @@ interface Property {
   daily_impressions: number | null;
   image_url: string | null;
   created_at: string;
+  owner_id: string;
   owner: {
     full_name: string;
     company_name: string | null;
+    is_anonymous: boolean;
   } | null;
   bookingsCount: number;
 }
+
+type DialogType = 'delete' | 'toggle' | null;
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; propertyId: string | null }>({
-    open: false,
+  const [dialog, setDialog] = useState<{ 
+    type: DialogType; 
+    propertyId: string | null;
+    currentStatus?: boolean;
+  }>({
+    type: null,
     propertyId: null
   });
   const [processing, setProcessing] = useState(false);
@@ -75,7 +83,7 @@ const PropertyManagement = () => {
           // Get owner profile
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name, company_name')
+            .select('full_name, company_name, is_anonymous')
             .eq('user_id', billboard.owner_id)
             .single();
 
@@ -110,18 +118,22 @@ const PropertyManagement = () => {
     fetchProperties();
   }, []);
 
-  const toggleAvailability = async (id: string, currentStatus: boolean) => {
+  const toggleAvailability = async () => {
+    if (!dialog.propertyId) return;
+    
+    setProcessing(true);
     try {
+      const newStatus = !dialog.currentStatus;
       const { error } = await supabase
         .from('billboards')
-        .update({ is_available: !currentStatus })
-        .eq('id', id);
+        .update({ is_available: newStatus })
+        .eq('id', dialog.propertyId);
 
       if (error) throw error;
 
       toast({
         title: "Éxito",
-        description: `Propiedad ${!currentStatus ? 'activada' : 'desactivada'}`
+        description: `Propiedad ${newStatus ? 'activada' : 'desactivada'}. ${!newStatus ? 'Ya no será visible para los usuarios.' : ''}`
       });
 
       fetchProperties();
@@ -132,24 +144,35 @@ const PropertyManagement = () => {
         description: "No se pudo actualizar el estado",
         variant: "destructive"
       });
+    } finally {
+      setProcessing(false);
+      setDialog({ type: null, propertyId: null });
     }
   };
 
   const handleDelete = async () => {
-    if (!deleteDialog.propertyId) return;
+    if (!dialog.propertyId) return;
     
     setProcessing(true);
     try {
+      // First delete related records
+      await supabase.from('favorites').delete().eq('billboard_id', dialog.propertyId);
+      await supabase.from('blocked_dates').delete().eq('billboard_id', dialog.propertyId);
+      await supabase.from('pricing_overrides').delete().eq('billboard_id', dialog.propertyId);
+      await supabase.from('traffic_data').delete().eq('billboard_id', dialog.propertyId);
+      await supabase.from('inegi_demographics').delete().eq('billboard_id', dialog.propertyId);
+      
+      // Delete the billboard
       const { error } = await supabase
         .from('billboards')
         .delete()
-        .eq('id', deleteDialog.propertyId);
+        .eq('id', dialog.propertyId);
 
       if (error) throw error;
 
       toast({
         title: "Éxito",
-        description: "Propiedad eliminada"
+        description: "Propiedad eliminada permanentemente"
       });
 
       fetchProperties();
@@ -157,12 +180,12 @@ const PropertyManagement = () => {
       console.error('Error:', error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar la propiedad",
+        description: "No se pudo eliminar la propiedad. Puede tener reservas activas.",
         variant: "destructive"
       });
     } finally {
       setProcessing(false);
-      setDeleteDialog({ open: false, propertyId: null });
+      setDialog({ type: null, propertyId: null });
     }
   };
 
@@ -250,10 +273,18 @@ const PropertyManagement = () => {
                       </TableCell>
                       <TableCell>
                         <div>
-                          <div className="text-sm">
-                            {property.owner?.full_name || 'N/A'}
-                          </div>
-                          {property.owner?.company_name && (
+                          {property.owner?.is_anonymous ? (
+                            <span className="text-muted-foreground text-sm">Anónimo</span>
+                          ) : (
+                            <Link 
+                              to={`/profile/${property.owner_id}`}
+                              className="text-sm text-primary hover:underline flex items-center gap-1"
+                            >
+                              {property.owner?.full_name || 'N/A'}
+                              <ExternalLink className="w-3 h-3" />
+                            </Link>
+                          )}
+                          {property.owner?.company_name && !property.owner?.is_anonymous && (
                             <div className="text-xs text-muted-foreground">
                               {property.owner.company_name}
                             </div>
@@ -293,7 +324,11 @@ const PropertyManagement = () => {
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0"
-                            onClick={() => toggleAvailability(property.id, property.is_available)}
+                            onClick={() => setDialog({ 
+                              type: 'toggle', 
+                              propertyId: property.id, 
+                              currentStatus: property.is_available 
+                            })}
                           >
                             {property.is_available ? (
                               <ToggleRight className="h-4 w-4 text-primary" />
@@ -305,7 +340,7 @@ const PropertyManagement = () => {
                             size="sm"
                             variant="ghost"
                             className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                            onClick={() => setDeleteDialog({ open: true, propertyId: property.id })}
+                            onClick={() => setDialog({ type: 'delete', propertyId: property.id })}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -320,14 +355,51 @@ const PropertyManagement = () => {
         )}
       </CardContent>
 
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => 
-        setDeleteDialog({ ...deleteDialog, open })
+      {/* Toggle Availability Dialog */}
+      <AlertDialog open={dialog.type === 'toggle'} onOpenChange={(open) => 
+        !open && setDialog({ type: null, propertyId: null })
       }>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar propiedad?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {dialog.currentStatus ? '¿Desactivar propiedad?' : '¿Activar propiedad?'}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminarán también todas las reservaciones asociadas.
+              {dialog.currentStatus 
+                ? 'Al desactivar esta propiedad, dejará de ser visible para todos los usuarios en la plataforma. Podrás activarla nuevamente cuando desees.'
+                : 'Al activar esta propiedad, volverá a ser visible para todos los usuarios en la plataforma.'
+              }
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={toggleAvailability} 
+              disabled={processing}
+              className={dialog.currentStatus ? 'bg-amber-500 hover:bg-amber-600' : 'bg-primary hover:bg-primary/90'}
+            >
+              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {dialog.currentStatus ? 'Desactivar' : 'Activar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={dialog.type === 'delete'} onOpenChange={(open) => 
+        !open && setDialog({ type: null, propertyId: null })
+      }>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Eliminar propiedad permanentemente?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminarán permanentemente:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>La propiedad y toda su información</li>
+                <li>Todas las reservaciones asociadas</li>
+                <li>Datos de tráfico y análisis</li>
+                <li>Favoritos de usuarios</li>
+              </ul>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -338,7 +410,7 @@ const PropertyManagement = () => {
               className="bg-red-500 hover:bg-red-600"
             >
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Eliminar
+              Eliminar Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
