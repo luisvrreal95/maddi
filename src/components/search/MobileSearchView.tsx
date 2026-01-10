@@ -42,7 +42,7 @@ interface MobileSearchViewProps {
   isLoading: boolean;
   inegiDataMap: Record<string, INEGICardData>;
   onReserveClick: (property: MapProperty) => void;
-  mapComponent: React.ReactNode;
+  mapComponent: React.ReactNode | null;
 }
 
 type ListingState = 'collapsed' | 'expanded';
@@ -112,10 +112,14 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
   const listingHeight = listingState === 'collapsed' ? 'h-[25vh]' : 'h-[85vh]';
 
   return (
-    <div className="h-screen w-full relative overflow-hidden">
+    <div className="h-screen w-full relative overflow-hidden bg-muted">
       {/* Map Layer - Full screen background */}
       <div className="absolute inset-0 z-0" onClick={handleMapTap}>
-        {mapComponent}
+        {mapComponent || (
+          <div className="w-full h-full flex items-center justify-center">
+            <MapPin className="w-12 h-12 text-muted-foreground animate-pulse" />
+          </div>
+        )}
       </div>
 
       {/* Floating Filter Button */}
