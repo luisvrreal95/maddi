@@ -82,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string, role: 'owner' | 'business') => {
+    // Redirect to home page after email verification
     const redirectUrl = `${window.location.origin}/`;
     
     // Store role in user_metadata - a trigger will create the user_role record

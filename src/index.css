@@ -119,3 +119,12 @@ All colors MUST be HSL.
   display: block !important;
   overflow: visible !important;
 }
+
+/* Safe area utilities for mobile devices */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0);
+}

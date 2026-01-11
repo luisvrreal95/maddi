@@ -30,11 +30,11 @@ const MobileNavBar: React.FC = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#1A1A1A] border-t border-white/10 md:hidden safe-area-inset-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#1A1A1A] border-t border-white/10 block md:hidden pb-safe">
       <div className="flex items-center justify-around h-16 px-4">
         {navItems.map((item) => (
           <Link
-            key={item.href}
+            key={item.label}
             to={item.href}
             className={cn(
               "flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors",
