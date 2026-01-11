@@ -46,18 +46,32 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
   const [selectedBillboardId, setSelectedBillboardId] = useState<string>('all');
 
   useEffect(() => {
-    fetchData();
-  }, [userId]);
+    if (billboards.length > 0) {
+      fetchData();
+    } else {
+      setIsLoading(false);
+    }
+  }, [userId, billboards]);
 
   const fetchData = async () => {
     try {
-      // Fetch bookings with billboard info
+      // Get billboard IDs for this owner
+      const billboardIds = billboards.map(b => b.id);
+      
+      if (billboardIds.length === 0) {
+        setBookings([]);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Fetch bookings only for this owner's billboards
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
           *,
           billboards (*)
         `)
+        .in('billboard_id', billboardIds)
         .order('start_date', { ascending: true });
 
       if (bookingsError) throw bookingsError;
@@ -130,14 +144,18 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     return acc;
   }, { today: [], upcoming: [], expiring: [], pending: [], active: [] } as Record<string, Booking[]>);
 
-  // Calculate stats
-  const totalActiveBookings = categorizedBookings.active.length;
-  const monthlyRevenue = categorizedBookings.active.reduce((sum, b) => sum + Number(b.total_price), 0);
+  // Calculate stats - count unique billboards with active bookings
+  const billboardsWithActiveBookings = new Set(categorizedBookings.active.map(b => b.billboard_id));
   const occupancyRate = billboards.length > 0 
-    ? Math.round((totalActiveBookings / billboards.length) * 100) 
+    ? Math.round((billboardsWithActiveBookings.size / billboards.length) * 100) 
     : 0;
 
   const getFilteredBookings = (): Booking[] => {
+    // Apply billboard filter first
+    const billboardFiltered = selectedBillboardId === 'all' 
+      ? bookings 
+      : bookings.filter(b => b.billboard_id === selectedBillboardId);
+    
     switch (filter) {
       case 'today':
         return categorizedBookings.today;
@@ -147,8 +165,12 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         return categorizedBookings.expiring;
       case 'pending':
         return categorizedBookings.pending;
+      case 'all':
       default:
-        return [...categorizedBookings.active, ...categorizedBookings.upcoming].slice(0, 10);
+        // Return ALL bookings (filtered by billboard if applicable), sorted by start_date
+        return billboardFiltered
+          .filter(b => b.status === 'approved' || b.status === 'pending')
+          .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
     }
   };
 

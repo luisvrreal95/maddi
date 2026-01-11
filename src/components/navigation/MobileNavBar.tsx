@@ -8,6 +8,14 @@ const MobileNavBar: React.FC = () => {
   const location = useLocation();
   const { user, userRole } = useAuth();
   
+  // Hide navbar on owner/business dashboards - they have their own navigation
+  const hiddenPaths = ['/owner', '/business', '/admin', '/messages'];
+  const shouldHide = hiddenPaths.some(path => location.pathname.startsWith(path));
+  
+  if (shouldHide) {
+    return null;
+  }
+  
   const navItems = [
     {
       label: 'Buscar',
@@ -25,12 +33,12 @@ const MobileNavBar: React.FC = () => {
       label: user ? 'Perfil' : 'Ingresar',
       icon: User,
       href: user ? (userRole === 'owner' ? '/owner' : '/settings') : '/auth',
-      active: location.pathname === '/auth' || location.pathname === '/settings' || location.pathname === '/owner',
+      active: location.pathname === '/auth' || location.pathname === '/settings',
     },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#1A1A1A] border-t border-white/10 block md:hidden pb-safe">
+    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-[#1A1A1A] border-t border-white/10 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       <div className="flex items-center justify-around h-16 px-4">
         {navItems.map((item) => (
           <Link

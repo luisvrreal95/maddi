@@ -17,6 +17,7 @@ import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import { TrafficAnalyticsPublic } from '@/components/billboard/TrafficAnalyticsPublic';
 import ShareDialog from '@/components/share/ShareDialog';
 import OwnerSection from '@/components/billboard/OwnerSection';
+import MobileNavBar from '@/components/navigation/MobileNavBar';
 
 interface Billboard {
   id: string;
@@ -357,6 +358,9 @@ const BillboardDetail: React.FC = () => {
         onOpenChange={setShowBookingDialog}
         billboard={billboard}
       />
+      
+      {/* Mobile Navigation Bar */}
+      <MobileNavBar />
     </div>
   );
 };
