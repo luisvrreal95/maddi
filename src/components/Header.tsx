@@ -23,20 +23,9 @@ const Header: React.FC = () => {
         </Link>
       </div>
 
-      {/* Right side navigation */}
+      {/* Right side navigation - Only show UserMenu */}
       <nav className="flex items-center gap-3">
-        {/* Show "Anuncia tu espacio" only for non-authenticated users */}
-        {!user && (
-          <Link 
-            to="/auth?role=owner" 
-            className="text-white hover:text-[#9BFF43] transition-colors text-sm font-medium hidden md:block"
-          >
-            Anuncia tu espacio publicitario
-          </Link>
-        )}
-        
         {user && <NotificationBell />}
-        
         <UserMenu />
       </nav>
     </header>

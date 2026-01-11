@@ -38,7 +38,8 @@ const Auth: React.FC = () => {
   const [registeredEmail, setRegisteredEmail] = useState('');
 
   useEffect(() => {
-    if (user && userRole) {
+    // Only redirect if we have both user AND userRole loaded
+    if (user && userRole && !needsRoleSelection) {
       // Redirect owners to their dashboard with inicio tab, businesses to search
       if (userRole === 'owner') {
         navigate('/owner?tab=inicio', { replace: true });
@@ -46,7 +47,7 @@ const Auth: React.FC = () => {
         navigate('/search', { replace: true });
       }
     }
-  }, [user, userRole, navigate]);
+  }, [user, userRole, needsRoleSelection, navigate]);
 
   useEffect(() => {
     if (needsRoleSelection) {
