@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin } from 'lucide-react';
+import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin, MapPin, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -36,6 +37,9 @@ interface Conversation {
   billboard?: {
     title: string;
     image_url: string | null;
+    price_per_month?: number;
+    city?: string;
+    state?: string;
   };
   other_user?: {
     full_name: string;
@@ -59,6 +63,7 @@ interface Message {
 
 const Messages: React.FC = () => {
   const { user, userRole } = useAuth();
+  const [searchParams] = useSearchParams();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -67,7 +72,12 @@ const Messages: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
+  const [showBillboardContext, setShowBillboardContext] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-select conversation from URL params
+  const conversationIdFromUrl = searchParams.get('conversation');
+  const billboardIdFromUrl = searchParams.get('billboard');
 
   useEffect(() => {
     if (user) {
@@ -125,7 +135,7 @@ const Messages: React.FC = () => {
         .from('conversations')
         .select(`
           *,
-          billboard:billboards(title, image_url)
+          billboard:billboards(title, image_url, price_per_month, city, state)
         `)
         .or(`business_id.eq.${user.id},owner_id.eq.${user.id}`)
         .order('last_message_at', { ascending: false });
@@ -170,6 +180,18 @@ const Messages: React.FC = () => {
       );
 
       setConversations(conversationsWithDetails);
+      
+      // Auto-select conversation from URL if provided
+      if (conversationIdFromUrl && conversationsWithDetails.length > 0) {
+        const targetConv = conversationsWithDetails.find(c => c.id === conversationIdFromUrl);
+        if (targetConv) {
+          setSelectedConversation(targetConv);
+          // Show billboard context if coming from billboard detail page
+          if (billboardIdFromUrl) {
+            setShowBillboardContext(true);
+          }
+        }
+      }
     } catch (error) {
       console.error('Error fetching conversations:', error);
     } finally {
@@ -483,6 +505,49 @@ const Messages: React.FC = () => {
 
               <ScrollArea className="flex-1 p-4">
                 <div className="space-y-4">
+                  {/* Billboard Context Card - shown when coming from billboard detail */}
+                  {showBillboardContext && selectedConversation.billboard && messages.length === 0 && (
+                    <div className="bg-[#2A2A2A] border border-white/10 rounded-xl p-4 mb-4">
+                      <p className="text-white/50 text-xs mb-2">Conversación sobre:</p>
+                      <Link 
+                        to={`/billboard/${selectedConversation.billboard_id}`}
+                        className="flex gap-3 hover:bg-white/5 rounded-lg transition-colors"
+                      >
+                        {selectedConversation.billboard.image_url ? (
+                          <img 
+                            src={selectedConversation.billboard.image_url} 
+                            alt="" 
+                            className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-20 h-20 rounded-lg bg-[#3A3A3A] flex items-center justify-center flex-shrink-0">
+                            <MapPin className="w-8 h-8 text-white/20" />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-white font-semibold truncate">
+                            {selectedConversation.billboard.title}
+                          </h4>
+                          {selectedConversation.billboard.city && (
+                            <p className="text-white/50 text-sm flex items-center gap-1 mt-1">
+                              <MapPin className="w-3 h-3" />
+                              {selectedConversation.billboard.city}, {selectedConversation.billboard.state}
+                            </p>
+                          )}
+                          {selectedConversation.billboard.price_per_month && (
+                            <p className="text-[#9BFF43] font-bold mt-1 flex items-center gap-1">
+                              <DollarSign className="w-3 h-3" />
+                              ${selectedConversation.billboard.price_per_month.toLocaleString()}/mes
+                            </p>
+                          )}
+                        </div>
+                      </Link>
+                      <p className="text-white/40 text-xs mt-3 pt-3 border-t border-white/10">
+                        Escribe tu mensaje para contactar al propietario sobre este espectacular.
+                      </p>
+                    </div>
+                  )}
+                  
                   {messages.map((msg, idx) => {
                     const isMyMessage = msg.sender_id === user?.id;
                     const isLastInGroup = idx === messages.length - 1 || messages[idx + 1]?.sender_id !== msg.sender_id;

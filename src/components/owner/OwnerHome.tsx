@@ -102,12 +102,16 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     }
   };
 
-  // Categorize bookings
+  // Categorize bookings - set today to start of day for accurate comparison
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
   const categorizedBookings = bookings.reduce((acc, booking) => {
     const startDate = new Date(booking.start_date);
     const endDate = new Date(booking.end_date);
+    startDate.setHours(0, 0, 0, 0);
+    endDate.setHours(23, 59, 59, 999);
+    
     const daysUntilEnd = differenceInDays(endDate, today);
     const daysUntilStart = differenceInDays(startDate, today);
 
@@ -121,13 +125,13 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       acc.today.push(booking);
     }
     
-    // Upcoming: starts in next 30 days
+    // Upcoming: starts in next 30 days (and hasn't started yet)
     if (daysUntilStart > 0 && daysUntilStart <= 30 && booking.status === 'approved') {
       acc.upcoming.push(booking);
     }
     
-    // Expiring: ends in next 14 days
-    if (daysUntilEnd > 0 && daysUntilEnd <= 14 && booking.status === 'approved') {
+    // Expiring: ends in next 14 days (and is still active)
+    if (daysUntilEnd > 0 && daysUntilEnd <= 14 && booking.status === 'approved' && isBefore(startDate, new Date())) {
       acc.expiring.push(booking);
     }
     
@@ -136,13 +140,18 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       acc.pending.push(booking);
     }
 
-    // Active: currently running
-    if (isBefore(startDate, today) && isAfter(endDate, today) && booking.status === 'approved') {
+    // Active: currently running (started before now and ends after now)
+    if (isBefore(startDate, new Date()) && isAfter(endDate, new Date()) && booking.status === 'approved') {
       acc.active.push(booking);
+    }
+    
+    // Concluded: already ended
+    if (isBefore(endDate, new Date()) && booking.status === 'approved') {
+      acc.concluded.push(booking);
     }
 
     return acc;
-  }, { today: [], upcoming: [], expiring: [], pending: [], active: [] } as Record<string, Booking[]>);
+  }, { today: [], upcoming: [], expiring: [], pending: [], active: [], concluded: [] } as Record<string, Booking[]>);
 
   // Calculate stats - count unique billboards with active bookings
   const billboardsWithActiveBookings = new Set(categorizedBookings.active.map(b => b.billboard_id));
@@ -167,16 +176,18 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         return categorizedBookings.pending;
       case 'all':
       default:
-        // Return ALL bookings (filtered by billboard if applicable), sorted by start_date
+        // Return ALL bookings (filtered by billboard if applicable), sorted by start_date descending (most recent first)
         return billboardFiltered
           .filter(b => b.status === 'approved' || b.status === 'pending')
-          .sort((a, b) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+          .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
     }
   };
 
   const getStatusBadge = (booking: Booking) => {
     const endDate = new Date(booking.end_date);
-    const daysUntilEnd = differenceInDays(endDate, today);
+    const startDate = new Date(booking.start_date);
+    const now = new Date();
+    const daysUntilEnd = differenceInDays(endDate, now);
 
     if (booking.status === 'pending') {
       return <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">Pendiente</Badge>;
@@ -184,14 +195,22 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     if (booking.status === 'rejected') {
       return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Rechazado</Badge>;
     }
+    // Concluded: end date has passed
+    if (isBefore(endDate, now)) {
+      return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Concluida</Badge>;
+    }
     if (daysUntilEnd <= 7 && daysUntilEnd > 0) {
       return <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Por vencer</Badge>;
     }
-    if (isToday(new Date(booking.start_date))) {
+    if (isToday(startDate)) {
       return <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Inicia hoy</Badge>;
     }
     if (isToday(endDate)) {
       return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Termina hoy</Badge>;
+    }
+    // Not started yet
+    if (isAfter(startDate, now)) {
+      return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Próxima</Badge>;
     }
     return <Badge className="bg-[#9BFF43]/20 text-[#9BFF43] border-[#9BFF43]/30">Activo</Badge>;
   };
