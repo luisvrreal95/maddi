@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
+import MobileNavBar from '@/components/navigation/MobileNavBar';
 
 const Favorites: React.FC = () => {
   const { user } = useAuth();
@@ -321,6 +322,9 @@ const Favorites: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Mobile Navigation Bar */}
+      <MobileNavBar />
     </div>
   );
 };

@@ -148,11 +148,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUserRole(null);
-    setNeedsRoleSelection(false);
-    // Redirect to main page after logout
-    window.location.href = '/';
+    try {
+      // Clear local state first
+      setUserRole(null);
+      setNeedsRoleSelection(false);
+      setUser(null);
+      setSession(null);
+      
+      // Try to sign out from Supabase (may fail if session expired)
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    } finally {
+      // Always redirect to main page
+      window.location.href = '/';
+    }
   };
 
   return (

@@ -47,14 +47,21 @@ const NotificationBell: React.FC = () => {
   };
 
   const getNotificationLink = (notification: Notification): string | null => {
+    // For booking requests, go to owner's booking management
     if (notification.type === 'booking_request') {
-      return '/owner-dashboard?tab=reservas';
+      return '/owner?tab=reservas';
     }
+    // For booking approved/rejected, go to business dashboard
     if (notification.type === 'booking_approved' || notification.type === 'booking_rejected') {
       return '/business';
     }
+    // For billboard-related notifications, go to that billboard
     if (notification.related_billboard_id) {
       return `/billboard/${notification.related_billboard_id}`;
+    }
+    // For booking-related notifications without specific type, go to appropriate dashboard
+    if (notification.related_booking_id) {
+      return '/owner?tab=reservas';
     }
     return null;
   };

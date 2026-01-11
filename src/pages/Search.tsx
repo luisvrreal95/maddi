@@ -11,6 +11,7 @@ import BookingDialog from '@/components/booking/BookingDialog';
 import ComparisonPanel from '@/components/search/ComparisonPanel';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
 import MobileSearchView from '@/components/search/MobileSearchView';
+import MobileNavBar from '@/components/navigation/MobileNavBar';
 import { supabase } from '@/integrations/supabase/client';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
 import { useBillboardReviewStats } from '@/hooks/useReviews';
@@ -682,6 +683,9 @@ const SearchPage: React.FC = () => {
           billboard={selectedBillboard}
         />
       )}
+      
+      {/* Mobile Navigation Bar */}
+      <MobileNavBar />
     </div>
   );
 };
