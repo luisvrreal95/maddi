@@ -84,6 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = async (email: string, password: string, fullName: string, role: 'owner' | 'business') => {
     const redirectUrl = `${window.location.origin}/`;
     
+    // Store role in user_metadata - a trigger will create the user_role record
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -91,32 +92,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
+          role: role, // This will be picked up by the trigger
         },
       },
     });
 
     if (error) return { error };
-
-    // Insert user role
-    if (data.user) {
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: data.user.id, role });
-
-      if (roleError) {
-        return { error: new Error('Error al asignar rol: ' + roleError.message) };
-      }
-
-      // Update profile with full name
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ full_name: fullName })
-        .eq('user_id', data.user.id);
-
-      if (profileError) {
-        console.error('Error updating profile:', profileError);
-      }
-    }
 
     return { error: null };
   };

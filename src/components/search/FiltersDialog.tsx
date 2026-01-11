@@ -29,7 +29,7 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
   });
 
   // Price range slider state
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 200000]);
   
   // Date range state
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -54,7 +54,7 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
       order: [],
     };
     setFilters(clearedFilters);
-    setPriceRange([0, 100000]);
+    setPriceRange([0, 200000]);
     setDateRange(undefined);
   };
 
@@ -82,8 +82,8 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
   };
 
   const hasDateFilter = dateRange?.from !== undefined;
-  const hasActiveFilters = Object.values(filters).some(arr => arr.length > 0) || priceRange[0] > 0 || priceRange[1] < 100000 || hasDateFilter;
-  const activeFiltersCount = Object.values(filters).reduce((acc, arr) => acc + arr.length, 0) + (priceRange[0] > 0 || priceRange[1] < 100000 ? 1 : 0) + (hasDateFilter ? 1 : 0);
+  const hasActiveFilters = Object.values(filters).some(arr => arr.length > 0) || priceRange[0] > 0 || priceRange[1] < 200000 || hasDateFilter;
+  const activeFiltersCount = Object.values(filters).reduce((acc, arr) => acc + arr.length, 0) + (priceRange[0] > 0 || priceRange[1] < 200000 ? 1 : 0) + (hasDateFilter ? 1 : 0);
 
   // Calculate preview count based on current filter state
   const previewCount = useMemo(() => {
@@ -259,39 +259,25 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
 
           {/* Billboard Type */}
           <div className="border-t border-border pt-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-            <h3 className="text-lg font-semibold mb-4">Tipo de espectacular</h3>
-            <div className="flex rounded-xl border border-border overflow-hidden">
+            <h3 className="text-lg font-semibold mb-4">Tipo</h3>
+            <div className="flex flex-wrap gap-2">
               {[
-                { label: 'Cualquiera', value: '' },
-                { label: 'Espectacular', value: 'spectacular' },
+                { label: 'Espectacular', value: 'espectacular' },
+                { label: 'Pantalla Digital', value: 'pantalla_digital' },
                 { label: 'Mural', value: 'mural' },
-                { label: 'Digital', value: 'digital' },
-              ].map((option, idx) => {
-                const isSelected = option.value === '' 
-                  ? filters.billboardType.length === 0 
-                  : filters.billboardType.includes(option.value);
-                return (
-                  <button
-                    key={option.value || 'any'}
-                    onClick={() => {
-                      if (option.value === '') {
-                        setFilters(prev => ({ ...prev, billboardType: [] }));
-                      } else {
-                        updateFilter('billboardType', option.value);
-                      }
-                    }}
-                    className={cn(
-                      "flex-1 py-3 px-4 text-sm font-medium border-r last:border-r-0 border-border",
-                      "transition-all duration-200 ease-out",
-                      isSelected 
-                        ? 'bg-foreground text-background' 
-                        : 'hover:bg-muted text-foreground'
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
+                { label: 'Mupi', value: 'mupi' },
+                { label: 'Valla', value: 'valla' },
+                { label: 'Puente Peatonal', value: 'puente_peatonal' },
+                { label: 'Parabús', value: 'parabus' },
+                { label: 'Totem', value: 'totem' },
+              ].map((option) => (
+                <ChipButton 
+                  key={option.value} 
+                  label={option.label} 
+                  value={option.value} 
+                  filterKey="billboardType" 
+                />
+              ))}
             </div>
           </div>
 
@@ -304,7 +290,7 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
             <div className="h-16 mb-4 flex items-end gap-0.5">
               {Array.from({ length: 40 }).map((_, i) => {
                 const height = Math.random() * 100;
-                const inRange = (i / 40) * 100000 >= priceRange[0] && (i / 40) * 100000 <= priceRange[1];
+                const inRange = (i / 40) * 200000 >= priceRange[0] && (i / 40) * 200000 <= priceRange[1];
                 return (
                   <div
                     key={i}
@@ -322,7 +308,7 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
               value={priceRange}
               onValueChange={(value) => setPriceRange(value as [number, number])}
               min={0}
-              max={100000}
+              max={200000}
               step={1000}
               className="mb-4"
             />
@@ -330,15 +316,31 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
             <div className="flex justify-between gap-4">
               <div className="flex-1">
                 <label className="text-xs text-muted-foreground">Mínimo</label>
-                <div className="border border-border rounded-lg px-3 py-2 mt-1 transition-colors duration-200">
-                  <span className="text-foreground">${priceRange[0].toLocaleString()}</span>
-                </div>
+                <input
+                  type="number"
+                  value={priceRange[0]}
+                  onChange={(e) => {
+                    const value = Math.min(Number(e.target.value), priceRange[1]);
+                    setPriceRange([value, priceRange[1]]);
+                  }}
+                  className="w-full border border-border rounded-lg px-3 py-2 mt-1 bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  min={0}
+                  max={priceRange[1]}
+                />
               </div>
               <div className="flex-1">
                 <label className="text-xs text-muted-foreground">Máximo</label>
-                <div className="border border-border rounded-lg px-3 py-2 mt-1 transition-colors duration-200">
-                  <span className="text-foreground">${priceRange[1].toLocaleString()}</span>
-                </div>
+                <input
+                  type="number"
+                  value={priceRange[1]}
+                  onChange={(e) => {
+                    const value = Math.max(Number(e.target.value), priceRange[0]);
+                    setPriceRange([priceRange[0], value]);
+                  }}
+                  className="w-full border border-border rounded-lg px-3 py-2 mt-1 bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+                  min={priceRange[0]}
+                  max={200000}
+                />
               </div>
             </div>
           </div>

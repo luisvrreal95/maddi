@@ -6,10 +6,11 @@ import TopListingsSection from '@/components/TopListingsSection';
 import AdvertisingSection from '@/components/AdvertisingSection';
 import CTASection from '@/components/CTASection';
 import Footer from '@/components/Footer';
+import MobileNavBar from '@/components/navigation/MobileNavBar';
 
 const Index: React.FC = () => {
   return (
-    <main className="flex flex-col items-stretch relative min-h-screen">
+    <main className="flex flex-col items-stretch relative min-h-screen pb-16 md:pb-0">
       <HeroSection />
       <RatingSection />
       <BusinessModelSection />
@@ -17,6 +18,7 @@ const Index: React.FC = () => {
       <AdvertisingSection />
       <CTASection />
       <Footer />
+      <MobileNavBar />
     </main>
   );
 };

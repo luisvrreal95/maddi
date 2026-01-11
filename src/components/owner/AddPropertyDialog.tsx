@@ -916,12 +916,13 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent className="bg-[#2A2A2A] border-white/10">
                     <SelectItem value="espectacular">Espectacular</SelectItem>
+                    <SelectItem value="pantalla_digital">Pantalla Digital</SelectItem>
+                    <SelectItem value="mural">Mural</SelectItem>
                     <SelectItem value="mupi">Mupi</SelectItem>
-                    <SelectItem value="pantalla">Pantalla Digital</SelectItem>
                     <SelectItem value="valla">Valla</SelectItem>
-                    <SelectItem value="parabuses">Parabuses</SelectItem>
-                    <SelectItem value="puente">Puente Peatonal</SelectItem>
-                    <SelectItem value="muro">Muro</SelectItem>
+                    <SelectItem value="puente_peatonal">Puente Peatonal</SelectItem>
+                    <SelectItem value="parabus">Parabús</SelectItem>
+                    <SelectItem value="totem">Totem</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
