@@ -39,11 +39,11 @@ const Auth: React.FC = () => {
 
   useEffect(() => {
     if (user && userRole) {
-      // Redirect owners to their dashboard, businesses to search
+      // Redirect owners to their dashboard with inicio tab, businesses to search
       if (userRole === 'owner') {
-        navigate('/owner');
-      } else {
-        navigate('/search');
+        navigate('/owner?tab=inicio', { replace: true });
+      } else if (userRole === 'business') {
+        navigate('/search', { replace: true });
       }
     }
   }, [user, userRole, navigate]);
@@ -154,7 +154,12 @@ const Auth: React.FC = () => {
     } else {
       toast.success('¡Cuenta configurada exitosamente!');
       setShowRoleModal(false);
-      navigate('/');
+      // Redirect based on assigned role
+      if (selectedRoleForModal === 'owner') {
+        navigate('/owner?tab=inicio', { replace: true });
+      } else {
+        navigate('/search', { replace: true });
+      }
     }
     setIsLoading(false);
   };

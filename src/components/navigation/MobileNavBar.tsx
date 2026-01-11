@@ -8,11 +8,12 @@ const MobileNavBar: React.FC = () => {
   const location = useLocation();
   const { user, userRole } = useAuth();
   
-  // Hide navbar on owner/business dashboards - they have their own navigation
-  const hiddenPaths = ['/owner', '/business', '/admin', '/messages'];
+  // Hide navbar on owner/business dashboards, admin, and messages - they have their own navigation
+  const hiddenPaths = ['/owner', '/business', '/admin', '/messages', '/settings'];
   const shouldHide = hiddenPaths.some(path => location.pathname.startsWith(path));
   
-  if (shouldHide) {
+  // Also hide if user is an owner (they should use their dashboard nav)
+  if (shouldHide || userRole === 'owner') {
     return null;
   }
   
@@ -32,13 +33,16 @@ const MobileNavBar: React.FC = () => {
     {
       label: user ? 'Perfil' : 'Ingresar',
       icon: User,
-      href: user ? (userRole === 'owner' ? '/owner' : '/settings') : '/auth',
+      href: user ? '/settings' : '/auth',
       active: location.pathname === '/auth' || location.pathname === '/settings',
     },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-[#1A1A1A] border-t border-white/10 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#1A1A1A] border-t border-white/10 block md:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+    >
       <div className="flex items-center justify-around h-16 px-4">
         {navItems.map((item) => (
           <Link

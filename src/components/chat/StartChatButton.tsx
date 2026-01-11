@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { MessageSquare } from 'lucide-react';
@@ -42,22 +42,26 @@ const StartChatButton: React.FC<StartChatButtonProps> = ({
         .single();
 
       if (existing) {
-        navigate('/messages');
+        // Navigate with the conversation ID to auto-select it
+        navigate(`/messages?conversation=${existing.id}&billboard=${billboardId}`);
         return;
       }
 
       // Create new conversation
-      const { error } = await supabase
+      const { data: newConversation, error } = await supabase
         .from('conversations')
         .insert({
           billboard_id: billboardId,
           business_id: user.id,
           owner_id: ownerId
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
 
-      navigate('/messages');
+      // Navigate with new conversation ID and billboard context
+      navigate(`/messages?conversation=${newConversation.id}&billboard=${billboardId}`);
     } catch (error) {
       console.error('Error starting chat:', error);
       toast.error('Error al iniciar conversación');

@@ -148,21 +148,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
+    // Clear local state first
+    setUserRole(null);
+    setNeedsRoleSelection(false);
+    setUser(null);
+    setSession(null);
+    
     try {
-      // Clear local state first
-      setUserRole(null);
-      setNeedsRoleSelection(false);
-      setUser(null);
-      setSession(null);
+      // Clear localStorage manually to ensure session is removed
+      localStorage.removeItem('sb-szmflagbbuxcuuxpvnkt-auth-token');
       
-      // Try to sign out from Supabase (may fail if session expired)
+      // Try to sign out from Supabase
       await supabase.auth.signOut({ scope: 'local' });
     } catch (error) {
       console.error('Error during sign out:', error);
-    } finally {
-      // Always redirect to main page
-      window.location.href = '/';
     }
+    
+    // Force page reload to clear any cached state
+    window.location.replace('/');
   };
 
   return (
