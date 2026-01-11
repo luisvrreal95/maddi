@@ -106,8 +106,34 @@ const OwnerDashboard: React.FC = () => {
     return uniqueCities.sort();
   }, [billboards]);
 
+  // Fetch bookings to check current reservations
+  const [currentBookings, setCurrentBookings] = useState<any[]>([]);
+  
+  useEffect(() => {
+    const fetchCurrentBookings = async () => {
+      if (!user) return;
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const { data } = await supabase
+        .from('bookings')
+        .select('billboard_id, start_date, end_date')
+        .eq('status', 'approved')
+        .lte('start_date', today.toISOString())
+        .gte('end_date', today.toISOString());
+      
+      setCurrentBookings(data || []);
+    };
+    
+    fetchCurrentBookings();
+  }, [user]);
+
   // Filter billboards
   const filteredBillboards = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
     return billboards.filter(b => {
       // Search filter
       if (searchQuery) {
@@ -118,11 +144,19 @@ const OwnerDashboard: React.FC = () => {
         if (!matchesTitle && !matchesCity && !matchesAddress) return false;
       }
       if (filterCity !== 'all' && b.city !== filterCity) return false;
-      if (filterStatus === 'available' && !b.is_available) return false;
-      if (filterStatus === 'unavailable' && b.is_available) return false;
+      
+      // Check if billboard has active booking today
+      const hasActiveBooking = currentBookings.some(booking => 
+        booking.billboard_id === b.id &&
+        new Date(booking.start_date) <= today &&
+        new Date(booking.end_date) >= today
+      );
+      
+      if (filterStatus === 'available' && (hasActiveBooking || !b.is_available)) return false;
+      if (filterStatus === 'unavailable' && !hasActiveBooking && b.is_available) return false;
       return true;
     });
-  }, [billboards, filterCity, filterStatus, searchQuery]);
+  }, [billboards, filterCity, filterStatus, searchQuery, currentBookings]);
 
   const handleBillboardSaved = () => {
     fetchBillboards();

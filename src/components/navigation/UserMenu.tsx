@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Menu, Heart, MessageSquare, Settings, LogOut, User, LayoutDashboard, Calendar, UserPlus, Search, Star, BarChart3 } from 'lucide-react';
+import { Menu, Heart, MessageSquare, Settings, LogOut, User, LayoutDashboard, Calendar, UserPlus, Search, Star, BarChart3, Building2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -59,6 +59,14 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           >
             <UserPlus className="w-4 h-4 mr-3 text-[#9BFF43]" />
             <span>Registrarme</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-border" />
+          <DropdownMenuItem 
+            onClick={() => handleNavigate('/auth?role=owner')}
+            className="cursor-pointer text-[#9BFF43] hover:bg-[#9BFF43]/10 focus:bg-[#9BFF43]/10"
+          >
+            <Building2 className="w-4 h-4 mr-3" />
+            <span className="font-medium">Anuncia tu espacio</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
