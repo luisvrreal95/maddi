@@ -67,21 +67,37 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
 
   // State for staged document before submission
   const [stagedDocument, setStagedDocument] = useState<{
-    url: string;
+    filePath: string;
     type: string;
-    file: File;
+    signedUrl: string;
   } | null>(null);
+
+  // Generate signed URL for viewing verification documents (private bucket)
+  const getSignedUrl = async (filePath: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('verification-docs')
+        .createSignedUrl(filePath, 600); // 10 minutes expiration
+      
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error generating signed URL:', error);
+      return null;
+    }
+  };
 
   const handleDocumentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Validate file
+    // Validate file type - documents for verification
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
     if (!validTypes.includes(file.type)) {
       toast.error('Formato no válido. Usa JPG, PNG, WebP o PDF');
       return;
     }
+    // 10MB limit for verification documents
     if (file.size > 10 * 1024 * 1024) {
       toast.error('El archivo no debe superar 10MB');
       return;
@@ -90,23 +106,24 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
     setIsUploading(true);
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/verification-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/verification-${Date.now()}.${fileExt}`;
 
+      // Upload to PRIVATE verification-docs bucket
       const { error: uploadError } = await supabase.storage
-        .from('billboard-images')
-        .upload(fileName, file, { upsert: true });
+        .from('verification-docs')
+        .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('billboard-images')
-        .getPublicUrl(fileName);
+      // Generate signed URL for preview (10 min expiry)
+      const signedUrl = await getSignedUrl(filePath);
+      if (!signedUrl) throw new Error('Could not generate preview URL');
 
       // Stage the document for confirmation
       setStagedDocument({
-        url: urlData.publicUrl,
+        filePath,
         type: documentType,
-        file: file
+        signedUrl
       });
       
       toast.success('Documento cargado. Confirma para enviar a verificación.');
@@ -123,10 +140,11 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
 
     setIsUploading(true);
     try {
+      // Store the file PATH (not URL) since it's a private bucket
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
-          verification_document_url: stagedDocument.url,
+          verification_document_url: stagedDocument.filePath, // Store path, not URL
           verification_document_type: stagedDocument.type,
           verification_status: 'pending',
           verification_submitted_at: new Date().toISOString(),
@@ -151,16 +169,25 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
     if (!stagedDocument || !user) return;
 
     try {
-      // Delete uploaded file from storage
-      const filePath = stagedDocument.url.split('/billboard-images/')[1];
-      if (filePath) {
-        await supabase.storage.from('billboard-images').remove([filePath]);
-      }
+      // Delete uploaded file from PRIVATE verification-docs bucket
+      await supabase.storage.from('verification-docs').remove([stagedDocument.filePath]);
       setStagedDocument(null);
       toast.info('Documento eliminado');
     } catch (error) {
       console.error('Error canceling:', error);
       setStagedDocument(null);
+    }
+  };
+
+  // Handle viewing existing verification document
+  const handleViewDocument = async () => {
+    if (!verification?.verification_document_url) return;
+    
+    const signedUrl = await getSignedUrl(verification.verification_document_url);
+    if (signedUrl) {
+      window.open(signedUrl, '_blank');
+    } else {
+      toast.error('No se pudo cargar el documento');
     }
   };
 
@@ -300,7 +327,7 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => window.open(stagedDocument.url, '_blank')}
+              onClick={() => window.open(stagedDocument.signedUrl, '_blank')}
               className="text-[#9BFF43] hover:text-[#9BFF43]/80"
             >
               Ver
@@ -343,7 +370,7 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => window.open(verification.verification_document_url!, '_blank')}
+            onClick={handleViewDocument}
             className="text-[#9BFF43] hover:text-[#9BFF43]/80"
           >
             Ver

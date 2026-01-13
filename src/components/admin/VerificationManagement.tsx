@@ -64,7 +64,42 @@ const VerificationManagement = () => {
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [loadingDocUrl, setLoadingDocUrl] = useState(false);
   const { toast } = useToast();
+
+  // Generate signed URL for viewing verification documents (private bucket)
+  const getSignedUrl = async (filePath: string): Promise<string | null> => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('verification-docs')
+        .createSignedUrl(filePath, 600); // 10 minutes expiration
+      
+      if (error) throw error;
+      return data.signedUrl;
+    } catch (error) {
+      console.error('Error generating signed URL:', error);
+      return null;
+    }
+  };
+
+  // Open verification document with signed URL
+  const handleViewDocument = async (docPath: string) => {
+    setLoadingDocUrl(true);
+    try {
+      const signedUrl = await getSignedUrl(docPath);
+      if (signedUrl) {
+        window.open(signedUrl, '_blank');
+      } else {
+        toast({
+          title: "Error",
+          description: "No se pudo cargar el documento",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setLoadingDocUrl(false);
+    }
+  };
 
   const fetchRequests = async () => {
     try {
@@ -262,9 +297,8 @@ const VerificationManagement = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() =>
-                              window.open(request.verification_document_url!, "_blank")
-                            }
+                            disabled={loadingDocUrl}
+                            onClick={() => handleViewDocument(request.verification_document_url!)}
                           >
                             <ExternalLink className="w-4 h-4" />
                           </Button>
@@ -347,11 +381,14 @@ const VerificationManagement = () => {
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() =>
-                    window.open(selectedRequest.verification_document_url!, "_blank")
-                  }
+                  disabled={loadingDocUrl}
+                  onClick={() => handleViewDocument(selectedRequest.verification_document_url!)}
                 >
-                  <FileText className="w-4 h-4 mr-2" />
+                  {loadingDocUrl ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4 mr-2" />
+                  )}
                   Ver Documento
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </Button>

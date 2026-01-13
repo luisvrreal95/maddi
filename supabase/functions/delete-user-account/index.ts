@@ -158,23 +158,39 @@ serve(async (req: Request): Promise<Response> => {
       .eq('user_id', userId);
     if (profileError) console.error('Error deleting profile:', profileError);
 
-    // 13. Delete storage files
+    // 13. Delete storage files from billboard-images bucket
     try {
-      const { data: files } = await supabase.storage
+      const { data: billboardFiles } = await supabase.storage
         .from('billboard-images')
         .list(userId);
       
-      if (files && files.length > 0) {
-        const filePaths = files.map(f => `${userId}/${f.name}`);
+      if (billboardFiles && billboardFiles.length > 0) {
+        const filePaths = billboardFiles.map(f => `${userId}/${f.name}`);
         await supabase.storage
           .from('billboard-images')
           .remove(filePaths);
       }
     } catch (storageError) {
-      console.error('Error deleting storage:', storageError);
+      console.error('Error deleting billboard images:', storageError);
     }
 
-    // 14. Finally, delete the auth user
+    // 14. Delete storage files from verification-docs bucket (private)
+    try {
+      const { data: verificationFiles } = await supabase.storage
+        .from('verification-docs')
+        .list(userId);
+      
+      if (verificationFiles && verificationFiles.length > 0) {
+        const filePaths = verificationFiles.map(f => `${userId}/${f.name}`);
+        await supabase.storage
+          .from('verification-docs')
+          .remove(filePaths);
+      }
+    } catch (storageError) {
+      console.error('Error deleting verification docs:', storageError);
+    }
+
+    // 15. Finally, delete the auth user
     const { error: deleteUserError } = await supabase.auth.admin.deleteUser(userId);
     
     if (deleteUserError) {
