@@ -28,7 +28,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const placeholderText = 'Buscar en Mexicali, Ensenada...';
+  const placeholderText = 'Busca una plaza, colonia o dirección (ej. Plaza Centenario)';
 
   // Get user's location
   useEffect(() => {
@@ -101,12 +101,15 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        // Build URL with proximity bias if user location is available
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address&limit=5&language=es`;
+        // Build URL with POI support and proximity bias
+        // Include poi type for places like "Plaza Centenario", "Costco", "Hospital General"
+        const types = 'poi,place,locality,neighborhood,address';
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&country=mx&types=${types}&limit=5&language=es`;
         
-        if (userLocation) {
-          url += `&proximity=${userLocation.lng},${userLocation.lat}`;
-        }
+        // Add proximity: userLocation if available, otherwise default to Mexicali
+        const proximityLng = userLocation?.lng ?? -115.4523;
+        const proximityLat = userLocation?.lat ?? 32.6245;
+        url += `&proximity=${proximityLng},${proximityLat}`;
         
         const response = await fetch(url);
         const data = await response.json();
@@ -168,8 +171,20 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
       locality: 'Localidad',
       neighborhood: 'Colonia',
       address: 'Dirección',
+      poi: 'Lugar',
     };
     return labels[type] || 'Ubicación';
+  };
+
+  // Extract city/state from suggestion for display
+  const extractCityState = (suggestion: LocationSuggestion): string => {
+    // The place_name usually contains "Name, City, State, Country"
+    const parts = suggestion.place_name.split(', ');
+    if (parts.length >= 3) {
+      // Return "City, State" (skip the name and country)
+      return parts.slice(1, -1).join(', ');
+    }
+    return suggestion.place_name;
   };
 
   return (
@@ -258,7 +273,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
               <MapPin className="w-5 h-5 mt-0.5 text-[#9BFF43] flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-white truncate">{suggestion.text}</p>
-                <p className="text-sm text-white/50 truncate">{suggestion.place_name}</p>
+                <p className="text-sm text-white/50 truncate">{extractCityState(suggestion)}</p>
               </div>
               <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
                 {getPlaceTypeLabel(suggestion.place_type)}

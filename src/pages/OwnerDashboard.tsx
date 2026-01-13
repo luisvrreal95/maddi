@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type TabType = 'inicio' | 'propiedades' | 'calendario' | 'mensajes' | 'stats' | 'reservas';
+type TabType = 'inicio' | 'propiedades' | 'dashboard' | 'calendario' | 'mensajes' | 'stats' | 'reservas';
 
 const OwnerDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -60,10 +60,18 @@ const OwnerDashboard: React.FC = () => {
   // Handle tab from URL params
   useEffect(() => {
     const tab = searchParams.get('tab') as TabType | null;
-    if (tab && ['inicio', 'propiedades', 'calendario', 'mensajes', 'stats', 'reservas'].includes(tab)) {
+    if (tab && ['inicio', 'propiedades', 'dashboard', 'calendario', 'mensajes', 'stats', 'reservas'].includes(tab)) {
       setActiveTab(tab);
     }
-  }, [searchParams]);
+    // Handle billboard selection from URL
+    const billboardId = searchParams.get('billboard');
+    if (billboardId && billboards.length > 0) {
+      const billboard = billboards.find(b => b.id === billboardId);
+      if (billboard) {
+        setSelectedBillboard(billboard);
+      }
+    }
+  }, [searchParams, billboards]);
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as TabType);
@@ -199,7 +207,8 @@ const OwnerDashboard: React.FC = () => {
 
   const handlePropertyClick = (billboard: Billboard) => {
     setSelectedBillboard(billboard);
-    handleTabChange('dashboard');
+    setSearchParams({ tab: 'dashboard', billboard: billboard.id });
+    setActiveTab('dashboard');
   };
 
   const userName = user?.email?.split('@')[0] || 'Usuario';
@@ -298,6 +307,45 @@ const OwnerDashboard: React.FC = () => {
           </>
         )}
 
+        {activeTab === 'dashboard' && (
+          <>
+            <div className="mb-6">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Dashboard</h1>
+              <p className="text-white/60 mb-6">Visualiza el rendimiento y detalles de tu espectacular</p>
+              
+              {/* Billboard Selector */}
+              {billboards.length > 0 && (
+                <BillboardSelector
+                  billboards={billboards}
+                  selectedId={selectedBillboard?.id || null}
+                  onSelect={setSelectedBillboard}
+                />
+              )}
+            </div>
+            
+            {selectedBillboard ? (
+              <div className="space-y-8">
+                {/* Traffic & Recommended Actions */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <TrafficAnalytics billboard={selectedBillboard} />
+                  <RecommendedActions billboards={[selectedBillboard]} userId={user?.id || ''} />
+                </div>
+                
+                {/* INEGI Insights */}
+                <INEGIInsights billboard={{
+                  id: selectedBillboard.id,
+                  latitude: selectedBillboard.latitude,
+                  longitude: selectedBillboard.longitude
+                }} />
+              </div>
+            ) : (
+              <div className="text-center py-16">
+                <h2 className="text-white text-xl font-medium mb-2">Sin espectacular seleccionado</h2>
+                <p className="text-white/60">Selecciona un espectacular arriba o agrega uno nuevo para ver su dashboard.</p>
+              </div>
+            )}
+          </>
+        )}
 
         {activeTab === 'stats' && (
           <>
