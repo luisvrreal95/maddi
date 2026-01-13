@@ -81,12 +81,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        // Include neighborhood and address types for more precise searches
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address&limit=8&language=es`;
+        // Include POI type for places like "Plaza Centenario", "Costco", "Hospital General"
+        const types = 'poi,place,district,locality,neighborhood,address';
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(value)}.json?access_token=${mapboxToken}&country=mx&types=${types}&limit=8&language=es`;
         
-        if (userLocation) {
-          url += `&proximity=${userLocation.lng},${userLocation.lat}`;
-        }
+        // Add proximity: userLocation if available, otherwise default to Mexicali
+        const proximityLng = userLocation?.lng ?? -115.4523;
+        const proximityLat = userLocation?.lat ?? 32.6245;
+        url += `&proximity=${proximityLng},${proximityLat}`;
         
         const response = await fetch(url);
         const data = await response.json();
@@ -260,7 +262,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
             setTimeout(() => setIsFocused(false), 200);
           }}
           className="w-full pl-12 pr-12 py-3 bg-[#2A2A2A] border border-white/10 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-[#9BFF43]/50"
-          placeholder={placeholder}
+          placeholder={placeholder || 'Busca una plaza, colonia o dirección...'}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
           {isLoading ? (
@@ -302,39 +304,43 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
               <span>Mostrando resultados cerca de ti</span>
             </div>
           )}
-          {suggestions.map((suggestion, index) => (
-            <button
-              key={suggestion.id}
-              type="button"
-              onClick={() => handleSelect(suggestion)}
-              className={`w-full px-4 py-3 flex items-start gap-3 text-left transition-colors ${
-                index === selectedIndex
-                  ? 'bg-[#9BFF43]/20'
-                  : 'hover:bg-white/5'
-              }`}
-            >
-              <MapPin
-                className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
-                  index === selectedIndex ? 'text-[#9BFF43]' : 'text-white/40'
+          {suggestions.map((suggestion, index) => {
+            // Extract city/state for display: "Name — City, State"
+            const parts = suggestion.place_name.split(', ');
+            const cityState = parts.length >= 3 ? parts.slice(1, -1).join(', ') : '';
+            
+            return (
+              <button
+                key={suggestion.id}
+                type="button"
+                onClick={() => handleSelect(suggestion)}
+                className={`w-full px-4 py-3 flex items-start gap-3 text-left transition-colors ${
+                  index === selectedIndex
+                    ? 'bg-[#9BFF43]/20'
+                    : 'hover:bg-white/5'
                 }`}
-              />
-              <div className="flex-1 min-w-0">
-                <p
-                  className={`font-medium truncate ${
-                    index === selectedIndex ? 'text-[#9BFF43]' : 'text-white'
+              >
+                <MapPin
+                  className={`w-5 h-5 mt-0.5 flex-shrink-0 ${
+                    index === selectedIndex ? 'text-[#9BFF43]' : 'text-white/40'
                   }`}
-                >
-                  {suggestion.text}
-                </p>
-                <p className="text-sm text-white/50 truncate">
-                  {suggestion.place_name}
-                </p>
-              </div>
-              <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
-                {getPlaceTypeLabel(suggestion.place_type)}
-              </span>
-            </button>
-          ))}
+                />
+                <div className="flex-1 min-w-0">
+                  <p
+                    className={`font-medium truncate ${
+                      index === selectedIndex ? 'text-[#9BFF43]' : 'text-white'
+                    }`}
+                  >
+                    {suggestion.text}
+                    {cityState && <span className="text-white/50 font-normal"> — {cityState}</span>}
+                  </p>
+                </div>
+                <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                  {getPlaceTypeLabel(suggestion.place_type)}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
