@@ -106,6 +106,10 @@ interface SearchMapProps {
   isCompareMode: boolean;
 }
 
+// Cache for TomTom tile URLs fetched from edge function
+let cachedLiveTileUrl: string | null = null;
+let cachedHistoryTileUrls: { [key: string]: string } = {};
+
 export interface SearchMapRef {
   refreshLayers: () => void;
 }
@@ -398,6 +402,39 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     }
   }, []);
 
+  // Fetch TomTom tile URL from edge function
+  const fetchTomTomTileUrl = useCallback(async (type: 'live' | 'history', timeSet?: string): Promise<string | null> => {
+    // Check cache first
+    if (type === 'live' && cachedLiveTileUrl) {
+      return cachedLiveTileUrl;
+    }
+    if (type === 'history' && timeSet && cachedHistoryTileUrls[timeSet]) {
+      return cachedHistoryTileUrls[timeSet];
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-tomtom-tile-url', {
+        body: { type, timeSet }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.tileUrl) {
+        // Cache the result
+        if (type === 'live') {
+          cachedLiveTileUrl = data.tileUrl;
+        } else if (timeSet) {
+          cachedHistoryTileUrls[timeSet] = data.tileUrl;
+        }
+        return data.tileUrl;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching TomTom tile URL:', error);
+      return null;
+    }
+  }, []);
+
   // Handle live traffic layer
   useEffect(() => {
     if (!map.current) return;
@@ -405,19 +442,32 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     const trafficLayerId = 'tomtom-traffic-layer';
     const trafficSourceId = 'tomtom-traffic-source';
 
-    if (layers.traffic && !layers.trafficHistory) {
-      // Use TomTom live traffic tiles
-      if (!map.current.getSource(trafficSourceId)) {
+    const setupLiveTrafficLayer = async () => {
+      if (layers.traffic && !layers.trafficHistory) {
+        // Fetch tile URL from edge function (uses MADDI_TOMTOM_API_KEY)
+        const tileUrl = await fetchTomTomTileUrl('live');
+        
+        if (!tileUrl) {
+          console.warn('Could not get TomTom tile URL');
+          return;
+        }
+
+        if (!map.current) return;
+
+        // Remove existing source/layer if present
+        if (map.current.getLayer(trafficLayerId)) {
+          map.current.removeLayer(trafficLayerId);
+        }
+        if (map.current.getSource(trafficSourceId)) {
+          map.current.removeSource(trafficSourceId);
+        }
+
         map.current.addSource(trafficSourceId, {
           type: 'raster',
-          tiles: [
-            `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?tileSize=256&key=demo`
-          ],
+          tiles: [tileUrl],
           tileSize: 256,
         });
-      }
 
-      if (!map.current.getLayer(trafficLayerId)) {
         map.current.addLayer({
           id: trafficLayerId,
           type: 'raster',
@@ -426,16 +476,18 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
             'raster-opacity': 0.7,
           },
         });
+      } else {
+        if (map.current.getLayer(trafficLayerId)) {
+          map.current.removeLayer(trafficLayerId);
+        }
+        if (map.current.getSource(trafficSourceId)) {
+          map.current.removeSource(trafficSourceId);
+        }
       }
-    } else {
-      if (map.current.getLayer(trafficLayerId)) {
-        map.current.removeLayer(trafficLayerId);
-      }
-      if (map.current.getSource(trafficSourceId)) {
-        map.current.removeSource(trafficSourceId);
-      }
-    }
-  }, [layers.traffic, layers.trafficHistory]);
+    };
+
+    setupLiveTrafficLayer();
+  }, [layers.traffic, layers.trafficHistory, fetchTomTomTileUrl]);
 
   // Handle historical traffic layer
   useEffect(() => {
@@ -444,45 +496,54 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     const historyLayerId = 'tomtom-history-layer';
     const historySourceId = 'tomtom-history-source';
 
-    if (layers.trafficHistory) {
-      // TomTom historical traffic uses style parameter
-      // style: relative-delay (shows relative to free flow)
-      // daySet: weekday (Monday-Friday typical), weekend
-      // timeSet: hour in format HHmm
-      const timeSet = trafficHour.toString().padStart(2, '0') + '00';
-      
-      if (map.current.getSource(historySourceId)) {
-        map.current.removeSource(historySourceId);
-      }
-      if (map.current.getLayer(historyLayerId)) {
-        map.current.removeLayer(historyLayerId);
-      }
+    const setupHistoryLayer = async () => {
+      if (layers.trafficHistory) {
+        const timeSet = trafficHour.toString().padStart(2, '0') + '00';
+        
+        // Fetch tile URL from edge function with timeSet
+        const tileUrl = await fetchTomTomTileUrl('history', timeSet);
+        
+        if (!tileUrl) {
+          console.warn('Could not get TomTom history tile URL');
+          return;
+        }
 
-      map.current.addSource(historySourceId, {
-        type: 'raster',
-        tiles: [
-          `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?tileSize=256&key=demo&timeSet=${timeSet}`
-        ],
-        tileSize: 256,
-      });
+        if (!map.current) return;
 
-      map.current.addLayer({
-        id: historyLayerId,
-        type: 'raster',
-        source: historySourceId,
-        paint: {
-          'raster-opacity': 0.75,
-        },
-      });
-    } else {
-      if (map.current.getLayer(historyLayerId)) {
-        map.current.removeLayer(historyLayerId);
+        // Remove existing source/layer
+        if (map.current.getLayer(historyLayerId)) {
+          map.current.removeLayer(historyLayerId);
+        }
+        if (map.current.getSource(historySourceId)) {
+          map.current.removeSource(historySourceId);
+        }
+
+        map.current.addSource(historySourceId, {
+          type: 'raster',
+          tiles: [tileUrl],
+          tileSize: 256,
+        });
+
+        map.current.addLayer({
+          id: historyLayerId,
+          type: 'raster',
+          source: historySourceId,
+          paint: {
+            'raster-opacity': 0.75,
+          },
+        });
+      } else {
+        if (map.current.getLayer(historyLayerId)) {
+          map.current.removeLayer(historyLayerId);
+        }
+        if (map.current.getSource(historySourceId)) {
+          map.current.removeSource(historySourceId);
+        }
       }
-      if (map.current.getSource(historySourceId)) {
-        map.current.removeSource(historySourceId);
-      }
-    }
-  }, [layers.trafficHistory, trafficHour]);
+    };
+
+    setupHistoryLayer();
+  }, [layers.trafficHistory, trafficHour, fetchTomTomTileUrl]);
 
   // Fetch flow data
   const fetchFlowData = useCallback(async () => {
