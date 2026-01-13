@@ -593,9 +593,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-2xl p-0 gap-0 overflow-hidden max-h-[90vh]">
+      <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-2xl p-0 gap-0 overflow-hidden h-[90vh] flex flex-col">
         {/* Header with Step Indicator */}
-        <div className="flex items-center justify-between p-6 pb-4 border-b border-white/10">
+        <div className="flex items-center justify-between p-6 pb-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
             {step === 2 && (
               <button onClick={handleBack} className="text-white hover:text-[#9BFF43] transition-colors">
@@ -609,23 +609,31 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
           </div>
           <img src="/favicon.svg" alt="Maddi" className="w-8 h-8" />
         </div>
-        
-        {/* Contexto inicial solo en paso 1 para nuevas propiedades */}
-        {step === 1 && !billboard && (
-          <div className="px-6 pt-4">
-            <div className="bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl p-4">
-              <p className="text-white/80 text-sm">
-                ✨ Completa estos pasos para publicar tu espectacular y comenzar a recibir contactos de anunciantes.
-              </p>
-            </div>
-          </div>
-        )}
 
-        {step === 1 ? (
-          /* Step 1: Basic Info + Map */
-          <div className="flex flex-col max-h-[calc(90vh-140px)]">
-            <div className="px-6 space-y-4 overflow-y-auto flex-1">
-              <div className="grid grid-cols-2 gap-4 pt-4">
+        {/* Animated Step Content Container */}
+        <div className="flex-1 overflow-hidden relative">
+          {/* Step 1: Basic Info + Map */}
+          <div 
+            className={`absolute inset-0 flex flex-col transition-all duration-300 ease-out ${
+              step === 1 
+                ? 'opacity-100 translate-x-0' 
+                : 'opacity-0 -translate-x-full pointer-events-none'
+            }`}
+          >
+            {/* Contexto inicial solo para nuevas propiedades */}
+            {!billboard && (
+              <div className="px-6 pt-4 flex-shrink-0">
+                <div className="bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl p-4">
+                  <p className="text-white/80 text-sm">
+                    ✨ Completa estos pasos para publicar tu espectacular y comenzar a recibir contactos de anunciantes.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex-1 overflow-y-auto px-6 pb-4">
+              <div className="space-y-4 pt-4">
+                <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label className="text-sm text-white/60">Nombre del espectacular</Label>
                   <Input
@@ -796,11 +804,12 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   className="hidden"
                   multiple
                 />
+                </div>
               </div>
             </div>
 
-            {/* Fixed Footer Buttons */}
-            <div className="flex gap-3 px-6 py-4 border-t border-white/10 bg-[#1A1A1A]">
+            {/* Fixed Footer Buttons - Step 1 */}
+            <div className="flex gap-3 px-6 py-4 border-t border-white/10 bg-[#1A1A1A] flex-shrink-0">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
@@ -816,312 +825,318 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               </Button>
             </div>
           </div>
-        ) : (
-          /* Step 2: Details */
-          <div className="px-6 pb-6 space-y-4 max-h-[calc(90vh-100px)] overflow-y-auto">
-            {/* Property Preview Card */}
-            <div className="bg-[#2A2A2A] rounded-xl p-4 flex items-start justify-between mt-4">
-              <div>
-                <h3 className="font-bold text-lg text-white">{title}</h3>
-                <p className="text-white/50 text-sm">
-                  {address}
-                </p>
-              </div>
-              <div className="bg-[#9BFF43] text-[#121212] rounded-lg px-3 py-2 text-right">
-                <span className="font-bold">${parseInt(price || '0').toLocaleString()}</span>
-                <span className="text-sm opacity-70"> /mes</span>
-              </div>
-            </div>
 
-            {/* Puntos de Interés */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#9BFF43]" />
-                  <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
-                </div>
-                {isLoadingPOIs && (
-                  <div className="flex items-center gap-2 text-white/50 text-xs">
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                    <span>Detectando...</span>
+          {/* Step 2: Details */}
+          <div 
+            className={`absolute inset-0 flex flex-col transition-all duration-300 ease-out ${
+              step === 2 
+                ? 'opacity-100 translate-x-0' 
+                : 'opacity-0 translate-x-full pointer-events-none'
+            }`}
+          >
+            <div className="flex-1 overflow-y-auto px-6">
+              <div className="space-y-4 py-4">
+                {/* Property Preview Card */}
+                <div className="bg-[#2A2A2A] rounded-xl p-4 flex items-start justify-between">
+                  <div>
+                    <h3 className="font-bold text-lg text-white">{title}</h3>
+                    <p className="text-white/50 text-sm">
+                      {address}
+                    </p>
                   </div>
-                )}
-              </div>
-              {detectedPOIs.length > 0 && (
-                <p className="text-xs text-[#9BFF43] mb-2">
-                  ✓ Se detectaron {detectedPOIs.length} tipos de lugares cercanos automáticamente
-                </p>
-              )}
-              <div className="grid grid-cols-2 gap-2">
-                {POINTS_OF_INTEREST.map((point) => {
-                  const isDetected = detectedPOIs.includes(point);
-                  return (
-                    <div key={point} className={`flex items-center gap-2 p-2 rounded-lg ${isDetected ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30' : ''}`}>
-                      <Checkbox
-                        id={point}
-                        checked={pointsOfInterest.includes(point)}
-                        onCheckedChange={(checked) => 
-                          handlePointOfInterestChange(point, checked as boolean)
-                        }
-                        className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
-                      />
-                      <label htmlFor={point} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
-                        {point}
-                        {isDetected && <span className="text-[#9BFF43] text-xs">(detectado)</span>}
-                      </label>
+                  <div className="bg-[#9BFF43] text-[#121212] rounded-lg px-3 py-2 text-right">
+                    <span className="font-bold">${parseInt(price || '0').toLocaleString()}</span>
+                    <span className="text-sm opacity-70"> /mes</span>
+                  </div>
+                </div>
+
+                {/* Puntos de Interés */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-[#9BFF43]" />
+                      <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
                     </div>
-                  );
-                })}
-                {/* POIs personalizados agregados por el usuario */}
-                {pointsOfInterest
-                  .filter(poi => !POINTS_OF_INTEREST.includes(poi))
-                  .map((customPoi) => (
-                    <div key={customPoi} className="flex items-center gap-2 p-2 rounded-lg bg-[#9BFF43]/10 border border-[#9BFF43]/30">
-                      <Checkbox
-                        id={customPoi}
-                        checked={true}
-                        onCheckedChange={() => handlePointOfInterestChange(customPoi, false)}
-                        className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
-                      />
-                      <label htmlFor={customPoi} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
-                        {customPoi}
-                        <span className="text-[#9BFF43] text-xs">(personalizado)</span>
-                      </label>
-                    </div>
-                  ))}
-              </div>
-              {/* Agregar POI personalizado */}
-              <div className="flex gap-2 mt-3">
-                <Input
-                  value={customPOI}
-                  onChange={(e) => setCustomPOI(e.target.value)}
-                  placeholder="Agregar otro punto de interés..."
-                  className="flex-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40 text-sm"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && customPOI.trim()) {
-                      e.preventDefault();
-                      if (!pointsOfInterest.includes(customPOI.trim())) {
-                        setPointsOfInterest(prev => [...prev, customPOI.trim()]);
-                      }
-                      setCustomPOI('');
-                    }
-                  }}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (customPOI.trim() && !pointsOfInterest.includes(customPOI.trim())) {
-                      setPointsOfInterest(prev => [...prev, customPOI.trim()]);
-                      setCustomPOI('');
-                    }
-                  }}
-                  className="bg-transparent border-[#9BFF43]/50 text-[#9BFF43] hover:bg-[#9BFF43]/10"
-                >
-                  Agregar
-                </Button>
-              </div>
-              <p className="text-xs text-white/40 mt-2">
-                Los puntos de interés cercanos se detectan automáticamente. Puedes agregar más manualmente.
-              </p>
-            </div>
-
-            {/* Tipo & Tamaño */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="w-4 h-4 text-[#9BFF43]" />
-                  <Label className="text-sm font-medium text-white">Tipo de espacio</Label>
-                </div>
-                <Select value={billboardType} onValueChange={setBillboardType}>
-                  <SelectTrigger className="bg-[#2A2A2A] border-white/10 text-white">
-                    <SelectValue placeholder="Selecciona tipo" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#2A2A2A] border-white/10">
-                    <SelectItem value="espectacular">Espectacular</SelectItem>
-                    <SelectItem value="pantalla_digital">Pantalla Digital</SelectItem>
-                    <SelectItem value="mural">Mural</SelectItem>
-                    <SelectItem value="mupi">Mupi</SelectItem>
-                    <SelectItem value="valla">Valla</SelectItem>
-                    <SelectItem value="puente_peatonal">Puente Peatonal</SelectItem>
-                    <SelectItem value="parabus">Parabús</SelectItem>
-                    <SelectItem value="totem">Totem</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-[#9BFF43]" />
-                  <Label className="text-sm font-medium text-white">Tamaño (metros)</Label>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Input
-                    value={height}
-                    onChange={(e) => setHeight(e.target.value)}
-                    placeholder="Alto"
-                    className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
-                  />
-                  <Input
-                    value={width}
-                    onChange={(e) => setWidth(e.target.value)}
-                    placeholder="Ancho"
-                    className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Iluminación */}
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Eye className="w-4 h-4 text-[#9BFF43]" />
-                <Label className="text-sm font-medium text-white">Iluminación</Label>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsIlluminated(true)}
-                  className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
-                    isIlluminated
-                      ? 'border-[#9BFF43] bg-[#9BFF43]/10'
-                      : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
-                  }`}>
-                    {isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
-                  </div>
-                  <span className="text-sm text-white">Iluminado</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsIlluminated(false)}
-                  className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
-                    !isIlluminated
-                      ? 'border-[#9BFF43] bg-[#9BFF43]/10'
-                      : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    !isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
-                  }`}>
-                    {!isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
-                  </div>
-                  <span className="text-sm text-white">No iluminado</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Disponibilidad */}
-            <div>
-              <div className="flex items-center gap-2 mb-3">
-                <CalendarIcon className="w-4 h-4 text-[#9BFF43]" />
-                <Label className="text-sm font-medium text-white">Disponibilidad</Label>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setAvailability('immediate')}
-                  className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
-                    availability === 'immediate'
-                      ? 'border-[#9BFF43] bg-[#9BFF43]/10'
-                      : 'border-white/10 hover:border-white/20'
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                    availability === 'immediate'
-                      ? 'border-[#9BFF43]'
-                      : 'border-white/40'
-                  }`}>
-                    {availability === 'immediate' && (
-                      <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
+                    {isLoadingPOIs && (
+                      <div className="flex items-center gap-2 text-white/50 text-xs">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span>Detectando...</span>
+                      </div>
                     )}
                   </div>
-                  <span className="text-sm text-white">Inmediata</span>
-                </button>
+                  {detectedPOIs.length > 0 && (
+                    <p className="text-xs text-[#9BFF43] mb-2">
+                      ✓ Se detectaron {detectedPOIs.length} tipos de lugares cercanos automáticamente
+                    </p>
+                  )}
+                  <div className="grid grid-cols-2 gap-2">
+                    {POINTS_OF_INTEREST.map((point) => {
+                      const isDetected = detectedPOIs.includes(point);
+                      return (
+                        <div key={point} className={`flex items-center gap-2 p-2 rounded-lg ${isDetected ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30' : ''}`}>
+                          <Checkbox
+                            id={point}
+                            checked={pointsOfInterest.includes(point)}
+                            onCheckedChange={(checked) => 
+                              handlePointOfInterestChange(point, checked as boolean)
+                            }
+                            className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
+                          />
+                          <label htmlFor={point} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
+                            {point}
+                            {isDetected && <span className="text-[#9BFF43] text-xs">(detectado)</span>}
+                          </label>
+                        </div>
+                      );
+                    })}
+                    {/* POIs personalizados agregados por el usuario */}
+                    {pointsOfInterest
+                      .filter(poi => !POINTS_OF_INTEREST.includes(poi))
+                      .map((customPoi) => (
+                        <div key={customPoi} className="flex items-center gap-2 p-2 rounded-lg bg-[#9BFF43]/10 border border-[#9BFF43]/30">
+                          <Checkbox
+                            id={customPoi}
+                            checked={true}
+                            onCheckedChange={() => handlePointOfInterestChange(customPoi, false)}
+                            className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
+                          />
+                          <label htmlFor={customPoi} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
+                            {customPoi}
+                            <span className="text-[#9BFF43] text-xs">(personalizado)</span>
+                          </label>
+                        </div>
+                      ))}
+                  </div>
+                  {/* Agregar POI personalizado */}
+                  <div className="flex gap-2 mt-3">
+                    <Input
+                      value={customPOI}
+                      onChange={(e) => setCustomPOI(e.target.value)}
+                      placeholder="Agregar otro punto de interés..."
+                      className="flex-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40 text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && customPOI.trim()) {
+                          e.preventDefault();
+                          if (!pointsOfInterest.includes(customPOI.trim())) {
+                            setPointsOfInterest(prev => [...prev, customPOI.trim()]);
+                          }
+                          setCustomPOI('');
+                        }
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        if (customPOI.trim() && !pointsOfInterest.includes(customPOI.trim())) {
+                          setPointsOfInterest(prev => [...prev, customPOI.trim()]);
+                          setCustomPOI('');
+                        }
+                      }}
+                      className="bg-transparent border-[#9BFF43]/50 text-[#9BFF43] hover:bg-[#9BFF43]/10"
+                    >
+                      Agregar
+                    </Button>
+                  </div>
+                  <p className="text-xs text-white/40 mt-2">
+                    Los puntos de interés cercanos se detectan automáticamente. Puedes agregar más manualmente.
+                  </p>
+                </div>
 
-                <Popover>
-                  <PopoverTrigger asChild>
+                {/* Tipo & Tamaño */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Eye className="w-4 h-4 text-[#9BFF43]" />
+                      <Label className="text-sm font-medium text-white">Tipo de espacio</Label>
+                    </div>
+                    <Select value={billboardType} onValueChange={setBillboardType}>
+                      <SelectTrigger className="bg-[#2A2A2A] border-white/10 text-white">
+                        <SelectValue placeholder="Selecciona tipo" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-[#2A2A2A] border-white/10">
+                        <SelectItem value="espectacular">Espectacular</SelectItem>
+                        <SelectItem value="pantalla_digital">Pantalla Digital</SelectItem>
+                        <SelectItem value="mural">Mural</SelectItem>
+                        <SelectItem value="mupi">Mupi</SelectItem>
+                        <SelectItem value="valla">Valla</SelectItem>
+                        <SelectItem value="puente_peatonal">Puente Peatonal</SelectItem>
+                        <SelectItem value="parabus">Parabús</SelectItem>
+                        <SelectItem value="totem">Totem</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-[#9BFF43]" />
+                      <Label className="text-sm font-medium text-white">Tamaño (metros)</Label>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        value={height}
+                        onChange={(e) => setHeight(e.target.value)}
+                        placeholder="Alto"
+                        className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                      />
+                      <Input
+                        value={width}
+                        onChange={(e) => setWidth(e.target.value)}
+                        placeholder="Ancho"
+                        className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Iluminación */}
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Eye className="w-4 h-4 text-[#9BFF43]" />
+                    <Label className="text-sm font-medium text-white">Iluminación</Label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => setAvailability('scheduled')}
-                      className={`flex items-center gap-2 p-3 rounded-xl border transition-all text-left ${
-                        availability === 'scheduled'
+                      onClick={() => setIsIlluminated(true)}
+                      className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
+                        isIlluminated
                           ? 'border-[#9BFF43] bg-[#9BFF43]/10'
                           : 'border-white/10 hover:border-white/20'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        availability === 'scheduled'
-                          ? 'border-[#9BFF43]'
-                          : 'border-white/40'
+                        isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
                       }`}>
-                        {availability === 'scheduled' && (
+                        {isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
+                      </div>
+                      <span className="text-sm text-white">Iluminado</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsIlluminated(false)}
+                      className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
+                        !isIlluminated
+                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                          : 'border-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        !isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
+                      }`}>
+                        {!isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
+                      </div>
+                      <span className="text-sm text-white">No iluminado</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Disponibilidad */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <CalendarIcon className="w-4 h-4 text-[#9BFF43]" />
+                    <Label className="text-sm font-medium text-white">Disponibilidad</Label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setAvailability('immediate')}
+                      className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
+                        availability === 'immediate'
+                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                          : 'border-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                        availability === 'immediate' ? 'border-[#9BFF43]' : 'border-white/40'
+                      }`}>
+                        {availability === 'immediate' && (
                           <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
                         )}
                       </div>
-                      <span className="text-sm text-white">
-                        {availableFrom 
-                          ? `${format(availableFrom, 'd MMM yyyy', { locale: es })}`
-                          : 'A partir de'
-                        }
-                      </span>
+                      <span className="text-sm text-white">Inmediata</span>
                     </button>
-                  </PopoverTrigger>
-                  {availability === 'scheduled' && (
-                    <PopoverContent className="w-auto p-0 bg-[#2A2A2A] border-white/10" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={availableFrom}
-                        onSelect={setAvailableFrom}
-                        locale={es}
-                        initialFocus
-                        className="bg-[#2A2A2A]"
-                      />
-                    </PopoverContent>
-                  )}
-                </Popover>
-              </div>
-            </div>
 
-            {/* Info Box */}
-            <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
-              <div className="flex items-center gap-4 text-white/60 text-sm mb-2">
-                <div className="flex items-center gap-2">
-                  <Eye className="w-4 h-4" />
-                  <span>Vistas por día</span>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={() => setAvailability('scheduled')}
+                          className={`flex items-center gap-2 p-3 rounded-xl border transition-all text-left ${
+                            availability === 'scheduled'
+                              ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                              : 'border-white/10 hover:border-white/20'
+                          }`}
+                        >
+                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                            availability === 'scheduled' ? 'border-[#9BFF43]' : 'border-white/40'
+                          }`}>
+                            {availability === 'scheduled' && (
+                              <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
+                            )}
+                          </div>
+                          <span className="text-sm text-white">
+                            {availableFrom 
+                              ? `${format(availableFrom, 'd MMM yyyy', { locale: es })}`
+                              : 'A partir de'
+                            }
+                          </span>
+                        </button>
+                      </PopoverTrigger>
+                      {availability === 'scheduled' && (
+                        <PopoverContent className="w-auto p-0 bg-[#2A2A2A] border-white/10" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={availableFrom}
+                            onSelect={setAvailableFrom}
+                            locale={es}
+                            initialFocus
+                            className="bg-[#2A2A2A]"
+                          />
+                        </PopoverContent>
+                      )}
+                    </Popover>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  <span>Horas pico</span>
+
+                {/* Info Box */}
+                <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
+                  <div className="flex items-center gap-4 text-white/60 text-sm mb-2">
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4" />
+                      <span>Vistas por día</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4" />
+                      <span>Horas pico</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-white/40 uppercase tracking-wide">
+                    Calculadas automáticamente con información en tiempo real
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => onOpenChange(false)}
+                    className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={isLoading}
+                    className="flex-1 bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+                  >
+                    {isLoading ? 'Guardando...' : 'Guardar Propiedad'}
+                  </Button>
                 </div>
               </div>
-              <p className="text-xs text-white/40 uppercase tracking-wide">
-                Calculadas automáticamente con información en tiempo real
-              </p>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3 pt-2">
-              <Button
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="flex-1 bg-transparent border-white/20 text-white hover:bg-white/10"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className="flex-1 bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
-              >
-                {isLoading ? 'Guardando...' : 'Guardar Propiedad'}
-              </Button>
             </div>
           </div>
-        )}
+        </div>
       </DialogContent>
     </Dialog>
   );

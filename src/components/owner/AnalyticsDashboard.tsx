@@ -24,10 +24,7 @@ import {
   DollarSign, 
   Calendar,
   MapPin,
-  BarChart3,
-  Trophy,
-  AlertTriangle,
-  Rocket,
+  MessageSquare,
   Info
 } from 'lucide-react';
 import {
@@ -52,14 +49,13 @@ interface Booking {
   created_at: string;
 }
 
-const COLORS = ['#9BFF43', '#7ED321', '#5AB515', '#3D9A0A', '#2A7A00'];
+const COLORS = ['#9BFF43', '#FFC107', '#FF4444'];
 
 type TimePeriod = '7d' | '30d';
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, userId }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [previousMonthEarnings, setPreviousMonthEarnings] = useState(0);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('30d');
 
   useEffect(() => {
@@ -81,20 +77,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
 
         if (error) throw error;
         setBookings(data || []);
-        
-        // Calculate previous month earnings
-        const now = new Date();
-        const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-        const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        
-        const prevEarnings = (data || [])
-          .filter(b => {
-            const createdAt = new Date(b.created_at);
-            return b.status === 'approved' && createdAt >= previousMonthStart && createdAt < currentMonthStart;
-          })
-          .reduce((sum, b) => sum + b.total_price, 0);
-        
-        setPreviousMonthEarnings(prevEarnings);
       } catch (error) {
         console.error('Error fetching bookings:', error);
       } finally {
@@ -118,31 +100,23 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
   };
 
   const filteredBookings = getFilteredBookings();
+  const periodDays = timePeriod === '7d' ? 7 : 30;
 
   // Calculate metrics for filtered period
   const totalEarnings = filteredBookings
     .filter(b => b.status === 'approved')
     .reduce((acc, b) => acc + b.total_price, 0);
 
-  const pendingEarnings = filteredBookings
-    .filter(b => b.status === 'pending')
-    .reduce((acc, b) => acc + b.total_price, 0);
-
   const approvedBookings = filteredBookings.filter(b => b.status === 'approved').length;
   const pendingBookings = filteredBookings.filter(b => b.status === 'pending').length;
   const rejectedBookings = filteredBookings.filter(b => b.status === 'rejected').length;
-  const totalBookings = filteredBookings.length;
+  const totalContacts = filteredBookings.length;
 
-  const occupancyRate = billboards.length > 0 
-    ? Math.round((approvedBookings / Math.max(billboards.length, 1)) * 100)
-    : 0;
-
-  const totalImpressions = billboards.reduce((acc, b) => acc + (b.daily_impressions || 0), 0) * (timePeriod === '7d' ? 7 : 30);
+  const totalImpressions = billboards.reduce((acc, b) => acc + (b.daily_impressions || 0), 0) * periodDays;
   
   // Calculate earnings change compared to previous period
   const getPreviousPeriodEarnings = () => {
     const now = new Date();
-    const periodDays = timePeriod === '7d' ? 7 : 30;
     const periodStart = new Date();
     periodStart.setDate(now.getDate() - periodDays);
     const previousStart = new Date();
@@ -167,63 +141,52 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
     billboards[0]
   );
 
-  // Get recommendation for billboard
-  const getRecommendation = (billboard: Billboard, revenue: number, bookingCount: number) => {
-    const avgPrice = billboards.reduce((sum, b) => sum + Number(b.price_per_month), 0) / billboards.length;
-    const price = Number(billboard.price_per_month);
+  // Get earnings data for chart based on time period
+  const getEarningsChartData = () => {
+    const data: { name: string; earnings: number }[] = [];
+    const now = new Date();
     
-    if (bookingCount > 2 && price < avgPrice * 0.8) {
-      return { text: 'Subir precio 15%', color: 'text-emerald-400', icon: <TrendingUp className="w-3 h-3" /> };
-    }
-    if (billboard.is_available && bookingCount === 0) {
-      return { text: 'Promocionar', color: 'text-orange-400', icon: <Rocket className="w-3 h-3" /> };
-    }
-    if (revenue === 0 && !billboard.is_available) {
-      return { text: 'Revisar demanda', color: 'text-yellow-400', icon: <AlertTriangle className="w-3 h-3" /> };
-    }
-    return { text: 'Mantener', color: 'text-white/40', icon: null };
-  };
-
-  // Get performance label
-  const getPerformanceLabel = (billboard: Billboard, revenue: number) => {
-    const maxRevenue = Math.max(...billboards.map(b => {
-      return bookings.filter(bk => bk.billboard_id === b.id && bk.status === 'approved')
-        .reduce((sum, bk) => sum + bk.total_price, 0);
-    }));
-    
-    if (revenue === maxRevenue && revenue > 0) {
-      return { text: 'Top performer', color: 'bg-[#9BFF43]/20 text-[#9BFF43]', icon: <Trophy className="w-3 h-3" /> };
-    }
-    if (billboard.daily_impressions && billboard.daily_impressions > 30000 && revenue < 5000) {
-      return { text: 'Alta oportunidad', color: 'bg-blue-500/20 text-blue-400', icon: <Rocket className="w-3 h-3" /> };
-    }
-    if (revenue === 0) {
-      return { text: 'Bajo rendimiento', color: 'bg-red-500/20 text-red-400', icon: <AlertTriangle className="w-3 h-3" /> };
-    }
-    return null;
-  };
-
-  // Monthly earnings data
-  const getMonthlyEarnings = () => {
-    const months: { [key: string]: number } = {};
-    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    
-    for (let i = 5; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const key = `${monthNames[date.getMonth()]} ${date.getFullYear().toString().slice(-2)}`;
-      months[key] = 0;
-    }
-
-    bookings.filter(b => b.status === 'approved').forEach(booking => {
-      const date = new Date(booking.created_at);
-      const key = `${monthNames[date.getMonth()]} ${date.getFullYear().toString().slice(-2)}`;
-      if (months[key] !== undefined) {
-        months[key] += booking.total_price;
+    if (timePeriod === '7d') {
+      // Show daily data for 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(now.getDate() - i);
+        const dateStr = date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+        
+        const dayEarnings = filteredBookings
+          .filter(b => {
+            const bookingDate = new Date(b.created_at);
+            return b.status === 'approved' && 
+              bookingDate.toDateString() === date.toDateString();
+          })
+          .reduce((sum, b) => sum + b.total_price, 0);
+        
+        data.push({ name: dateStr, earnings: dayEarnings });
       }
-    });
-
-    return Object.entries(months).map(([name, earnings]) => ({ name, earnings }));
+    } else {
+      // Show weekly data for 30 days (4 weeks)
+      for (let i = 3; i >= 0; i--) {
+        const weekEnd = new Date();
+        weekEnd.setDate(now.getDate() - (i * 7));
+        const weekStart = new Date();
+        weekStart.setDate(weekEnd.getDate() - 6);
+        
+        const weekLabel = `${weekStart.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })} - ${weekEnd.toLocaleDateString('es-MX', { day: 'numeric' })}`;
+        
+        const weekEarnings = filteredBookings
+          .filter(b => {
+            const bookingDate = new Date(b.created_at);
+            return b.status === 'approved' && 
+              bookingDate >= weekStart && 
+              bookingDate <= weekEnd;
+          })
+          .reduce((sum, b) => sum + b.total_price, 0);
+        
+        data.push({ name: weekLabel, earnings: weekEarnings });
+      }
+    }
+    
+    return data;
   };
 
   const bookingsByStatus = [
@@ -232,21 +195,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
     { name: 'Rechazadas', value: rejectedBookings, color: '#FF4444' },
   ].filter(item => item.value > 0);
 
-  const revenueByBillboard = billboards.map(billboard => {
-    const revenue = bookings
-      .filter(b => b.billboard_id === billboard.id && b.status === 'approved')
-      .reduce((acc, b) => acc + b.total_price, 0);
-    return {
-      name: billboard.title.length > 15 ? billboard.title.slice(0, 15) + '...' : billboard.title,
-      revenue,
-      price: billboard.price_per_month,
-    };
-  }).sort((a, b) => b.revenue - a.revenue);
-
-  const monthlyData = getMonthlyEarnings();
-  const dataStartDate = bookings.length > 0 
-    ? new Date(Math.min(...bookings.map(b => new Date(b.created_at).getTime()))).toLocaleDateString('es-MX')
-    : null;
+  const earningsChartData = getEarningsChartData();
 
   if (isLoading) {
     return (
@@ -260,16 +209,18 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
     <TooltipProvider>
       <div className="space-y-8">
         {/* Time Period Filter */}
-        <div className="flex items-center justify-between">
-          <p className="text-white/60 text-sm">
-            Mostrando datos de los últimos {timePeriod === '7d' ? '7 días' : '30 días'}
-          </p>
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-white/60 text-sm">
+              📊 Mostrando datos de los últimos <span className="text-white font-medium">{timePeriod === '7d' ? '7 días' : '30 días'}</span>
+            </p>
+          </div>
           <div className="flex gap-2">
             <button
               onClick={() => setTimePeriod('7d')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 timePeriod === '7d'
-                  ? 'bg-[#9BFF43] text-[#121212]'
+                  ? 'bg-[#9BFF43] text-[#121212] shadow-lg shadow-[#9BFF43]/20'
                   : 'bg-[#2A2A2A] text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -277,9 +228,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
             </button>
             <button
               onClick={() => setTimePeriod('30d')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 timePeriod === '30d'
-                  ? 'bg-[#9BFF43] text-[#121212]'
+                  ? 'bg-[#9BFF43] text-[#121212] shadow-lg shadow-[#9BFF43]/20'
                   : 'bg-[#2A2A2A] text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -288,17 +239,86 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
           </div>
         </div>
 
-        {/* Simplified KPI Cards */}
+        {/* KPI Cards - Simplified with clear context */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* 1. Contactos recibidos - PRIORITY */}
+          <Card className="bg-gradient-to-br from-blue-500/20 to-blue-500/5 border-blue-500/20 p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-white/60 text-sm">Contactos recibidos</p>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-3.5 h-3.5 text-white/30" />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                      <p className="text-sm">Personas que solicitaron información en este periodo.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </div>
+                <p className="text-3xl font-bold text-white">{totalContacts}</p>
+                {approvedBookings > 0 && (
+                  <p className="text-sm text-blue-400 mt-1">
+                    {approvedBookings} confirmados
+                  </p>
+                )}
+              </div>
+              <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <MessageSquare className="w-6 h-6 text-blue-400" />
+              </div>
+            </div>
+          </Card>
+
+          {/* 2. Vistas estimadas del periodo */}
+          <Card className="bg-[#1E1E1E] border-white/10 p-6">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-white/60 text-sm">Vistas estimadas del periodo</p>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-3.5 h-3.5 text-white/30" />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                      <p className="text-sm">Estimación basada en ubicación y tráfico. No es un dato exacto.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </div>
+                <p className="text-3xl font-bold text-white">
+                  {totalImpressions >= 1000000 
+                    ? `${(totalImpressions / 1000000).toFixed(1)}M` 
+                    : totalImpressions >= 1000 
+                      ? `${(totalImpressions / 1000).toFixed(0)}K` 
+                      : totalImpressions}
+                </p>
+                <p className="text-sm text-white/40 mt-1">en {periodDays} días</p>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                <Eye className="w-6 h-6 text-white/60" />
+              </div>
+            </div>
+          </Card>
+
+          {/* 3. Ingresos del periodo */}
           <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-[#9BFF43]/20 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm mb-1">Ingresos del periodo</p>
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-white/60 text-sm">Ingresos del periodo</p>
+                  <UITooltip>
+                    <TooltipTrigger>
+                      <Info className="w-3.5 h-3.5 text-white/30" />
+                    </TooltipTrigger>
+                    <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                      <p className="text-sm">Ingresos generados en el periodo seleccionado.</p>
+                    </TooltipContent>
+                  </UITooltip>
+                </div>
                 <p className="text-3xl font-bold text-white">${totalEarnings.toLocaleString()}</p>
                 {earningsChange !== 0 && (
                   <div className={`flex items-center gap-1 text-sm mt-1 ${earningsChange >= 0 ? 'text-[#9BFF43]' : 'text-red-400'}`}>
                     {earningsChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    {earningsChange >= 0 ? 'Sube' : 'Baja'} {Math.abs(earningsChange).toFixed(0)}%
+                    {earningsChange >= 0 ? 'Sube' : 'Baja'} {Math.abs(earningsChange).toFixed(0)}% vs periodo anterior
                   </div>
                 )}
               </div>
@@ -308,75 +328,48 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
             </div>
           </Card>
 
-          <Card className="bg-[#1E1E1E] border-white/10 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm mb-1">Contactos recibidos</p>
-                <p className="text-3xl font-bold text-white">{totalBookings}</p>
-                <p className="text-sm text-white/40 mt-1">{approvedBookings} confirmados</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-white/60" />
-              </div>
-            </div>
-          </Card>
-
-          {/* Most Viewed Billboard */}
+          {/* 4. Espectacular más visto */}
           {mostViewedBillboard && (
             <Card className="bg-[#1E1E1E] border-white/10 p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-white/60 text-sm mb-1">Espectacular más visto</p>
-                  <p className="text-lg font-bold text-white truncate max-w-[150px]">{mostViewedBillboard.title}</p>
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-white/60 text-sm">Espectacular más visto</p>
+                    <UITooltip>
+                      <TooltipTrigger>
+                        <Info className="w-3.5 h-3.5 text-white/30" />
+                      </TooltipTrigger>
+                      <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                        <p className="text-sm">El espacio con mayor número de vistas en este periodo.</p>
+                      </TooltipContent>
+                    </UITooltip>
+                  </div>
+                  <p className="text-lg font-bold text-white truncate">{mostViewedBillboard.title}</p>
                   <p className="text-sm text-white/40 mt-1">
-                    {((mostViewedBillboard.daily_impressions || 0) / 1000).toFixed(0)}K impresiones/día
+                    ~{((mostViewedBillboard.daily_impressions || 0) / 1000).toFixed(0)}K vistas/día
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                  <Eye className="w-6 h-6 text-white/60" />
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center flex-shrink-0">
+                  <MapPin className="w-6 h-6 text-white/60" />
                 </div>
               </div>
             </Card>
           )}
-
-          <Card className="bg-[#1E1E1E] border-white/10 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm mb-1">Vistas estimadas</p>
-                <p className="text-3xl font-bold text-white">
-                  {totalImpressions >= 1000000 ? `${(totalImpressions / 1000000).toFixed(1)}M` : totalImpressions >= 1000 ? `${(totalImpressions / 1000).toFixed(0)}K` : totalImpressions}
-                </p>
-                <p className="text-sm text-white/40 mt-1">en {timePeriod === '7d' ? '7 días' : '30 días'}</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white/60" />
-              </div>
-            </div>
-          </Card>
         </div>
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Earnings Chart */}
           <Card className="bg-[#1E1E1E] border-white/10 p-6 lg:col-span-2">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-semibold text-white">Ganancias Mensuales</h3>
-              {dataStartDate && (
-                <UITooltip>
-                  <TooltipTrigger>
-                    <Badge variant="outline" className="border-white/20 text-white/50 text-xs">
-                      <Info className="w-3 h-3 mr-1" />
-                      Datos desde {dataStartDate}
-                    </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-[#2A2A2A] border-white/10">
-                    <p className="text-sm">Los datos comienzan desde tu primera reserva</p>
-                  </TooltipContent>
-                </UITooltip>
-              )}
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white">Evolución de Ingresos</h3>
+              <p className="text-white/50 text-sm mt-1">
+                Ingresos generados durante el periodo seleccionado
+              </p>
             </div>
-            <div className="h-[300px]">
+            <div className="h-[280px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={monthlyData}>
+                <AreaChart data={earningsChartData}>
                   <defs>
                     <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="#9BFF43" stopOpacity={0.3}/>
@@ -384,125 +377,140 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                  <XAxis dataKey="name" stroke="#666" tick={{ fill: '#888', fontSize: 12 }} />
-                  <YAxis stroke="#666" tick={{ fill: '#888', fontSize: 12 }} tickFormatter={(value) => `$${value >= 1000 ? `${value/1000}k` : value}`} />
-                  <Tooltip contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid #444', borderRadius: '8px' }} labelStyle={{ color: '#fff' }} formatter={(value: number) => [`$${value.toLocaleString()}`, 'Ganancias']} />
-                  <Area type="monotone" dataKey="earnings" stroke="#9BFF43" strokeWidth={2} fillOpacity={1} fill="url(#colorEarnings)" />
+                  <XAxis 
+                    dataKey="name" 
+                    stroke="#666" 
+                    tick={{ fill: '#888', fontSize: 11 }} 
+                    interval={0}
+                    angle={timePeriod === '30d' ? -20 : 0}
+                    textAnchor={timePeriod === '30d' ? 'end' : 'middle'}
+                    height={50}
+                  />
+                  <YAxis 
+                    stroke="#666" 
+                    tick={{ fill: '#888', fontSize: 12 }} 
+                    tickFormatter={(value) => value === 0 ? '$0' : `$${value >= 1000 ? `${value/1000}k` : value}`} 
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid #444', borderRadius: '8px' }} 
+                    labelStyle={{ color: '#fff' }} 
+                    formatter={(value: number) => [`$${value.toLocaleString()}`, 'Ingresos']} 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="earnings" 
+                    stroke="#9BFF43" 
+                    strokeWidth={2} 
+                    fillOpacity={1} 
+                    fill="url(#colorEarnings)" 
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </Card>
 
+          {/* Booking Status Chart */}
           <Card className="bg-[#1E1E1E] border-white/10 p-6">
-            <h3 className="text-lg font-semibold text-white mb-6">Estado de Reservas</h3>
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-white">Estado de Reservas</h3>
+              <p className="text-white/50 text-sm mt-1">
+                Solicitudes de reserva en este periodo
+              </p>
+            </div>
             {bookingsByStatus.length > 0 ? (
-              <div className="h-[300px] flex flex-col items-center justify-center">
+              <div className="h-[240px] flex flex-col items-center justify-center">
                 <ResponsiveContainer width="100%" height="70%">
                   <PieChart>
-                    <Pie data={bookingsByStatus} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                      {bookingsByStatus.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                    <Pie 
+                      data={bookingsByStatus} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={50} 
+                      outerRadius={70} 
+                      paddingAngle={5} 
+                      dataKey="value"
+                    >
+                      {bookingsByStatus.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
                     </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid #444', borderRadius: '8px' }} formatter={(value: number, name: string) => [value, name]} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid #444', borderRadius: '8px' }} 
+                      formatter={(value: number, name: string) => [value, name]} 
+                    />
                   </PieChart>
                 </ResponsiveContainer>
-                <div className="flex gap-4 mt-4">
+                <div className="flex gap-4 mt-2 flex-wrap justify-center">
                   {bookingsByStatus.map((item, index) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
-                      <span className="text-white/60 text-sm">{item.name}</span>
+                      <span className="text-white/60 text-sm">{item.name} ({item.value})</span>
                     </div>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="h-[300px] flex items-center justify-center text-white/40">Sin reservas aún</div>
+              <div className="h-[240px] flex items-center justify-center text-white/40">
+                <div className="text-center">
+                  <Calendar className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                  <p>Sin reservas en este periodo</p>
+                </div>
+              </div>
             )}
           </Card>
         </div>
 
-        {/* Revenue by Billboard */}
-        {revenueByBillboard.length > 0 && (
+        {/* Summary Table */}
+        {billboards.length > 0 && (
           <Card className="bg-[#1E1E1E] border-white/10 p-6">
-            <h3 className="text-lg font-semibold text-white mb-6">Ingresos por Espectacular</h3>
-            <div className="h-[300px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueByBillboard} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                  <XAxis type="number" stroke="#666" tick={{ fill: '#888', fontSize: 12 }} tickFormatter={(value) => `$${value >= 1000 ? `${value/1000}k` : value}`} />
-                  <YAxis dataKey="name" type="category" stroke="#666" tick={{ fill: '#888', fontSize: 12 }} width={120} />
-                  <Tooltip contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid #444', borderRadius: '8px' }} formatter={(value: number) => [`$${value.toLocaleString()}`, 'Ingresos']} />
-                  <Bar dataKey="revenue" fill="#9BFF43" radius={[0, 4, 4, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+            <h3 className="text-lg font-semibold text-white mb-4">Resumen por Espectacular</h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-3 px-4 text-white/60 font-medium text-sm">Propiedad</th>
+                    <th className="text-left py-3 px-4 text-white/60 font-medium text-sm">Ubicación</th>
+                    <th className="text-right py-3 px-4 text-white/60 font-medium text-sm">Precio/Mes</th>
+                    <th className="text-right py-3 px-4 text-white/60 font-medium text-sm">Contactos</th>
+                    <th className="text-right py-3 px-4 text-white/60 font-medium text-sm">Ingresos del periodo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {billboards.map((billboard) => {
+                    const billboardBookings = filteredBookings.filter(b => b.billboard_id === billboard.id);
+                    const contactCount = billboardBookings.length;
+                    const revenue = billboardBookings
+                      .filter(b => b.status === 'approved')
+                      .reduce((acc, b) => acc + b.total_price, 0);
+                    
+                    return (
+                      <tr key={billboard.id} className="border-b border-white/5 hover:bg-white/5">
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] overflow-hidden flex-shrink-0">
+                              {billboard.image_url ? (
+                                <img src={billboard.image_url} alt={billboard.title} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <MapPin className="w-4 h-4 text-white/40" />
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-white font-medium">{billboard.title}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 px-4 text-white/60">{billboard.city}, {billboard.state}</td>
+                        <td className="py-4 px-4 text-right text-white">${billboard.price_per_month.toLocaleString()}</td>
+                        <td className="py-4 px-4 text-right text-white">{contactCount}</td>
+                        <td className="py-4 px-4 text-right text-[#9BFF43] font-medium">${revenue.toLocaleString()}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </Card>
         )}
-
-        {/* Properties Performance Table */}
-        <Card className="bg-[#1E1E1E] border-white/10 p-6">
-          <h3 className="text-lg font-semibold text-white mb-6">Rendimiento de Propiedades</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="text-left py-3 px-4 text-white/60 font-medium text-sm">Propiedad</th>
-                  <th className="text-left py-3 px-4 text-white/60 font-medium text-sm">Ubicación</th>
-                  <th className="text-right py-3 px-4 text-white/60 font-medium text-sm">Precio/Mes</th>
-                  <th className="text-right py-3 px-4 text-white/60 font-medium text-sm">Reservas</th>
-                  <th className="text-right py-3 px-4 text-white/60 font-medium text-sm">Ingresos</th>
-                  <th className="text-center py-3 px-4 text-white/60 font-medium text-sm">Etiqueta</th>
-                  <th className="text-center py-3 px-4 text-white/60 font-medium text-sm">Recomendación</th>
-                </tr>
-              </thead>
-              <tbody>
-                {billboards.map((billboard) => {
-                  const billboardBookings = bookings.filter(b => b.billboard_id === billboard.id);
-                  const approvedCount = billboardBookings.filter(b => b.status === 'approved').length;
-                  const revenue = billboardBookings.filter(b => b.status === 'approved').reduce((acc, b) => acc + b.total_price, 0);
-                  const perfLabel = getPerformanceLabel(billboard, revenue);
-                  const recommendation = getRecommendation(billboard, revenue, approvedCount);
-                  
-                  return (
-                    <tr key={billboard.id} className="border-b border-white/5 hover:bg-white/5">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] overflow-hidden">
-                            {billboard.image_url ? (
-                              <img src={billboard.image_url} alt={billboard.title} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center"><MapPin className="w-4 h-4 text-white/40" /></div>
-                            )}
-                          </div>
-                          <span className="text-white font-medium">{billboard.title}</span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-white/60">{billboard.city}, {billboard.state}</td>
-                      <td className="py-4 px-4 text-right text-white">${billboard.price_per_month.toLocaleString()}</td>
-                      <td className="py-4 px-4 text-right text-white">{approvedCount}</td>
-                      <td className="py-4 px-4 text-right text-[#9BFF43] font-medium">${revenue.toLocaleString()}</td>
-                      <td className="py-4 px-4 text-center">
-                        {perfLabel ? (
-                          <Badge className={`${perfLabel.color} text-xs`}>
-                            {perfLabel.icon}
-                            <span className="ml-1">{perfLabel.text}</span>
-                          </Badge>
-                        ) : (
-                          <span className="text-white/30">-</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span className={`flex items-center justify-center gap-1 text-xs ${recommendation.color}`}>
-                          {recommendation.icon}
-                          {recommendation.text}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </Card>
       </div>
     </TooltipProvider>
   );
