@@ -173,7 +173,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
   };
 
   return (
-    <div className="flex w-[650px] flex-col items-center gap-4 relative max-md:w-full max-md:max-w-[580px] max-sm:max-w-[95%]">
+    <div className="flex w-full max-w-[650px] flex-col items-center gap-4 relative mx-auto max-md:max-w-[580px] max-sm:max-w-[95%]">
       <p className="self-stretch text-white text-center text-base font-normal">
         ¡El espacio perfecto para tu marca!
       </p>

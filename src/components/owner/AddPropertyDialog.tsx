@@ -623,178 +623,184 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
         {step === 1 ? (
           /* Step 1: Basic Info + Map */
-          <div className="px-6 pb-6 space-y-4 overflow-y-auto max-h-[calc(90vh-100px)]">
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <div>
-                <Label className="text-sm text-white/60">Nombre para propiedad</Label>
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
-                  placeholder="Plaza Cataviña"
-                />
-              </div>
-              <div>
-                <Label className="text-sm text-white/60">Precio por mes</Label>
-                <Input
-                  type="number"
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
-                  placeholder="10000"
-                />
-              </div>
-            </div>
-
-            {/* Address with autocomplete */}
-            <div className="relative">
-              <Label className="text-sm text-white/60">Dirección</Label>
-              <div className="relative mt-1">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BFF43]" />
-                <Input
-                  ref={addressInputRef}
-                  value={address}
-                  onChange={(e) => {
-                    isUserTypingRef.current = true;
-                    setAddress(e.target.value);
-                  }}
-                  onFocus={() => {
-                    if (addressSuggestions.length > 0 && isUserTypingRef.current) {
-                      setShowAddressSuggestions(true);
-                    }
-                  }}
-                  className="pl-10 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
-                  placeholder="Escribe la dirección del espectacular..."
-                />
-                {isLoadingSuggestions && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 animate-spin" />
-                )}
-              </div>
-              
-              {/* Suggestions dropdown */}
-              {showAddressSuggestions && addressSuggestions.length > 0 && (
-                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl">
-                  {addressSuggestions.map((suggestion) => (
-                    <button
-                      key={suggestion.id}
-                      type="button"
-                      onClick={() => handleSelectAddress(suggestion)}
-                      className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white/5 transition-colors"
-                    >
-                      <MapPin className="w-4 h-4 mt-0.5 text-[#9BFF43] flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-white truncate">{suggestion.text}</p>
-                        <p className="text-sm text-white/50 truncate">{suggestion.place_name}</p>
-                      </div>
-                      <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
-                        {getPlaceTypeLabel(suggestion.place_type)}
-                      </span>
-                    </button>
-                  ))}
+          <div className="flex flex-col max-h-[calc(90vh-140px)]">
+            <div className="px-6 space-y-4 overflow-y-auto flex-1">
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                <div>
+                  <Label className="text-sm text-white/60">Nombre del espectacular</Label>
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    placeholder="Plaza Cataviña"
+                  />
                 </div>
-              )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-sm text-white/60">Ciudad</Label>
-                <Input
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
-                  placeholder="Mexicali"
-                />
+                <div>
+                  <Label className="text-sm text-white/60">Precio por mes</Label>
+                  <Input
+                    type="number"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    placeholder="10000"
+                  />
+                </div>
               </div>
-              <div>
-                <Label className="text-sm text-white/60">Estado</Label>
-                <Input
-                  value={state}
-                  onChange={(e) => setState(e.target.value)}
-                  className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
-                  placeholder="B.C."
-                />
-              </div>
-            </div>
 
-            {/* Map */}
-            <div>
-              <Label className="text-sm text-white/80 mb-1 block">Ubicación del espectacular</Label>
-              <p className="text-xs text-white/50 mb-2">
-                Selecciona la ubicación exacta para que los anunciantes lo encuentren fácilmente. Puedes mover el pin o hacer clic en el mapa.
-              </p>
-              <div 
-                ref={mapContainer} 
-                className="w-full h-52 rounded-xl overflow-hidden border border-white/10"
-              />
-              <p className="text-xs text-white/40 mt-1">
-                Lat: {latitude.toFixed(6)}, Lng: {longitude.toFixed(6)}
-              </p>
-            </div>
-
-            {/* Multi-Image Upload */}
-            <div>
-              <Label className="text-sm text-white/80 mb-1 block">Fotos del espectacular (máx. 6)</Label>
-              <p className="text-xs text-white/50 mb-2">
-                Las fotos ayudan a que los anunciantes evalúen mejor tu espacio y te contacten más rápido.
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {imageUrls.map((url, index) => (
-                  <div key={url} className="relative aspect-video rounded-lg overflow-hidden border border-white/10 group">
-                    <img
-                      src={url}
-                      alt={`Image ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => handleRemoveImage(index)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                    {index === 0 && (
-                      <span className="absolute bottom-1 left-1 text-xs bg-[#9BFF43] text-[#121212] px-1.5 py-0.5 rounded font-medium">
-                        Principal
-                      </span>
-                    )}
-                  </div>
-                ))}
-
-                {imageUrls.length < 6 && (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#2A2A2A]"
-                  >
-                    {isUploadingImage ? (
-                      <>
-                        <Loader2 className="h-6 w-6 text-[#9BFF43] animate-spin mb-1" />
-                        <p className="text-white/60 text-xs">Subiendo...</p>
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="h-6 w-6 text-white/40 mb-1" />
-                        <p className="text-white/60 text-xs text-center px-2">Agregar foto</p>
-                      </>
-                    )}
+              {/* Address with autocomplete */}
+              <div className="relative">
+                <Label className="text-sm text-white/60">Dirección</Label>
+                <div className="relative mt-1">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BFF43]" />
+                  <Input
+                    ref={addressInputRef}
+                    value={address}
+                    onChange={(e) => {
+                      isUserTypingRef.current = true;
+                      setAddress(e.target.value);
+                    }}
+                    onFocus={() => {
+                      if (addressSuggestions.length > 0 && isUserTypingRef.current) {
+                        setShowAddressSuggestions(true);
+                      }
+                    }}
+                    className="pl-10 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    placeholder="Escribe la dirección del espectacular..."
+                  />
+                  {isLoadingSuggestions && (
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 animate-spin" />
+                  )}
+                </div>
+                
+                {/* Suggestions dropdown */}
+                {showAddressSuggestions && addressSuggestions.length > 0 && (
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl">
+                    {addressSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion.id}
+                        type="button"
+                        onClick={() => handleSelectAddress(suggestion)}
+                        className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white/5 transition-colors"
+                      >
+                        <MapPin className="w-4 h-4 mt-0.5 text-[#9BFF43] flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-white truncate">{suggestion.text}</p>
+                          <p className="text-sm text-white/50 truncate">{suggestion.place_name}</p>
+                        </div>
+                        <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                          {getPlaceTypeLabel(suggestion.place_type)}
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
-              <p className="text-white/40 text-xs mt-2">
-                {imageUrls.length}/6 imágenes · La primera será la principal · JPG, PNG, WebP (máx 5MB c/u)
-              </p>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
-                onChange={handleSingleImageSelect}
-                className="hidden"
-                multiple
-              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-white/60">Ciudad</Label>
+                  <Input
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    placeholder="Mexicali"
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm text-white/60">Estado</Label>
+                  <Input
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    placeholder="B.C."
+                  />
+                </div>
+              </div>
+
+              {/* Map - Featured Section */}
+              <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
+                <div className="flex items-center gap-2 mb-2">
+                  <MapPin className="w-5 h-5 text-[#9BFF43]" />
+                  <Label className="text-base font-medium text-white">Selecciona la ubicación exacta</Label>
+                </div>
+                <p className="text-sm text-white/60 mb-3">
+                  Arrastra el pin o toca en el mapa para seleccionar la ubicación de tu espectacular.
+                </p>
+                <div 
+                  ref={mapContainer} 
+                  className="w-full h-52 rounded-xl overflow-hidden border border-white/20"
+                />
+                <p className="text-xs text-white/40 mt-2 text-center">
+                  📍 Lat: {latitude.toFixed(6)}, Lng: {longitude.toFixed(6)}
+                </p>
+              </div>
+
+              {/* Multi-Image Upload */}
+              <div>
+                <Label className="text-sm text-white/80 mb-1 block">Fotos del espectacular (máx. 6)</Label>
+                <p className="text-xs text-white/50 mb-2">
+                  Las fotos ayudan a que los anunciantes evalúen mejor tu espacio y te contacten más rápido.
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {imageUrls.map((url, index) => (
+                    <div key={url} className="relative aspect-video rounded-lg overflow-hidden border border-white/10 group">
+                      <img
+                        src={url}
+                        alt={`Image ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleRemoveImage(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                      {index === 0 && (
+                        <span className="absolute bottom-1 left-1 text-xs bg-[#9BFF43] text-[#121212] px-1.5 py-0.5 rounded font-medium">
+                          Principal
+                        </span>
+                      )}
+                    </div>
+                  ))}
+
+                  {imageUrls.length < 6 && (
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#2A2A2A]"
+                    >
+                      {isUploadingImage ? (
+                        <>
+                          <Loader2 className="h-6 w-6 text-[#9BFF43] animate-spin mb-1" />
+                          <p className="text-white/60 text-xs">Subiendo...</p>
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-6 w-6 text-white/40 mb-1" />
+                          <p className="text-white/60 text-xs text-center px-2">Agregar foto</p>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <p className="text-white/40 text-xs mt-2">
+                  {imageUrls.length}/6 imágenes · La primera será la principal · JPG, PNG, WebP (máx 5MB c/u)
+                </p>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleSingleImageSelect}
+                  className="hidden"
+                  multiple
+                />
+              </div>
             </div>
 
-            <div className="flex gap-3 pt-4">
+            {/* Fixed Footer Buttons */}
+            <div className="flex gap-3 px-6 py-4 border-t border-white/10 bg-[#1A1A1A]">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
@@ -806,7 +812,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 onClick={handleContinue}
                 className="flex-1 bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
               >
-                Continuar
+                Siguiente →
               </Button>
             </div>
           </div>
