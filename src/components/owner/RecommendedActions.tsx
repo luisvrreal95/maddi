@@ -121,79 +121,37 @@ const RecommendedActions: React.FC<RecommendedActionsProps> = ({ billboards, use
     const recs: Recommendation[] = [];
 
     billboards.forEach(billboard => {
-      const billboardBookings = bookingsData.filter(b => b.billboard_id === billboard.id);
-      const approvedBookings = billboardBookings.filter(b => b.status === 'approved');
-      const occupancyRate = approvedBookings.length / Math.max(1, 12) * 100; // Assuming 12 months capacity
-      const price = Number(billboard.price_per_month);
       const dailyImpressions = billboard.daily_impressions || 0;
 
-      // High occupancy + below average price = Raise price
-      if (occupancyRate > 50 && cityAveragePrice > 0 && price < cityAveragePrice * 0.9) {
-        const suggestedIncrease = Math.round(((cityAveragePrice - price) / price) * 100);
-        recs.push({
-          id: `price-${billboard.id}`,
-          type: 'price',
-          title: 'Subir precio',
-          description: `"${billboard.title}" tiene alta demanda. Considera subir el precio ~${suggestedIncrease}%`,
-          billboardId: billboard.id,
-          billboardTitle: billboard.title,
-          icon: <DollarSign className="w-5 h-5" />,
-          color: 'text-emerald-400',
-          bgColor: 'bg-emerald-500/20',
-          priority: 1
-        });
-      }
-
-      // High traffic = Peak opportunity
+      // High traffic = Peak opportunity (context-focused)
       if (dailyImpressions > 30000) {
         recs.push({
           id: `opportunity-${billboard.id}`,
           type: 'opportunity',
-          title: 'Alta oportunidad en hora pico',
-          description: `"${billboard.title}" tiene +${(dailyImpressions / 1000).toFixed(0)}K impresiones diarias. Ubicación premium.`,
+          title: 'Zona de alto tráfico',
+          description: `Este espectacular recibe ~${(dailyImpressions / 1000).toFixed(0)}K vistas estimadas por día. Ideal para campañas de alto impacto.`,
           billboardId: billboard.id,
           billboardTitle: billboard.title,
           icon: <Eye className="w-5 h-5" />,
           color: 'text-blue-400',
           bgColor: 'bg-blue-500/20',
-          priority: 2
+          priority: 1
         });
       }
 
-      // Available for long time with no bookings = Promote
-      if (billboard.is_available && approvedBookings.length === 0) {
-        const createdAt = new Date(billboard.created_at);
-        const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
-        
-        if (daysSinceCreation > 14) {
-          recs.push({
-            id: `promote-${billboard.id}`,
-            type: 'promote',
-            title: 'Promocionar espectacular',
-            description: `"${billboard.title}" lleva ${daysSinceCreation} días disponible sin reservas. Considera promoverlo.`,
-            billboardId: billboard.id,
-            billboardTitle: billboard.title,
-            icon: <Megaphone className="w-5 h-5" />,
-            color: 'text-orange-400',
-            bgColor: 'bg-orange-500/20',
-            priority: 3
-          });
-        }
-      }
-
-      // Low occupancy = Review demand
-      if (occupancyRate < 20 && approvedBookings.length < 2) {
+      // High traffic with peak hours insight
+      if (dailyImpressions > 15000) {
         recs.push({
-          id: `review-${billboard.id}`,
-          type: 'review',
-          title: 'Revisar demanda',
-          description: `"${billboard.title}" tiene baja ocupación. Considera ajustar precio o mejorar visibilidad.`,
+          id: `peakhours-${billboard.id}`,
+          type: 'opportunity',
+          title: 'Horarios de mayor visibilidad',
+          description: `Horarios recomendados: 8-10 AM y 5-7 PM. Ideal para campañas de retail y promociones.`,
           billboardId: billboard.id,
           billboardTitle: billboard.title,
-          icon: <AlertCircle className="w-5 h-5" />,
-          color: 'text-yellow-400',
-          bgColor: 'bg-yellow-500/20',
-          priority: 4
+          icon: <Clock className="w-5 h-5" />,
+          color: 'text-emerald-400',
+          bgColor: 'bg-emerald-500/20',
+          priority: 2
         });
       }
 
@@ -203,7 +161,7 @@ const RecommendedActions: React.FC<RecommendedActionsProps> = ({ billboards, use
           id: `data-${billboard.id}`,
           type: 'review',
           title: 'Actualizar datos de tráfico',
-          description: `"${billboard.title}" no tiene datos de tráfico actualizados. Usa el botón de actualizar.`,
+          description: `"${billboard.title}" no tiene datos de tráfico actualizados. Usa el botón para obtener estimaciones.`,
           billboardId: billboard.id,
           billboardTitle: billboard.title,
           icon: <RefreshCw className="w-5 h-5" />,
@@ -212,11 +170,27 @@ const RecommendedActions: React.FC<RecommendedActionsProps> = ({ billboards, use
           priority: 0
         });
       }
+
+      // Available billboard = Promotion suggestion
+      if (billboard.is_available) {
+        recs.push({
+          id: `available-${billboard.id}`,
+          type: 'promote',
+          title: 'Espacio disponible',
+          description: `"${billboard.title}" está listo para nuevas campañas. Comparte el perfil con anunciantes.`,
+          billboardId: billboard.id,
+          billboardTitle: billboard.title,
+          icon: <Megaphone className="w-5 h-5" />,
+          color: 'text-[#9BFF43]',
+          bgColor: 'bg-[#9BFF43]/20',
+          priority: 3
+        });
+      }
     });
 
     // Sort by priority
     return recs.sort((a, b) => a.priority - b.priority).slice(0, 4);
-  }, [billboards, bookingsData, cityAveragePrice]);
+  }, [billboards]);
 
   if (isLoading) {
     return (
@@ -236,8 +210,8 @@ const RecommendedActions: React.FC<RecommendedActionsProps> = ({ billboards, use
             <Sparkles className="w-5 h-5 text-[#9BFF43]" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white">Acciones Recomendadas</h3>
-            <p className="text-white/50 text-sm">Optimiza el rendimiento de tus propiedades</p>
+            <h3 className="text-lg font-semibold text-white">Recomendaciones del Entorno</h3>
+            <p className="text-white/50 text-sm">Sugerencias basadas en ubicación y tráfico estimado</p>
           </div>
         </div>
         <Button
