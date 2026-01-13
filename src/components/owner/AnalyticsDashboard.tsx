@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Billboard } from '@/hooks/useBillboards';
 import { 
@@ -37,6 +38,7 @@ import {
 interface AnalyticsDashboardProps {
   billboards: Billboard[];
   userId: string;
+  onViewDashboard?: (billboard: Billboard) => void;
 }
 
 interface Booking {
@@ -53,7 +55,7 @@ const COLORS = ['#9BFF43', '#FFC107', '#FF4444'];
 
 type TimePeriod = '7d' | '30d';
 
-const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, userId }) => {
+const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, userId, onViewDashboard }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('30d');
@@ -509,6 +511,23 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                 </tbody>
               </table>
             </div>
+            
+            {/* CTA to Dashboard */}
+            {onViewDashboard && billboards.length > 0 && (
+              <div className="mt-6 bg-gradient-to-r from-blue-500/10 to-transparent border border-blue-500/20 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-semibold">¿Quieres ver el potencial del entorno?</h3>
+                  <p className="text-white/60 text-sm mt-1">Revisa el perfil demográfico, tráfico y zona comercial de tus espectaculares</p>
+                </div>
+                <Button
+                  onClick={() => onViewDashboard(billboards[0])}
+                  variant="outline"
+                  className="border-blue-500/30 text-blue-400 hover:bg-blue-500/10"
+                >
+                  Ver perfil del entorno
+                </Button>
+              </div>
+            )}
           </Card>
         )}
       </div>

@@ -310,8 +310,11 @@ const OwnerDashboard: React.FC = () => {
         {activeTab === 'dashboard' && (
           <>
             <div className="mb-6">
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">Dashboard</h1>
-              <p className="text-white/60 mb-6">Visualiza el rendimiento y detalles de tu espectacular</p>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Dashboard del Espectacular</h1>
+              <p className="text-white/60 mb-1">Perfil y características del entorno del espectacular.</p>
+              <p className="text-white/40 text-sm mb-6">
+                📍 Datos estimados basados en tráfico (TomTom) y actividad económica (INEGI DENUE). No representan ingresos reales.
+              </p>
               
               {/* Billboard Selector */}
               {billboards.length > 0 && (
@@ -325,11 +328,11 @@ const OwnerDashboard: React.FC = () => {
             
             {selectedBillboard ? (
               <div className="space-y-8">
-                {/* Traffic & Recommended Actions */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <TrafficAnalytics billboard={selectedBillboard} />
-                  <RecommendedActions billboards={[selectedBillboard]} userId={user?.id || ''} />
-                </div>
+                {/* Traffic Analytics */}
+                <TrafficAnalytics billboard={selectedBillboard} />
+                
+                {/* Recommended Actions - Context-focused */}
+                <RecommendedActions billboards={[selectedBillboard]} userId={user?.id || ''} />
                 
                 {/* INEGI Insights */}
                 <INEGIInsights billboard={{
@@ -337,6 +340,20 @@ const OwnerDashboard: React.FC = () => {
                   latitude: selectedBillboard.latitude,
                   longitude: selectedBillboard.longitude
                 }} />
+                
+                {/* CTA to Statistics */}
+                <div className="bg-gradient-to-r from-[#9BFF43]/10 to-transparent border border-[#9BFF43]/20 rounded-xl p-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-white font-semibold text-lg">¿Quieres ver resultados reales?</h3>
+                    <p className="text-white/60 text-sm mt-1">Revisa ingresos, contactos y reservas de este espectacular</p>
+                  </div>
+                  <Button
+                    onClick={() => handleTabChange('stats')}
+                    className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+                  >
+                    Ver rendimiento e ingresos
+                  </Button>
+                </div>
               </div>
             ) : (
               <div className="text-center py-16">
@@ -349,8 +366,20 @@ const OwnerDashboard: React.FC = () => {
 
         {activeTab === 'stats' && (
           <>
-            <div className="mb-8"><h1 className="text-3xl md:text-4xl font-bold text-white">Estadísticas</h1></div>
-            <AnalyticsDashboard billboards={billboards} userId={user?.id || ''} />
+            <div className="mb-8">
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Estadísticas</h1>
+              <p className="text-white/60 mb-1">Resultados e ingresos generados por tus espectaculares.</p>
+              <p className="text-white/40 text-sm">💰 Datos reales del periodo seleccionado.</p>
+            </div>
+            <AnalyticsDashboard 
+              billboards={billboards} 
+              userId={user?.id || ''} 
+              onViewDashboard={(billboard) => {
+                setSelectedBillboard(billboard);
+                handleTabChange('dashboard');
+                setSearchParams({ tab: 'dashboard', billboard: billboard.id });
+              }}
+            />
           </>
         )}
 

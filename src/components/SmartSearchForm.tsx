@@ -102,14 +102,13 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
       setIsLoading(true);
       try {
         // Build URL with POI support and proximity bias
-        // Include poi type for places like "Plaza Centenario", "Costco", "Hospital General"
-        const types = 'poi,place,locality,neighborhood,address';
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&country=mx&types=${types}&limit=5&language=es`;
-        
-        // Add proximity: userLocation if available, otherwise default to Mexicali
+        // Include poi, poi.landmark for places like "Plaza Cachanilla", "Costco", "Hospital General"
+        const types = 'poi,poi.landmark,place,locality,neighborhood,address,district';
         const proximityLng = userLocation?.lng ?? -115.4523;
         const proximityLat = userLocation?.lat ?? 32.6245;
-        url += `&proximity=${proximityLng},${proximityLat}`;
+        
+        // Use autocomplete mode and fuzzyMatch for better partial matching
+        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&country=mx&types=${types}&limit=8&language=es&autocomplete=true&fuzzyMatch=true&proximity=${proximityLng},${proximityLat}`;
         
         const response = await fetch(url);
         const data = await response.json();
