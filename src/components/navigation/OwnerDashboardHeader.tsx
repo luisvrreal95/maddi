@@ -27,10 +27,9 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
 
   const navItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
-    { id: 'propiedades', label: 'Mis propiedades', icon: Building2 },
+    { id: 'propiedades', label: 'Mis espectaculares', icon: Building2 },
     { id: 'calendario', label: 'Calendario', icon: Calendar },
     { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'stats', label: 'Estadísticas', icon: BarChart3 },
   ];
 

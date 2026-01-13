@@ -594,7 +594,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-2xl p-0 gap-0 overflow-hidden max-h-[90vh]">
-        {/* Header */}
+        {/* Header with Step Indicator */}
         <div className="flex items-center justify-between p-6 pb-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             {step === 2 && (
@@ -602,10 +602,24 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
-            <h2 className="text-xl font-bold">{billboard ? 'Editar' : 'Agregar'} propiedad</h2>
+            <div>
+              <h2 className="text-xl font-bold">{billboard ? 'Editar' : 'Agregar'} propiedad</h2>
+              <p className="text-white/50 text-sm mt-0.5">Paso {step} de 2</p>
+            </div>
           </div>
           <img src="/favicon.svg" alt="Maddi" className="w-8 h-8" />
         </div>
+        
+        {/* Contexto inicial solo en paso 1 para nuevas propiedades */}
+        {step === 1 && !billboard && (
+          <div className="px-6 pt-4">
+            <div className="bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl p-4">
+              <p className="text-white/80 text-sm">
+                ✨ Completa estos pasos para publicar tu espectacular y comenzar a recibir contactos de anunciantes.
+              </p>
+            </div>
+          </div>
+        )}
 
         {step === 1 ? (
           /* Step 1: Basic Info + Map */
@@ -704,9 +718,10 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
             {/* Map */}
             <div>
-              <Label className="text-sm text-white/60 mb-2 block">
-                Ubicación en mapa <span className="text-white/40">(Arrastra el pin o haz clic para moverlo)</span>
-              </Label>
+              <Label className="text-sm text-white/80 mb-1 block">Ubicación del espectacular</Label>
+              <p className="text-xs text-white/50 mb-2">
+                Selecciona la ubicación exacta para que los anunciantes lo encuentren fácilmente. Puedes mover el pin o hacer clic en el mapa.
+              </p>
               <div 
                 ref={mapContainer} 
                 className="w-full h-52 rounded-xl overflow-hidden border border-white/10"
@@ -718,7 +733,10 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
             {/* Multi-Image Upload */}
             <div>
-              <Label className="text-sm text-white/60 mb-2 block">Imágenes del espectacular (máx. 6)</Label>
+              <Label className="text-sm text-white/80 mb-1 block">Fotos del espectacular (máx. 6)</Label>
+              <p className="text-xs text-white/50 mb-2">
+                Las fotos ayudan a que los anunciantes evalúen mejor tu espacio y te contacten más rápido.
+              </p>
               <div className="grid grid-cols-3 gap-2">
                 {imageUrls.map((url, index) => (
                   <div key={url} className="relative aspect-video rounded-lg overflow-hidden border border-white/10 group">

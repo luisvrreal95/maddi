@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { Plus } from 'lucide-react';
 import { Billboard } from '@/hooks/useBillboards';
 import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
@@ -29,7 +30,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type TabType = 'inicio' | 'propiedades' | 'calendario' | 'mensajes' | 'dashboard' | 'stats' | 'reservas';
+type TabType = 'inicio' | 'propiedades' | 'calendario' | 'mensajes' | 'stats' | 'reservas';
 
 const OwnerDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -59,7 +60,7 @@ const OwnerDashboard: React.FC = () => {
   // Handle tab from URL params
   useEffect(() => {
     const tab = searchParams.get('tab') as TabType | null;
-    if (tab && ['inicio', 'propiedades', 'calendario', 'mensajes', 'dashboard', 'stats', 'reservas'].includes(tab)) {
+    if (tab && ['inicio', 'propiedades', 'calendario', 'mensajes', 'stats', 'reservas'].includes(tab)) {
       setActiveTab(tab);
     }
   }, [searchParams]);
@@ -225,9 +226,10 @@ const OwnerDashboard: React.FC = () => {
               </h1>
               <Button
                 onClick={() => setShowAddDialog(true)}
-                className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+                className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2"
               >
-                Agregar Propiedad
+                <Plus className="w-4 h-4" />
+                Agregar espectacular
               </Button>
             </div>
             <OwnerHome billboards={billboards} userId={user?.id || ''} />
@@ -237,15 +239,16 @@ const OwnerDashboard: React.FC = () => {
         {activeTab === 'propiedades' && (
           <>
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Mis Propiedades</h1>
+              <h1 className="text-3xl md:text-4xl font-bold text-white">Mis Espectaculares</h1>
               <div className="flex items-center gap-3">
                 <ShareDialog
                   title={displayName}
                   subtitle={`${billboards.length} propiedades en Maddi`}
                   shareUrl={`/profile/${user?.id}`}
                 />
-                <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium">
-                  Agregar Propiedad
+                <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2">
+                  <Plus className="w-4 h-4" />
+                  Agregar espectacular
                 </Button>
               </div>
             </div>
@@ -266,10 +269,11 @@ const OwnerDashboard: React.FC = () => {
               <div className="text-white/60 text-center py-12">Cargando propiedades...</div>
             ) : filteredBillboards.length === 0 ? (
               <div className="text-center py-16">
-                <h2 className="text-white text-2xl font-bold mb-2">Sin propiedades</h2>
-                <p className="text-white/60 mb-6">Agrega tu primera propiedad para comenzar</p>
-                <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium">
-                  Agregar Propiedad
+                <h2 className="text-white text-2xl font-bold mb-2">Sin espectaculares</h2>
+                <p className="text-white/60 mb-6">Agrega tu primer espectacular para comenzar a recibir contactos</p>
+                <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 mx-auto">
+                  <Plus className="w-4 h-4" />
+                  Agregar espectacular
                 </Button>
               </div>
             ) : (
@@ -294,33 +298,6 @@ const OwnerDashboard: React.FC = () => {
           </>
         )}
 
-        {activeTab === 'dashboard' && (
-          <>
-            <div className="flex items-center justify-between mb-4">
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Dashboard</h1>
-            </div>
-            <div className="mb-8">
-              <BillboardSelector billboards={billboards} selectedId={selectedBillboard?.id || null} onSelect={setSelectedBillboard} isLoading={isLoading} />
-            </div>
-            <RecommendedActions billboards={billboards} userId={user?.id || ''} />
-            {selectedBillboard && (
-              <>
-                <div className="mt-8">
-                  <TrafficAnalytics key={selectedBillboard.id} billboard={selectedBillboard} />
-                </div>
-                <div className="mt-8">
-                  <INEGIInsights 
-                    billboard={{ 
-                      id: selectedBillboard.id, 
-                      latitude: selectedBillboard.latitude, 
-                      longitude: selectedBillboard.longitude 
-                    }} 
-                  />
-                </div>
-              </>
-            )}
-          </>
-        )}
 
         {activeTab === 'stats' && (
           <>

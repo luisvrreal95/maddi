@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, AlertCircle, CheckCircle, TrendingUp, Bell, ChevronRight, DollarSign } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, CheckCircle, TrendingUp, Bell, ChevronRight, DollarSign, Plus } from 'lucide-react';
 import { format, differenceInDays, addDays, isToday, isBefore, isAfter } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';

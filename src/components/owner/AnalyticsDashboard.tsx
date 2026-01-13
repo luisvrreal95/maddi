@@ -54,10 +54,13 @@ interface Booking {
 
 const COLORS = ['#9BFF43', '#7ED321', '#5AB515', '#3D9A0A', '#2A7A00'];
 
+type TimePeriod = '7d' | '30d';
+
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, userId }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [previousMonthEarnings, setPreviousMonthEarnings] = useState(0);
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>('30d');
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -102,29 +105,67 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
     fetchBookings();
   }, [billboards]);
 
-  // Calculate metrics
-  const totalEarnings = bookings
+  // Filter bookings based on time period
+  const getFilteredBookings = () => {
+    const now = new Date();
+    const periodStart = new Date();
+    periodStart.setDate(now.getDate() - (timePeriod === '7d' ? 7 : 30));
+    
+    return bookings.filter(b => {
+      const createdAt = new Date(b.created_at);
+      return createdAt >= periodStart;
+    });
+  };
+
+  const filteredBookings = getFilteredBookings();
+
+  // Calculate metrics for filtered period
+  const totalEarnings = filteredBookings
     .filter(b => b.status === 'approved')
     .reduce((acc, b) => acc + b.total_price, 0);
 
-  const pendingEarnings = bookings
+  const pendingEarnings = filteredBookings
     .filter(b => b.status === 'pending')
     .reduce((acc, b) => acc + b.total_price, 0);
 
-  const approvedBookings = bookings.filter(b => b.status === 'approved').length;
-  const pendingBookings = bookings.filter(b => b.status === 'pending').length;
-  const rejectedBookings = bookings.filter(b => b.status === 'rejected').length;
-  const totalBookings = bookings.length;
+  const approvedBookings = filteredBookings.filter(b => b.status === 'approved').length;
+  const pendingBookings = filteredBookings.filter(b => b.status === 'pending').length;
+  const rejectedBookings = filteredBookings.filter(b => b.status === 'rejected').length;
+  const totalBookings = filteredBookings.length;
 
   const occupancyRate = billboards.length > 0 
     ? Math.round((approvedBookings / Math.max(billboards.length, 1)) * 100)
     : 0;
 
-  const totalImpressions = billboards.reduce((acc, b) => acc + (b.daily_impressions || 0), 0) * 30;
+  const totalImpressions = billboards.reduce((acc, b) => acc + (b.daily_impressions || 0), 0) * (timePeriod === '7d' ? 7 : 30);
   
-  const earningsChange = previousMonthEarnings > 0 
-    ? ((totalEarnings - previousMonthEarnings) / previousMonthEarnings) * 100 
+  // Calculate earnings change compared to previous period
+  const getPreviousPeriodEarnings = () => {
+    const now = new Date();
+    const periodDays = timePeriod === '7d' ? 7 : 30;
+    const periodStart = new Date();
+    periodStart.setDate(now.getDate() - periodDays);
+    const previousStart = new Date();
+    previousStart.setDate(now.getDate() - (periodDays * 2));
+    
+    return bookings
+      .filter(b => {
+        const createdAt = new Date(b.created_at);
+        return b.status === 'approved' && createdAt >= previousStart && createdAt < periodStart;
+      })
+      .reduce((acc, b) => acc + b.total_price, 0);
+  };
+  
+  const previousPeriodEarnings = getPreviousPeriodEarnings();
+  const earningsChange = previousPeriodEarnings > 0 
+    ? ((totalEarnings - previousPeriodEarnings) / previousPeriodEarnings) * 100 
     : 0;
+  
+  // Find most viewed billboard (using daily_impressions as proxy)
+  const mostViewedBillboard = billboards.reduce((max, b) => 
+    (b.daily_impressions || 0) > (max?.daily_impressions || 0) ? b : max, 
+    billboards[0]
+  );
 
   // Get recommendation for billboard
   const getRecommendation = (billboard: Billboard, revenue: number, bookingCount: number) => {
@@ -218,21 +259,47 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
   return (
     <TooltipProvider>
       <div className="space-y-8">
-        {/* KPI Cards */}
+        {/* Time Period Filter */}
+        <div className="flex items-center justify-between">
+          <p className="text-white/60 text-sm">
+            Mostrando datos de los últimos {timePeriod === '7d' ? '7 días' : '30 días'}
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setTimePeriod('7d')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                timePeriod === '7d'
+                  ? 'bg-[#9BFF43] text-[#121212]'
+                  : 'bg-[#2A2A2A] text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Últimos 7 días
+            </button>
+            <button
+              onClick={() => setTimePeriod('30d')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                timePeriod === '30d'
+                  ? 'bg-[#9BFF43] text-[#121212]'
+                  : 'bg-[#2A2A2A] text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Últimos 30 días
+            </button>
+          </div>
+        </div>
+
+        {/* Simplified KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-[#9BFF43]/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/60 text-sm mb-1">Ganancias Totales</p>
+                <p className="text-white/60 text-sm mb-1">Ingresos del periodo</p>
                 <p className="text-3xl font-bold text-white">${totalEarnings.toLocaleString()}</p>
                 {earningsChange !== 0 && (
                   <div className={`flex items-center gap-1 text-sm mt-1 ${earningsChange >= 0 ? 'text-[#9BFF43]' : 'text-red-400'}`}>
                     {earningsChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    {Math.abs(earningsChange).toFixed(1)}% vs mes anterior
+                    {earningsChange >= 0 ? 'Sube' : 'Baja'} {Math.abs(earningsChange).toFixed(0)}%
                   </div>
-                )}
-                {pendingEarnings > 0 && (
-                  <p className="text-sm text-[#9BFF43]/70 mt-1">+${pendingEarnings.toLocaleString()} pendientes</p>
                 )}
               </div>
               <div className="w-12 h-12 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
@@ -244,9 +311,9 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
           <Card className="bg-[#1E1E1E] border-white/10 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/60 text-sm mb-1">Reservas Totales</p>
+                <p className="text-white/60 text-sm mb-1">Contactos recibidos</p>
                 <p className="text-3xl font-bold text-white">{totalBookings}</p>
-                <p className="text-sm text-white/40 mt-1">{approvedBookings} aprobadas</p>
+                <p className="text-sm text-white/40 mt-1">{approvedBookings} confirmados</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-white/60" />
@@ -254,30 +321,35 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
             </div>
           </Card>
 
-          <Card className="bg-[#1E1E1E] border-white/10 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm mb-1">Tasa de Ocupación</p>
-                <p className="text-3xl font-bold text-white">{occupancyRate}%</p>
-                <p className="text-sm text-white/40 mt-1">{billboards.length} espectaculares</p>
+          {/* Most Viewed Billboard */}
+          {mostViewedBillboard && (
+            <Card className="bg-[#1E1E1E] border-white/10 p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/60 text-sm mb-1">Espectacular más visto</p>
+                  <p className="text-lg font-bold text-white truncate max-w-[150px]">{mostViewedBillboard.title}</p>
+                  <p className="text-sm text-white/40 mt-1">
+                    {((mostViewedBillboard.daily_impressions || 0) / 1000).toFixed(0)}K impresiones/día
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                  <Eye className="w-6 h-6 text-white/60" />
+                </div>
               </div>
-              <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                <BarChart3 className="w-6 h-6 text-white/60" />
-              </div>
-            </div>
-          </Card>
+            </Card>
+          )}
 
           <Card className="bg-[#1E1E1E] border-white/10 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-white/60 text-sm mb-1">Impresiones/Mes</p>
+                <p className="text-white/60 text-sm mb-1">Vistas estimadas</p>
                 <p className="text-3xl font-bold text-white">
                   {totalImpressions >= 1000000 ? `${(totalImpressions / 1000000).toFixed(1)}M` : totalImpressions >= 1000 ? `${(totalImpressions / 1000).toFixed(0)}K` : totalImpressions}
                 </p>
-                <p className="text-sm text-white/40 mt-1">estimadas</p>
+                <p className="text-sm text-white/40 mt-1">en {timePeriod === '7d' ? '7 días' : '30 días'}</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
-                <Eye className="w-6 h-6 text-white/60" />
+                <BarChart3 className="w-6 h-6 text-white/60" />
               </div>
             </div>
           </Card>
