@@ -384,13 +384,12 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-white font-medium">Verificación de Identidad</h3>
-        {verification?.is_verified && (
-          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Verificado
-          </Badge>
-        )}
       </div>
+      
+      {/* Microcopy explicativo */}
+      <p className="text-white/60 text-sm -mt-2">
+        Esto nos ayuda a validar que eres propietario del espacio y generar confianza con los anunciantes.
+      </p>
       {renderStatus()}
     </div>
   );
