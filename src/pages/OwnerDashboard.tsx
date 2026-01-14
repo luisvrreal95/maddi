@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Plus } from 'lucide-react';
+import { Plus, LayoutGrid, List } from 'lucide-react';
 import { Billboard } from '@/hooks/useBillboards';
 import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
@@ -17,6 +17,7 @@ import RecommendedActions from '@/components/owner/RecommendedActions';
 import OwnerHome from '@/components/owner/OwnerHome';
 import OwnerCalendar from '@/components/owner/OwnerCalendar';
 import PropertyFilters from '@/components/owner/PropertyFilters';
+import PropertyListItem from '@/components/owner/PropertyListItem';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import ShareDialog from '@/components/share/ShareDialog';
 import {
@@ -31,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 type TabType = 'inicio' | 'propiedades' | 'dashboard' | 'calendario' | 'mensajes' | 'stats' | 'reservas';
+type ViewMode = 'grid' | 'list';
 
 const OwnerDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -49,6 +51,7 @@ const OwnerDashboard: React.FC = () => {
   const [filterCity, setFilterCity] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
   // Auto-select first billboard when billboards load
   useEffect(() => {
@@ -250,6 +253,25 @@ const OwnerDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-3xl md:text-4xl font-bold text-white">Mis Espectaculares</h1>
               <div className="flex items-center gap-3">
+                {/* View Toggle */}
+                <div className="flex items-center bg-[#2A2A2A] rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-md transition-colors ${
+                      viewMode === 'grid' ? 'bg-[#9BFF43] text-[#121212]' : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    <LayoutGrid className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-md transition-colors ${
+                      viewMode === 'list' ? 'bg-[#9BFF43] text-[#121212]' : 'text-white/60 hover:text-white'
+                    }`}
+                  >
+                    <List className="w-4 h-4" />
+                  </button>
+                </div>
                 <ShareDialog
                   title={displayName}
                   subtitle={`${billboards.length} propiedades en Maddi`}
@@ -285,12 +307,24 @@ const OwnerDashboard: React.FC = () => {
                   Agregar espectacular
                 </Button>
               </div>
-            ) : (
+            ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBillboards.map((billboard) => (
                   <div key={billboard.id} onClick={() => handlePropertyClick(billboard)} className="cursor-pointer">
                     <OwnerPropertyCard billboard={billboard} onEdit={() => handleEditBillboard(billboard)} onDelete={() => handleDeleteClick(billboard)} />
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredBillboards.map((billboard) => (
+                  <PropertyListItem 
+                    key={billboard.id} 
+                    billboard={billboard} 
+                    onClick={() => handlePropertyClick(billboard)}
+                    onEdit={() => handleEditBillboard(billboard)}
+                    onDelete={() => handleDeleteClick(billboard)}
+                  />
                 ))}
               </div>
             )}
