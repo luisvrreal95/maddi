@@ -237,12 +237,13 @@ const OwnerDashboard: React.FC = () => {
                 Bienvenido, {displayName}
               </h1>
               <Button
-                onClick={() => setShowAddDialog(true)}
+                onClick={() => navigate('/owner/add-property')}
                 className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
                 Agregar espectacular
               </Button>
+
             </div>
             <OwnerHome billboards={billboards} userId={user?.id || ''} />
           </>
@@ -277,7 +278,7 @@ const OwnerDashboard: React.FC = () => {
                   subtitle={`${billboards.length} propiedades en Maddi`}
                   shareUrl={`/profile/${user?.id}`}
                 />
-                <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2">
+                <Button onClick={() => navigate('/owner/add-property')} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2">
                   <Plus className="w-4 h-4" />
                   Agregar espectacular
                 </Button>
@@ -302,7 +303,7 @@ const OwnerDashboard: React.FC = () => {
               <div className="text-center py-16">
                 <h2 className="text-white text-2xl font-bold mb-2">Sin espectaculares</h2>
                 <p className="text-white/60 mb-6">Agrega tu primer espectacular para comenzar a recibir contactos</p>
-                <Button onClick={() => setShowAddDialog(true)} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 mx-auto">
+                <Button onClick={() => navigate('/owner/add-property')} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 mx-auto">
                   <Plus className="w-4 h-4" />
                   Agregar espectacular
                 </Button>
