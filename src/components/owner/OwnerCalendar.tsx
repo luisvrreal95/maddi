@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, ChevronLeft, ChevronRight, DollarSign, Lock, Unlock, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, DollarSign, Lock, Unlock, X, Clock } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isWithinInterval, addWeeks, subWeeks, startOfYear, addYears, subYears, eachMonthOfInterval } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -678,13 +678,13 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
           </Card>
         )}
 
-        {/* Property Info */}
+        {/* Property Info & Booking Settings */}
         {selectedBillboard && (
           <Card className="bg-[#1E1E1E] border-white/10">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-lg">Información</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <img 
                   src={selectedBillboard.image_url || '/placeholder.svg'} 
@@ -705,9 +705,103 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
           </Card>
         )}
 
-        {/* Note: Pricing overrides and blocked dates are visible on the calendar itself */}
+        {/* Booking Constraints Settings */}
+        {selectedBillboard && (
+          <BookingConstraintsCard 
+            billboard={selectedBillboard} 
+            onUpdate={fetchCalendarData}
+          />
+        )}
       </div>
     </div>
+  );
+};
+
+// Booking Constraints Card Component
+interface BookingConstraintsCardProps {
+  billboard: Billboard;
+  onUpdate: () => void;
+}
+
+const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboard, onUpdate }) => {
+  const [minCampaignDays, setMinCampaignDays] = useState(
+    ((billboard as any).min_campaign_days || 30).toString()
+  );
+  const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState(
+    ((billboard as any).min_advance_booking_days || 7).toString()
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const { error } = await supabase
+        .from('billboards')
+        .update({
+          min_campaign_days: parseInt(minCampaignDays) || 30,
+          min_advance_booking_days: parseInt(minAdvanceBookingDays) || 7,
+        })
+        .eq('id', billboard.id);
+
+      if (error) throw error;
+      toast.success('Requisitos de reserva actualizados');
+      onUpdate();
+    } catch (error) {
+      console.error('Error updating constraints:', error);
+      toast.error('Error al actualizar');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Card className="bg-[#1E1E1E] border-white/10">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-white text-lg flex items-center gap-2">
+          <Clock className="w-4 h-4 text-[#9BFF43]" />
+          Requisitos de reserva
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div>
+          <Label className="text-white/60 text-xs mb-1 block">Duración mínima</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={minCampaignDays}
+              onChange={(e) => setMinCampaignDays(e.target.value)}
+              className="w-20 h-9 text-center bg-[#2A2A2A] border-white/10 text-white"
+              min="1"
+            />
+            <span className="text-white/50 text-sm">días</span>
+          </div>
+          <p className="text-white/40 text-xs mt-1">Mínimo días de campaña</p>
+        </div>
+        
+        <div>
+          <Label className="text-white/60 text-xs mb-1 block">Anticipación mínima</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              value={minAdvanceBookingDays}
+              onChange={(e) => setMinAdvanceBookingDays(e.target.value)}
+              className="w-20 h-9 text-center bg-[#2A2A2A] border-white/10 text-white"
+              min="1"
+            />
+            <span className="text-white/50 text-sm">días antes</span>
+          </div>
+          <p className="text-white/40 text-xs mt-1">Tiempo para aprobar e instalar</p>
+        </div>
+        
+        <Button 
+          onClick={handleSave} 
+          disabled={isSaving}
+          className="w-full bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212]"
+        >
+          {isSaving ? 'Guardando...' : 'Guardar cambios'}
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 
