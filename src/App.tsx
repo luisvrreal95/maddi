@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import SearchPage from "./pages/Search";
 import Auth from "./pages/Auth";
 import OwnerDashboard from "./pages/OwnerDashboard";
+import AddProperty from "./pages/AddProperty";
 import BusinessDashboard from "./pages/BusinessDashboard";
 import BusinessAnalytics from "./pages/BusinessAnalytics";
 import BillboardDetail from "./pages/BillboardDetail";
