@@ -34,6 +34,8 @@ interface Notification {
   type: string;
   is_read: boolean;
   created_at: string;
+  related_booking_id: string | null;
+  related_billboard_id: string | null;
 }
 
 interface OwnerHomeProps {
@@ -161,12 +163,12 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       acc.today.push(booking);
     }
     
-    // Upcoming: starts in next 30 days (and hasn't started yet)
-    if (daysUntilStart > 0 && daysUntilStart <= 30 && booking.status === 'approved') {
+    // Upcoming: ALL approved bookings that haven't started yet (start_date > today)
+    if (daysUntilStart > 0 && booking.status === 'approved') {
       acc.upcoming.push(booking);
     }
     
-    // Expiring: ends in next 14 days (and is still active)
+    // Expiring: ends in ≤14 days (and is still active, i.e. has started)
     if (daysUntilEnd > 0 && daysUntilEnd <= 14 && booking.status === 'approved' && isBefore(startDate, new Date())) {
       acc.expiring.push(booking);
     }
@@ -238,7 +240,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     if (isBefore(endDate, now)) {
       return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Concluida</Badge>;
     }
-    if (daysUntilEnd <= 7 && daysUntilEnd > 0) {
+    // Por vencer: ends in ≤14 days and has started
+    if (daysUntilEnd <= 14 && daysUntilEnd > 0 && isBefore(startDate, now)) {
       return <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Por vencer</Badge>;
     }
     if (isToday(startDate)) {
@@ -262,8 +265,72 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     );
   }
 
+  // Get unread notifications
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+
   return (
     <div className="space-y-8">
+      {/* Unread Notifications Banner - Shows at top until resolved */}
+      {unreadNotifications.length > 0 && (
+        <div className="space-y-2">
+          <h2 className="text-white font-semibold flex items-center gap-2">
+            <Bell className="w-5 h-5 text-[#9BFF43]" />
+            Notificaciones pendientes
+          </h2>
+          <div className="space-y-2">
+            {unreadNotifications.slice(0, 5).map((notif) => (
+              <div 
+                key={notif.id}
+                className="bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl p-4 flex items-center justify-between"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
+                    <AlertCircle className="w-5 h-5 text-[#9BFF43]" />
+                  </div>
+                  <div>
+                    <p className="text-white font-medium">{notif.title}</p>
+                    <p className="text-white/60 text-sm">{notif.message}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {notif.related_booking_id && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-[#9BFF43] hover:bg-[#9BFF43]/10"
+                      onClick={() => navigate('/owner?tab=reservas')}
+                    >
+                      Ver reserva
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-white/60 hover:text-white hover:bg-white/10"
+                    onClick={async () => {
+                      await supabase
+                        .from('notifications')
+                        .update({ is_read: true })
+                        .eq('id', notif.id);
+                      // Refresh notifications
+                      const { data } = await supabase
+                        .from('notifications')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+                      if (data) setNotifications(data);
+                    }}
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
       {/* Pending Actions Block - Shows only if there are pending actions */}
       <PendingActionsBlock
         pendingBookings={categorizedBookings.pending}
@@ -404,8 +471,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                         {differenceInDays(new Date(booking.end_date), new Date(booking.start_date))} días
                       </span>
                     </div>
-                    {/* Show renter info for active bookings */}
-                    {booking.status === 'approved' && booking.profile && (
+                    {/* Show renter info for approved and pending bookings */}
+                    {(booking.status === 'approved' || booking.status === 'pending') && booking.profile && (
                       <div className="flex items-center gap-2 mt-2 text-sm">
                         <User className="w-3.5 h-3.5 text-white/40" />
                         <span className="text-white/60">
@@ -415,9 +482,22 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                           size="sm"
                           variant="ghost"
                           className="h-6 px-2 text-[#9BFF43] hover:text-[#9BFF43] hover:bg-[#9BFF43]/10"
-                          onClick={(e) => {
+                          onClick={async (e) => {
                             e.stopPropagation();
-                            navigate(`/messages?billboard=${booking.billboard_id}`);
+                            // Try to find existing conversation
+                            const { data: existingConv } = await supabase
+                              .from('conversations')
+                              .select('id')
+                              .eq('billboard_id', booking.billboard_id)
+                              .eq('business_id', booking.business_id)
+                              .eq('owner_id', userId)
+                              .single();
+                            
+                            if (existingConv) {
+                              navigate(`/messages?conversation=${existingConv.id}`);
+                            } else {
+                              navigate(`/messages?billboard=${booking.billboard_id}`);
+                            }
                           }}
                         >
                           <MessageSquare className="w-3.5 h-3.5 mr-1" />
