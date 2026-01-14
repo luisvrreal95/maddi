@@ -1109,6 +1109,52 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                     </Popover>
                   </div>
                 </div>
+                
+                {/* Booking Constraints */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-4 h-4 text-[#9BFF43]" />
+                    <Label className="text-sm font-medium text-white">Requisitos de reserva</Label>
+                  </div>
+                  <p className="text-xs text-white/50 mb-3">
+                    Define las condiciones mínimas para que un anunciante pueda reservar tu espectacular.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-white/60 mb-1 block">Duración mínima de campaña</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={minCampaignDays}
+                          onChange={(e) => setMinCampaignDays(e.target.value)}
+                          className="bg-[#2A2A2A] border-white/10 text-white"
+                          min="1"
+                        />
+                        <span className="text-white/50 text-sm">días</span>
+                      </div>
+                      <p className="text-xs text-white/40 mt-1">Mínimo de días que durará cada campaña</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-white/60 mb-1 block">Tiempo de anticipación</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={minAdvanceBookingDays}
+                          onChange={(e) => setMinAdvanceBookingDays(e.target.value)}
+                          className="bg-[#2A2A2A] border-white/10 text-white"
+                          min="1"
+                        />
+                        <span className="text-white/50 text-sm">días</span>
+                      </div>
+                      <p className="text-xs text-white/40 mt-1">Días antes que deben reservar</p>
+                    </div>
+                  </div>
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mt-3">
+                    <p className="text-xs text-blue-300">
+                      💡 Estos tiempos te dan espacio para revisar la solicitud, aprobarla, coordinar la impresión del diseño e instalar el anuncio.
+                    </p>
+                  </div>
+                </div>
 
                 {/* Info Box */}
                 <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">

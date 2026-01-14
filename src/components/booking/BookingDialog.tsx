@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, AlertCircle } from 'lucide-react';
-import { format, differenceInMonths, addMonths, isWithinInterval, parseISO, areIntervalsOverlapping } from 'date-fns';
+import { CalendarIcon, AlertCircle, Info, Clock, Calendar as CalendarDays } from 'lucide-react';
+import { format, differenceInDays, differenceInMonths, addMonths, addDays, isWithinInterval, parseISO, areIntervalsOverlapping, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,11 +37,22 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [startDate, setStartDate] = useState<Date | undefined>(addMonths(new Date(), 1));
-  const [endDate, setEndDate] = useState<Date | undefined>(addMonths(new Date(), 2));
+  
+  // Get booking constraints from billboard
+  const minCampaignDays = (billboard as any).min_campaign_days || 30;
+  const minAdvanceBookingDays = (billboard as any).min_advance_booking_days || 7;
+  
+  // Calculate earliest possible start date
+  const earliestStartDate = addDays(new Date(), minAdvanceBookingDays);
+  
+  // Default dates based on constraints
+  const [startDate, setStartDate] = useState<Date | undefined>(earliestStartDate);
+  const [endDate, setEndDate] = useState<Date | undefined>(addDays(earliestStartDate, minCampaignDays));
   const [notes, setNotes] = useState('');
   const [adDesignUrl, setAdDesignUrl] = useState('');
   const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
+  const [dateConflict, setDateConflict] = useState(false);
+  const [durationError, setDurationError] = useState(false);
 
   // Redirect to auth if user is not logged in
   useEffect(() => {
@@ -51,31 +62,44 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       navigate('/auth');
     }
   }, [open, user, navigate, onOpenChange]);
-  const [dateConflict, setDateConflict] = useState(false);
 
+  // Reset dates when dialog opens
   useEffect(() => {
     if (open) {
+      const earliest = addDays(new Date(), minAdvanceBookingDays);
+      setStartDate(earliest);
+      setEndDate(addDays(earliest, minCampaignDays));
       fetchExistingBookings();
     }
-  }, [open, billboard.id]);
+  }, [open, billboard.id, minAdvanceBookingDays, minCampaignDays]);
 
   useEffect(() => {
-    // Check for date conflicts
-    if (startDate && endDate && existingBookings.length > 0) {
-      const hasConflict = existingBookings.some((booking) => {
-        if (booking.status === 'rejected') return false;
-        const bookingStart = parseISO(booking.start_date);
-        const bookingEnd = parseISO(booking.end_date);
-        return areIntervalsOverlapping(
-          { start: startDate, end: endDate },
-          { start: bookingStart, end: bookingEnd }
-        );
-      });
-      setDateConflict(hasConflict);
+    // Check for date conflicts and duration
+    if (startDate && endDate) {
+      // Check minimum duration
+      const campaignDays = differenceInDays(endDate, startDate);
+      setDurationError(campaignDays < minCampaignDays);
+      
+      // Check for conflicts with existing bookings
+      if (existingBookings.length > 0) {
+        const hasConflict = existingBookings.some((booking) => {
+          if (booking.status === 'rejected') return false;
+          const bookingStart = parseISO(booking.start_date);
+          const bookingEnd = parseISO(booking.end_date);
+          return areIntervalsOverlapping(
+            { start: startDate, end: endDate },
+            { start: bookingStart, end: bookingEnd }
+          );
+        });
+        setDateConflict(hasConflict);
+      } else {
+        setDateConflict(false);
+      }
     } else {
       setDateConflict(false);
+      setDurationError(false);
     }
-  }, [startDate, endDate, existingBookings]);
+  }, [startDate, endDate, existingBookings, minCampaignDays]);
 
   const fetchExistingBookings = async () => {
     const { data } = await supabase
@@ -98,6 +122,11 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     }
     return null;
   };
+  
+  // Check if date is within advance booking restriction
+  const isDateTooSoon = (date: Date): boolean => {
+    return isBefore(date, earliestStartDate);
+  };
 
   const months = startDate && endDate 
     ? Math.max(1, differenceInMonths(endDate, startDate) + 1)
@@ -119,6 +148,11 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
     if (dateConflict) {
       toast.error('Las fechas seleccionadas ya están ocupadas');
+      return;
+    }
+    
+    if (durationError) {
+      toast.error(`La duración mínima de la campaña es ${minCampaignDays} días`);
       return;
     }
 
@@ -155,16 +189,18 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const calendarModifiers = {
     booked: (date: Date) => isDateBooked(date) === 'booked',
     pending: (date: Date) => isDateBooked(date) === 'pending',
+    tooSoon: (date: Date) => isDateTooSoon(date) && !isDateBooked(date),
   };
 
   const calendarModifiersClassNames = {
     booked: 'bg-red-500/30 text-red-300',
     pending: 'bg-yellow-500/30 text-yellow-300',
+    tooSoon: 'bg-gray-500/20 text-gray-400 line-through',
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#2A2A2A] border-white/10 text-white max-w-md">
+      <DialogContent className="bg-[#2A2A2A] border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Solicitar Reserva</DialogTitle>
         </DialogHeader>
@@ -175,6 +211,27 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             <p className="text-white font-bold">{billboard.title}</p>
             <p className="text-[#9BFF43] font-bold mt-1">
               ${billboard.price_per_month.toLocaleString()}/mes
+            </p>
+          </div>
+          
+          {/* Booking Constraints Info */}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
+            <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
+              <Info className="w-4 h-4" />
+              Requisitos de reserva
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <CalendarDays className="w-4 h-4 text-blue-400" />
+                <span>Mínimo <strong className="text-white">{minCampaignDays} días</strong></span>
+              </div>
+              <div className="flex items-center gap-2 text-white/70 text-sm">
+                <Clock className="w-4 h-4 text-blue-400" />
+                <span>Reservar con <strong className="text-white">{minAdvanceBookingDays} días</strong> de anticipación</span>
+              </div>
+            </div>
+            <p className="text-white/50 text-xs mt-2">
+              El propietario necesita tiempo para aprobar, preparar e instalar tu anuncio.
             </p>
           </div>
 
@@ -200,7 +257,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     mode="single"
                     selected={startDate}
                     onSelect={setStartDate}
-                    disabled={(date) => date < new Date() || isDateBooked(date) === 'booked'}
+                    disabled={(date) => date < earliestStartDate || isDateBooked(date) === 'booked'}
                     modifiers={calendarModifiers}
                     modifiersClassNames={calendarModifiersClassNames}
                     initialFocus
@@ -230,7 +287,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     mode="single"
                     selected={endDate}
                     onSelect={setEndDate}
-                    disabled={(date) => date < (startDate || new Date()) || isDateBooked(date) === 'booked'}
+                    disabled={(date) => {
+                      const minEndDate = startDate ? addDays(startDate, minCampaignDays - 1) : earliestStartDate;
+                      return date < minEndDate || isDateBooked(date) === 'booked';
+                    }}
                     modifiers={calendarModifiers}
                     modifiersClassNames={calendarModifiersClassNames}
                     initialFocus
@@ -246,6 +306,14 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             <div className="flex items-center gap-2 bg-red-500/20 text-red-400 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm">Las fechas seleccionadas se solapan con una reserva existente</span>
+            </div>
+          )}
+          
+          {/* Duration error warning */}
+          {durationError && !dateConflict && (
+            <div className="flex items-center gap-2 bg-orange-500/20 text-orange-400 p-3 rounded-lg">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm">La duración mínima de la campaña es {minCampaignDays} días</span>
             </div>
           )}
 
@@ -295,7 +363,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || dateConflict}
+              disabled={isLoading || dateConflict || durationError}
               className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
             >
               {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
