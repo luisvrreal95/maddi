@@ -492,9 +492,10 @@ const Messages: React.FC = () => {
                       <MessageSquare className="w-5 h-5 text-white/40" />
                     </div>
                   )}
-                  <div>
-                    <p className="text-white font-semibold">
-                      {selectedConversation.other_user?.full_name}
+                  <div className="flex-1">
+                    <p className="text-white font-semibold flex items-center gap-2">
+                      <User className="w-4 h-4 text-white/40" />
+                      {selectedConversation.other_user?.full_name || 'Usuario'}
                     </p>
                     <p className="text-white/40 text-sm">
                       {selectedConversation.billboard?.title}
