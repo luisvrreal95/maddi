@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Billboard } from '@/hooks/useBillboards';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,11 +41,12 @@ interface Booking {
 interface OwnerCalendarProps {
   billboards: Billboard[];
   userId: string;
+  onBillboardsRefresh?: () => void;
 }
 
 type ViewMode = 'week' | 'month' | 'year';
 
-const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => {
+const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBillboardsRefresh }) => {
   const [selectedBillboard, setSelectedBillboard] = useState<Billboard | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
@@ -709,7 +710,10 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId }) => 
         {selectedBillboard && (
           <BookingConstraintsCard 
             billboard={selectedBillboard} 
-            onUpdate={fetchCalendarData}
+            onUpdate={() => {
+              fetchCalendarData();
+              onBillboardsRefresh?.();
+            }}
           />
         )}
       </div>
@@ -731,6 +735,26 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
     ((billboard as any).min_advance_booking_days || 7).toString()
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  // Sync local state when billboard changes
+  useEffect(() => {
+    const newMinCampaign = ((billboard as any).min_campaign_days || 30).toString();
+    const newMinAdvance = ((billboard as any).min_advance_booking_days || 7).toString();
+    setMinCampaignDays(newMinCampaign);
+    setMinAdvanceBookingDays(newMinAdvance);
+    setHasChanges(false);
+  }, [billboard.id, (billboard as any).min_campaign_days, (billboard as any).min_advance_booking_days]);
+
+  const handleMinCampaignChange = (value: string) => {
+    setMinCampaignDays(value);
+    setHasChanges(true);
+  };
+
+  const handleMinAdvanceChange = (value: string) => {
+    setMinAdvanceBookingDays(value);
+    setHasChanges(true);
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -745,6 +769,7 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
 
       if (error) throw error;
       toast.success('Requisitos de reserva actualizados');
+      setHasChanges(false);
       onUpdate();
     } catch (error) {
       console.error('Error updating constraints:', error);
@@ -769,7 +794,7 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
             <Input
               type="number"
               value={minCampaignDays}
-              onChange={(e) => setMinCampaignDays(e.target.value)}
+              onChange={(e) => handleMinCampaignChange(e.target.value)}
               className="w-20 h-9 text-center bg-[#2A2A2A] border-white/10 text-white"
               min="1"
             />
@@ -784,7 +809,7 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
             <Input
               type="number"
               value={minAdvanceBookingDays}
-              onChange={(e) => setMinAdvanceBookingDays(e.target.value)}
+              onChange={(e) => handleMinAdvanceChange(e.target.value)}
               className="w-20 h-9 text-center bg-[#2A2A2A] border-white/10 text-white"
               min="1"
             />
@@ -795,8 +820,8 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
         
         <Button 
           onClick={handleSave} 
-          disabled={isSaving}
-          className="w-full bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212]"
+          disabled={isSaving || !hasChanges}
+          className="w-full bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] disabled:opacity-50"
         >
           {isSaving ? 'Guardando...' : 'Guardar cambios'}
         </Button>

@@ -338,7 +338,7 @@ const OwnerDashboard: React.FC = () => {
               <h1 className="text-3xl md:text-4xl font-bold text-white">Calendario</h1>
               <p className="text-white/60 mt-2">Gestiona precios y disponibilidad de tus propiedades</p>
             </div>
-            <OwnerCalendar billboards={billboards} userId={user?.id || ''} />
+            <OwnerCalendar billboards={billboards} userId={user?.id || ''} onBillboardsRefresh={fetchBillboards} />
           </>
         )}
 
