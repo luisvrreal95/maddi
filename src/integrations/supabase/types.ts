@@ -142,6 +142,8 @@ export type Database = {
           last_traffic_update: string | null
           latitude: number
           longitude: number
+          min_advance_booking_days: number | null
+          min_campaign_days: number | null
           owner_id: string
           points_of_interest: string[] | null
           price_per_month: number
@@ -167,6 +169,8 @@ export type Database = {
           last_traffic_update?: string | null
           latitude: number
           longitude: number
+          min_advance_booking_days?: number | null
+          min_campaign_days?: number | null
           owner_id: string
           points_of_interest?: string[] | null
           price_per_month: number
@@ -192,6 +196,8 @@ export type Database = {
           last_traffic_update?: string | null
           latitude?: number
           longitude?: number
+          min_advance_booking_days?: number | null
+          min_campaign_days?: number | null
           owner_id?: string
           points_of_interest?: string[] | null
           price_per_month?: number

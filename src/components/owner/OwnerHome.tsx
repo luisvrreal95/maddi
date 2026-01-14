@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, AlertCircle, CheckCircle, TrendingUp, Bell, ChevronRight, DollarSign, Plus } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, CheckCircle, TrendingUp, Bell, ChevronRight, DollarSign, Plus, User, MessageSquare } from 'lucide-react';
 import { format, differenceInDays, addDays, isToday, isBefore, isAfter } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import PendingActionsBlock from './PendingActionsBlock';
 
 interface Booking {
   id: string;
@@ -18,7 +19,12 @@ interface Booking {
   end_date: string;
   status: string;
   total_price: number;
+  created_at: string;
   billboard?: Billboard;
+  profile?: {
+    full_name: string;
+    company_name?: string;
+  };
 }
 
 interface Notification {
@@ -44,6 +50,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedBillboardId, setSelectedBillboardId] = useState<string>('all');
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (billboards.length > 0) {
@@ -76,13 +83,24 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
 
       if (bookingsError) throw bookingsError;
 
-      // Map bookings with billboard data
-      const mappedBookings = (bookingsData || []).map(b => ({
-        ...b,
-        billboard: b.billboards as Billboard
-      }));
+      // Fetch profiles for business users in bookings
+      const bookingsWithProfiles = await Promise.all(
+        (bookingsData || []).map(async (b) => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, company_name')
+            .eq('user_id', b.business_id)
+            .single();
+          
+          return {
+            ...b,
+            billboard: b.billboards as Billboard,
+            profile: profile || undefined
+          };
+        })
+      );
 
-      setBookings(mappedBookings);
+      setBookings(bookingsWithProfiles);
 
       // Fetch recent notifications
       const { data: notificationsData, error: notificationsError } = await supabase
@@ -94,6 +112,24 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
 
       if (notificationsError) throw notificationsError;
       setNotifications(notificationsData || []);
+      
+      // Fetch unread messages count
+      const { data: conversations } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('owner_id', userId);
+      
+      if (conversations && conversations.length > 0) {
+        const conversationIds = conversations.map(c => c.id);
+        const { count } = await supabase
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .in('conversation_id', conversationIds)
+          .eq('is_read', false)
+          .neq('sender_id', userId);
+        
+        setUnreadMessages(count || 0);
+      }
 
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -120,8 +156,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       return acc;
     }
 
-    // Today: starts or ends today
-    if (isToday(startDate) || isToday(endDate)) {
+    // Today: active campaigns that include today (not just starts/ends today)
+    if (isBefore(startDate, new Date()) && isAfter(endDate, new Date()) && booking.status === 'approved') {
       acc.today.push(booking);
     }
     
@@ -158,6 +194,9 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
   const occupancyRate = billboards.length > 0 
     ? Math.round((billboardsWithActiveBookings.size / billboards.length) * 100) 
     : 0;
+  
+  // Count billboards rented today (with active campaigns)
+  const rentedTodayCount = billboardsWithActiveBookings.size;
 
   const getFilteredBookings = (): Booking[] => {
     // Apply billboard filter first
@@ -225,6 +264,13 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
 
   return (
     <div className="space-y-8">
+      {/* Pending Actions Block - Shows only if there are pending actions */}
+      <PendingActionsBlock
+        pendingBookings={categorizedBookings.pending}
+        expiringBookings={categorizedBookings.expiring}
+        unreadMessages={unreadMessages}
+      />
+      
       {/* Quick Stats Bar - Updated: Total billboards, Reserved today, Occupancy */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5">
@@ -244,8 +290,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
               <Calendar className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-white/50 text-sm">Reservados hoy</p>
-              <p className="text-white text-xl font-bold">{categorizedBookings.today.length}</p>
+              <p className="text-white/50 text-sm">Rentados hoy</p>
+              <p className="text-white text-xl font-bold">{rentedTodayCount}</p>
             </div>
           </div>
         </div>
@@ -261,28 +307,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
           </div>
         </div>
       </div>
-
-      {/* Pending Actions Alert */}
-      {categorizedBookings.pending.length > 0 && (
-        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
-          <div className="flex items-center gap-3">
-            <AlertCircle className="w-5 h-5 text-yellow-400" />
-            <div className="flex-1">
-              <p className="text-yellow-400 font-medium">
-                Tienes {categorizedBookings.pending.length} reserva(s) pendiente(s) de aprobación
-              </p>
-            </div>
-            <Button 
-              size="sm"
-              variant="outline"
-              className="border-yellow-500/30 text-yellow-400 hover:bg-yellow-500/10"
-              onClick={() => setFilter('pending')}
-            >
-              Ver pendientes
-            </Button>
-          </div>
-        </div>
-      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 items-center">
@@ -380,6 +404,27 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                         {differenceInDays(new Date(booking.end_date), new Date(booking.start_date))} días
                       </span>
                     </div>
+                    {/* Show renter info for active bookings */}
+                    {booking.status === 'approved' && booking.profile && (
+                      <div className="flex items-center gap-2 mt-2 text-sm">
+                        <User className="w-3.5 h-3.5 text-white/40" />
+                        <span className="text-white/60">
+                          {booking.profile.company_name || booking.profile.full_name}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 px-2 text-[#9BFF43] hover:text-[#9BFF43] hover:bg-[#9BFF43]/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/messages?billboard=${booking.billboard_id}`);
+                          }}
+                        >
+                          <MessageSquare className="w-3.5 h-3.5 mr-1" />
+                          Contactar
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
                   {/* Price */}

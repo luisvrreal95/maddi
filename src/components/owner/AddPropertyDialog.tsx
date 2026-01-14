@@ -118,6 +118,10 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [width, setWidth] = useState('');
   const [availability, setAvailability] = useState<'immediate' | 'scheduled'>('immediate');
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>(undefined);
+  
+  // Booking constraints
+  const [minCampaignDays, setMinCampaignDays] = useState('30');
+  const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState('7');
 
   // Fetch Mapbox token
   useEffect(() => {
@@ -160,6 +164,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       // Load existing POIs
       const existingPois = (billboard as any).points_of_interest || [];
       setPointsOfInterest(existingPois);
+      // Load booking constraints
+      setMinCampaignDays(((billboard as any).min_campaign_days || 30).toString());
+      setMinAdvanceBookingDays(((billboard as any).min_advance_booking_days || 7).toString());
     } else {
       resetForm();
     }
@@ -358,6 +365,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setAvailableFrom(undefined);
     setImageUrls([]);
     setAddressSuggestions([]);
+    setMinCampaignDays('30');
+    setMinAdvanceBookingDays('7');
   };
 
   const fetchNearbyPOIs = async () => {
@@ -514,6 +523,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         image_url: imageUrls[0] || null,
         image_urls: imageUrls.length > 0 ? imageUrls : null,
         points_of_interest: pointsOfInterest,
+        min_campaign_days: parseInt(minCampaignDays) || 30,
+        min_advance_booking_days: parseInt(minAdvanceBookingDays) || 7,
       };
 
       let savedBillboardId: string | null = null;
