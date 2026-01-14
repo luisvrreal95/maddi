@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut } from 'lucide-react';
-import NotificationBell from '@/components/notifications/NotificationBell';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import {
   DropdownMenu,
@@ -36,14 +35,12 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
 
   const handleTabClick = (tabId: string) => {
     if (tabId === 'mensajes') {
-      // Navigate to messages with owner context
       window.location.href = '/messages?from=owner';
       return;
     }
     if (onTabChange) {
       onTabChange(tabId);
     } else {
-      // If no onTabChange provided, navigate directly
       window.location.href = `/owner?tab=${tabId}`;
     }
   };
@@ -91,10 +88,8 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
           })}
         </nav>
 
-        {/* Right - Notifications + Hamburger */}
+        {/* Right - Hamburger Menu */}
         <div className="flex items-center gap-3">
-          <NotificationBell />
-          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white/70 hover:text-white hover:bg-white/5 transition-colors">

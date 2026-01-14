@@ -442,50 +442,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
           </div>
         )}
       </div>
-
-      {/* Recent Notifications */}
-      {notifications.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-white text-lg font-semibold flex items-center gap-2">
-              <Bell className="w-5 h-5" />
-              Notificaciones recientes
-            </h2>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-white/50 hover:text-white"
-              onClick={() => navigate('/settings?tab=notifications')}
-            >
-              Ver todas
-            </Button>
-          </div>
-          
-          <div className="space-y-2">
-            {notifications.slice(0, 3).map((notification) => (
-              <div 
-                key={notification.id}
-                className={`bg-[#1E1E1E] rounded-xl p-4 border transition-colors ${
-                  notification.is_read ? 'border-white/5' : 'border-[#9BFF43]/30'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`w-2 h-2 rounded-full mt-2 ${
-                    notification.is_read ? 'bg-white/20' : 'bg-[#9BFF43]'
-                  }`} />
-                  <div className="flex-1">
-                    <p className="text-white font-medium">{notification.title}</p>
-                    <p className="text-white/50 text-sm">{notification.message}</p>
-                    <p className="text-white/30 text-xs mt-1">
-                      {format(new Date(notification.created_at), 'dd MMM, HH:mm', { locale: es })}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
