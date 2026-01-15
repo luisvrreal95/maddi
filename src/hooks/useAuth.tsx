@@ -10,7 +10,7 @@ interface AuthContextType {
   userRole: UserRole;
   isLoading: boolean;
   needsRoleSelection: boolean;
-  signUp: (email: string, password: string, fullName: string, role: 'owner' | 'business') => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, role: 'owner' | 'business', companyName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
   signInWithFacebook: () => Promise<{ error: Error | null }>;
@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'owner' | 'business') => {
+  const signUp = async (email: string, password: string, fullName: string, role: 'owner' | 'business', companyName?: string) => {
     // Redirect to home page after email verification
     const redirectUrl = `${window.location.origin}/`;
     
@@ -94,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: fullName,
           role: role, // This will be picked up by the trigger
+          company_name: companyName || null,
         },
       },
     });

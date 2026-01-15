@@ -339,45 +339,45 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       />
       
       {/* Quick Stats Bar - Updated: Total billboards, Reserved today, Occupancy */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-[#9BFF43]/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-[#9BFF43]" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#9BFF43]/10 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#9BFF43]" />
             </div>
             <div>
-              <p className="text-white/50 text-sm">Ocupación</p>
-              <p className="text-white text-xl font-bold">{occupancyRate}%</p>
+              <p className="text-white/50 text-xs sm:text-sm">Ocupación</p>
+              <p className="text-white text-lg sm:text-xl font-bold">{occupancyRate}%</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5">
+        <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-blue-400" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+              <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-white/50 text-sm">Rentados hoy</p>
-              <p className="text-white text-xl font-bold">{rentedTodayCount}</p>
+              <p className="text-white/50 text-xs sm:text-sm">Rentados hoy</p>
+              <p className="text-white text-lg sm:text-xl font-bold">{rentedTodayCount}</p>
             </div>
           </div>
         </div>
-        <div className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5">
+        <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-purple-400" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
             </div>
             <div>
-              <p className="text-white/50 text-sm">Total espectaculares</p>
-              <p className="text-white text-xl font-bold">{billboards.length}</p>
+              <p className="text-white/50 text-xs sm:text-sm">Total espectaculares</p>
+              <p className="text-white text-lg sm:text-xl font-bold">{billboards.length}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-4 items-center">
-        <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center">
+        <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
           {[
             { id: 'all', label: 'Todos' },
             { id: 'today', label: 'Hoy', count: categorizedBookings.today.length },
@@ -390,10 +390,10 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
               variant={filter === f.id ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilter(f.id as FilterType)}
-              className={filter === f.id 
+              className={`whitespace-nowrap flex-shrink-0 ${filter === f.id 
                 ? 'bg-white text-[#121212]' 
                 : 'border-white/20 text-white/70 hover:text-white hover:bg-white/10'
-              }
+              }`}
             >
               {f.label}
               {f.count !== undefined && f.count > 0 && (
@@ -406,7 +406,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         </div>
         
         <Select value={selectedBillboardId} onValueChange={setSelectedBillboardId}>
-          <SelectTrigger className="w-[200px] bg-[#2A2A2A] border-white/10 text-white">
+          <SelectTrigger className="w-full sm:w-[200px] bg-[#2A2A2A] border-white/10 text-white">
             <SelectValue placeholder="Filtrar por propiedad" />
           </SelectTrigger>
           <SelectContent className="bg-[#2A2A2A] border-white/10">

@@ -201,8 +201,8 @@ const PublicProfile = () => {
             <span>Volver</span>
           </Link>
           <ShareDialog
-            title={`${profile.full_name} en Maddi`}
-            subtitle={profile.company_name || undefined}
+            title={profile.company_name || profile.full_name}
+            subtitle={profile.company_name ? profile.full_name : undefined}
             imageUrl={profile.avatar_url}
             shareUrl={`/profile/${userId}`}
           />
