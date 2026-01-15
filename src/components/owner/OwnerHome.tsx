@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, AlertCircle, CheckCircle, TrendingUp, Bell, ChevronRight, DollarSign, Plus, User, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, AlertCircle, CheckCircle, TrendingUp, Bell, ChevronRight, MapPin, Plus, User, MessageSquare } from 'lucide-react';
 import { format, differenceInDays, addDays, isToday, isBefore, isAfter } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -364,8 +364,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         </div>
         <div className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-green-400" />
+            <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <MapPin className="w-5 h-5 text-purple-400" />
             </div>
             <div>
               <p className="text-white/50 text-sm">Total espectaculares</p>

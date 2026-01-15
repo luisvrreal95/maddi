@@ -38,9 +38,9 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Get booking constraints from billboard
-  const minCampaignDays = (billboard as any).min_campaign_days || 30;
-  const minAdvanceBookingDays = (billboard as any).min_advance_booking_days || 7;
+  // Get booking constraints from billboard (default: 0 min campaign, 7 advance)
+  const minCampaignDays = (billboard as any).min_campaign_days ?? 0;
+  const minAdvanceBookingDays = (billboard as any).min_advance_booking_days ?? 7;
   
   // Calculate earliest possible start date
   const earliestStartDate = addDays(new Date(), minAdvanceBookingDays);
@@ -76,9 +76,9 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   useEffect(() => {
     // Check for date conflicts and duration
     if (startDate && endDate) {
-      // Check minimum duration
+      // Check minimum duration (only if minCampaignDays > 0)
       const campaignDays = differenceInDays(endDate, startDate);
-      setDurationError(campaignDays < minCampaignDays);
+      setDurationError(minCampaignDays > 0 && campaignDays < minCampaignDays);
       
       // Check for conflicts with existing bookings
       if (existingBookings.length > 0) {
