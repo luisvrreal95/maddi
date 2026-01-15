@@ -56,6 +56,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Date | null>(null);
+  const [rangeStart, setRangeStart] = useState<Date | null>(null); // For click-to-click range selection
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState<'price' | 'block' | null>(null);
   const [newPrice, setNewPrice] = useState('');
@@ -117,9 +118,11 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
   const handleDateMouseDown = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
     if (hasBooking || isBlocked) return;
+    // Start drag selection
     setIsDragging(true);
     setDragStart(date);
     setSelectedDates([date]);
+    setRangeStart(null); // Reset click range when starting drag
   };
 
   const handleDateMouseEnter = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
@@ -151,12 +154,35 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, []);
 
-  const handleDateClick = (date: Date) => {
-    if (selectedDates.some(d => isSameDay(d, date))) {
-      setSelectedDates(selectedDates.filter(d => !isSameDay(d, date)));
+  // Handle click-to-click date range selection (for blocking dates, etc.)
+  const handleDateClick = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
+    if (hasBooking || isBlocked) return;
+    
+    if (!rangeStart) {
+      // First click - set start of range
+      setRangeStart(date);
+      setSelectedDates([date]);
     } else {
-      setSelectedDates([...selectedDates, date].sort((a, b) => a.getTime() - b.getTime()));
+      // Second click - complete the range
+      const start = rangeStart < date ? rangeStart : date;
+      const end = rangeStart < date ? date : rangeStart;
+      
+      const datesInRange: Date[] = [];
+      let current = new Date(start);
+      while (current <= end) {
+        datesInRange.push(new Date(current));
+        current = addDays(current, 1);
+      }
+      setSelectedDates(datesInRange);
+      setRangeStart(null); // Reset for next selection
     }
+  };
+
+  // Clear selection and reset range
+  const clearSelection = () => {
+    setSelectedDates([]);
+    setRangeStart(null);
+    setEditMode(null);
   };
 
   const handleSavePrice = async () => {
@@ -179,9 +205,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
       if (error) throw error;
       
       toast.success('Precio actualizado correctamente');
-      setSelectedDates([]);
+      clearSelection();
       setNewPrice('');
-      setEditMode(null);
       fetchCalendarData();
     } catch (error) {
       console.error('Error saving price:', error);
@@ -208,9 +233,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
       if (error) throw error;
       
       toast.success('Fechas bloqueadas correctamente');
-      setSelectedDates([]);
+      clearSelection();
       setBlockReason('');
-      setEditMode(null);
       fetchCalendarData();
     } catch (error) {
       console.error('Error blocking dates:', error);
@@ -307,6 +331,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
           return (
             <div
               key={day.toISOString()}
+              onClick={() => handleDateClick(day, isBlocked, !!booking)}
               onMouseDown={() => handleDateMouseDown(day, isBlocked, !!booking)}
               onMouseEnter={() => handleDateMouseEnter(day, isBlocked, !!booking)}
               onMouseUp={handleDateMouseUp}
@@ -316,7 +341,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                 booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-not-allowed",
                 booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed",
                 priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30 cursor-pointer",
-                isSelected && "ring-2 ring-white",
+                isSelected && "ring-2 ring-[#9BFF43]",
+                rangeStart && isSameDay(day, rangeStart) && "ring-2 ring-white bg-white/10",
                 !isBlocked && !booking && "border-white/10 hover:border-white/30 cursor-pointer"
               )}
             >
@@ -386,6 +412,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
             return (
               <div
                 key={day.toISOString()}
+                onClick={() => isCurrentMonth && handleDateClick(day, isBlocked, !!booking)}
                 onMouseDown={() => isCurrentMonth && handleDateMouseDown(day, isBlocked, !!booking)}
                 onMouseEnter={() => isCurrentMonth && handleDateMouseEnter(day, isBlocked, !!booking)}
                 onMouseUp={handleDateMouseUp}
@@ -396,7 +423,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                   booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-not-allowed",
                   booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed",
                   priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30 cursor-pointer",
-                  isSelected && "ring-2 ring-white",
+                  isSelected && "ring-2 ring-[#9BFF43]",
+                  rangeStart && isSameDay(day, rangeStart) && "ring-2 ring-white bg-white/10",
                   !isBlocked && !booking && isCurrentMonth && "border-white/10 hover:border-white/30 cursor-pointer"
                 )}
               >
@@ -479,16 +507,16 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   }
 
   return (
-    <div className="flex gap-6">
+    <div className="flex flex-col lg:flex-row gap-6">
       {/* Calendar */}
       <div className="flex-1">
         {/* Billboard Selector */}
-        <div className="mb-6">
+        <div className="mb-4 lg:mb-6">
           <Select 
             value={selectedBillboard?.id || ''} 
             onValueChange={(id) => setSelectedBillboard(billboards.find(b => b.id === id) || null)}
           >
-            <SelectTrigger className="w-full md:w-[400px] bg-[#2A2A2A] border-white/10 text-white">
+            <SelectTrigger className="w-full lg:w-[400px] bg-[#2A2A2A] border-white/10 text-white">
               <SelectValue placeholder="Selecciona una propiedad" />
             </SelectTrigger>
             <SelectContent className="bg-[#2A2A2A] border-white/10">
@@ -496,7 +524,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                 <SelectItem key={b.id} value={b.id} className="text-white">
                   <div className="flex items-center gap-2">
                     <img src={b.image_url || '/placeholder.svg'} className="w-8 h-8 rounded object-cover" />
-                    <span>{b.title}</span>
+                    <span className="truncate">{b.title}</span>
                   </div>
                 </SelectItem>
               ))}
@@ -505,17 +533,17 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
         </div>
 
         {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-4 lg:mb-6">
+          <div className="flex items-center gap-2 sm:gap-4">
             <Button
               variant="outline"
               size="icon"
               onClick={() => navigatePeriod('prev')}
-              className="border-white/20 text-white"
+              className="border-white/20 text-white h-8 w-8 sm:h-10 sm:w-10"
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <h2 className="text-white text-xl font-bold min-w-[200px] text-center">
+            <h2 className="text-white text-base sm:text-xl font-bold min-w-[150px] sm:min-w-[200px] text-center">
               {viewMode === 'year' 
                 ? format(currentDate, 'yyyy')
                 : format(currentDate, 'MMMM yyyy', { locale: es })
@@ -525,7 +553,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
               variant="outline"
               size="icon"
               onClick={() => navigatePeriod('next')}
-              className="border-white/20 text-white"
+              className="border-white/20 text-white h-8 w-8 sm:h-10 sm:w-10"
             >
               <ChevronRight className="w-4 h-4" />
             </Button>
@@ -565,7 +593,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
         </div>
 
         {/* Legend */}
-        <div className="flex gap-6 mt-4 text-sm">
+        <div className="flex flex-wrap gap-3 sm:gap-6 mt-4 text-xs sm:text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-[#9BFF43]" />
             <span className="text-white/60">Reservado</span>
@@ -586,9 +614,23 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
       </div>
 
       {/* Sidebar */}
-      <div className="w-80 space-y-4">
+      <div className="w-full lg:w-80 space-y-4">
+        {/* Range selection hint */}
+        {rangeStart && selectedDates.length === 1 && (
+          <Card className="bg-blue-500/10 border-blue-500/30">
+            <CardContent className="p-4">
+              <p className="text-blue-400 text-sm">
+                Haz clic en otra fecha para completar el rango
+              </p>
+              <p className="text-white/60 text-xs mt-1">
+                Inicio: {format(rangeStart, 'dd MMM yyyy', { locale: es })}
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Selected Dates Actions */}
-        {selectedDates.length > 0 && (
+        {selectedDates.length > 0 && !rangeStart && (
           <Card className="bg-[#1E1E1E] border-white/10">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-lg flex items-center justify-between">
@@ -596,7 +638,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setSelectedDates([])}
+                  onClick={clearSelection}
                   className="text-white/50 hover:text-white"
                 >
                   <X className="w-4 h-4" />
@@ -605,9 +647,9 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="text-white/60 text-sm">
-                {format(selectedDates[0], 'dd MMM', { locale: es })}
+                {format(selectedDates[0], 'dd MMM yyyy', { locale: es })}
                 {selectedDates.length > 1 && (
-                  <> - {format(selectedDates[selectedDates.length - 1], 'dd MMM', { locale: es })}</>
+                  <> - {format(selectedDates[selectedDates.length - 1], 'dd MMM yyyy', { locale: es })}</>
                 )}
               </div>
               

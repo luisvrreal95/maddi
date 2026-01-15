@@ -26,6 +26,7 @@ const Auth: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -112,7 +113,7 @@ const Auth: React.FC = () => {
       } else {
         if (!selectedType) return;
         
-        const { error } = await signUp(email, password, fullName, selectedType);
+        const { error } = await signUp(email, password, fullName, selectedType, companyName);
         if (error) {
           if (error.message.includes('already registered')) {
             toast.error('Este email ya está registrado. Intenta iniciar sesión.');
@@ -305,6 +306,23 @@ const Auth: React.FC = () => {
                   />
                   {errors.fullName && <p className="text-red-400 text-sm">{errors.fullName}</p>}
                 </div>
+
+                {/* Company name for owners */}
+                {selectedType === 'owner' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="text-white/80 text-sm font-medium">
+                      Empresa <span className="text-white/40">(opcional)</span>
+                    </Label>
+                    <Input
+                      id="companyName"
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Mi Empresa S.A. de C.V."
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                    />
+                  </div>
+                )}
               </>
             )}
 

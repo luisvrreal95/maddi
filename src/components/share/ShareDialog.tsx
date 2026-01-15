@@ -44,8 +44,10 @@ const ShareDialog = ({
 
   const fullUrl = `${window.location.origin}${shareUrl}`;
   const encodedUrl = encodeURIComponent(fullUrl);
-  const encodedTitle = encodeURIComponent(title);
-  const encodedMessage = encodeURIComponent(`¡Mira este espectacular en Maddi! ${title}: ${fullUrl}`);
+  // Use subtitle (company) if available, otherwise title (user name)
+  const displayName = subtitle || title;
+  const encodedTitle = encodeURIComponent(displayName);
+  const encodedMessage = encodeURIComponent(`¡Mira este espectacular en Maddi! ${displayName}: ${fullUrl}`);
 
   const handleCopyLink = async () => {
     try {
@@ -69,7 +71,7 @@ const ShareDialog = ({
       name: "Email",
       icon: <Mail className="w-5 h-5" />,
       onClick: null,
-      href: `mailto:?subject=${encodedTitle}&body=${encodedMessage}`,
+      href: `mailto:?subject=Portafolio de ${encodeURIComponent(displayName)} en Maddi!&body=${encodedMessage}`,
     },
     {
       name: "Mensajes",
