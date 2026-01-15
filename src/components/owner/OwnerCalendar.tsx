@@ -729,18 +729,18 @@ interface BookingConstraintsCardProps {
 
 const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboard, onUpdate }) => {
   const [minCampaignDays, setMinCampaignDays] = useState(
-    ((billboard as any).min_campaign_days || 30).toString()
+    ((billboard as any).min_campaign_days ?? 0).toString()
   );
   const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState(
-    ((billboard as any).min_advance_booking_days || 7).toString()
+    ((billboard as any).min_advance_booking_days ?? 7).toString()
   );
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Sync local state when billboard changes
   useEffect(() => {
-    const newMinCampaign = ((billboard as any).min_campaign_days || 30).toString();
-    const newMinAdvance = ((billboard as any).min_advance_booking_days || 7).toString();
+    const newMinCampaign = ((billboard as any).min_campaign_days ?? 0).toString();
+    const newMinAdvance = ((billboard as any).min_advance_booking_days ?? 7).toString();
     setMinCampaignDays(newMinCampaign);
     setMinAdvanceBookingDays(newMinAdvance);
     setHasChanges(false);
@@ -762,7 +762,7 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
       const { error } = await supabase
         .from('billboards')
         .update({
-          min_campaign_days: parseInt(minCampaignDays) || 30,
+          min_campaign_days: parseInt(minCampaignDays) || 0,
           min_advance_booking_days: parseInt(minAdvanceBookingDays) || 7,
         })
         .eq('id', billboard.id);
@@ -785,6 +785,7 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
         <CardTitle className="text-white text-lg flex items-center gap-2">
           <Clock className="w-4 h-4 text-[#9BFF43]" />
           Requisitos de reserva
+          <span className="text-xs font-normal text-white/40 ml-auto">(opcional)</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -796,11 +797,11 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
               value={minCampaignDays}
               onChange={(e) => handleMinCampaignChange(e.target.value)}
               className="w-20 h-9 text-center bg-[#2A2A2A] border-white/10 text-white"
-              min="1"
+              min="0"
             />
             <span className="text-white/50 text-sm">días</span>
           </div>
-          <p className="text-white/40 text-xs mt-1">Mínimo días de campaña</p>
+          <p className="text-white/40 text-xs mt-1">0 = sin mínimo</p>
         </div>
         
         <div>
@@ -811,11 +812,11 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
               value={minAdvanceBookingDays}
               onChange={(e) => handleMinAdvanceChange(e.target.value)}
               className="w-20 h-9 text-center bg-[#2A2A2A] border-white/10 text-white"
-              min="1"
+              min="0"
             />
             <span className="text-white/50 text-sm">días antes</span>
           </div>
-          <p className="text-white/40 text-xs mt-1">Tiempo para aprobar e instalar</p>
+          <p className="text-white/40 text-xs mt-1">Tiempo para aprobar e instalar (recomendado: 7)</p>
         </div>
         
         <Button 

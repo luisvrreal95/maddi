@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
-import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon, Upload, X, Loader2, Image as ImageIcon, Plus } from 'lucide-react';
+import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon, Upload, X, Loader2, Image as ImageIcon, Plus, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import mapboxgl from 'mapbox-gl';
@@ -119,8 +119,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [availability, setAvailability] = useState<'immediate' | 'scheduled'>('immediate');
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>(undefined);
   
-  // Booking constraints
-  const [minCampaignDays, setMinCampaignDays] = useState('30');
+  // Booking constraints - default: 0 days min campaign, 7 days advance (optional)
+  const [minCampaignDays, setMinCampaignDays] = useState('0');
   const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState('7');
 
   // Fetch Mapbox token
@@ -164,9 +164,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       // Load existing POIs
       const existingPois = (billboard as any).points_of_interest || [];
       setPointsOfInterest(existingPois);
-      // Load booking constraints
-      setMinCampaignDays(((billboard as any).min_campaign_days || 30).toString());
-      setMinAdvanceBookingDays(((billboard as any).min_advance_booking_days || 7).toString());
+      // Load booking constraints (default: 0 min campaign, 7 advance)
+      setMinCampaignDays(((billboard as any).min_campaign_days ?? 0).toString());
+      setMinAdvanceBookingDays(((billboard as any).min_advance_booking_days ?? 7).toString());
     } else {
       resetForm();
     }
@@ -365,7 +365,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setAvailableFrom(undefined);
     setImageUrls([]);
     setAddressSuggestions([]);
-    setMinCampaignDays('30');
+    setMinCampaignDays('0');
     setMinAdvanceBookingDays('7');
   };
 
@@ -523,7 +523,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         image_url: imageUrls[0] || null,
         image_urls: imageUrls.length > 0 ? imageUrls : null,
         points_of_interest: pointsOfInterest,
-        min_campaign_days: parseInt(minCampaignDays) || 30,
+        min_campaign_days: parseInt(minCampaignDays) || 0,
         min_advance_booking_days: parseInt(minAdvanceBookingDays) || 7,
       };
 
@@ -861,98 +861,26 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   </div>
                 </div>
 
-                {/* Puntos de Interés */}
+                {/* Puntos de Interés - Automated Section */}
                 <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-[#9BFF43]" />
-                      <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
-                    </div>
-                    {isLoadingPOIs && (
-                      <div className="flex items-center gap-2 text-white/50 text-xs">
-                        <Loader2 className="w-3 h-3 animate-spin" />
-                        <span>Detectando...</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <MapPin className="w-4 h-4 text-[#9BFF43]" />
+                    <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
+                  </div>
+                  <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-[#9BFF43]" />
                       </div>
-                    )}
-                  </div>
-                  {detectedPOIs.length > 0 && (
-                    <p className="text-xs text-[#9BFF43] mb-2">
-                      ✓ Se detectaron {detectedPOIs.length} tipos de lugares cercanos automáticamente
+                      <div>
+                        <p className="text-white font-medium">Cálculo automático</p>
+                        <p className="text-white/60 text-sm">Los puntos de interés se calcularán automáticamente</p>
+                      </div>
+                    </div>
+                    <p className="text-white/50 text-xs mt-3">
+                      Cuando publiques tu espectacular, analizaremos la ubicación para detectar comercios, escuelas, restaurantes y otros lugares de interés cercanos.
                     </p>
-                  )}
-                  <div className="grid grid-cols-2 gap-2">
-                    {POINTS_OF_INTEREST.map((point) => {
-                      const isDetected = detectedPOIs.includes(point);
-                      return (
-                        <div key={point} className={`flex items-center gap-2 p-2 rounded-lg ${isDetected ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30' : ''}`}>
-                          <Checkbox
-                            id={point}
-                            checked={pointsOfInterest.includes(point)}
-                            onCheckedChange={(checked) => 
-                              handlePointOfInterestChange(point, checked as boolean)
-                            }
-                            className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
-                          />
-                          <label htmlFor={point} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
-                            {point}
-                            {isDetected && <span className="text-[#9BFF43] text-xs">(detectado)</span>}
-                          </label>
-                        </div>
-                      );
-                    })}
-                    {/* POIs personalizados agregados por el usuario */}
-                    {pointsOfInterest
-                      .filter(poi => !POINTS_OF_INTEREST.includes(poi))
-                      .map((customPoi) => (
-                        <div key={customPoi} className="flex items-center gap-2 p-2 rounded-lg bg-[#9BFF43]/10 border border-[#9BFF43]/30">
-                          <Checkbox
-                            id={customPoi}
-                            checked={true}
-                            onCheckedChange={() => handlePointOfInterestChange(customPoi, false)}
-                            className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
-                          />
-                          <label htmlFor={customPoi} className="text-sm cursor-pointer text-white/80 flex items-center gap-1">
-                            {customPoi}
-                            <span className="text-[#9BFF43] text-xs">(personalizado)</span>
-                          </label>
-                        </div>
-                      ))}
                   </div>
-                  {/* Agregar POI personalizado */}
-                  <div className="flex gap-2 mt-3">
-                    <Input
-                      value={customPOI}
-                      onChange={(e) => setCustomPOI(e.target.value)}
-                      placeholder="Agregar otro punto de interés..."
-                      className="flex-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40 text-sm"
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && customPOI.trim()) {
-                          e.preventDefault();
-                          if (!pointsOfInterest.includes(customPOI.trim())) {
-                            setPointsOfInterest(prev => [...prev, customPOI.trim()]);
-                          }
-                          setCustomPOI('');
-                        }
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (customPOI.trim() && !pointsOfInterest.includes(customPOI.trim())) {
-                          setPointsOfInterest(prev => [...prev, customPOI.trim()]);
-                          setCustomPOI('');
-                        }
-                      }}
-                      className="bg-transparent border-[#9BFF43]/50 text-[#9BFF43] hover:bg-[#9BFF43]/10"
-                    >
-                      Agregar
-                    </Button>
-                  </div>
-                  <p className="text-xs text-white/40 mt-2">
-                    Los puntos de interés cercanos se detectan automáticamente. Puedes agregar más manualmente.
-                  </p>
                 </div>
 
                 {/* Tipo & Tamaño */}
