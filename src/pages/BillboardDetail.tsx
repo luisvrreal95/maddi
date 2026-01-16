@@ -3,19 +3,16 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MapPin, Maximize2, Sun, Calendar } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, ChevronDown, ChevronUp, BarChart3, Users, Building2, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingDialog from '@/components/booking/BookingDialog';
 import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
-import ZoneIndicator from '@/components/billboard/ZoneIndicator';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSection';
-import LocationMetrics from '@/components/billboard/LocationMetrics';
-import NearbyPlaces from '@/components/billboard/NearbyPlaces';
 import POIOverview from '@/components/billboard/POIOverview';
-import { INEGIInsights } from '@/components/billboard/INEGIInsights';
-import { TrafficAnalyticsPublic } from '@/components/billboard/TrafficAnalyticsPublic';
 import ShareDialog from '@/components/share/ShareDialog';
 import OwnerSection from '@/components/billboard/OwnerSection';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
@@ -50,11 +47,6 @@ interface INEGIData {
   socioeconomic_level: string | null;
   dominant_sector: string | null;
   commercial_environment: string | null;
-  raw_denue_data?: {
-    known_brands?: string[];
-    shopping_centers?: string[];
-    top_businesses?: Array<{ name: string; category: string; size?: string }>;
-  };
 }
 
 const BillboardDetail: React.FC = () => {
@@ -66,6 +58,7 @@ const BillboardDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingInegi, setIsLoadingInegi] = useState(true);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
+  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
   const [mapboxToken, setMapboxToken] = useState('');
 
   useEffect(() => {
@@ -90,24 +83,12 @@ const BillboardDetail: React.FC = () => {
         // Fetch INEGI data
         const { data: inegi } = await supabase
           .from('inegi_demographics')
-          .select('nearby_businesses_count, socioeconomic_level, dominant_sector, commercial_environment, raw_denue_data')
+          .select('nearby_businesses_count, socioeconomic_level, dominant_sector, commercial_environment')
           .eq('billboard_id', id)
           .maybeSingle();
 
         if (inegi) {
           setInegiData(inegi as INEGIData);
-        } else {
-          // Trigger analysis if no cached data
-          const { data: result } = await supabase.functions.invoke('analyze-inegi-data', {
-            body: {
-              billboard_id: id,
-              latitude: data.latitude,
-              longitude: data.longitude,
-            },
-          });
-          if (result?.data) {
-            setInegiData(result.data as INEGIData);
-          }
         }
         setIsLoadingInegi(false);
       } catch (error) {
@@ -155,19 +136,21 @@ const BillboardDetail: React.FC = () => {
     setShowBookingDialog(true);
   };
 
-  // Extract enriched data from raw_denue_data
-  const knownBrands = inegiData?.raw_denue_data?.known_brands || [];
-  const shoppingCenters = inegiData?.raw_denue_data?.shopping_centers || [];
-  const topBusinesses = inegiData?.raw_denue_data?.top_businesses || [];
+  // Format daily impressions
+  const formatImpressions = (impressions: number | null) => {
+    if (!impressions) return 'Calculando...';
+    if (impressions >= 1000) return `${(impressions / 1000).toFixed(0)}K`;
+    return impressions.toString();
+  };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Link to="/search" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors w-fit">
             <ArrowLeft className="w-5 h-5" />
-            <span>Volver a búsqueda</span>
+            <span className="hidden sm:inline">Volver a búsqueda</span>
           </Link>
           <ShareDialog
             title={billboard.title}
@@ -178,19 +161,19 @@ const BillboardDetail: React.FC = () => {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-6">
+      <main className="max-w-6xl mx-auto p-4 md:p-6">
         {/* Hero Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           {/* Image */}
           <div className="lg:col-span-2 space-y-3">
             {billboard.image_url ? (
               <img
                 src={billboard.image_url}
                 alt={billboard.title}
-                className="w-full h-80 lg:h-96 object-cover rounded-2xl"
+                className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-2xl"
               />
             ) : (
-              <div className="w-full h-80 lg:h-96 bg-secondary rounded-2xl flex items-center justify-center">
+              <div className="w-full h-64 md:h-80 lg:h-96 bg-secondary rounded-2xl flex items-center justify-center">
                 <MapPin className="w-24 h-24 text-muted-foreground" />
               </div>
             )}
@@ -207,27 +190,23 @@ const BillboardDetail: React.FC = () => {
 
           {/* Sidebar - Price & CTA */}
           <div className="space-y-4">
-            <div className="bg-card border border-border rounded-2xl p-6">
+            <Card className="bg-card border-border p-6">
               <div className="flex items-center justify-between mb-4">
                 <h1 className="text-foreground text-xl font-bold line-clamp-2">{billboard.title}</h1>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
-                  billboard.is_available 
-                    ? 'bg-primary/20 text-primary' 
-                    : 'bg-destructive/20 text-destructive'
-                }`}>
+                <Badge variant={billboard.is_available ? 'default' : 'destructive'} className="flex-shrink-0">
                   {billboard.is_available ? 'Disponible' : 'Ocupado'}
-                </span>
+                </Badge>
               </div>
               
               <p className="text-muted-foreground text-sm flex items-center gap-2 mb-4">
                 <MapPin className="w-4 h-4 flex-shrink-0" />
-                {billboard.address}, {billboard.city}
+                {billboard.city}, {billboard.state}
               </p>
 
               <div className="border-t border-border pt-4 mb-4">
                 <p className="text-muted-foreground text-sm mb-1">Precio mensual</p>
                 <p className="text-primary text-3xl font-bold">
-                  ${billboard.price_per_month.toLocaleString()} <span className="text-base">MXN</span>
+                  ${billboard.price_per_month.toLocaleString()} <span className="text-base font-normal">MXN</span>
                 </p>
               </div>
               
@@ -239,19 +218,16 @@ const BillboardDetail: React.FC = () => {
                   Solicitar Reserva
                 </Button>
               ) : (
-                <Button
-                  disabled
-                  className="w-full bg-muted text-muted-foreground py-5 text-base"
-                >
+                <Button disabled className="w-full py-5 text-base">
                   No Disponible
                 </Button>
               )}
 
-              {/* Quick Stats */}
+              {/* Quick Stats Grid */}
               <div className="grid grid-cols-2 gap-3 mt-4">
                 <div className="bg-secondary rounded-lg p-3 text-center">
                   <Maximize2 className="w-4 h-4 text-primary mx-auto mb-1" />
-                  <p className="text-foreground text-sm font-bold">{billboard.width_m}m x {billboard.height_m}m</p>
+                  <p className="text-foreground text-sm font-bold">{billboard.width_m}m × {billboard.height_m}m</p>
                   <p className="text-muted-foreground text-xs">Dimensiones</p>
                 </div>
                 <div className="bg-secondary rounded-lg p-3 text-center">
@@ -260,97 +236,151 @@ const BillboardDetail: React.FC = () => {
                   <p className="text-muted-foreground text-xs">Iluminación</p>
                 </div>
               </div>
-
-              {/* Additional Info */}
-              <div className="text-muted-foreground text-xs space-y-1 mt-4 pt-4 border-t border-border">
-                <p>• {billboard.faces} cara{billboard.faces > 1 ? 's' : ''} · {billboard.billboard_type}</p>
-                <p>• Reserva mínima: 1 mes</p>
-                <p>• Instalación incluida</p>
-              </div>
-            </div>
+            </Card>
           </div>
         </div>
 
+        {/* Quick Summary Card - New consolidated section */}
+        <Card className="bg-card border-border p-6 mb-6">
+          <h2 className="text-foreground font-semibold mb-4 flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-primary" />
+            Resumen de ubicación
+          </h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+            {/* Daily Impressions */}
+            <div className="bg-secondary/50 rounded-xl p-4 text-center">
+              <Users className="w-6 h-6 text-primary mx-auto mb-2" />
+              <p className="text-2xl font-bold text-foreground">{formatImpressions(billboard.daily_impressions)}</p>
+              <p className="text-xs text-muted-foreground">Impresiones/día</p>
+            </div>
+            
+            {/* Nearby Businesses */}
+            <div className="bg-secondary/50 rounded-xl p-4 text-center">
+              <Building2 className="w-6 h-6 text-primary mx-auto mb-2" />
+              <p className="text-2xl font-bold text-foreground">
+                {isLoadingInegi ? '...' : (inegiData?.nearby_businesses_count || 'N/A')}
+              </p>
+              <p className="text-xs text-muted-foreground">Negocios cercanos</p>
+            </div>
+            
+            {/* Socioeconomic Level */}
+            <div className="bg-secondary/50 rounded-xl p-4 text-center">
+              <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
+              <p className="text-lg font-bold text-foreground capitalize">
+                {isLoadingInegi ? '...' : (inegiData?.socioeconomic_level || 'N/A')}
+              </p>
+              <p className="text-xs text-muted-foreground">Nivel socioeconómico</p>
+            </div>
+            
+            {/* Billboard Type */}
+            <div className="bg-secondary/50 rounded-xl p-4 text-center">
+              <MapPin className="w-6 h-6 text-primary mx-auto mb-2" />
+              <p className="text-lg font-bold text-foreground capitalize">{billboard.billboard_type}</p>
+              <p className="text-xs text-muted-foreground">{billboard.faces} cara{billboard.faces > 1 ? 's' : ''}</p>
+            </div>
+          </div>
+
+          {/* Dominant Sector & Commercial Environment */}
+          {!isLoadingInegi && (inegiData?.dominant_sector || inegiData?.commercial_environment) && (
+            <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
+              {inegiData?.dominant_sector && (
+                <Badge variant="outline" className="text-xs">
+                  Sector: {inegiData.dominant_sector}
+                </Badge>
+              )}
+              {inegiData?.commercial_environment && (
+                <Badge variant="outline" className="text-xs">
+                  Entorno: {inegiData.commercial_environment}
+                </Badge>
+              )}
+            </div>
+          )}
+        </Card>
+
         {/* Mini Map */}
         {mapboxToken && (
-          <div className="mb-8 rounded-xl overflow-hidden h-48">
+          <div className="mb-6 rounded-xl overflow-hidden h-40">
             <img
-              src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9BFF43(${billboard.longitude},${billboard.latitude})/${billboard.longitude},${billboard.latitude},14,0/1200x200@2x?access_token=${mapboxToken}`}
+              src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9BFF43(${billboard.longitude},${billboard.latitude})/${billboard.longitude},${billboard.latitude},14,0/1200x160@2x?access_token=${mapboxToken}`}
               alt="Ubicación"
               className="w-full h-full object-cover"
             />
           </div>
         )}
 
-        {/* Location Metrics */}
-        <div className="mb-8">
-          <LocationMetrics
-            dailyImpressions={billboard.daily_impressions}
-            nearbyBusinessesCount={inegiData?.nearby_businesses_count}
-            socioeconomicLevel={inegiData?.socioeconomic_level}
-            dominantSector={inegiData?.dominant_sector}
-            commercialEnvironment={inegiData?.commercial_environment}
-            isLoadingInegi={isLoadingInegi}
-          />
-        </div>
-
-        {/* INEGI Insights - Commercial Categories */}
-        <div className="mb-8">
-          <INEGIInsights billboard={{ id: billboard.id, latitude: billboard.latitude, longitude: billboard.longitude }} />
-        </div>
-
-        {/* Traffic Analytics */}
-        <div className="mb-8">
-          <TrafficAnalyticsPublic 
-            billboardId={billboard.id} 
-            dailyImpressions={billboard.daily_impressions}
-            city={billboard.city}
-          />
-        </div>
-
-        {/* Nearby Places - POI Overview with Cache */}
-        <div className="mb-8">
+        {/* POI Overview - Cached, compact */}
+        <div className="mb-6">
           <POIOverview 
             billboardId={billboard.id} 
             latitude={billboard.latitude} 
             longitude={billboard.longitude} 
           />
         </div>
-        
-        {/* Detailed POI & DENUE analysis (expandable) */}
-        <div className="mb-8">
-          <NearbyPlaces billboard={billboard} />
-        </div>
 
-        {/* Zone Indicator */}
-        {billboard.points_of_interest && billboard.points_of_interest.length > 0 && (
-          <div className="bg-card border border-border rounded-xl p-4 mb-8">
-            <h3 className="text-foreground font-semibold mb-3">Tipo de Zona</h3>
-            <ZoneIndicator pointsOfInterest={billboard.points_of_interest} />
-          </div>
-        )}
+        {/* Expandable Full Analysis Section */}
+        <Card className="bg-card border-border mb-6">
+          <button 
+            onClick={() => setShowFullAnalysis(!showFullAnalysis)}
+            className="w-full p-4 flex items-center justify-between hover:bg-secondary/30 transition-colors rounded-xl"
+          >
+            <div className="flex items-center gap-3">
+              <BarChart3 className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-foreground">Ver análisis completo</span>
+            </div>
+            {showFullAnalysis ? (
+              <ChevronUp className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-muted-foreground" />
+            )}
+          </button>
+          
+          {showFullAnalysis && (
+            <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
+              {/* Availability Calendar */}
+              <div>
+                <h3 className="text-foreground font-semibold mb-3 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" />
+                  Disponibilidad
+                </h3>
+                <AvailabilityCalendar billboardId={billboard.id} />
+              </div>
 
-        {/* Availability Calendar */}
-        <div className="mb-8">
-          <h3 className="text-foreground font-semibold mb-4 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-primary" />
-            Disponibilidad
-          </h3>
-          <AvailabilityCalendar billboardId={billboard.id} />
-        </div>
+              {/* Description */}
+              {billboard.description && (
+                <div className="pt-4 border-t border-border">
+                  <h3 className="text-foreground font-semibold mb-2">Descripción</h3>
+                  <p className="text-muted-foreground text-sm">{billboard.description}</p>
+                </div>
+              )}
+
+              {/* Full Address */}
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-foreground font-semibold mb-2">Dirección completa</h3>
+                <p className="text-muted-foreground text-sm">{billboard.address}</p>
+                <p className="text-muted-foreground text-xs mt-1">
+                  Coordenadas: {billboard.latitude.toFixed(6)}, {billboard.longitude.toFixed(6)}
+                </p>
+              </div>
+
+              {/* Booking Terms */}
+              <div className="pt-4 border-t border-border">
+                <h3 className="text-foreground font-semibold mb-2">Términos de reserva</h3>
+                <ul className="text-muted-foreground text-sm space-y-1">
+                  <li>• {billboard.faces} cara{billboard.faces > 1 ? 's' : ''} · {billboard.billboard_type}</li>
+                  <li>• Reserva mínima: 1 mes</li>
+                  <li>• Instalación incluida</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </Card>
 
         {/* Owner Section */}
         <OwnerSection ownerId={billboard.owner_id} />
 
-        {billboard.description && (
-          <div className="bg-card border border-border rounded-xl p-6 mb-8">
-            <h3 className="text-foreground font-semibold mb-2">Descripción</h3>
-            <p className="text-muted-foreground">{billboard.description}</p>
-          </div>
-        )}
-
         {/* Reviews Section */}
-        <div className="mt-8">
+        <div className="mt-6">
           <BillboardReviewsSection billboardId={billboard.id} />
         </div>
       </main>

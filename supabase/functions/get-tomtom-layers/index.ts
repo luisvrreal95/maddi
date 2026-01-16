@@ -1,18 +1,37 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://maddi.lovable.app',
+  'https://id-preview--1e558385-54d9-4439-8b22-6503a152ac9e.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
+function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o.replace('https://', '').replace('http://', '')) || o === origin) 
+    ? origin 
+    : ALLOWED_ORIGINS[0];
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+}
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { latitude, longitude, layer, radius = 1000 } = await req.json();
+    // Read body ONCE at the start - FIX for double req.json() bug
+    const body = await req.json();
+    const { latitude, longitude, layer, radius = 1000, categories } = body;
 
     if (!latitude || !longitude) {
       return new Response(
@@ -41,8 +60,9 @@ serve(async (req) => {
         data = await getTrafficIncidents(latitude, longitude, radius, TOMTOM_API_KEY);
         break;
       case 'pois':
-        const { categories } = await req.json().catch(() => ({ categories: ['restaurants', 'shopping', 'gasStations', 'entertainment'] }));
-        data = await getPOIs(latitude, longitude, radius, categories, TOMTOM_API_KEY);
+        // Use categories from the already-parsed body, with defaults
+        const poiCategories = categories || ['restaurants', 'shopping', 'gasStations', 'entertainment'];
+        data = await getPOIs(latitude, longitude, radius, poiCategories, TOMTOM_API_KEY);
         break;
       case 'flow':
         data = await getFlowSegment(latitude, longitude, TOMTOM_API_KEY);

@@ -23,3 +23,24 @@ verify_jwt = false
 
 [functions.get-poi-overview]
 verify_jwt = false
+
+[functions.search-poi]
+verify_jwt = false
+
+[functions.get-tomtom-tile-url]
+verify_jwt = false
+
+[functions.send-admin-invite]
+verify_jwt = false
+
+[functions.validate-admin-invite]
+verify_jwt = false
+
+[functions.accept-admin-invite]
+verify_jwt = false
+
+[functions.send-verification-email]
+verify_jwt = false
+
+[functions.delete-user-account]
+verify_jwt = false
