@@ -104,6 +104,7 @@ interface SearchMapProps {
   compareIds: string[];
   onToggleCompare: (id: string) => void;
   isCompareMode: boolean;
+  hidePopup?: boolean; // For mobile - hide popup and just trigger selection
 }
 
 // Cache for TomTom tile URLs fetched from edge function
@@ -131,6 +132,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   compareIds,
   onToggleCompare,
   isCompareMode,
+  hidePopup = false,
 }, ref) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -347,10 +349,13 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         onPropertySelect(property.id);
-        setPopupProperty(property);
-        setPopupCoords([property.lng, property.lat]);
-        // Fetch INEGI data for this property
-        fetchINEGIData(property.id, property.lat, property.lng);
+        // Only show popup if not hidden (not mobile)
+        if (!hidePopup) {
+          setPopupProperty(property);
+          setPopupCoords([property.lng, property.lat]);
+          // Fetch INEGI data for this property
+          fetchINEGIData(property.id, property.lat, property.lng);
+        }
       });
 
       const marker = new mapboxgl.Marker({ element: el })

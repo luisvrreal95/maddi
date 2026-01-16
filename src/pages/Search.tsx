@@ -495,6 +495,7 @@ const SearchPage: React.FC = () => {
         compareIds={compareIds}
         onToggleCompare={handleToggleCompare}
         isCompareMode={isCompareMode}
+        hidePopup={true} // Hide popup on mobile, details shown in bottom sheet instead
       />
     );
   }, [isLoadingToken, mapboxToken, properties, selectedPropertyId, confirmedLocation, selectedLocationData, mapLayers, poiCategories, trafficHour, compareIds, isCompareMode]);

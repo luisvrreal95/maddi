@@ -118,11 +118,15 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
   const handleDateMouseDown = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
     if (hasBooking || isBlocked) return;
+    
+    // If we already have a range start set (click-to-click mode), don't start drag
+    // The click handler will complete the range
+    if (rangeStart) return;
+    
     // Start drag selection
     setIsDragging(true);
     setDragStart(date);
     setSelectedDates([date]);
-    setRangeStart(null); // Reset click range when starting drag
   };
 
   const handleDateMouseEnter = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
@@ -142,24 +146,40 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   };
 
   const handleDateMouseUp = () => {
-    setIsDragging(false);
+    // Only end dragging if we were actually dragging
+    if (isDragging && dragStart) {
+      setIsDragging(false);
+      // If only one date was selected via drag, start click-to-click mode
+      if (selectedDates.length === 1) {
+        setRangeStart(selectedDates[0]);
+      }
+    }
+    setDragStart(null);
   };
 
   // Add global mouse up listener to handle drag end
   useEffect(() => {
     const handleGlobalMouseUp = () => {
-      setIsDragging(false);
+      if (isDragging) {
+        setIsDragging(false);
+        setDragStart(null);
+      }
     };
     window.addEventListener('mouseup', handleGlobalMouseUp);
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
-  }, []);
+  }, [isDragging]);
 
   // Handle click-to-click date range selection (for blocking dates, etc.)
   const handleDateClick = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
     if (hasBooking || isBlocked) return;
     
+    // If we were dragging and moved to multiple dates, skip click handling
+    if (selectedDates.length > 1 && !rangeStart) {
+      return;
+    }
+    
     if (!rangeStart) {
-      // First click - set start of range
+      // First click - set start of range for click-to-click
       setRangeStart(date);
       setSelectedDates([date]);
     } else {
@@ -174,7 +194,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
         current = addDays(current, 1);
       }
       setSelectedDates(datesInRange);
-      setRangeStart(null); // Reset for next selection
+      setRangeStart(null); // Reset for next selection - range complete
     }
   };
 

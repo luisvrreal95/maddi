@@ -756,7 +756,10 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
               {/* Multi-Image Upload */}
               <div>
-                <Label className="text-sm text-white/80 mb-1 block">Fotos del espectacular (máx. 6)</Label>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-sm text-white/80">Fotos del espectacular (máx. 6)</Label>
+                  <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">Opcional</span>
+                </div>
                 <p className="text-xs text-white/50 mb-2">
                   Las fotos ayudan a que los anunciantes evalúen mejor tu espacio y te contacten más rápido.
                 </p>
@@ -804,9 +807,20 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                     </div>
                   )}
                 </div>
-                <p className="text-white/40 text-xs mt-2">
-                  {imageUrls.length}/6 imágenes · La primera será la principal · JPG, PNG, WebP (máx 5MB c/u)
-                </p>
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-white/40 text-xs">
+                    {imageUrls.length}/6 imágenes · JPG, PNG, WebP (máx 5MB c/u)
+                  </p>
+                  {imageUrls.length === 0 && (
+                    <button
+                      type="button"
+                      onClick={handleContinue}
+                      className="text-xs text-[#9BFF43] hover:text-[#8AE63A] transition-colors"
+                    >
+                      Omitir por ahora →
+                    </button>
+                  )}
+                </div>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -1038,14 +1052,15 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   </div>
                 </div>
                 
-                {/* Booking Constraints */}
+                {/* Booking Constraints - Optional */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <Clock className="w-4 h-4 text-[#9BFF43]" />
                     <Label className="text-sm font-medium text-white">Requisitos de reserva</Label>
+                    <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">Opcional</span>
                   </div>
                   <p className="text-xs text-white/50 mb-3">
-                    Define las condiciones mínimas para que un anunciante pueda reservar tu espectacular.
+                    Puedes personalizar las condiciones de reserva o usar los valores predeterminados.
                   </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -1056,11 +1071,12 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                           value={minCampaignDays}
                           onChange={(e) => setMinCampaignDays(e.target.value)}
                           className="bg-[#2A2A2A] border-white/10 text-white"
-                          min="1"
+                          placeholder="0"
+                          min="0"
                         />
                         <span className="text-white/50 text-sm">días</span>
                       </div>
-                      <p className="text-xs text-white/40 mt-1">Mínimo de días que durará cada campaña</p>
+                      <p className="text-xs text-white/40 mt-1">Por defecto: sin mínimo (0 días)</p>
                     </div>
                     <div>
                       <Label className="text-xs text-white/60 mb-1 block">Tiempo de anticipación</Label>
@@ -1070,16 +1086,17 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                           value={minAdvanceBookingDays}
                           onChange={(e) => setMinAdvanceBookingDays(e.target.value)}
                           className="bg-[#2A2A2A] border-white/10 text-white"
-                          min="1"
+                          placeholder="7"
+                          min="0"
                         />
                         <span className="text-white/50 text-sm">días</span>
                       </div>
-                      <p className="text-xs text-white/40 mt-1">Días antes que deben reservar</p>
+                      <p className="text-xs text-white/40 mt-1">Por defecto: 7 días de anticipación</p>
                     </div>
                   </div>
                   <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 mt-3">
                     <p className="text-xs text-blue-300">
-                      💡 Estos tiempos te dan espacio para revisar la solicitud, aprobarla, coordinar la impresión del diseño e instalar el anuncio.
+                      💡 Puedes dejar estos campos vacíos para usar los valores predeterminados. Esto te da tiempo para revisar la solicitud, aprobarla y coordinar la instalación.
                     </p>
                   </div>
                 </div>
