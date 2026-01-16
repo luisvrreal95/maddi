@@ -12,7 +12,7 @@ import FavoriteButton from '@/components/favorites/FavoriteButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSection';
 import LocationMetrics from '@/components/billboard/LocationMetrics';
-import NearbyBrands from '@/components/billboard/NearbyBrands';
+import NearbyPlaces from '@/components/billboard/NearbyPlaces';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import { TrafficAnalyticsPublic } from '@/components/billboard/TrafficAnalyticsPublic';
 import ShareDialog from '@/components/share/ShareDialog';
@@ -307,17 +307,10 @@ const BillboardDetail: React.FC = () => {
           />
         </div>
 
-        {/* Nearby Brands */}
-        {(knownBrands.length > 0 || shoppingCenters.length > 0 || topBusinesses.length > 0) && (
-          <div className="mb-8">
-            <NearbyBrands
-              knownBrands={knownBrands}
-              shoppingCenters={shoppingCenters}
-              topBusinesses={topBusinesses}
-              totalBusinesses={inegiData?.nearby_businesses_count || 0}
-            />
-          </div>
-        )}
+        {/* Nearby Places - POI & DENUE combined */}
+        <div className="mb-8">
+          <NearbyPlaces billboard={billboard} />
+        </div>
 
         {/* Zone Indicator */}
         {billboard.points_of_interest && billboard.points_of_interest.length > 0 && (
