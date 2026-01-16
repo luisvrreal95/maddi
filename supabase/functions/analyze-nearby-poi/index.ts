@@ -90,8 +90,7 @@ const POI_CATEGORIES = [
   { id: '7365', name: 'Embajadas' },
 ];
 
-async function searchPOIs(lat: number, lon: number, categoryId: string, apiKey: string) {
-  const radius = 500; // 500 meters
+async function searchPOIs(lat: number, lon: number, categoryId: string, apiKey: string, radius: number = 500) {
   const limit = 100;
   
   const url = `https://api.tomtom.com/search/2/categorySearch/${categoryId}.json?lat=${lat}&lon=${lon}&radius=${radius}&limit=${limit}&key=${apiKey}`;
@@ -190,7 +189,7 @@ serve(async (req) => {
   }
 
   try {
-    const { latitude, longitude, billboard_title, city } = await req.json();
+    const { latitude, longitude, billboard_title, city, radius = 500 } = await req.json();
 
     if (!latitude || !longitude) {
       return new Response(
@@ -208,7 +207,9 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Analyzing POIs for billboard at ${latitude}, ${longitude}`);
+    // Clamp radius between 100 and 5000 meters
+    const searchRadius = Math.max(100, Math.min(5000, parseInt(radius) || 500));
+    console.log(`Analyzing POIs for billboard at ${latitude}, ${longitude} with radius ${searchRadius}m`);
 
     // Fetch POIs for all categories in parallel (batch of 10 to avoid rate limits)
     const allPOIs: Record<string, any[]> = {};
@@ -217,7 +218,7 @@ serve(async (req) => {
     for (let i = 0; i < POI_CATEGORIES.length; i += batchSize) {
       const batch = POI_CATEGORIES.slice(i, i + batchSize);
       const batchResults = await Promise.all(
-        batch.map(cat => searchPOIs(latitude, longitude, cat.id, TOMTOM_API_KEY))
+        batch.map(cat => searchPOIs(latitude, longitude, cat.id, TOMTOM_API_KEY, searchRadius))
       );
       
       batch.forEach((cat, idx) => {
