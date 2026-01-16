@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash2, Eye, Clock, CheckCircle2, Maximize, MapPin } from 'lucide-react';
+import { Pencil, Trash2, Eye, Clock, CheckCircle2, Maximize, MapPin, Loader2 } from 'lucide-react';
 import { Billboard } from '@/hooks/useBillboards';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -14,18 +14,63 @@ interface TrafficData {
   recorded_at: string;
 }
 
+interface POICategory {
+  name: string;
+  count: number;
+}
+
 const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit, onDelete }) => {
   const [impressionChange, setImpressionChange] = useState<number | null>(null);
   const [isLoadingTraffic, setIsLoadingTraffic] = useState(false);
+  const [nearbyPOIs, setNearbyPOIs] = useState<POICategory[]>([]);
+  const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
 
-  // Get POIs from billboard data or use empty array
-  const pois = (billboard as any).points_of_interest || [];
-  const poisDisplay = pois.length > 0 ? pois.join(', ') : 'Sin POIs detectados';
+  // Create display for POIs - either from fetched data or stored points_of_interest
+  const storedPois = (billboard as any).points_of_interest || [];
+  const poisDisplay = nearbyPOIs.length > 0 
+    ? nearbyPOIs.slice(0, 3).map(p => `${p.name} (${p.count})`).join(', ')
+    : storedPois.length > 0 
+      ? storedPois.slice(0, 3).join(', ')
+      : 'Analizando...';
   
   const dailyViews = billboard.daily_impressions || 0;
   const peakHours = '8am-12pm';
   const status = billboard.is_available ? 'Disponible' : 'Ocupado';
   const size = `${billboard.width_m}m x ${billboard.height_m}m`;
+
+  // Fetch nearby POIs from the analyze-nearby-poi function
+  useEffect(() => {
+    const fetchNearbyPOIs = async () => {
+      if (!billboard.latitude || !billboard.longitude) return;
+      
+      setIsLoadingPOIs(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('analyze-nearby-poi', {
+          body: { 
+            latitude: billboard.latitude, 
+            longitude: billboard.longitude,
+            billboard_title: billboard.title,
+            city: billboard.city
+          }
+        });
+        
+        if (!error && data?.success && data?.categories) {
+          // Get top categories with counts
+          const topCategories = data.categories
+            .filter((cat: any) => cat.count > 0)
+            .slice(0, 4)
+            .map((cat: any) => ({ name: cat.name, count: cat.count }));
+          setNearbyPOIs(topCategories);
+        }
+      } catch (err) {
+        console.error('Error fetching POIs:', err);
+      } finally {
+        setIsLoadingPOIs(false);
+      }
+    };
+
+    fetchNearbyPOIs();
+  }, [billboard.id, billboard.latitude, billboard.longitude]);
 
   // Fetch traffic data to calculate impression change
   useEffect(() => {
@@ -126,9 +171,16 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
         {/* Puntos de Interés */}
         <div className="flex items-start gap-3">
           <MapPin className="w-5 h-5 text-[#9BFF43] mt-0.5" />
-          <div>
-            <p className="font-medium text-white text-sm">Puntos de Interés</p>
-            <p className="text-white/50 text-sm">{poisDisplay}</p>
+          <div className="flex-1">
+            <p className="font-medium text-white text-sm">Lugares cercanos</p>
+            {isLoadingPOIs ? (
+              <div className="flex items-center gap-2 text-white/50 text-sm">
+                <Loader2 className="w-3 h-3 animate-spin" />
+                <span>Analizando zona...</span>
+              </div>
+            ) : (
+              <p className="text-white/50 text-sm">{poisDisplay}</p>
+            )}
           </div>
         </div>
 
