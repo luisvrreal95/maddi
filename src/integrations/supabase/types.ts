@@ -619,6 +619,53 @@ export type Database = {
           },
         ]
       }
+      poi_overview_cache: {
+        Row: {
+          billboard_id: string
+          computed_at: string
+          created_at: string
+          data: Json
+          expires_at: string
+          id: string
+          lat: number
+          lng: number
+          radius: number
+          updated_at: string
+        }
+        Insert: {
+          billboard_id: string
+          computed_at?: string
+          created_at?: string
+          data?: Json
+          expires_at?: string
+          id?: string
+          lat: number
+          lng: number
+          radius?: number
+          updated_at?: string
+        }
+        Update: {
+          billboard_id?: string
+          computed_at?: string
+          created_at?: string
+          data?: Json
+          expires_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          radius?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poi_overview_cache_billboard_id_fkey"
+            columns: ["billboard_id"]
+            isOneToOne: true
+            referencedRelation: "billboards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_overrides: {
         Row: {
           billboard_id: string
