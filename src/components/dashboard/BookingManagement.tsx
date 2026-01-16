@@ -160,6 +160,40 @@ const BookingManagement: React.FC = () => {
 
       if (error) throw error;
 
+      // Find the booking to get details for email
+      const booking = bookings.find(b => b.id === bookingId);
+      
+      if (booking) {
+        // Send notification email to business
+        try {
+          // Get business profile email
+          const { data: businessAuth } = await supabase.auth.admin?.getUserById?.(booking.business_id) || {};
+          const businessEmail = businessAuth?.user?.email;
+          
+          if (businessEmail) {
+            const emailType = status === 'approved' ? 'booking_confirmed' : 'booking_rejected';
+            
+            await supabase.functions.invoke('send-notification-email', {
+              body: {
+                email: businessEmail,
+                type: emailType,
+                recipientName: booking.profile?.full_name || 'Usuario',
+                data: {
+                  billboardTitle: booking.billboard?.title || 'Espectacular',
+                  startDate: new Date(booking.start_date).toLocaleDateString('es-MX'),
+                  endDate: new Date(booking.end_date).toLocaleDateString('es-MX'),
+                  ownerName: user?.email?.split('@')[0] || 'Propietario',
+                  totalPrice: booking.total_price,
+                }
+              }
+            });
+          }
+        } catch (emailError) {
+          console.error('Error sending notification email:', emailError);
+          // Don't fail the main operation if email fails
+        }
+      }
+
       setBookings(prev =>
         prev.map(b => (b.id === bookingId ? { ...b, status } : b))
       );

@@ -96,9 +96,25 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
           }
         },
         (error) => {
-          console.log('Location access denied:', error);
+          console.log('Location access denied, using default Mexico City:', error);
+          // Default to Mexico City if location denied
+          if (!billboard) {
+            setLatitude(19.4326);
+            setLongitude(-99.1332);
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
+    } else {
+      // Geolocation not supported, default to Mexico City
+      if (!billboard) {
+        setLatitude(19.4326);
+        setLongitude(-99.1332);
+      }
     }
   }, [billboard]);
   
@@ -119,9 +135,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [availability, setAvailability] = useState<'immediate' | 'scheduled'>('immediate');
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>(undefined);
   
-  // Booking constraints - default: 0 days min campaign, 7 days advance (optional)
-  const [minCampaignDays, setMinCampaignDays] = useState('0');
-  const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState('7');
+  // Booking constraints - completely optional, empty by default
+  const [minCampaignDays, setMinCampaignDays] = useState('');
+  const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState('');
 
   // Fetch Mapbox token
   useEffect(() => {
@@ -164,9 +180,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       // Load existing POIs
       const existingPois = (billboard as any).points_of_interest || [];
       setPointsOfInterest(existingPois);
-      // Load booking constraints (default: 0 min campaign, 7 advance)
-      setMinCampaignDays(((billboard as any).min_campaign_days ?? 0).toString());
-      setMinAdvanceBookingDays(((billboard as any).min_advance_booking_days ?? 7).toString());
+      // Load booking constraints - leave empty if not set (will use defaults on save)
+      setMinCampaignDays((billboard as any).min_campaign_days ? ((billboard as any).min_campaign_days).toString() : '');
+      setMinAdvanceBookingDays((billboard as any).min_advance_booking_days ? ((billboard as any).min_advance_booking_days).toString() : '');
     } else {
       resetForm();
     }
@@ -353,8 +369,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setCity('');
     setState('');
     setAddress('');
-    setLatitude(32.6245);
-    setLongitude(-115.4523);
+    // Reset to user location or default Mexico City
+    if (userLocation) {
+      setLatitude(userLocation.lat);
+      setLongitude(userLocation.lng);
+    } else {
+      setLatitude(19.4326);
+      setLongitude(-99.1332);
+    }
     setPointsOfInterest([]);
     setCustomPOI('');
     setBillboardType('espectacular');
@@ -365,8 +387,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     setAvailableFrom(undefined);
     setImageUrls([]);
     setAddressSuggestions([]);
-    setMinCampaignDays('0');
-    setMinAdvanceBookingDays('7');
+    setMinCampaignDays('');
+    setMinAdvanceBookingDays('');
   };
 
   const fetchNearbyPOIs = async () => {
@@ -523,8 +545,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         image_url: imageUrls[0] || null,
         image_urls: imageUrls.length > 0 ? imageUrls : null,
         points_of_interest: pointsOfInterest,
-        min_campaign_days: parseInt(minCampaignDays) || 0,
-        min_advance_booking_days: parseInt(minAdvanceBookingDays) || 7,
+        min_campaign_days: minCampaignDays ? parseInt(minCampaignDays) : 0,
+        min_advance_booking_days: minAdvanceBookingDays ? parseInt(minAdvanceBookingDays) : 7,
       };
 
       let savedBillboardId: string | null = null;

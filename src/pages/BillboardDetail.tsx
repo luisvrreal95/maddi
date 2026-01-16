@@ -13,6 +13,7 @@ import StartChatButton from '@/components/chat/StartChatButton';
 import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSection';
 import LocationMetrics from '@/components/billboard/LocationMetrics';
 import NearbyPlaces from '@/components/billboard/NearbyPlaces';
+import POIOverview from '@/components/billboard/POIOverview';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import { TrafficAnalyticsPublic } from '@/components/billboard/TrafficAnalyticsPublic';
 import ShareDialog from '@/components/share/ShareDialog';
@@ -307,7 +308,16 @@ const BillboardDetail: React.FC = () => {
           />
         </div>
 
-        {/* Nearby Places - POI & DENUE combined */}
+        {/* Nearby Places - POI Overview with Cache */}
+        <div className="mb-8">
+          <POIOverview 
+            billboardId={billboard.id} 
+            latitude={billboard.latitude} 
+            longitude={billboard.longitude} 
+          />
+        </div>
+        
+        {/* Detailed POI & DENUE analysis (expandable) */}
         <div className="mb-8">
           <NearbyPlaces billboard={billboard} />
         </div>

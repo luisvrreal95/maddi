@@ -159,7 +159,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     setIsLoading(true);
 
     try {
-      const { error } = await supabase
+      const { data: bookingData, error } = await supabase
         .from('bookings')
         .insert({
           billboard_id: billboard.id,
@@ -170,9 +170,48 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           status: 'pending',
           notes: notes || null,
           ad_design_url: adDesignUrl || null,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Send notification email to owner
+      try {
+        // Get owner's profile and email
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('full_name, company_name')
+          .eq('user_id', billboard.owner_id)
+          .maybeSingle();
+        
+        // Get business user's profile
+        const { data: businessProfile } = await supabase
+          .from('profiles')
+          .select('full_name, company_name')
+          .eq('user_id', user?.id)
+          .maybeSingle();
+
+        // We need to send email to the owner - but we can't get their email directly
+        // The email will be sent via a database trigger or we invoke the function with owner_id
+        await supabase.functions.invoke('send-notification-email', {
+          body: {
+            type: 'booking_request',
+            recipientName: ownerProfile?.full_name || 'Propietario',
+            data: {
+              billboardTitle: billboard.title,
+              businessName: businessProfile?.company_name || businessProfile?.full_name || 'Anunciante',
+              startDate: format(startDate, 'd MMM yyyy', { locale: es }),
+              endDate: format(endDate, 'd MMM yyyy', { locale: es }),
+              totalPrice: totalPrice,
+              ownerId: billboard.owner_id, // Edge function can look up email
+            }
+          }
+        });
+      } catch (emailError) {
+        console.error('Error sending notification email:', emailError);
+        // Don't fail the booking if email fails
+      }
 
       toast.success('Solicitud de reserva enviada. El propietario la revisará.');
       onOpenChange(false);
