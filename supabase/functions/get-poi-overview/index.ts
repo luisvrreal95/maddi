@@ -1,21 +1,35 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+// Allowed origins for CORS
+const ALLOWED_ORIGINS = [
+  'https://maddi.lovable.app',
+  'https://id-preview--1e558385-54d9-4439-8b22-6503a152ac9e.lovable.app',
+  'http://localhost:5173',
+  'http://localhost:8080',
+];
+
+function getCorsHeaders(origin: string | null) {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o.replace('https://', '').replace('http://', '')) || o === origin) 
+    ? origin 
+    : ALLOWED_ORIGINS[0];
+  
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  };
+}
 
 // 8 main categories for the overview (fixed 500m radius)
 const OVERVIEW_CATEGORIES = [
-  { id: '7372', name: 'Educación', tomtomIds: ['7372', '7377'] }, // Escuelas, Universidades
-  { id: '7314', name: 'Hoteles', tomtomIds: ['7314', '7316'] }, // Hoteles, Rentas vacacionales
-  { id: '7311', name: 'Autos', tomtomIds: ['7311', '7312', '7313', '7314', '7309', '7310'] }, // Gasolineras, Concesionarios, Talleres, etc
-  { id: '7321', name: 'Salud', tomtomIds: ['7321', '7326', '7336', '7337', '9663', '9374'] }, // Hospitales, Farmacias, etc
-  { id: '7373', name: 'Retail / Plazas', tomtomIds: ['7373', '9361', '7327', '7332'] }, // Centros comerciales, Tiendas, Super
-  { id: '7315', name: 'Alimentos y bebidas', tomtomIds: ['7315', '9376'] }, // Restaurantes, Cafés
-  { id: '7367', name: 'Gobierno / Servicios públicos', tomtomIds: ['7367', '9151', '7324', '7322'] }, // Gobierno, Tribunales, Correos, Policía
-  { id: '7328', name: 'Servicios profesionales', tomtomIds: ['7328', '7397', '7329'] }, // Bancos, Cajeros, Casas de cambio
+  { id: '7372', name: 'Educación', tomtomIds: ['7372', '7377'] },
+  { id: '7314', name: 'Hoteles', tomtomIds: ['7314', '7316'] },
+  { id: '7311', name: 'Autos', tomtomIds: ['7311', '7312', '7313', '7309', '7310'] },
+  { id: '7321', name: 'Salud', tomtomIds: ['7321', '7326', '7336', '7337'] },
+  { id: '7373', name: 'Retail / Plazas', tomtomIds: ['7373', '9361', '7327', '7332'] },
+  { id: '7315', name: 'Alimentos y bebidas', tomtomIds: ['7315', '9376'] },
+  { id: '7367', name: 'Gobierno / Servicios públicos', tomtomIds: ['7367', '9151', '7324', '7322'] },
+  { id: '7328', name: 'Servicios profesionales', tomtomIds: ['7328', '7397', '7329'] },
 ];
 
 interface POIResult {
@@ -43,6 +57,9 @@ async function searchPOIs(lat: number, lon: number, categoryId: string, apiKey: 
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+  const corsHeaders = getCorsHeaders(origin);
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }

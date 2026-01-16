@@ -1,14 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Loader2, Sparkles, Navigation } from 'lucide-react';
+import { MapPin, Loader2, Sparkles, Navigation, Store, Building2 } from 'lucide-react';
 
-interface LocationSuggestion {
+interface SearchResult {
   id: string;
-  place_name: string;
-  text: string;
-  place_type: string[];
-  center: [number, number];
+  name: string;
+  type: string;
+  category: string;
+  address: string;
+  municipality: string;
+  countrySubdivision: string;
+  lat: number;
+  lon: number;
+  distance: number | null;
+  displayName: string;
+  displayContext: string;
 }
 
 interface SmartSearchFormProps {
@@ -18,17 +25,16 @@ interface SmartSearchFormProps {
 const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [hasInteracted, setHasInteracted] = useState(false);
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<SearchResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const debounceRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const placeholderText = 'Busca una plaza, colonia o dirección (ej. Plaza Centenario)';
+  const placeholderText = 'Busca una plaza o negocio (ej. Costco, Plaza Centenario)';
 
   // Get user's location
   useEffect(() => {
@@ -42,25 +48,11 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
         },
         (error) => {
           console.log('Location access denied or unavailable:', error);
-          // Default to Mexicali if location denied
-          setUserLocation({ lat: 32.6245, lng: -115.4523 });
+          // Default to Mexico City if location denied
+          setUserLocation({ lat: 19.4326, lng: -99.1332 });
         }
       );
     }
-  }, []);
-
-  // Fetch mapbox token
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error) throw error;
-        setMapboxToken(data.token);
-      } catch (error) {
-        console.error('Error fetching mapbox token:', error);
-      }
-    };
-    fetchToken();
   }, []);
 
   // Handle click outside to close dropdown
@@ -80,9 +72,9 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fetch address suggestions with proximity bias
+  // Fetch suggestions using TomTom via edge function
   useEffect(() => {
-    if (!searchQuery || searchQuery.length < 2 || !mapboxToken) {
+    if (!searchQuery || searchQuery.length < 2) {
       setSuggestions([]);
       return;
     }
@@ -101,46 +93,48 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
     debounceRef.current = setTimeout(async () => {
       setIsLoading(true);
       try {
-        // Build URL with POI support and proximity bias
-        // Include poi, poi.landmark for places like "Plaza Cachanilla", "Costco", "Hospital General"
-        const types = 'poi,poi.landmark,place,locality,neighborhood,address,district';
-        const proximityLng = userLocation?.lng ?? -115.4523;
-        const proximityLat = userLocation?.lat ?? 32.6245;
-        
-        // Use autocomplete mode and fuzzyMatch for better partial matching
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery)}.json?access_token=${mapboxToken}&country=mx&types=${types}&limit=8&language=es&autocomplete=true&fuzzyMatch=true&proximity=${proximityLng},${proximityLat}`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
+        // Use TomTom search via edge function for POI + address support
+        const { data, error } = await supabase.functions.invoke('search-poi', {
+          body: {
+            query: searchQuery,
+            lat: userLocation?.lat,
+            lon: userLocation?.lng,
+            limit: 8,
+          }
+        });
 
-        if (data.features) {
-          setSuggestions(data.features);
+        if (error) throw error;
+
+        if (data?.success && data?.results) {
+          setSuggestions(data.results);
           setShowSuggestions(true);
         }
       } catch (error) {
         console.error('Error fetching suggestions:', error);
+        setSuggestions([]);
       } finally {
         setIsLoading(false);
       }
-    }, 300);
+    }, 250); // 250ms debounce
 
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
       }
     };
-  }, [searchQuery, mapboxToken, userLocation]);
+  }, [searchQuery, userLocation]);
 
-  const handleSelectSuggestion = (suggestion: LocationSuggestion) => {
-    setSearchQuery(suggestion.place_name);
+  const handleSelectSuggestion = (suggestion: SearchResult) => {
+    const displayName = suggestion.displayName || suggestion.name;
+    setSearchQuery(displayName);
     setShowSuggestions(false);
-    onSearch?.(suggestion.place_name, false);
-    navigate(`/search?location=${encodeURIComponent(suggestion.place_name)}&lat=${suggestion.center[1]}&lng=${suggestion.center[0]}`);
+    onSearch?.(displayName, false);
+    navigate(`/search?location=${encodeURIComponent(displayName)}&lat=${suggestion.lat}&lng=${suggestion.lon}`);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const query = searchQuery || 'Mexicali, B.C.';
+    const query = searchQuery || 'Ciudad de México';
     
     // Check if this is a natural language / AI search
     const isNaturalLanguage = /quiero|busco|cerca|necesito|muestra|encuentra/i.test(query);
@@ -160,30 +154,21 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
   const displayText = hasInteracted ? searchQuery : placeholderText;
   const isNaturalLanguageQuery = /quiero|busco|cerca|necesito|muestra|encuentra/i.test(searchQuery);
 
-  const getPlaceTypeLabel = (types: string[]) => {
-    const type = types[0];
-    const labels: Record<string, string> = {
-      country: 'País',
-      region: 'Estado',
-      place: 'Ciudad',
-      district: 'Zona',
-      locality: 'Localidad',
-      neighborhood: 'Colonia',
-      address: 'Dirección',
-      poi: 'Lugar',
-    };
-    return labels[type] || 'Ubicación';
+  const getTypeIcon = (type: string) => {
+    if (type === 'POI') return <Store className="w-5 h-5 text-[#9BFF43]" />;
+    if (type === 'Geography' || type === 'Street') return <Building2 className="w-5 h-5 text-[#9BFF43]" />;
+    return <MapPin className="w-5 h-5 text-[#9BFF43]" />;
   };
 
-  // Extract city/state from suggestion for display
-  const extractCityState = (suggestion: LocationSuggestion): string => {
-    // The place_name usually contains "Name, City, State, Country"
-    const parts = suggestion.place_name.split(', ');
-    if (parts.length >= 3) {
-      // Return "City, State" (skip the name and country)
-      return parts.slice(1, -1).join(', ');
-    }
-    return suggestion.place_name;
+  const getTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      POI: 'Lugar',
+      Street: 'Calle',
+      Geography: 'Zona',
+      Address: 'Dirección',
+      'Cross Street': 'Intersección',
+    };
+    return labels[type] || 'Ubicación';
   };
 
   return (
@@ -269,14 +254,19 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
               onClick={() => handleSelectSuggestion(suggestion)}
               className="w-full px-5 py-4 flex items-start gap-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-b-0"
             >
-              <MapPin className="w-5 h-5 mt-0.5 text-[#9BFF43] flex-shrink-0" />
+              {getTypeIcon(suggestion.type)}
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-white truncate">{suggestion.text}</p>
-                <p className="text-sm text-white/50 truncate">{extractCityState(suggestion)}</p>
+                <p className="font-medium text-white truncate">{suggestion.displayName || suggestion.name}</p>
+                <p className="text-sm text-white/50 truncate">{suggestion.displayContext || suggestion.address}</p>
               </div>
-              <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
-                {getPlaceTypeLabel(suggestion.place_type)}
-              </span>
+              <div className="flex flex-col items-end gap-1">
+                <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                  {getTypeLabel(suggestion.type)}
+                </span>
+                {suggestion.distance && (
+                  <span className="text-xs text-white/40">{(suggestion.distance / 1000).toFixed(1)} km</span>
+                )}
+              </div>
             </button>
           ))}
         </div>
