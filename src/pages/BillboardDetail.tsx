@@ -5,14 +5,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, ChevronDown, ChevronUp, BarChart3, Users, Building2, TrendingUp } from 'lucide-react';
+import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 import BookingDialog from '@/components/booking/BookingDialog';
 import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import BillboardReviewsSection from '@/components/reviews/BillboardReviewsSection';
-import POIOverview from '@/components/billboard/POIOverview';
+import BillboardAnalytics from '@/components/billboard/BillboardAnalytics';
 import ShareDialog from '@/components/share/ShareDialog';
 import OwnerSection from '@/components/billboard/OwnerSection';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
@@ -42,24 +42,15 @@ interface Billboard {
   updated_at: string;
 }
 
-interface INEGIData {
-  nearby_businesses_count: number | null;
-  socioeconomic_level: string | null;
-  dominant_sector: string | null;
-  commercial_environment: string | null;
-}
-
 const BillboardDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, userRole } = useAuth();
   const [billboard, setBillboard] = useState<Billboard | null>(null);
-  const [inegiData, setInegiData] = useState<INEGIData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingInegi, setIsLoadingInegi] = useState(true);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
-  const [showFullAnalysis, setShowFullAnalysis] = useState(false);
   const [mapboxToken, setMapboxToken] = useState('');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchBillboard = async () => {
@@ -79,24 +70,11 @@ const BillboardDetail: React.FC = () => {
           return;
         }
         setBillboard(data);
-
-        // Fetch INEGI data
-        const { data: inegi } = await supabase
-          .from('inegi_demographics')
-          .select('nearby_businesses_count, socioeconomic_level, dominant_sector, commercial_environment')
-          .eq('billboard_id', id)
-          .maybeSingle();
-
-        if (inegi) {
-          setInegiData(inegi as INEGIData);
-        }
-        setIsLoadingInegi(false);
       } catch (error) {
         console.error('Error fetching billboard:', error);
         toast.error('Error al cargar el espectacular');
       } finally {
         setIsLoading(false);
-        setIsLoadingInegi(false);
       }
     };
 
@@ -136,11 +114,23 @@ const BillboardDetail: React.FC = () => {
     setShowBookingDialog(true);
   };
 
-  // Format daily impressions
-  const formatImpressions = (impressions: number | null) => {
-    if (!impressions) return 'Calculando...';
-    if (impressions >= 1000) return `${(impressions / 1000).toFixed(0)}K`;
-    return impressions.toString();
+  // Get all images
+  const allImages = billboard.image_urls && billboard.image_urls.length > 0 
+    ? billboard.image_urls 
+    : billboard.image_url 
+      ? [billboard.image_url] 
+      : [];
+
+  const nextImage = () => {
+    if (allImages.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (allImages.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+    }
   };
 
   return (
@@ -164,19 +154,50 @@ const BillboardDetail: React.FC = () => {
       <main className="max-w-6xl mx-auto p-4 md:p-6">
         {/* Hero Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-          {/* Image */}
+          {/* Image Carousel */}
           <div className="lg:col-span-2 space-y-3">
-            {billboard.image_url ? (
-              <img
-                src={billboard.image_url}
-                alt={billboard.title}
-                className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-2xl"
-              />
-            ) : (
-              <div className="w-full h-64 md:h-80 lg:h-96 bg-secondary rounded-2xl flex items-center justify-center">
-                <MapPin className="w-24 h-24 text-muted-foreground" />
-              </div>
-            )}
+            <div className="relative">
+              {allImages.length > 0 ? (
+                <>
+                  <img
+                    src={allImages[currentImageIndex]}
+                    alt={billboard.title}
+                    className="w-full h-64 md:h-80 lg:h-96 object-cover rounded-2xl"
+                  />
+                  {allImages.length > 1 && (
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-colors"
+                      >
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white transition-colors"
+                      >
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+                        {allImages.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setCurrentImageIndex(idx)}
+                            className={`w-2 h-2 rounded-full transition-colors ${
+                              idx === currentImageIndex ? 'bg-primary' : 'bg-white/50'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div className="w-full h-64 md:h-80 lg:h-96 bg-secondary rounded-2xl flex items-center justify-center">
+                  <MapPin className="w-24 h-24 text-muted-foreground" />
+                </div>
+              )}
+            </div>
             
             {/* Action buttons below image */}
             <div className="flex items-center gap-3">
@@ -236,67 +257,24 @@ const BillboardDetail: React.FC = () => {
                   <p className="text-muted-foreground text-xs">Iluminación</p>
                 </div>
               </div>
+
+              {/* Billboard Type */}
+              <div className="mt-3 p-3 bg-secondary rounded-lg text-center">
+                <p className="text-foreground text-sm font-bold capitalize">{billboard.billboard_type}</p>
+                <p className="text-muted-foreground text-xs">{billboard.faces} cara{billboard.faces > 1 ? 's' : ''}</p>
+              </div>
+            </Card>
+
+            {/* Availability Calendar Preview */}
+            <Card className="bg-card border-border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Calendar className="w-4 h-4 text-primary" />
+                <h3 className="font-semibold text-foreground text-sm">Disponibilidad</h3>
+              </div>
+              <AvailabilityCalendar billboardId={billboard.id} />
             </Card>
           </div>
         </div>
-
-        {/* Quick Summary Card - New consolidated section */}
-        <Card className="bg-card border-border p-6 mb-6">
-          <h2 className="text-foreground font-semibold mb-4 flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-primary" />
-            Resumen de ubicación
-          </h2>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-            {/* Daily Impressions */}
-            <div className="bg-secondary/50 rounded-xl p-4 text-center">
-              <Users className="w-6 h-6 text-primary mx-auto mb-2" />
-              <p className="text-2xl font-bold text-foreground">{formatImpressions(billboard.daily_impressions)}</p>
-              <p className="text-xs text-muted-foreground">Impresiones/día</p>
-            </div>
-            
-            {/* Nearby Businesses */}
-            <div className="bg-secondary/50 rounded-xl p-4 text-center">
-              <Building2 className="w-6 h-6 text-primary mx-auto mb-2" />
-              <p className="text-2xl font-bold text-foreground">
-                {isLoadingInegi ? '...' : (inegiData?.nearby_businesses_count || 'N/A')}
-              </p>
-              <p className="text-xs text-muted-foreground">Negocios cercanos</p>
-            </div>
-            
-            {/* Socioeconomic Level */}
-            <div className="bg-secondary/50 rounded-xl p-4 text-center">
-              <TrendingUp className="w-6 h-6 text-primary mx-auto mb-2" />
-              <p className="text-lg font-bold text-foreground capitalize">
-                {isLoadingInegi ? '...' : (inegiData?.socioeconomic_level || 'N/A')}
-              </p>
-              <p className="text-xs text-muted-foreground">Nivel socioeconómico</p>
-            </div>
-            
-            {/* Billboard Type */}
-            <div className="bg-secondary/50 rounded-xl p-4 text-center">
-              <MapPin className="w-6 h-6 text-primary mx-auto mb-2" />
-              <p className="text-lg font-bold text-foreground capitalize">{billboard.billboard_type}</p>
-              <p className="text-xs text-muted-foreground">{billboard.faces} cara{billboard.faces > 1 ? 's' : ''}</p>
-            </div>
-          </div>
-
-          {/* Dominant Sector & Commercial Environment */}
-          {!isLoadingInegi && (inegiData?.dominant_sector || inegiData?.commercial_environment) && (
-            <div className="flex flex-wrap gap-2 pt-4 border-t border-border">
-              {inegiData?.dominant_sector && (
-                <Badge variant="outline" className="text-xs">
-                  Sector: {inegiData.dominant_sector}
-                </Badge>
-              )}
-              {inegiData?.commercial_environment && (
-                <Badge variant="outline" className="text-xs">
-                  Entorno: {inegiData.commercial_environment}
-                </Badge>
-              )}
-            </div>
-          )}
-        </Card>
 
         {/* Mini Map */}
         {mapboxToken && (
@@ -309,71 +287,32 @@ const BillboardDetail: React.FC = () => {
           </div>
         )}
 
-        {/* POI Overview - Cached, compact */}
+        {/* Consolidated Analytics Section */}
         <div className="mb-6">
-          <POIOverview 
-            billboardId={billboard.id} 
-            latitude={billboard.latitude} 
-            longitude={billboard.longitude} 
+          <BillboardAnalytics
+            billboardId={billboard.id}
+            latitude={billboard.latitude}
+            longitude={billboard.longitude}
+            dailyImpressions={billboard.daily_impressions}
+            city={billboard.city}
           />
         </div>
 
-        {/* Expandable Full Analysis Section */}
-        <Card className="bg-card border-border mb-6">
-          <button 
-            onClick={() => setShowFullAnalysis(!showFullAnalysis)}
-            className="w-full p-4 flex items-center justify-between hover:bg-secondary/30 transition-colors rounded-xl"
-          >
-            <div className="flex items-center gap-3">
-              <BarChart3 className="w-5 h-5 text-primary" />
-              <span className="font-semibold text-foreground">Ver análisis completo</span>
-            </div>
-            {showFullAnalysis ? (
-              <ChevronUp className="w-5 h-5 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            )}
-          </button>
-          
-          {showFullAnalysis && (
-            <div className="px-4 pb-4 space-y-4 border-t border-border pt-4">
-              {/* Availability Calendar */}
-              <div>
-                <h3 className="text-foreground font-semibold mb-3 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  Disponibilidad
-                </h3>
-                <AvailabilityCalendar billboardId={billboard.id} />
-              </div>
+        {/* Description (if exists) */}
+        {billboard.description && (
+          <Card className="bg-card border-border p-6 mb-6">
+            <h3 className="text-foreground font-semibold mb-3">Descripción</h3>
+            <p className="text-muted-foreground text-sm">{billboard.description}</p>
+          </Card>
+        )}
 
-              {/* Description */}
-              {billboard.description && (
-                <div className="pt-4 border-t border-border">
-                  <h3 className="text-foreground font-semibold mb-2">Descripción</h3>
-                  <p className="text-muted-foreground text-sm">{billboard.description}</p>
-                </div>
-              )}
-
-              {/* Full Address */}
-              <div className="pt-4 border-t border-border">
-                <h3 className="text-foreground font-semibold mb-2">Dirección completa</h3>
-                <p className="text-muted-foreground text-sm">{billboard.address}</p>
-                <p className="text-muted-foreground text-xs mt-1">
-                  Coordenadas: {billboard.latitude.toFixed(6)}, {billboard.longitude.toFixed(6)}
-                </p>
-              </div>
-
-              {/* Booking Terms */}
-              <div className="pt-4 border-t border-border">
-                <h3 className="text-foreground font-semibold mb-2">Términos de reserva</h3>
-                <ul className="text-muted-foreground text-sm space-y-1">
-                  <li>• {billboard.faces} cara{billboard.faces > 1 ? 's' : ''} · {billboard.billboard_type}</li>
-                  <li>• Reserva mínima: 1 mes</li>
-                  <li>• Instalación incluida</li>
-                </ul>
-              </div>
-            </div>
-          )}
+        {/* Full Address */}
+        <Card className="bg-card border-border p-6 mb-6">
+          <h3 className="text-foreground font-semibold mb-2">Ubicación</h3>
+          <p className="text-muted-foreground text-sm">{billboard.address}</p>
+          <p className="text-muted-foreground text-xs mt-1">
+            Coordenadas: {billboard.latitude.toFixed(6)}, {billboard.longitude.toFixed(6)}
+          </p>
         </Card>
 
         {/* Owner Section */}
