@@ -35,7 +35,8 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   
   const dailyViews = billboard.daily_impressions || 0;
   const peakHours = '8am-12pm';
-  const status = billboard.is_available ? 'Disponible' : 'Ocupado';
+  const status = billboard.pause_reason === 'admin' ? 'Pausada por Maddi' : billboard.is_available ? 'Disponible' : 'Ocupado';
+  const isPausedByAdmin = billboard.pause_reason === 'admin';
   const size = `${billboard.width_m}m x ${billboard.height_m}m`;
 
   // Fetch nearby POIs from the analyze-nearby-poi function
@@ -105,7 +106,23 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   }, [billboard.id]);
 
   return (
-    <div className="bg-[#1E1E1E] rounded-2xl border border-[#9BFF43]/30 p-5 relative hover:border-[#9BFF43]/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all h-full flex flex-col">
+    <div className={`bg-[#1E1E1E] rounded-2xl border ${isPausedByAdmin ? 'border-orange-500/30' : 'border-[#9BFF43]/30'} p-5 relative hover:border-[#9BFF43]/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all h-full flex flex-col`}>
+      {/* Admin pause banner */}
+      {isPausedByAdmin && (
+        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-orange-400 text-sm font-medium">⚠️ Pausada por Maddi</p>
+            <p className="text-orange-400/60 text-xs mt-0.5">Esta propiedad no es visible para los anunciantes.</p>
+          </div>
+          <a 
+            href="mailto:soporte@maddi.com.mx?subject=Consulta sobre propiedad pausada"
+            className="text-xs text-orange-400 border border-orange-500/30 rounded-lg px-3 py-1.5 hover:bg-orange-500/10 transition-colors whitespace-nowrap"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Contactar soporte
+          </a>
+        </div>
+      )}
       {/* Image - Always show with fixed height */}
       <div className="relative mb-4 rounded-xl overflow-hidden h-40 flex-shrink-0">
         {billboard.image_url ? (
@@ -204,10 +221,10 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
 
         {/* Status */}
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-[#9BFF43] mt-0.5" />
+          <CheckCircle2 className={`w-5 h-5 mt-0.5 ${isPausedByAdmin ? 'text-orange-400' : 'text-[#9BFF43]'}`} />
           <div>
             <p className="font-medium text-white text-sm">Status</p>
-            <p className="text-white/50 text-sm">{status}</p>
+            <p className={`text-sm ${isPausedByAdmin ? 'text-orange-400' : 'text-white/50'}`}>{status}</p>
           </div>
         </div>
 

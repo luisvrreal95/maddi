@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { logAPIUsage } from '@/lib/apiUsageLogger';
 import { Car, RefreshCw, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -42,10 +43,12 @@ const TrafficEstimate: React.FC<TrafficEstimateProps> = ({
 
   const fetchTrafficData = async () => {
     setIsLoading(true);
+    const startTime = Date.now();
     try {
       const { data, error } = await supabase.functions.invoke('get-traffic-data', {
         body: { billboard_id: billboardId, latitude, longitude, city }
       });
+      logAPIUsage({ api_name: 'tomtom', endpoint_type: 'traffic_flow', billboard_id: billboardId, source_screen: 'billboard_detail', response_status: error ? 500 : 200, latency_ms: Date.now() - startTime });
 
       if (error) throw error;
 

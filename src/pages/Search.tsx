@@ -13,6 +13,7 @@ import BusinessHeader from '@/components/navigation/BusinessHeader';
 import MobileSearchView from '@/components/search/MobileSearchView';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
 import { supabase } from '@/integrations/supabase/client';
+import { logAPIUsage } from '@/lib/apiUsageLogger';
 import { useBillboards, Billboard } from '@/hooks/useBillboards';
 import { useBillboardReviewStats } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
@@ -392,7 +393,9 @@ const SearchPage: React.FC = () => {
   useEffect(() => {
     const fetchToken = async () => {
       try {
+        const startTime = Date.now();
         const { data, error } = await supabase.functions.invoke('get-mapbox-token');
+        logAPIUsage({ api_name: 'mapbox', endpoint_type: 'token', source_screen: 'search', response_status: error ? 500 : 200, latency_ms: Date.now() - startTime });
         if (error) throw error;
         if (data?.token) {
           setMapboxToken(data.token);

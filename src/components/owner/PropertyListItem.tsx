@@ -48,12 +48,16 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-bold text-white truncate">{billboard.title}</h4>
             <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
-              billboard.is_available 
-                ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
-                : 'bg-orange-500/20 text-orange-400'
+              billboard.pause_reason === 'admin'
+                ? 'bg-orange-500/20 text-orange-400'
+                : billboard.is_available 
+                  ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
+                  : 'bg-orange-500/20 text-orange-400'
             }`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${billboard.is_available ? 'bg-[#9BFF43]' : 'bg-orange-400'}`}></span>
-              {billboard.is_available ? 'Disponible' : 'Ocupado'}
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                billboard.pause_reason === 'admin' ? 'bg-orange-400' : billboard.is_available ? 'bg-[#9BFF43]' : 'bg-orange-400'
+              }`}></span>
+              {billboard.pause_reason === 'admin' ? 'Pausada por Maddi' : billboard.is_available ? 'Disponible' : 'Ocupado'}
             </span>
           </div>
           <p className="text-white/50 text-sm truncate flex items-center gap-1">

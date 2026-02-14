@@ -102,6 +102,22 @@ const BillboardDetail: React.FC = () => {
 
   if (!billboard) return null;
 
+  // Block business users from seeing admin-paused billboards
+  const isOwner = user && billboard.owner_id === user.id;
+  const isPausedByAdmin = billboard.pause_reason === 'admin';
+  
+  if (isPausedByAdmin && !isOwner && userRole !== 'owner') {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-foreground mb-2">Espectacular no disponible</h2>
+          <p className="text-muted-foreground mb-4">Este espectacular no está disponible en este momento.</p>
+          <Button onClick={() => navigate('/search')}>Volver a búsqueda</Button>
+        </div>
+      </div>
+    );
+  }
+
   const handleBookingClick = () => {
     if (!user) {
       toast.error('Inicia sesión para solicitar una reserva');
@@ -194,6 +210,20 @@ const BillboardDetail: React.FC = () => {
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   {billboard.address} · {billboard.city}, {billboard.state}
                 </p>
+                {isPausedByAdmin && isOwner && (
+                  <div className="mt-3 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-center justify-between">
+                    <div>
+                      <p className="text-orange-400 text-sm font-medium">⚠️ Pausada por el equipo de Maddi</p>
+                      <p className="text-orange-400/60 text-xs mt-0.5">No es visible para anunciantes. Contacta a soporte para más información.</p>
+                    </div>
+                    <a 
+                      href="mailto:soporte@maddi.com.mx?subject=Consulta sobre propiedad pausada"
+                      className="text-xs text-orange-400 border border-orange-500/30 rounded-lg px-3 py-1.5 hover:bg-orange-500/10 transition-colors whitespace-nowrap ml-3"
+                    >
+                      Contactar soporte
+                    </a>
+                  </div>
+                )}
               </div>
 
               {/* Specs Grid */}

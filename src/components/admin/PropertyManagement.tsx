@@ -13,7 +13,8 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, Trash2, Loader2, MapPin, ExternalLink, Power, PowerOff, Pause } from "lucide-react";
+import { Eye, Trash2, Loader2, MapPin, ExternalLink } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -37,18 +38,12 @@ interface Property {
   bookingsCount: number;
 }
 
-type DialogType = 'delete' | 'pause_admin' | 'reactivate' | null;
-
 const PropertyManagement = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dialog, setDialog] = useState<{ 
-    type: DialogType; 
-    propertyId: string | null;
-    propertyTitle?: string;
-  }>({ type: null, propertyId: null });
-  const [processing, setProcessing] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; propertyId: string | null }>({ open: false, propertyId: null });
+  const [processing, setProcessing] = useState<string | null>(null); // tracks which property is toggling
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -93,21 +88,20 @@ const PropertyManagement = () => {
 
   useEffect(() => { fetchProperties(); }, []);
 
-  const handlePauseByAdmin = async () => {
-    if (!dialog.propertyId) return;
-    setProcessing(true);
+  const handleToggleStatus = async (property: Property) => {
+    // If currently active → pause; if paused → reactivate
+    const willPause = property.is_available && !property.pause_reason;
+    
+    setProcessing(property.id);
     try {
-      const property = properties.find(p => p.id === dialog.propertyId);
-      
-      const { error } = await supabase
-        .from('billboards')
-        .update({ is_available: false, pause_reason: 'admin' } as any)
-        .eq('id', dialog.propertyId);
+      if (willPause) {
+        // Pause by admin
+        const { error } = await supabase
+          .from('billboards')
+          .update({ is_available: false, pause_reason: 'admin' } as any)
+          .eq('id', property.id);
+        if (error) throw error;
 
-      if (error) throw error;
-
-      // Notify owner
-      if (property) {
         await supabase.from('notifications').insert({
           user_id: property.owner_id,
           title: 'Propiedad pausada por Maddi',
@@ -115,33 +109,16 @@ const PropertyManagement = () => {
           type: 'admin_action',
           related_billboard_id: property.id
         });
-      }
 
-      toast({ title: "Éxito", description: "Propiedad pausada por Maddi. Se notificó al propietario." });
-      fetchProperties();
-    } catch (error) {
-      console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo pausar la propiedad", variant: "destructive" });
-    } finally {
-      setProcessing(false);
-      setDialog({ type: null, propertyId: null });
-    }
-  };
+        toast({ title: "Propiedad pausada", description: "Se notificó al propietario." });
+      } else {
+        // Reactivate
+        const { error } = await supabase
+          .from('billboards')
+          .update({ is_available: true, pause_reason: null } as any)
+          .eq('id', property.id);
+        if (error) throw error;
 
-  const handleReactivate = async () => {
-    if (!dialog.propertyId) return;
-    setProcessing(true);
-    try {
-      const property = properties.find(p => p.id === dialog.propertyId);
-      
-      const { error } = await supabase
-        .from('billboards')
-        .update({ is_available: true, pause_reason: null } as any)
-        .eq('id', dialog.propertyId);
-
-      if (error) throw error;
-
-      if (property) {
         await supabase.from('notifications').insert({
           user_id: property.owner_id,
           title: 'Propiedad reactivada',
@@ -149,31 +126,31 @@ const PropertyManagement = () => {
           type: 'admin_action',
           related_billboard_id: property.id
         });
-      }
 
-      toast({ title: "Éxito", description: "Propiedad reactivada correctamente." });
+        toast({ title: "Propiedad reactivada", description: "Ahora es visible para todos." });
+      }
+      
       fetchProperties();
     } catch (error) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo reactivar", variant: "destructive" });
+      toast({ title: "Error", description: "No se pudo cambiar el estado", variant: "destructive" });
     } finally {
-      setProcessing(false);
-      setDialog({ type: null, propertyId: null });
+      setProcessing(null);
     }
   };
 
   const handleDelete = async () => {
-    if (!dialog.propertyId) return;
-    setProcessing(true);
+    if (!deleteDialog.propertyId) return;
+    setProcessing(deleteDialog.propertyId);
     try {
-      await supabase.from('favorites').delete().eq('billboard_id', dialog.propertyId);
-      await supabase.from('blocked_dates').delete().eq('billboard_id', dialog.propertyId);
-      await supabase.from('pricing_overrides').delete().eq('billboard_id', dialog.propertyId);
-      await supabase.from('traffic_data').delete().eq('billboard_id', dialog.propertyId);
-      await supabase.from('inegi_demographics').delete().eq('billboard_id', dialog.propertyId);
-      await supabase.from('poi_overview_cache').delete().eq('billboard_id', dialog.propertyId);
+      await supabase.from('favorites').delete().eq('billboard_id', deleteDialog.propertyId);
+      await supabase.from('blocked_dates').delete().eq('billboard_id', deleteDialog.propertyId);
+      await supabase.from('pricing_overrides').delete().eq('billboard_id', deleteDialog.propertyId);
+      await supabase.from('traffic_data').delete().eq('billboard_id', deleteDialog.propertyId);
+      await supabase.from('inegi_demographics').delete().eq('billboard_id', deleteDialog.propertyId);
+      await supabase.from('poi_overview_cache').delete().eq('billboard_id', deleteDialog.propertyId);
       
-      const { error } = await supabase.from('billboards').delete().eq('id', dialog.propertyId);
+      const { error } = await supabase.from('billboards').delete().eq('id', deleteDialog.propertyId);
       if (error) throw error;
 
       toast({ title: "Éxito", description: "Propiedad eliminada permanentemente" });
@@ -182,8 +159,8 @@ const PropertyManagement = () => {
       console.error('Error:', error);
       toast({ title: "Error", description: "No se pudo eliminar la propiedad. Puede tener reservas activas.", variant: "destructive" });
     } finally {
-      setProcessing(false);
-      setDialog({ type: null, propertyId: null });
+      setProcessing(null);
+      setDeleteDialog({ open: false, propertyId: null });
     }
   };
 
@@ -191,16 +168,12 @@ const PropertyManagement = () => {
     return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(value);
   };
 
-  const getPropertyStatus = (property: Property) => {
-    if (property.is_available) return { label: 'Activa', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: Power };
-    if ((property as any).pause_reason === 'admin') return { label: 'Pausada por Maddi', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: Pause };
-    return { label: 'Pausada', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: PowerOff };
-  };
+  const isActive = (property: Property) => property.is_available && !property.pause_reason;
 
   const filteredProperties = properties.filter(p => {
-    if (statusFilter === 'available' && !p.is_available) return false;
-    if (statusFilter === 'unavailable' && p.is_available) return false;
-    if (statusFilter === 'paused_admin' && (p as any).pause_reason !== 'admin') return false;
+    if (statusFilter === 'available' && !isActive(p)) return false;
+    if (statusFilter === 'unavailable' && isActive(p)) return false;
+    if (statusFilter === 'paused_admin' && p.pause_reason !== 'admin') return false;
     return true;
   });
 
@@ -238,7 +211,7 @@ const PropertyManagement = () => {
                   <TableHead>Ubicación</TableHead>
                   <TableHead className="text-right">Precio</TableHead>
                   <TableHead className="text-center">Campañas</TableHead>
-                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-center">Activa</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -251,10 +224,10 @@ const PropertyManagement = () => {
                   </TableRow>
                 ) : (
                   filteredProperties.map((property) => {
-                    const status = getPropertyStatus(property);
-                    const StatusIcon = status.icon;
+                    const active = isActive(property);
+                    const isToggling = processing === property.id;
                     return (
-                      <TableRow key={property.id}>
+                      <TableRow key={property.id} className={!active ? 'opacity-60' : ''}>
                         <TableCell>
                           <div className="w-16 h-12 rounded-md overflow-hidden bg-muted">
                             {property.image_url ? (
@@ -268,6 +241,9 @@ const PropertyManagement = () => {
                         </TableCell>
                         <TableCell>
                           <div className="font-medium max-w-[200px] truncate">{property.title}</div>
+                          {property.pause_reason === 'admin' && (
+                            <span className="text-xs text-orange-400">Pausada por Maddi</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div>
@@ -288,37 +264,27 @@ const PropertyManagement = () => {
                         <TableCell className="text-center">
                           <Badge variant="outline">{property.bookingsCount}</Badge>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={status.color}>
-                            <StatusIcon className="w-3 h-3 mr-1" />
-                            {status.label}
-                          </Badge>
+                        <TableCell className="text-center">
+                          <div className="flex items-center justify-center gap-2">
+                            {isToggling ? (
+                              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                            ) : (
+                              <Switch
+                                checked={active}
+                                onCheckedChange={() => handleToggleStatus(property)}
+                                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-destructive/40"
+                              />
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => navigate(`/billboard/${property.id}`)}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            {property.is_available ? (
-                              <Button
-                                size="sm" variant="ghost" className="h-8 w-8 p-0 text-orange-500 hover:text-orange-600"
-                                onClick={() => setDialog({ type: 'pause_admin', propertyId: property.id, propertyTitle: property.title })}
-                                title="Pausar por Maddi"
-                              >
-                                <Pause className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-500 hover:text-green-600"
-                                onClick={() => setDialog({ type: 'reactivate', propertyId: property.id })}
-                                title="Reactivar"
-                              >
-                                <Power className="h-4 w-4" />
-                              </Button>
-                            )}
                             <Button
-                              size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                              onClick={() => setDialog({ type: 'delete', propertyId: property.id })}
+                              size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              onClick={() => setDeleteDialog({ open: true, propertyId: property.id })}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -334,46 +300,8 @@ const PropertyManagement = () => {
         )}
       </CardContent>
 
-      {/* Pause by Admin Dialog */}
-      <AlertDialog open={dialog.type === 'pause_admin'} onOpenChange={(open) => !open && setDialog({ type: null, propertyId: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Pausar propiedad por Maddi?</AlertDialogTitle>
-            <AlertDialogDescription>
-              La propiedad será ocultada de búsquedas y no podrá recibir nuevas reservas. Las campañas ya aprobadas no se verán afectadas. Se notificará al propietario automáticamente.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handlePauseByAdmin} disabled={processing} className="bg-orange-500 hover:bg-orange-600">
-              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Pausar propiedad
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Reactivate Dialog */}
-      <AlertDialog open={dialog.type === 'reactivate'} onOpenChange={(open) => !open && setDialog({ type: null, propertyId: null })}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Reactivar propiedad?</AlertDialogTitle>
-            <AlertDialogDescription>
-              La propiedad volverá a ser visible para todos los usuarios en la plataforma.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleReactivate} disabled={processing} className="bg-primary hover:bg-primary/90">
-              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Reactivar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       {/* Delete Dialog */}
-      <AlertDialog open={dialog.type === 'delete'} onOpenChange={(open) => !open && setDialog({ type: null, propertyId: null })}>
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, propertyId: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar propiedad permanentemente?</AlertDialogTitle>
@@ -388,8 +316,8 @@ const PropertyManagement = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={processing} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogCancel disabled={!!processing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={!!processing} className="bg-destructive hover:bg-destructive/90">
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Eliminar Permanentemente
             </AlertDialogAction>
