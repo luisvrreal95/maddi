@@ -75,12 +75,13 @@ const transformBillboardToProperty = (billboard: Billboard, reviewStats?: { aver
 });
 
 const SearchPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, userRole } = useAuth();
   const isMobile = useIsMobile();
   const location = searchParams.get('location') || 'Mexicali, B.C.';
   const mapRef = useRef<SearchMapRef>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
@@ -89,8 +90,22 @@ const SearchPage: React.FC = () => {
   const [selectedLocationData, setSelectedLocationData] = useState<SelectedLocation | null>(null);
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
-  const [filters, setFilters] = useState<Record<string, any>>({});
-  const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | undefined>();
+  
+  // Restore filters from URL params
+  const [filters, setFilters] = useState<Record<string, any>>(() => {
+    const f: Record<string, any> = {};
+    const filtersParam = searchParams.get('filters');
+    if (filtersParam) {
+      try { return JSON.parse(filtersParam); } catch {}
+    }
+    return f;
+  });
+  const [dateFilter, setDateFilter] = useState<{ from: string; to: string } | undefined>(() => {
+    const df = searchParams.get('dateFrom');
+    const dt = searchParams.get('dateTo');
+    if (df && dt) return { from: df, to: dt };
+    return undefined;
+  });
   const [unavailableBillboardIds, setUnavailableBillboardIds] = useState<Set<string>>(new Set());
   
   // Compare mode state
@@ -124,6 +139,54 @@ const SearchPage: React.FC = () => {
   // INEGI data for search cards
   const [inegiDataMap, setInegiDataMap] = useState<Record<string, INEGICardData>>({});
 
+  // Save scroll position before navigating away
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (listRef.current) {
+        sessionStorage.setItem('searchScrollPos', String(listRef.current.scrollTop));
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Restore scroll position on mount
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem('searchScrollPos');
+    if (savedScroll && listRef.current) {
+      setTimeout(() => {
+        listRef.current?.scrollTo(0, parseInt(savedScroll));
+        sessionStorage.removeItem('searchScrollPos');
+      }, 100);
+    }
+  }, []);
+
+  // Sync filters to URL params
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (confirmedLocation) params.set('location', confirmedLocation);
+    
+    const hasFilters = Object.keys(filters).some(k => {
+      const v = filters[k];
+      return v && (Array.isArray(v) ? v.length > 0 : true);
+    });
+    if (hasFilters) {
+      params.set('filters', JSON.stringify(filters));
+    } else {
+      params.delete('filters');
+    }
+    
+    if (dateFilter?.from && dateFilter?.to) {
+      params.set('dateFrom', dateFilter.from);
+      params.set('dateTo', dateFilter.to);
+    } else {
+      params.delete('dateFrom');
+      params.delete('dateTo');
+    }
+    
+    setSearchParams(params, { replace: true });
+  }, [filters, dateFilter, confirmedLocation]);
+
   const handleToggleCompare = (id: string) => {
     setCompareIds(prev => {
       if (prev.includes(id)) {
@@ -137,7 +200,7 @@ const SearchPage: React.FC = () => {
     });
   };
 
-  // Fetch billboards from database using confirmed location and structured data
+  // Fetch billboards - exclude paused properties
   const { billboards, isLoading: isLoadingBillboards } = useBillboards({
     location: confirmedLocation,
     city: selectedLocationData?.city,
@@ -184,7 +247,6 @@ const SearchPage: React.FC = () => {
 
       const billboardIds = billboards.map(b => b.id);
       
-      // Check bookings that overlap with the selected date range
       const { data: conflictingBookings } = await supabase
         .from('bookings')
         .select('billboard_id')
@@ -193,7 +255,6 @@ const SearchPage: React.FC = () => {
         .lte('start_date', dateFilter.to)
         .gte('end_date', dateFilter.from);
       
-      // Check blocked dates that overlap
       const { data: conflictingBlocked } = await supabase
         .from('blocked_dates')
         .select('billboard_id')
@@ -212,9 +273,11 @@ const SearchPage: React.FC = () => {
     checkAvailability();
   }, [dateFilter, billboards]);
 
-  // Transform billboards to property format - only real data, no mocks
+  // Transform billboards to property format - filter out paused properties
   const allProperties = useMemo(() => 
-    billboards.map(b => transformBillboardToProperty(b, reviewStatsMap[b.id])),
+    billboards
+      .filter(b => b.is_available && !b.pause_reason)
+      .map(b => transformBillboardToProperty(b, reviewStatsMap[b.id])),
     [billboards, reviewStatsMap]
   );
 
@@ -222,13 +285,6 @@ const SearchPage: React.FC = () => {
   const properties = useMemo(() => {
     let filtered = [...allProperties];
 
-    // Filter by availability
-    if (filters.availability?.length > 0) {
-      // For now, all billboards are considered available
-      // This could be enhanced with actual availability data
-    }
-
-    // Filter by traffic level (views per day)
     if (filters.traffic?.length > 0) {
       filtered = filtered.filter(p => {
         const views = parseInt(p.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
@@ -239,7 +295,6 @@ const SearchPage: React.FC = () => {
       });
     }
 
-    // Filter by size
     if (filters.size?.length > 0) {
       filtered = filtered.filter(p => {
         const sizeParts = p.size.match(/(\d+\.?\d*)/g);
@@ -252,7 +307,6 @@ const SearchPage: React.FC = () => {
       });
     }
 
-    // Filter by price range
     if (filters.priceRange?.length > 0) {
       filtered = filtered.filter(p => {
         const price = parseInt(p.price.replace(/[^0-9]/g, '')) || 0;
@@ -264,7 +318,6 @@ const SearchPage: React.FC = () => {
       });
     }
 
-    // Filter by illumination
     if (filters.illumination?.length > 0) {
       filtered = filtered.filter(p => {
         const billboard = billboards.find(b => b.id === p.id);
@@ -276,7 +329,6 @@ const SearchPage: React.FC = () => {
       });
     }
 
-    // Filter by billboard type
     if (filters.billboardType?.length > 0) {
       filtered = filtered.filter(p => {
         const billboard = billboards.find(b => b.id === p.id);
@@ -289,7 +341,6 @@ const SearchPage: React.FC = () => {
       });
     }
 
-    // Filter by socioeconomic level (NSE)
     if (filters.socioeconomicLevel?.length > 0) {
       filtered = filtered.filter(p => {
         const inegiData = inegiDataMap[p.id];
@@ -307,12 +358,10 @@ const SearchPage: React.FC = () => {
       });
     }
 
-    // Filter by date availability
     if (dateFilter?.from && dateFilter?.to) {
       filtered = filtered.filter(p => !unavailableBillboardIds.has(p.id));
     }
 
-    // Sort results
     if (filters.order?.length > 0) {
       const order = filters.order[0];
       if (order === 'price_asc') {
@@ -358,7 +407,6 @@ const SearchPage: React.FC = () => {
   }, []);
 
   const handleFiltersChange = (newFilters: Record<string, any>) => {
-    // Extract date range and set separately
     if (newFilters.dateRange) {
       setDateFilter(newFilters.dateRange);
     } else {
@@ -367,11 +415,9 @@ const SearchPage: React.FC = () => {
     setFilters(newFilters);
   };
 
-  // Preview filter count without applying
   const handleFiltersPreview = useCallback((previewFilters: Record<string, any>): number => {
     let filtered = [...allProperties];
 
-    // Apply same filter logic as properties useMemo
     if (previewFilters.traffic?.length > 0) {
       filtered = filtered.filter(p => {
         const views = parseInt(p.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
@@ -434,7 +480,6 @@ const SearchPage: React.FC = () => {
   const handleMapLayerChange = (layer: keyof MapLayers, enabled: boolean) => {
     setMapLayers(prev => ({ ...prev, [layer]: enabled }));
     
-    // If enabling traffic history, disable live traffic and vice versa
     if (layer === 'trafficHistory' && enabled) {
       setMapLayers(prev => ({ ...prev, traffic: false, trafficHistory: true }));
     } else if (layer === 'traffic' && enabled) {
@@ -451,26 +496,36 @@ const SearchPage: React.FC = () => {
   };
 
   const handleReserveClick = (property: MapProperty) => {
-    // Check if user is authenticated
     if (!user) {
       toast.error('Debes iniciar sesión para reservar');
       navigate('/auth');
       return;
     }
 
-    // Check if user has business role
     if (userRole !== 'business') {
       toast.error('Solo los negocios pueden reservar espectaculares');
       return;
     }
 
-    // Find the billboard from the original data
     const billboard = billboards.find(b => b.id === property.id);
     
     if (billboard) {
+      // Check if property is paused
+      if (!billboard.is_available || billboard.pause_reason) {
+        toast.error('Este espectacular no está disponible actualmente');
+        return;
+      }
       setSelectedBillboard(billboard);
       setBookingDialogOpen(true);
     }
+  };
+
+  // Save scroll position before navigating to detail
+  const handlePropertyClick = (id: string) => {
+    if (listRef.current) {
+      sessionStorage.setItem('searchScrollPos', String(listRef.current.scrollTop));
+    }
+    setSelectedPropertyId(id);
   };
 
   // Map component for mobile view
@@ -495,12 +550,12 @@ const SearchPage: React.FC = () => {
         compareIds={compareIds}
         onToggleCompare={handleToggleCompare}
         isCompareMode={isCompareMode}
-        hidePopup={true} // Hide popup on mobile, details shown in bottom sheet instead
+        hidePopup={true}
       />
     );
   }, [isLoadingToken, mapboxToken, properties, selectedPropertyId, confirmedLocation, selectedLocationData, mapLayers, poiCategories, trafficHour, compareIds, isCompareMode]);
 
-  // Mobile View - Airbnb-like experience
+  // Mobile View
   if (isMobile) {
     return (
       <>
@@ -517,7 +572,6 @@ const SearchPage: React.FC = () => {
           mapComponent={mapComponent}
         />
         
-        {/* Booking Dialog */}
         {selectedBillboard && (
           <BookingDialog
             open={bookingDialogOpen}
@@ -529,20 +583,17 @@ const SearchPage: React.FC = () => {
     );
   }
 
-  // Desktop View - Original layout
+  // Desktop View
   return (
     <div className="h-screen bg-background flex flex-col overflow-hidden">
-      {/* Header */}
       <BusinessHeader />
 
-      {/* Search Controls - Compact single row */}
       <div className="bg-card border-b border-border flex-shrink-0 px-4 py-2">
         <div className="flex items-center gap-3">
           <Link to="/" className="text-foreground hover:text-primary transition-colors flex-shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
 
-          {/* Search Bar with Autocomplete */}
           <LocationAutocomplete
             value={searchQuery}
             onChange={setSearchQuery}
@@ -556,25 +607,20 @@ const SearchPage: React.FC = () => {
             className="flex-1 max-w-md"
           />
           
-          {/* Results count badge */}
           <Badge variant="secondary" className="hidden sm:flex flex-shrink-0">
             {isLoadingBillboards ? '...' : properties.length} resultados
           </Badge>
 
-          {/* Filters Button - Airbnb style */}
           <FiltersDialog 
             onFiltersChange={handleFiltersChange}
             onFiltersPreview={handleFiltersPreview}
             resultsCount={properties.length}
           />
-
         </div>
       </div>
 
-      {/* Main Content - Fills remaining height */}
       <main className="flex-1 flex min-h-0 relative">
-        {/* Results List - Scrollable */}
-        <div className="w-[480px] flex-shrink-0 h-full overflow-y-auto p-4">
+        <div ref={listRef} className="w-[480px] flex-shrink-0 h-full overflow-y-auto p-4">
           {properties.length === 0 && !isLoadingBillboards ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
               <MapPin className="w-12 h-12 text-primary mb-4" />
@@ -590,7 +636,7 @@ const SearchPage: React.FC = () => {
                   key={property.id}
                   property={property}
                   isSelected={property.id === selectedPropertyId}
-                  onClick={() => setSelectedPropertyId(property.id)}
+                  onClick={() => handlePropertyClick(property.id)}
                   isInCompare={compareIds.includes(property.id)}
                   onToggleCompare={handleToggleCompare}
                   inegiData={inegiDataMap[property.id]}
@@ -600,7 +646,6 @@ const SearchPage: React.FC = () => {
           )}
         </div>
 
-        {/* Map - Fills remaining space completely */}
         <div className="flex-1 h-full relative">
           {isLoadingToken ? (
             <div className="absolute inset-0 flex items-center justify-center bg-card">
@@ -640,7 +685,6 @@ const SearchPage: React.FC = () => {
         </div>
       </main>
 
-      {/* Floating Compare Button */}
       {compareIds.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4 duration-300">
           <button
@@ -659,7 +703,6 @@ const SearchPage: React.FC = () => {
         </div>
       )}
 
-      {/* Comparison Panel */}
       {showComparison && (
         <ComparisonPanel
           properties={properties.filter(p => compareIds.includes(p.id)).map(p => ({ ...p, inegiData: inegiDataMap[p.id] }))}
@@ -676,7 +719,6 @@ const SearchPage: React.FC = () => {
         />
       )}
 
-      {/* Booking Dialog */}
       {selectedBillboard && (
         <BookingDialog
           open={bookingDialogOpen}
@@ -685,7 +727,6 @@ const SearchPage: React.FC = () => {
         />
       )}
       
-      {/* Mobile Navigation Bar */}
       <MobileNavBar />
     </div>
   );

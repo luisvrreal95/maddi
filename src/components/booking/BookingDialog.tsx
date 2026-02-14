@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, AlertCircle, Info, Clock, Calendar as CalendarDays, Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { AlertCircle, Info, Clock, Calendar as CalendarDays, X, Loader2, Image as ImageIcon } from 'lucide-react';
 import { format, differenceInDays, addDays, isWithinInterval, parseISO, areIntervalsOverlapping, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +13,7 @@ import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import type { DateRange } from 'react-day-picker';
 
 interface BookingDialogProps {
   open: boolean;
@@ -43,8 +42,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   
   const earliestStartDate = addDays(new Date(), minAdvanceBookingDays);
   
-  const [startDate, setStartDate] = useState<Date | undefined>(earliestStartDate);
-  const [endDate, setEndDate] = useState<Date | undefined>(addDays(earliestStartDate, Math.max(minCampaignDays, 30)));
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: earliestStartDate,
+    to: addDays(earliestStartDate, Math.max(minCampaignDays, 30)),
+  });
   const [message, setMessage] = useState('');
   const [notes, setNotes] = useState('');
   const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
@@ -55,6 +56,9 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const [designImages, setDesignImages] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const startDate = dateRange?.from;
+  const endDate = dateRange?.to;
 
   useEffect(() => {
     if (open && !user) {
@@ -67,8 +71,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   useEffect(() => {
     if (open) {
       const earliest = addDays(new Date(), minAdvanceBookingDays);
-      setStartDate(earliest);
-      setEndDate(addDays(earliest, Math.max(minCampaignDays, 30)));
+      setDateRange({
+        from: earliest,
+        to: addDays(earliest, Math.max(minCampaignDays, 30)),
+      });
       setMessage('');
       setNotes('');
       setDesignImages([]);
@@ -81,7 +87,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       const campaignDays = differenceInDays(endDate, startDate);
       setDurationError(minCampaignDays > 0 && campaignDays < minCampaignDays);
       
-      // Only check conflicts with APPROVED bookings (not pending)
       if (existingBookings.length > 0) {
         const hasConflict = existingBookings.some((booking) => {
           if (booking.status !== 'approved') return false;
@@ -128,12 +133,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     return isBefore(date, earliestStartDate);
   };
 
-  // Correct price calculation: days / 30 rounded to 2 decimals
   const campaignDays = startDate && endDate ? differenceInDays(endDate, startDate) : 0;
   const monthsEquivalent = campaignDays > 0 ? Math.round((campaignDays / 30) * 100) / 100 : 0;
   const totalPrice = Math.round(monthsEquivalent * Number(billboard.price_per_month) * 100) / 100;
 
-  // Image upload handler
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !user) return;
@@ -206,10 +209,15 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       return;
     }
 
+    // Check if billboard is paused
+    if (!billboard.is_available || billboard.pause_reason) {
+      toast.error('Este espectacular no está disponible actualmente');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      // Store design image URLs in ad_design_url as JSON array if multiple
       const adDesignValue = designImages.length > 0 
         ? JSON.stringify(designImages) 
         : null;
@@ -231,9 +239,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
       if (error) throw error;
 
-      // Auto-create conversation thread linked to this booking
+      // Auto-create conversation thread
       try {
-        // Check if conversation already exists
         const { data: existingConv } = await supabase
           .from('conversations')
           .select('id')
@@ -261,7 +268,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           conversationId = newConv.id;
         }
 
-        // Send initial message in conversation
         await supabase.from('messages').insert({
           conversation_id: conversationId,
           sender_id: user?.id,
@@ -271,7 +277,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         console.error('Error creating conversation:', chatError);
       }
 
-      // Send notification email to owner
+      // Send notification email
       try {
         const { data: ownerProfile } = await supabase
           .from('profiles')
@@ -342,7 +348,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </p>
           </div>
           
-          {/* Booking Constraints Info */}
           {(minCampaignDays > 0 || minAdvanceBookingDays > 0) && (
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
               <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
@@ -366,73 +371,33 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </div>
           )}
 
-          {/* Date Selection */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>Fecha inicio</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-[#1A1A1A] border-white/10",
-                      !startDate && "text-white/50"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP", { locale: es }) : "Seleccionar"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[#2A2A2A] border-white/10">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={setStartDate}
-                    disabled={(date) => date < earliestStartDate || isDateBooked(date) === 'booked'}
-                    modifiers={calendarModifiers}
-                    modifiersClassNames={calendarModifiersClassNames}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
+          {/* Calendar with range selection - click to select start, click again for end */}
+          <div>
+            <Label className="mb-2 block">Selecciona rango de fechas</Label>
+            <p className="text-white/50 text-xs mb-2">Haz clic en una fecha para establecer el inicio, luego en otra para el fin.</p>
+            <div className="bg-[#1A1A1A] rounded-xl p-2 border border-white/10">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                disabled={(date) => date < earliestStartDate || isDateBooked(date) === 'booked'}
+                modifiers={calendarModifiers}
+                modifiersClassNames={calendarModifiersClassNames}
+                locale={es}
+                numberOfMonths={1}
+                className="pointer-events-auto"
+              />
             </div>
-
-            <div>
-              <Label>Fecha fin</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-[#1A1A1A] border-white/10",
-                      !endDate && "text-white/50"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP", { locale: es }) : "Seleccionar"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[#2A2A2A] border-white/10">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={setEndDate}
-                    disabled={(date) => {
-                      const minEndDate = startDate ? addDays(startDate, Math.max(minCampaignDays, 1)) : earliestStartDate;
-                      return date < minEndDate || isDateBooked(date) === 'booked';
-                    }}
-                    modifiers={calendarModifiers}
-                    modifiersClassNames={calendarModifiersClassNames}
-                    initialFocus
-                    className="pointer-events-auto"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+            {startDate && endDate && (
+              <div className="mt-2 flex items-center gap-2 text-sm">
+                <span className="text-white/60">Desde</span>
+                <span className="text-white font-medium">{format(startDate, 'd MMM yyyy', { locale: es })}</span>
+                <span className="text-white/60">hasta</span>
+                <span className="text-white font-medium">{format(endDate, 'd MMM yyyy', { locale: es })}</span>
+              </div>
+            )}
           </div>
 
-          {/* Date conflict warning */}
           {dateConflict && (
             <div className="flex items-center gap-2 bg-red-500/20 text-red-400 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -469,25 +434,24 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </p>
           </div>
 
-          {/* Design upload section */}
-          <div className="bg-[#1A1A1A] rounded-xl p-4 border border-white/10">
+          {/* Compact design upload section */}
+          <div className="bg-[#1A1A1A] rounded-xl p-3 border border-white/10">
             <div className="flex items-center gap-2 mb-2">
               <ImageIcon className="w-4 h-4 text-[#9BFF43]" />
-              <Label className="text-sm font-medium">¿Ya cuentas con diseño? Súbelo aquí</Label>
-              <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full ml-auto">Opcional</span>
+              <Label className="text-xs font-medium">¿Ya cuentas con diseño?</Label>
+              <span className="text-xs text-white/40 bg-white/5 px-1.5 py-0.5 rounded-full ml-auto">Opcional</span>
             </div>
-            <p className="text-white/50 text-xs mb-3">Sube imágenes de tu diseño publicitario para que el propietario las revise.</p>
             
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {designImages.map((url, index) => (
-                <div key={url} className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 group">
+                <div key={url} className="relative w-14 h-14 rounded-lg overflow-hidden border border-white/10 group">
                   <img src={url} alt={`Diseño ${index + 1}`} className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => setDesignImages(prev => prev.filter((_, i) => i !== index))}
                     className="absolute top-0.5 right-0.5 bg-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X className="w-3 h-3 text-white" />
+                    <X className="w-2.5 h-2.5 text-white" />
                   </button>
                 </div>
               ))}
@@ -495,12 +459,12 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 transition-colors"
+                  className="w-14 h-14 flex items-center justify-center border border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 transition-colors"
                 >
                   {isUploadingImage ? (
-                    <Loader2 className="w-5 h-5 text-white/40 animate-spin" />
+                    <Loader2 className="w-4 h-4 text-white/40 animate-spin" />
                   ) : (
-                    <Upload className="w-5 h-5 text-white/40" />
+                    <span className="text-white/40 text-xl">+</span>
                   )}
                 </button>
               )}
@@ -527,7 +491,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             />
           </div>
 
-          {/* Price Summary - Corrected calculation */}
+          {/* Price Summary */}
           <div className="bg-[#9BFF43]/10 rounded-xl p-4">
             <div className="space-y-1 text-sm text-white/70 mb-2">
               <div className="flex justify-between">
@@ -556,7 +520,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || dateConflict || durationError || message.trim().length < 20}
+              disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate}
               className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
             >
               {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
