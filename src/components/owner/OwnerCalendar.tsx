@@ -56,6 +56,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Date | null>(null);
+  const [didDrag, setDidDrag] = useState(false); // true if mouse moved to a different cell during drag
   const [rangeStart, setRangeStart] = useState<Date | null>(null); // For click-to-click range selection
   const [isEditing, setIsEditing] = useState(false);
   const [editMode, setEditMode] = useState<'price' | 'block' | null>(null);
@@ -120,17 +121,22 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
     if (hasBooking || isBlocked) return;
     
     // If we already have a range start set (click-to-click mode), don't start drag
-    // The click handler will complete the range
     if (rangeStart) return;
     
-    // Start drag selection
+    // Start potential drag selection
     setIsDragging(true);
+    setDidDrag(false);
     setDragStart(date);
     setSelectedDates([date]);
   };
 
   const handleDateMouseEnter = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
     if (!isDragging || !dragStart || hasBooking || isBlocked) return;
+    
+    // Mark that a real drag happened (moved to a different cell)
+    if (!isSameDay(date, dragStart)) {
+      setDidDrag(true);
+    }
     
     // Create a range from dragStart to current date
     const start = dragStart < date ? dragStart : date;
@@ -146,15 +152,10 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   };
 
   const handleDateMouseUp = () => {
-    // Only end dragging if we were actually dragging
-    if (isDragging && dragStart) {
+    if (isDragging) {
       setIsDragging(false);
-      // If only one date was selected via drag, start click-to-click mode
-      if (selectedDates.length === 1) {
-        setRangeStart(selectedDates[0]);
-      }
+      setDragStart(null);
     }
-    setDragStart(null);
   };
 
   // Add global mouse up listener to handle drag end
@@ -169,17 +170,20 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
     return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, [isDragging]);
 
-  // Handle click-to-click date range selection (for blocking dates, etc.)
+  // Handle click-to-click date range selection
   const handleDateClick = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
     if (hasBooking || isBlocked) return;
     
-    // If we were dragging and moved to multiple dates, skip click handling
-    if (selectedDates.length > 1 && !rangeStart) {
+    // If a real drag happened (mouse moved to different cells), the drag already set selectedDates
+    // Don't do click-to-click in this case
+    if (didDrag) {
+      setDidDrag(false);
+      setRangeStart(null);
       return;
     }
     
     if (!rangeStart) {
-      // First click - set start of range for click-to-click
+      // First click - set start of range
       setRangeStart(date);
       setSelectedDates([date]);
     } else {
@@ -194,7 +198,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
         current = addDays(current, 1);
       }
       setSelectedDates(datesInRange);
-      setRangeStart(null); // Reset for next selection - range complete
+      setRangeStart(null); // Reset for next selection
     }
   };
 
