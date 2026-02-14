@@ -150,79 +150,113 @@ serve(async (req) => {
       source: string;
     };
 
-    if (TOMTOM_API_KEY) {
-      console.log(`Attempting TomTom API for billboard ${billboard_id}`);
+    // Try both MADDI_TOMTOM_API_KEY and TOMTOM_API_KEY
+    const MADDI_TOMTOM_API_KEY = Deno.env.get('MADDI_TOMTOM_API_KEY');
+    const effectiveKey = MADDI_TOMTOM_API_KEY || TOMTOM_API_KEY;
+    const keySource = MADDI_TOMTOM_API_KEY ? 'MADDI_TOMTOM_API_KEY' : (TOMTOM_API_KEY ? 'TOMTOM_API_KEY' : 'none');
+
+    if (effectiveKey) {
+      console.log(`Attempting TomTom API for billboard ${billboard_id} using key from: ${keySource}`);
+      console.log(`Key prefix: ${effectiveKey.substring(0, 8)}...`);
       
-      try {
-        const tomtomUrl = `https://api.tomtom.com/traffic/services/4/flowSegmentData/relative0/10/json?point=${latitude},${longitude}&key=${TOMTOM_API_KEY}`;
-        const tomtomResponse = await fetch(tomtomUrl);
-        
-        if (tomtomResponse.ok) {
-          const tomtomData = await tomtomResponse.json();
+      // Try multiple endpoint versions to find which one works
+      const endpoints = [
+        {
+          name: 'Traffic Flow v4 (flowSegmentData)',
+          url: `https://api.tomtom.com/traffic/services/4/flowSegmentData/relative0/10/json?point=${latitude},${longitude}&key=${effectiveKey}`,
+        },
+        {
+          name: 'Traffic Flow v4 (absolute)',
+          url: `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?point=${latitude},${longitude}&key=${effectiveKey}`,
+        },
+      ];
+
+      let success = false;
+
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`[TomTom] Trying: ${endpoint.name}`);
+          console.log(`[TomTom] URL: ${endpoint.url.replace(effectiveKey, 'KEY_REDACTED')}`);
+          
+          const tomtomResponse = await fetch(endpoint.url);
+          const responseText = await tomtomResponse.text();
+          
+          console.log(`[TomTom] ${endpoint.name} -> Status: ${tomtomResponse.status}`);
+          
+          if (!tomtomResponse.ok) {
+            console.error(`[TomTom] ${endpoint.name} FAILED: ${tomtomResponse.status} ${responseText}`);
+            continue;
+          }
+
+          const tomtomData = JSON.parse(responseText);
           const flowSegmentData = tomtomData.flowSegmentData;
 
-          if (flowSegmentData) {
-            const currentSpeed = flowSegmentData.currentSpeed || 0;
-            const freeFlowSpeed = flowSegmentData.freeFlowSpeed || 0;
-            const confidence = flowSegmentData.confidence || 0.5;
-
-            // Calculate based on road type
-            let baseVehiclesPerHour: number;
-            let roadType: string;
-            let peakHours: string;
-            
-            if (freeFlowSpeed > 100) {
-              baseVehiclesPerHour = 3000;
-              roadType = 'autopista';
-              peakHours = '7:00-9:00, 18:00-20:00';
-            } else if (freeFlowSpeed > 70) {
-              baseVehiclesPerHour = 2000;
-              roadType = 'avenida_principal';
-              peakHours = '7:30-9:30, 17:30-19:30';
-            } else if (freeFlowSpeed > 50) {
-              baseVehiclesPerHour = 1200;
-              roadType = 'calle_secundaria';
-              peakHours = '8:00-10:00, 17:00-19:00';
-            } else if (freeFlowSpeed > 30) {
-              baseVehiclesPerHour = 800;
-              roadType = 'calle_urbana';
-              peakHours = '12:00-14:00, 18:00-20:00';
-            } else {
-              baseVehiclesPerHour = 500;
-              roadType = 'zona_lenta';
-              peakHours = '10:00-14:00';
-            }
-
-            const congestionRatio = freeFlowSpeed > 0 ? currentSpeed / freeFlowSpeed : 1;
-            const congestionFactor = congestionRatio < 0.5 ? 1.5 : congestionRatio < 0.8 ? 1.2 : 1.0;
-            const effectiveHours = 16;
-
-            const estimatedDailyTraffic = Math.round(
-              baseVehiclesPerHour * effectiveHours * congestionFactor * Math.max(confidence, 0.5)
-            );
-
-            trafficData = {
-              estimated_daily_traffic: estimatedDailyTraffic,
-              road_type: roadType,
-              peak_hours: peakHours,
-              confidence_level: confidence >= 0.8 ? 'Alta' : confidence >= 0.5 ? 'Media' : 'Baja',
-              confidence,
-              current_speed: Math.round(currentSpeed),
-              free_flow_speed: Math.round(freeFlowSpeed),
-              source: 'tomtom',
-            };
-
-            console.log(`TomTom success: ${estimatedDailyTraffic} daily traffic`);
-          } else {
-            throw new Error('No flow segment data');
+          if (!flowSegmentData) {
+            console.error(`[TomTom] ${endpoint.name} returned OK but no flowSegmentData:`, JSON.stringify(tomtomData).substring(0, 500));
+            continue;
           }
-        } else {
-          const errorText = await tomtomResponse.text();
-          console.error(`TomTom API error: ${tomtomResponse.status}`, errorText);
-          throw new Error(`TomTom API returned ${tomtomResponse.status}`);
+
+          const currentSpeed = flowSegmentData.currentSpeed || 0;
+          const freeFlowSpeed = flowSegmentData.freeFlowSpeed || 0;
+          const confidence = flowSegmentData.confidence || 0.5;
+
+          console.log(`[TomTom] SUCCESS via ${endpoint.name}: currentSpeed=${currentSpeed}, freeFlowSpeed=${freeFlowSpeed}, confidence=${confidence}`);
+
+          // Calculate based on road type
+          let baseVehiclesPerHour: number;
+          let roadType: string;
+          let peakHours: string;
+          
+          if (freeFlowSpeed > 100) {
+            baseVehiclesPerHour = 3000;
+            roadType = 'autopista';
+            peakHours = '7:00-9:00, 18:00-20:00';
+          } else if (freeFlowSpeed > 70) {
+            baseVehiclesPerHour = 2000;
+            roadType = 'avenida_principal';
+            peakHours = '7:30-9:30, 17:30-19:30';
+          } else if (freeFlowSpeed > 50) {
+            baseVehiclesPerHour = 1200;
+            roadType = 'calle_secundaria';
+            peakHours = '8:00-10:00, 17:00-19:00';
+          } else if (freeFlowSpeed > 30) {
+            baseVehiclesPerHour = 800;
+            roadType = 'calle_urbana';
+            peakHours = '12:00-14:00, 18:00-20:00';
+          } else {
+            baseVehiclesPerHour = 500;
+            roadType = 'zona_lenta';
+            peakHours = '10:00-14:00';
+          }
+
+          const congestionRatio = freeFlowSpeed > 0 ? currentSpeed / freeFlowSpeed : 1;
+          const congestionFactor = congestionRatio < 0.5 ? 1.5 : congestionRatio < 0.8 ? 1.2 : 1.0;
+          const effectiveHours = 16;
+
+          const estimatedDailyTraffic = Math.round(
+            baseVehiclesPerHour * effectiveHours * congestionFactor * Math.max(confidence, 0.5)
+          );
+
+          trafficData = {
+            estimated_daily_traffic: estimatedDailyTraffic,
+            road_type: roadType,
+            peak_hours: peakHours,
+            confidence_level: confidence >= 0.8 ? 'Alta' : confidence >= 0.5 ? 'Media' : 'Baja',
+            confidence,
+            current_speed: Math.round(currentSpeed),
+            free_flow_speed: Math.round(freeFlowSpeed),
+            source: 'tomtom',
+          };
+
+          success = true;
+          break;
+        } catch (endpointError) {
+          console.error(`[TomTom] ${endpoint.name} exception:`, endpointError);
         }
-      } catch (tomtomError) {
-        console.log('TomTom failed, using location-based estimate:', tomtomError);
+      }
+
+      if (!success) {
+        console.warn('[TomTom] All endpoints failed, using location-based fallback');
         const locationEstimate = estimateTrafficFromLocation(billboardCity, hasNearbyPOIs);
         trafficData = {
           ...locationEstimate,
