@@ -276,7 +276,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         console.error('Error creating conversation:', chatError);
       }
 
-      // Send notification email
+      // Send notification emails
       try {
         const { data: ownerProfile } = await supabase
           .from('profiles')
@@ -290,17 +290,40 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           .eq('user_id', user?.id)
           .maybeSingle();
 
+        const formattedStart = format(startDate, 'd MMM yyyy', { locale: es });
+        const formattedEnd = format(endDate, 'd MMM yyyy', { locale: es });
+        const businessName = businessProfile?.company_name || businessProfile?.full_name || 'Anunciante';
+
+        // Email to owner: new booking request
         await supabase.functions.invoke('send-notification-email', {
           body: {
             type: 'booking_request',
             recipientName: ownerProfile?.full_name || 'Propietario',
+            userId: billboard.owner_id,
+            entityId: bookingData.id,
             data: {
               billboardTitle: billboard.title,
-              businessName: businessProfile?.company_name || businessProfile?.full_name || 'Anunciante',
-              startDate: format(startDate, 'd MMM yyyy', { locale: es }),
-              endDate: format(endDate, 'd MMM yyyy', { locale: es }),
+              businessName,
+              startDate: formattedStart,
+              endDate: formattedEnd,
               totalPrice: totalPrice,
-              ownerId: billboard.owner_id,
+              message: message.trim().slice(0, 200),
+            }
+          }
+        });
+
+        // Email to business: confirmation of request sent
+        await supabase.functions.invoke('send-notification-email', {
+          body: {
+            type: 'booking_request_confirmation',
+            recipientName: businessProfile?.full_name || 'Anunciante',
+            userId: user?.id,
+            entityId: bookingData.id,
+            data: {
+              billboardTitle: billboard.title,
+              startDate: formattedStart,
+              endDate: formattedEnd,
+              totalPrice: totalPrice,
             }
           }
         });
