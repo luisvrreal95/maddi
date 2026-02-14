@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useBillboards } from '@/hooks/useBillboards';
 import { MapPin, Eye, TrendingUp, Zap, Building2, ChevronRight } from 'lucide-react';
@@ -12,13 +12,40 @@ const badges = [
 
 const FeaturedListingsSection: React.FC = () => {
   const navigate = useNavigate();
-  const { billboards, isLoading } = useBillboards();
-  
-  // Only show available ones, max 6
-  const featured = billboards.filter(b => b.is_available && !b.pause_reason).slice(0, 6);
-  const city = featured.length > 0 ? featured[0].city : 'Mexicali';
+  const [userCity, setUserCity] = useState<string | undefined>(undefined);
+  const [geoReady, setGeoReady] = useState(false);
 
-  if (isLoading) {
+  // Reverse geocode user's location to get their city
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGeoReady(true);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const resp = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&accept-language=es`
+          );
+          const data = await resp.json();
+          const city = data?.address?.city || data?.address?.town || data?.address?.municipality;
+          if (city) setUserCity(city);
+        } catch { /* ignore */ }
+        setGeoReady(true);
+      },
+      () => setGeoReady(true),
+      { timeout: 5000 }
+    );
+  }, []);
+
+  const { billboards, isLoading } = useBillboards(
+    geoReady && userCity ? { city: userCity } : undefined
+  );
+
+  const featured = billboards.filter(b => b.is_available && !b.pause_reason).slice(0, 6);
+  const displayCity = userCity || (featured.length > 0 ? featured[0].city : 'Mexicali');
+
+  if (isLoading || !geoReady) {
     return (
       <section className="bg-[hsl(0,0%,8%)] py-20 px-6 md:px-16">
         <div className="max-w-7xl mx-auto">
@@ -44,7 +71,7 @@ const FeaturedListingsSection: React.FC = () => {
           <div>
             <h2 className="text-white text-3xl md:text-4xl font-bold">
               Espectaculares destacados en{' '}
-              <span className="text-primary">{city}</span>
+              <span className="text-primary">{displayCity}</span>
             </h2>
             <p className="text-white/40 mt-2">Ubicaciones estratégicas con alta visibilidad</p>
           </div>
@@ -66,7 +93,6 @@ const FeaturedListingsSection: React.FC = () => {
                 onClick={() => navigate(`/billboard/${b.id}`)}
                 className="group cursor-pointer bg-[hsl(0,0%,13%)] rounded-2xl overflow-hidden border border-white/5 hover:border-white/15 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl"
               >
-                {/* Image */}
                 <div className="relative h-48 bg-[hsl(0,0%,18%)] overflow-hidden">
                   {b.image_url ? (
                     <img
@@ -80,14 +106,12 @@ const FeaturedListingsSection: React.FC = () => {
                       <MapPin className="w-12 h-12" />
                     </div>
                   )}
-                  {/* Badge */}
                   <div className={`absolute top-3 left-3 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${badge.color}`}>
                     <BadgeIcon className="w-3 h-3" />
                     {badge.label}
                   </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-5">
                   <h3 className="text-white font-semibold text-lg group-hover:text-primary transition-colors">
                     {b.title}
@@ -121,7 +145,6 @@ const FeaturedListingsSection: React.FC = () => {
           })}
         </div>
 
-        {/* Mobile CTA */}
         <button
           onClick={() => navigate('/search')}
           className="mt-8 w-full md:hidden flex items-center justify-center gap-2 text-primary border border-primary/30 rounded-xl py-3 font-medium hover:bg-primary/5 transition-colors"
@@ -133,7 +156,6 @@ const FeaturedListingsSection: React.FC = () => {
   );
 };
 
-// Fallback when no properties exist
 const CategoriesSection: React.FC = () => {
   const navigate = useNavigate();
   const categories = [
@@ -150,7 +172,6 @@ const CategoriesSection: React.FC = () => {
           Explora por categoría
         </h2>
         <p className="text-white/40 mb-10">Encuentra el formato ideal para tu marca</p>
-
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {categories.map((cat) => (
             <button

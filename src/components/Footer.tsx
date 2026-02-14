@@ -1,5 +1,6 @@
 import React from 'react';
 import { Facebook, Instagram, Twitter } from 'lucide-react';
+import maddiLogo from '@/assets/maddi-logo.svg';
 
 const Footer: React.FC = () => {
   const socialLinks = [
@@ -10,9 +11,9 @@ const Footer: React.FC = () => {
 
   const navLinks = [
     { label: 'Nuestros Servicios', href: '#' },
-    { label: 'Inicia sesión', href: '#' },
-    { label: 'Regístrate', href: '#' },
-    { label: 'Explora', href: '#' },
+    { label: 'Inicia sesión', href: '/auth' },
+    { label: 'Regístrate', href: '/auth' },
+    { label: 'Explora', href: '/search' },
     { label: 'Términos & Condiciones', href: '#' }
   ];
 
@@ -20,17 +21,9 @@ const Footer: React.FC = () => {
     <footer className="w-full bg-[#181818] py-16 px-16 max-md:py-12 max-md:px-8 max-sm:py-10 max-sm:px-5">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
-          {/* Logo and Tagline */}
+          {/* Logo */}
           <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="40" height="40" rx="8" fill="#9BFF43"/>
-                <text x="50%" y="55%" dominantBaseline="middle" textAnchor="middle" fill="#202020" fontSize="14" fontWeight="bold" fontFamily="system-ui">
-                  M
-                </text>
-              </svg>
-              <span className="text-white text-2xl font-bold">Maddi</span>
-            </div>
+            <img src={maddiLogo} alt="Maddi" className="h-10 w-auto" />
             <p className="text-white/50 text-sm italic">Hace todo más fácil</p>
           </div>
 
