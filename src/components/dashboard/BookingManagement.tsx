@@ -3,25 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, X, Clock, Calendar, DollarSign, Eye, MessageSquare, AlertTriangle, Image as ImageIcon } from 'lucide-react';
+import { Check, X, Clock, Calendar, Eye, MessageSquare, AlertTriangle, Image as ImageIcon, Ban } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { differenceInDays } from 'date-fns';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 
 interface Booking {
@@ -35,15 +26,8 @@ interface Booking {
   notes: string | null;
   ad_design_url: string | null;
   created_at: string;
-  billboard?: {
-    title: string;
-    address: string;
-    city: string;
-  };
-  profile?: {
-    full_name: string;
-    company_name: string | null;
-  };
+  billboard?: { title: string; address: string; city: string; };
+  profile?: { full_name: string; company_name: string | null; };
 }
 
 const BookingManagement: React.FC = () => {
@@ -145,11 +129,7 @@ const BookingManagement: React.FC = () => {
             .eq('user_id', booking.business_id)
             .maybeSingle();
 
-          return {
-            ...booking,
-            billboard: billboard || undefined,
-            profile: profile || undefined,
-          };
+          return { ...booking, billboard: billboard || undefined, profile: profile || undefined };
         })
       );
 
@@ -162,7 +142,6 @@ const BookingManagement: React.FC = () => {
     }
   };
 
-  // Check for overlap before approving
   const checkOverlap = async (booking: Booking): Promise<boolean> => {
     const { data: approvedBookings } = await supabase
       .from('bookings')
@@ -212,7 +191,6 @@ const BookingManagement: React.FC = () => {
     
     setProcessing(true);
     try {
-      // 1. Update booking status
       const { error } = await supabase
         .from('bookings')
         .update({ status: 'approved' })
@@ -220,7 +198,6 @@ const BookingManagement: React.FC = () => {
 
       if (error) throw error;
 
-      // 2. Block the dates now that it's approved
       await supabase.from('blocked_dates').insert({
         billboard_id: selectedBooking.billboard_id,
         start_date: selectedBooking.start_date,
@@ -228,7 +205,6 @@ const BookingManagement: React.FC = () => {
         reason: `Campaña aprobada #${selectedBooking.id.slice(0, 8)}`,
       });
 
-      // 3. Send notification email
       try {
         await supabase.functions.invoke('send-notification-email', {
           body: {
@@ -269,7 +245,6 @@ const BookingManagement: React.FC = () => {
 
       if (error) throw error;
 
-      // Send rejection notification
       try {
         await supabase.functions.invoke('send-notification-email', {
           body: {
@@ -308,6 +283,20 @@ const BookingManagement: React.FC = () => {
     }
   };
 
+  // Extract message from notes (before "--- Notas adicionales ---")
+  const getMessageFromNotes = (notes: string | null): { message: string; extraNotes: string | null } => {
+    if (!notes) return { message: '', extraNotes: null };
+    const separator = '\n\n--- Notas adicionales ---\n';
+    const idx = notes.indexOf(separator);
+    if (idx >= 0) {
+      return {
+        message: notes.substring(0, idx),
+        extraNotes: notes.substring(idx + separator.length),
+      };
+    }
+    return { message: notes, extraNotes: null };
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -326,6 +315,12 @@ const BookingManagement: React.FC = () => {
         return (
           <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/20 text-red-400 text-xs">
             <X className="w-3 h-3" /> Rechazada
+          </span>
+        );
+      case 'cancelled':
+        return (
+          <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-gray-500/20 text-gray-400 text-xs">
+            <Ban className="w-3 h-3" /> Cancelada
           </span>
         );
       default:
@@ -352,6 +347,7 @@ const BookingManagement: React.FC = () => {
         const days = differenceInDays(new Date(booking.end_date), new Date(booking.start_date));
         const months = Math.round((days / 30) * 100) / 100;
         const images = getDesignImages(booking);
+        const { message } = getMessageFromNotes(booking.notes);
 
         return (
           <div
@@ -371,36 +367,39 @@ const BookingManagement: React.FC = () => {
               {getStatusBadge(booking.status)}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
-              <div>
-                <p className="text-white/50">Solicitante</p>
-                <p className="text-white">
+            {/* Metadata grid */}
+            <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+              <div className="bg-[#1A1A1A] rounded-lg p-2">
+                <p className="text-white/50 text-xs">Solicitante</p>
+                <p className="text-white text-sm">
                   {booking.profile?.company_name || booking.profile?.full_name || 'Negocio'}
                 </p>
               </div>
-              <div>
-                <p className="text-white/50">Total</p>
-                <p className="text-[#9BFF43] font-semibold flex items-center gap-1">
-                  <DollarSign className="w-4 h-4" />
-                  ${booking.total_price.toLocaleString()}
+              <div className="bg-[#1A1A1A] rounded-lg p-2">
+                <p className="text-white/50 text-xs">Total</p>
+                <p className="text-[#9BFF43] font-semibold text-sm">
+                  ${booking.total_price.toLocaleString()} MXN
                 </p>
               </div>
-              <div>
-                <p className="text-white/50">Periodo</p>
+              <div className="bg-[#1A1A1A] rounded-lg p-2">
+                <p className="text-white/50 text-xs">Periodo</p>
                 <p className="text-white text-xs">
                   {new Date(booking.start_date).toLocaleDateString('es-MX')} — {new Date(booking.end_date).toLocaleDateString('es-MX')}
                 </p>
               </div>
-              <div>
-                <p className="text-white/50">Duración</p>
-                <p className="text-white">{days} días ({months} meses)</p>
+              <div className="bg-[#1A1A1A] rounded-lg p-2">
+                <p className="text-white/50 text-xs">Duración</p>
+                <p className="text-white text-sm">{days} días ({months} meses)</p>
               </div>
             </div>
 
-            {booking.notes && (
-              <div className="mb-3 p-3 bg-[#1A1A1A] rounded-lg">
-                <p className="text-white/50 text-xs mb-1">Mensaje</p>
-                <p className="text-white text-sm line-clamp-2">{booking.notes}</p>
+            {/* Message bubble - separate from metadata */}
+            {message && (
+              <div className="mb-3 p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                <p className="text-white/50 text-xs mb-1 flex items-center gap-1">
+                  <MessageSquare className="w-3 h-3" /> Mensaje del negocio
+                </p>
+                <p className="text-white text-sm line-clamp-2">{message}</p>
               </div>
             )}
 
@@ -428,6 +427,12 @@ const BookingManagement: React.FC = () => {
                 </Button>
               </div>
             )}
+
+            {booking.status === 'cancelled' && (
+              <div className="pt-3 border-t border-white/10 text-center">
+                <p className="text-gray-400 text-sm">Esta solicitud fue cancelada por el negocio</p>
+              </div>
+            )}
           </div>
         );
       })}
@@ -442,6 +447,7 @@ const BookingManagement: React.FC = () => {
             const days = differenceInDays(new Date(selectedBooking.end_date), new Date(selectedBooking.start_date));
             const months = Math.round((days / 30) * 100) / 100;
             const images = getDesignImages(selectedBooking);
+            const { message, extraNotes } = getMessageFromNotes(selectedBooking.notes);
             return (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -449,6 +455,7 @@ const BookingManagement: React.FC = () => {
                   {getStatusBadge(selectedBooking.status)}
                 </div>
 
+                {/* Structured metadata block */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div className="bg-[#1A1A1A] rounded-lg p-3">
                     <p className="text-white/50 text-xs">Solicitante</p>
@@ -473,16 +480,29 @@ const BookingManagement: React.FC = () => {
                   <p className="text-white">{days} días ({months} meses equivalentes)</p>
                 </div>
 
-                {selectedBooking.notes && (
-                  <div className="bg-[#1A1A1A] rounded-lg p-3">
-                    <p className="text-white/50 text-xs mb-1">Mensaje del negocio</p>
-                    <p className="text-white text-sm whitespace-pre-wrap">{selectedBooking.notes}</p>
+                {/* Message as independent bubble */}
+                {message && (
+                  <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
+                    <p className="text-blue-400 text-xs mb-2 flex items-center gap-1 font-medium">
+                      <MessageSquare className="w-3.5 h-3.5" /> Mensaje del negocio
+                    </p>
+                    <p className="text-white text-sm whitespace-pre-wrap">{message}</p>
                   </div>
                 )}
 
+                {extraNotes && (
+                  <div className="bg-[#1A1A1A] rounded-lg p-3">
+                    <p className="text-white/50 text-xs mb-1">Notas adicionales</p>
+                    <p className="text-white text-sm whitespace-pre-wrap">{extraNotes}</p>
+                  </div>
+                )}
+
+                {/* Design images gallery */}
                 {images.length > 0 && (
                   <div>
-                    <p className="text-white/50 text-xs mb-2">Diseños adjuntos</p>
+                    <p className="text-white/50 text-xs mb-2 flex items-center gap-1">
+                      <ImageIcon className="w-3.5 h-3.5 text-[#9BFF43]" /> Diseños adjuntos ({images.length})
+                    </p>
                     <div className="grid grid-cols-3 gap-2">
                       {images.map((url, i) => (
                         <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="block">
@@ -494,20 +514,12 @@ const BookingManagement: React.FC = () => {
                 )}
 
                 <div className="flex gap-2 pt-2">
-                  <Link
-                    to={`/messages`}
-                    className="flex-1"
-                    onClick={() => setShowDetail(false)}
-                  >
+                  <Link to={`/messages`} className="flex-1" onClick={() => setShowDetail(false)}>
                     <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
                       <MessageSquare className="w-4 h-4 mr-2" /> Ir a mensajes
                     </Button>
                   </Link>
-                  <Link
-                    to={`/billboard/${selectedBooking.billboard_id}`}
-                    className="flex-1"
-                    onClick={() => setShowDetail(false)}
-                  >
+                  <Link to={`/billboard/${selectedBooking.billboard_id}`} className="flex-1" onClick={() => setShowDetail(false)}>
                     <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/10">
                       <Eye className="w-4 h-4 mr-2" /> Ver espectacular
                     </Button>
@@ -529,6 +541,12 @@ const BookingManagement: React.FC = () => {
                     >
                       <X className="w-4 h-4 mr-2" /> Rechazar
                     </Button>
+                  </div>
+                )}
+
+                {selectedBooking.status === 'cancelled' && (
+                  <div className="bg-gray-500/10 border border-gray-500/20 rounded-xl p-3 text-center">
+                    <p className="text-gray-400 text-sm">Esta solicitud fue cancelada por el negocio</p>
                   </div>
                 )}
               </div>

@@ -1,15 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Billboard } from '@/hooks/useBillboards';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, AlertCircle, CheckCircle, TrendingUp, Bell, ChevronRight, MapPin, Plus, User, MessageSquare } from 'lucide-react';
-import { format, differenceInDays, addDays, isToday, isBefore, isAfter } from 'date-fns';
+import { Calendar, Clock, TrendingUp, ChevronRight, MapPin, User, MessageSquare } from 'lucide-react';
+import { format, differenceInDays, isToday, isBefore, isAfter } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import PendingActionsBlock from './PendingActionsBlock';
 
 interface Booking {
   id: string;
@@ -27,17 +25,6 @@ interface Booking {
   };
 }
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  is_read: boolean;
-  created_at: string;
-  related_booking_id: string | null;
-  related_billboard_id: string | null;
-}
-
 interface OwnerHomeProps {
   billboards: Billboard[];
   userId: string;
@@ -48,11 +35,9 @@ type FilterType = 'all' | 'today' | 'upcoming' | 'expiring' | 'pending';
 const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
   const [selectedBillboardId, setSelectedBillboardId] = useState<string>('all');
-  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
     if (billboards.length > 0) {
@@ -64,7 +49,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
 
   const fetchData = async () => {
     try {
-      // Get billboard IDs for this owner
       const billboardIds = billboards.map(b => b.id);
       
       if (billboardIds.length === 0) {
@@ -73,19 +57,14 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         return;
       }
       
-      // Fetch bookings only for this owner's billboards
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
-        .select(`
-          *,
-          billboards (*)
-        `)
+        .select(`*, billboards (*)`)
         .in('billboard_id', billboardIds)
         .order('start_date', { ascending: true });
 
       if (bookingsError) throw bookingsError;
 
-      // Fetch profiles for business users in bookings
       const bookingsWithProfiles = await Promise.all(
         (bookingsData || []).map(async (b) => {
           const { data: profile } = await supabase
@@ -103,36 +82,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       );
 
       setBookings(bookingsWithProfiles);
-
-      // Fetch recent notifications
-      const { data: notificationsData, error: notificationsError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (notificationsError) throw notificationsError;
-      setNotifications(notificationsData || []);
-      
-      // Fetch unread messages count
-      const { data: conversations } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('owner_id', userId);
-      
-      if (conversations && conversations.length > 0) {
-        const conversationIds = conversations.map(c => c.id);
-        const { count } = await supabase
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .in('conversation_id', conversationIds)
-          .eq('is_read', false)
-          .neq('sender_id', userId);
-        
-        setUnreadMessages(count || 0);
-      }
-
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -140,7 +89,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     }
   };
 
-  // Categorize bookings - set today to start of day for accurate comparison
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
@@ -153,37 +101,30 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     const daysUntilEnd = differenceInDays(endDate, today);
     const daysUntilStart = differenceInDays(startDate, today);
 
-    // Filter by billboard if selected
     if (selectedBillboardId !== 'all' && booking.billboard_id !== selectedBillboardId) {
       return acc;
     }
 
-    // Today: active campaigns that include today (not just starts/ends today)
     if (isBefore(startDate, new Date()) && isAfter(endDate, new Date()) && booking.status === 'approved') {
       acc.today.push(booking);
     }
     
-    // Upcoming: ALL approved bookings that haven't started yet (start_date > today)
     if (daysUntilStart > 0 && booking.status === 'approved') {
       acc.upcoming.push(booking);
     }
     
-    // Expiring: ends in ≤14 days (and is still active, i.e. has started)
     if (daysUntilEnd > 0 && daysUntilEnd <= 14 && booking.status === 'approved' && isBefore(startDate, new Date())) {
       acc.expiring.push(booking);
     }
     
-    // Pending: waiting for approval
     if (booking.status === 'pending') {
       acc.pending.push(booking);
     }
 
-    // Active: currently running (started before now and ends after now)
     if (isBefore(startDate, new Date()) && isAfter(endDate, new Date()) && booking.status === 'approved') {
       acc.active.push(booking);
     }
     
-    // Concluded: already ended
     if (isBefore(endDate, new Date()) && booking.status === 'approved') {
       acc.concluded.push(booking);
     }
@@ -191,17 +132,14 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     return acc;
   }, { today: [], upcoming: [], expiring: [], pending: [], active: [], concluded: [] } as Record<string, Booking[]>);
 
-  // Calculate stats - count unique billboards with active bookings
   const billboardsWithActiveBookings = new Set(categorizedBookings.active.map(b => b.billboard_id));
   const occupancyRate = billboards.length > 0 
     ? Math.round((billboardsWithActiveBookings.size / billboards.length) * 100) 
     : 0;
   
-  // Count billboards rented today (with active campaigns)
   const rentedTodayCount = billboardsWithActiveBookings.size;
 
   const getFilteredBookings = (): Booking[] => {
-    // Apply billboard filter first
     const billboardFiltered = selectedBillboardId === 'all' 
       ? bookings 
       : bookings.filter(b => b.billboard_id === selectedBillboardId);
@@ -217,7 +155,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         return categorizedBookings.pending;
       case 'all':
       default:
-        // Return ALL bookings (filtered by billboard if applicable), sorted by start_date descending (most recent first)
         return billboardFiltered
           .filter(b => b.status === 'approved' || b.status === 'pending')
           .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
@@ -236,11 +173,12 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     if (booking.status === 'rejected') {
       return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Rechazado</Badge>;
     }
-    // Concluded: end date has passed
+    if (booking.status === 'cancelled') {
+      return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Cancelada</Badge>;
+    }
     if (isBefore(endDate, now)) {
       return <Badge className="bg-gray-500/20 text-gray-400 border-gray-500/30">Concluida</Badge>;
     }
-    // Por vencer: ends in ≤14 days and has started
     if (daysUntilEnd <= 14 && daysUntilEnd > 0 && isBefore(startDate, now)) {
       return <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30">Por vencer</Badge>;
     }
@@ -250,7 +188,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     if (isToday(endDate)) {
       return <Badge className="bg-red-500/20 text-red-400 border-red-500/30">Termina hoy</Badge>;
     }
-    // Not started yet
     if (isAfter(startDate, now)) {
       return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Próxima</Badge>;
     }
@@ -265,80 +202,57 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     );
   }
 
-  // Get unread notifications
-  const unreadNotifications = notifications.filter(n => !n.is_read);
-
   return (
     <div className="space-y-8">
-      {/* Unread Notifications Banner - Shows at top until resolved */}
-      {unreadNotifications.length > 0 && (
-        <div className="space-y-2">
-          <h2 className="text-white font-semibold flex items-center gap-2">
-            <Bell className="w-5 h-5 text-[#9BFF43]" />
-            Notificaciones pendientes
-          </h2>
+      {/* Consolidated Pending Requests Block */}
+      {categorizedBookings.pending.length > 0 && (
+        <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-yellow-400" />
+              <h2 className="text-white font-semibold">
+                Solicitudes pendientes ({categorizedBookings.pending.length})
+              </h2>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+              onClick={() => navigate('/owner?tab=reservas')}
+            >
+              Ver todas <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
           <div className="space-y-2">
-            {unreadNotifications.slice(0, 5).map((notif) => (
-              <div 
-                key={notif.id}
-                className="bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl p-4 flex items-center justify-between"
+            {categorizedBookings.pending.slice(0, 3).map((booking) => (
+              <div
+                key={booking.id}
+                className="bg-[#1E1E1E] rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-[#252525] transition-colors"
+                onClick={() => navigate('/owner?tab=reservas')}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-[#9BFF43]" />
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">{notif.title}</p>
-                    <p className="text-white/60 text-sm">{notif.message}</p>
-                  </div>
+                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-[#2A2A2A]">
+                  <img
+                    src={booking.billboard?.image_url || '/placeholder.svg'}
+                    alt={booking.billboard?.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <div className="flex items-center gap-2">
-                  {notif.related_booking_id && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-[#9BFF43] hover:bg-[#9BFF43]/10"
-                      onClick={() => navigate('/owner?tab=reservas')}
-                    >
-                      Ver reserva
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-white/60 hover:text-white hover:bg-white/10"
-                    onClick={async () => {
-                      await supabase
-                        .from('notifications')
-                        .update({ is_read: true })
-                        .eq('id', notif.id);
-                      // Refresh notifications
-                      const { data } = await supabase
-                        .from('notifications')
-                        .select('*')
-                        .eq('user_id', userId)
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-                      if (data) setNotifications(data);
-                    }}
-                  >
-                    <CheckCircle className="w-4 h-4" />
-                  </Button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-medium truncate">{booking.billboard?.title}</p>
+                  <p className="text-white/50 text-xs">
+                    {booking.profile?.company_name || booking.profile?.full_name || 'Anunciante'}
+                  </p>
                 </div>
+                <span className="text-[#9BFF43] text-sm font-semibold flex-shrink-0">
+                  ${Number(booking.total_price).toLocaleString()}
+                </span>
               </div>
             ))}
           </div>
         </div>
       )}
       
-      {/* Pending Actions Block - Shows only if there are pending actions */}
-      <PendingActionsBlock
-        pendingBookings={categorizedBookings.pending}
-        expiringBookings={categorizedBookings.expiring}
-        unreadMessages={unreadMessages}
-      />
-      
-      {/* Quick Stats Bar - Updated: Total billboards, Reserved today, Occupancy */}
+      {/* Quick Stats Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
@@ -444,7 +358,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                 onClick={() => navigate(`/owner?tab=reservas`)}
               >
                 <div className="flex items-center gap-4">
-                  {/* Billboard Image */}
                   <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
                     <img 
                       src={booking.billboard?.image_url || '/placeholder.svg'} 
@@ -453,7 +366,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                     />
                   </div>
                   
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="text-white font-medium truncate">
@@ -471,7 +383,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                         {differenceInDays(new Date(booking.end_date), new Date(booking.start_date))} días
                       </span>
                     </div>
-                    {/* Show renter info for approved and pending bookings */}
                     {(booking.status === 'approved' || booking.status === 'pending') && booking.profile && (
                       <div className="flex items-center gap-2 mt-2 text-sm">
                         <User className="w-3.5 h-3.5 text-white/40" />
@@ -484,7 +395,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                           className="h-6 px-2 text-[#9BFF43] hover:text-[#9BFF43] hover:bg-[#9BFF43]/10"
                           onClick={async (e) => {
                             e.stopPropagation();
-                            // Try to find existing conversation
                             const { data: existingConv } = await supabase
                               .from('conversations')
                               .select('id')
@@ -507,7 +417,6 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                     )}
                   </div>
                   
-                  {/* Price */}
                   <div className="text-right flex-shrink-0">
                     <p className="text-[#9BFF43] font-bold">
                       ${Number(booking.total_price).toLocaleString()}
