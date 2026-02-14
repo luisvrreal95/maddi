@@ -123,7 +123,7 @@ const BusinessDashboard: React.FC = () => {
         } else {
           past.push(booking);
         }
-      } else if (booking.status === 'rejected') {
+      } else if (booking.status === 'rejected' || booking.status === 'cancelled') {
         past.push(booking);
       }
     });
@@ -152,7 +152,8 @@ const BusinessDashboard: React.FC = () => {
         ) : selectedBooking ? (
           <CampaignDetail 
             booking={selectedBooking} 
-            onBack={() => setSelectedBookingId(null)} 
+            onBack={() => setSelectedBookingId(null)}
+            onRefresh={fetchBookings}
           />
         ) : bookings.length === 0 ? (
           <EmptyCampaigns />

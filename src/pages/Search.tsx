@@ -520,11 +520,13 @@ const SearchPage: React.FC = () => {
     }
   };
 
-  // Save scroll position before navigating to detail
+  // Save scroll position and current URL before navigating to detail
   const handlePropertyClick = (id: string) => {
     if (listRef.current) {
       sessionStorage.setItem('searchScrollPos', String(listRef.current.scrollTop));
     }
+    // Save the full search URL with params so back button can restore it
+    sessionStorage.setItem('lastSearchUrl', `/search?${searchParams.toString()}`);
     setSelectedPropertyId(id);
   };
 

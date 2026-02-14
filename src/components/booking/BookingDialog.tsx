@@ -47,7 +47,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     to: addDays(earliestStartDate, Math.max(minCampaignDays, 30)),
   });
   const [message, setMessage] = useState('');
-  const [notes, setNotes] = useState('');
   const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
   const [dateConflict, setDateConflict] = useState(false);
   const [durationError, setDurationError] = useState(false);
@@ -76,7 +75,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         to: addDays(earliest, Math.max(minCampaignDays, 30)),
       });
       setMessage('');
-      setNotes('');
       setDesignImages([]);
       fetchExistingBookings();
     }
@@ -231,7 +229,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           end_date: format(endDate, 'yyyy-MM-dd'),
           total_price: totalPrice,
           status: 'pending',
-          notes: message.trim() + (notes ? `\n\n--- Notas adicionales ---\n${notes}` : ''),
+          notes: message.trim(),
           ad_design_url: adDesignValue,
         })
         .select()
@@ -434,41 +432,53 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </p>
           </div>
 
-          {/* Compact design upload section */}
-          <div className="bg-[#1A1A1A] rounded-xl p-3 border border-white/10">
-            <div className="flex items-center gap-2 mb-2">
-              <ImageIcon className="w-4 h-4 text-[#9BFF43]" />
-              <Label className="text-xs font-medium">¿Ya cuentas con diseño?</Label>
-              <span className="text-xs text-white/40 bg-white/5 px-1.5 py-0.5 rounded-full ml-auto">Opcional</span>
+          {/* Compact design upload */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm flex items-center gap-1.5">
+                <ImageIcon className="w-3.5 h-3.5 text-[#9BFF43]" />
+                Sube tu diseño
+              </Label>
+              <span className="text-xs text-white/40">Opcional · Máx 5</span>
             </div>
             
-            <div className="flex flex-wrap gap-1.5">
-              {designImages.map((url, index) => (
-                <div key={url} className="relative w-14 h-14 rounded-lg overflow-hidden border border-white/10 group">
-                  <img src={url} alt={`Diseño ${index + 1}`} className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => setDesignImages(prev => prev.filter((_, i) => i !== index))}
-                    className="absolute top-0.5 right-0.5 bg-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-2.5 h-2.5 text-white" />
-                  </button>
-                </div>
-              ))}
-              {designImages.length < 5 && (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-14 h-14 flex items-center justify-center border border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 transition-colors"
-                >
-                  {isUploadingImage ? (
-                    <Loader2 className="w-4 h-4 text-white/40 animate-spin" />
-                  ) : (
-                    <span className="text-white/40 text-xl">+</span>
-                  )}
-                </button>
-              )}
-            </div>
+            {/* Uploaded file names list */}
+            {designImages.length > 0 && (
+              <div className="space-y-1.5 mb-2">
+                {designImages.map((url, index) => {
+                  const fileName = decodeURIComponent(url.split('/').pop() || `imagen-${index + 1}.png`).replace(/^\d+-[a-z0-9]+\./, '');
+                  return (
+                    <div key={url} className="flex items-center gap-2 bg-[#1A1A1A] rounded-lg px-3 py-2 border border-white/10">
+                      <img src={url} alt={fileName} className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                      <span className="text-white text-xs truncate flex-1">{fileName}</span>
+                      <button
+                        type="button"
+                        onClick={() => setDesignImages(prev => prev.filter((_, i) => i !== index))}
+                        className="text-white/40 hover:text-red-400 transition-colors flex-shrink-0"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {designImages.length < 5 && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 text-white/60 hover:text-white transition-colors"
+              >
+                {isUploadingImage ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <ImageIcon className="w-3.5 h-3.5" />
+                )}
+                {isUploadingImage ? 'Subiendo...' : 'Adjuntar imagen'}
+              </button>
+            )}
             <input
               ref={fileInputRef}
               type="file"
@@ -476,18 +486,6 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               onChange={handleImageUpload}
               className="hidden"
               multiple
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="notes">Notas adicionales</Label>
-            <Textarea
-              id="notes"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="bg-[#1A1A1A] border-white/10"
-              placeholder="Horarios preferidos para instalación, contacto alternativo..."
-              rows={2}
             />
           </div>
 
