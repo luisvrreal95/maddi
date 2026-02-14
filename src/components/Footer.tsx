@@ -4,8 +4,8 @@ import maddiLogo from '@/assets/maddi-logo.svg';
 
 const Footer: React.FC = () => {
   const socialLinks = [
-    { icon: Facebook, href: '#', label: 'Facebook' },
-    { icon: Instagram, href: '#', label: 'Instagram' },
+    { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61588000959820', label: 'Facebook' },
+    { icon: Instagram, href: 'https://www.instagram.com/maddiplatform/', label: 'Instagram' },
     { icon: Twitter, href: '#', label: 'Twitter' }
   ];
 
@@ -34,6 +34,8 @@ const Footer: React.FC = () => {
                 key={social.label}
                 href={social.href}
                 aria-label={social.label}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center text-white/70 hover:bg-[#9BFF43] hover:text-[#202020] transition-all duration-300"
               >
                 <social.icon className="w-5 h-5" />

@@ -147,6 +147,11 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           if (isFocused) {
             setIsOpen(true);
           }
+        } else {
+          setSuggestions([]);
+          if (isFocused) {
+            setIsOpen(true);
+          }
         }
       } catch (error) {
         console.error('Error fetching suggestions:', error);
@@ -224,21 +229,11 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     if (!isOpen || suggestions.length === 0) {
       if (e.key === 'Enter') {
         e.preventDefault();
-        if (value.trim()) {
-          setIsOpen(false);
-          const manualSuggestion: LocationSuggestion = {
-            id: 'manual',
-            place_name: value,
-            text: value,
-            place_type: ['place'],
-            center: [0, 0],
-          };
-          onSelect(manualSuggestion, {
-            placeName: value,
-            center: [0, 0],
-            placeType: 'place',
-          });
+        // If there are suggestions available (dropdown just closed or loading finished), select the first one
+        if (suggestions.length > 0) {
+          handleSelect(suggestions[0]);
         }
+        // Otherwise do nothing — don't send [0,0] coords
       }
       return;
     }
@@ -258,20 +253,9 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         e.preventDefault();
         if (selectedIndex >= 0 && suggestions[selectedIndex]) {
           handleSelect(suggestions[selectedIndex]);
-        } else if (value.trim()) {
-          setIsOpen(false);
-          const manualSuggestion: LocationSuggestion = {
-            id: 'manual',
-            place_name: value,
-            text: value,
-            place_type: ['place'],
-            center: [0, 0],
-          };
-          onSelect(manualSuggestion, {
-            placeName: value,
-            center: [0, 0],
-            placeType: 'place',
-          });
+        } else if (suggestions.length > 0) {
+          // Select the first suggestion when Enter is pressed without arrow key selection
+          handleSelect(suggestions[0]);
         }
         break;
       case 'Escape':
@@ -363,19 +347,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
             <button
               type="button"
               onClick={() => {
-                if (value.trim()) {
-                  const manualSuggestion: LocationSuggestion = {
-                    id: 'manual',
-                    place_name: value,
-                    text: value,
-                    place_type: ['place'],
-                    center: [0, 0],
-                  };
-                  onSelect(manualSuggestion, {
-                    placeName: value,
-                    center: [0, 0],
-                    placeType: 'place',
-                  });
+                if (suggestions.length > 0) {
+                  handleSelect(suggestions[0]);
                 }
               }}
               className="w-10 h-10 bg-[#9BFF43] rounded-full flex items-center justify-center hover:bg-[#8AE63A] transition-colors"
@@ -387,57 +360,64 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       </div>
 
       {/* Suggestions Dropdown - Only show when focused */}
-      {isOpen && isFocused && suggestions.length > 0 && (
+      {isOpen && isFocused && (
         <div
           ref={dropdownRef}
           className="absolute top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
         >
-          {userLocation && (
-            <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40">
-              <Navigation className="w-3 h-3" />
-              <span>Mostrando resultados cerca de ti</span>
+          {suggestions.length === 0 ? (
+            <div className="px-4 py-6 text-center text-white/50 text-sm">
+              No se encontraron resultados
             </div>
-          )}
-          {suggestions.map((suggestion, index) => {
-            // Display: "Name — City/State"
-            const locationContext = suggestion.place_formatted || 
-              (suggestion.context?.place?.name ? `${suggestion.context.place.name}, ${suggestion.context.region?.name || ''}` : '');
-            
-            return (
-              <button
-                key={suggestion.mapbox_id}
-                type="button"
-                onClick={() => handleSelect(suggestion)}
-                className={`w-full px-4 py-3 flex items-start gap-3 text-left transition-colors ${
-                  index === selectedIndex
-                    ? 'bg-[#9BFF43]/20'
-                    : 'hover:bg-white/5'
-                }`}
-              >
-                <div className={`mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-[#9BFF43]' : 'text-white/40'}`}>
-                  {getFeatureIcon(suggestion.feature_type, suggestion.poi_category)}
+          ) : (
+            <>
+              {userLocation && (
+                <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40">
+                  <Navigation className="w-3 h-3" />
+                  <span>Mostrando resultados cerca de ti</span>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p
-                    className={`font-medium truncate ${
-                      index === selectedIndex ? 'text-[#9BFF43]' : 'text-white'
+              )}
+              {suggestions.map((suggestion, index) => {
+                const locationContext = suggestion.place_formatted || 
+                  (suggestion.context?.place?.name ? `${suggestion.context.place.name}, ${suggestion.context.region?.name || ''}` : '');
+                
+                return (
+                  <button
+                    key={suggestion.mapbox_id}
+                    type="button"
+                    onClick={() => handleSelect(suggestion)}
+                    className={`w-full px-4 py-3 flex items-start gap-3 text-left transition-colors ${
+                      index === selectedIndex
+                        ? 'bg-[#9BFF43]/20'
+                        : 'hover:bg-white/5'
                     }`}
                   >
-                    {suggestion.name}
-                    {locationContext && <span className="text-white/50 font-normal"> — {locationContext}</span>}
-                  </p>
-                  {suggestion.poi_category && suggestion.poi_category.length > 0 && (
-                    <p className="text-xs text-white/40 truncate mt-0.5">
-                      {suggestion.poi_category.slice(0, 2).join(', ')}
-                    </p>
-                  )}
-                </div>
-                <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
-                  {getFeatureTypeLabel(suggestion.feature_type)}
-                </span>
-              </button>
-            );
-          })}
+                    <div className={`mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-[#9BFF43]' : 'text-white/40'}`}>
+                      {getFeatureIcon(suggestion.feature_type, suggestion.poi_category)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p
+                        className={`font-medium truncate ${
+                          index === selectedIndex ? 'text-[#9BFF43]' : 'text-white'
+                        }`}
+                      >
+                        {suggestion.name}
+                        {locationContext && <span className="text-white/50 font-normal"> — {locationContext}</span>}
+                      </p>
+                      {suggestion.poi_category && suggestion.poi_category.length > 0 && (
+                        <p className="text-xs text-white/40 truncate mt-0.5">
+                          {suggestion.poi_category.slice(0, 2).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                      {getFeatureTypeLabel(suggestion.feature_type)}
+                    </span>
+                  </button>
+                );
+              })}
+            </>
+          )}
         </div>
       )}
     </div>
