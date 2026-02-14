@@ -247,11 +247,12 @@ const SearchPage: React.FC = () => {
 
       const billboardIds = billboards.map(b => b.id);
       
+      // Only approved bookings block availability (pending does NOT block)
       const { data: conflictingBookings } = await supabase
         .from('bookings')
         .select('billboard_id')
         .in('billboard_id', billboardIds)
-        .in('status', ['approved', 'pending'])
+        .in('status', ['approved'])
         .lte('start_date', dateFilter.to)
         .gte('end_date', dateFilter.from);
       

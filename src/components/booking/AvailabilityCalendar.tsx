@@ -37,6 +37,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
   useEffect(() => {
     const fetchData = async () => {
+      // Fetch approved AND pending for display, but only approved blocks dates
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('id, start_date, end_date, status')
@@ -124,6 +125,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     blocked: 'bg-gray-500/30 text-gray-400 cursor-not-allowed',
   };
 
+  // Only approved (booked) and blocked dates are disabled; pending does NOT block
   const isDateDisabled = (date: Date) => {
     const status = getDateStatus(date);
     return date < new Date() || status === 'blocked' || status === 'booked';

@@ -266,10 +266,11 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           conversationId = newConv.id;
         }
 
+        // Send ONLY the user's message text, no metadata
         await supabase.from('messages').insert({
           conversation_id: conversationId,
           sender_id: user?.id,
-          content: `📋 Nueva solicitud de campaña para "${billboard.title}"\n\n📅 ${format(startDate, 'd MMM yyyy', { locale: es })} — ${format(endDate, 'd MMM yyyy', { locale: es })}\n💰 Total: $${totalPrice.toLocaleString()} MXN\n\n${message.trim()}`,
+          content: message.trim(),
         });
       } catch (chatError) {
         console.error('Error creating conversation:', chatError);
