@@ -4,31 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, Trash2, ToggleLeft, ToggleRight, Loader2, MapPin, ExternalLink, EyeOff, Power, PowerOff } from "lucide-react";
+import { Eye, Trash2, Loader2, MapPin, ExternalLink, Power, PowerOff, Pause } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -39,6 +24,7 @@ interface Property {
   state: string;
   price_per_month: number;
   is_available: boolean;
+  pause_reason: string | null;
   daily_impressions: number | null;
   image_url: string | null;
   created_at: string;
@@ -51,7 +37,7 @@ interface Property {
   bookingsCount: number;
 }
 
-type DialogType = 'delete' | 'toggle' | null;
+type DialogType = 'delete' | 'pause_admin' | 'reactivate' | null;
 
 const PropertyManagement = () => {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -60,11 +46,8 @@ const PropertyManagement = () => {
   const [dialog, setDialog] = useState<{ 
     type: DialogType; 
     propertyId: string | null;
-    currentStatus?: boolean;
-  }>({
-    type: null,
-    propertyId: null
-  });
+    propertyTitle?: string;
+  }>({ type: null, propertyId: null });
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -80,14 +63,12 @@ const PropertyManagement = () => {
 
       const propertiesWithDetails = await Promise.all(
         (billboards || []).map(async (billboard) => {
-          // Get owner profile
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, company_name, is_anonymous')
             .eq('user_id', billboard.owner_id)
             .single();
 
-          // Get bookings count
           const { count } = await supabase
             .from('bookings')
             .select('*', { count: 'exact', head: true })
@@ -104,61 +85,77 @@ const PropertyManagement = () => {
       setProperties(propertiesWithDetails);
     } catch (error) {
       console.error('Error fetching properties:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las propiedades",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "No se pudieron cargar las propiedades", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchProperties();
-  }, []);
+  useEffect(() => { fetchProperties(); }, []);
 
-  const toggleAvailability = async () => {
+  const handlePauseByAdmin = async () => {
     if (!dialog.propertyId) return;
-    
     setProcessing(true);
     try {
-      const newStatus = !dialog.currentStatus;
       const property = properties.find(p => p.id === dialog.propertyId);
       
       const { error } = await supabase
         .from('billboards')
-        .update({ is_available: newStatus })
+        .update({ is_available: false, pause_reason: 'admin' } as any)
         .eq('id', dialog.propertyId);
 
       if (error) throw error;
 
-      // Create notification for the owner
+      // Notify owner
       if (property) {
         await supabase.from('notifications').insert({
           user_id: property.owner_id,
-          title: newStatus ? 'Propiedad habilitada' : 'Propiedad deshabilitada',
-          message: newStatus 
-            ? `Tu propiedad "${property.title}" ha sido habilitada por un administrador y ahora está visible para los usuarios.`
-            : `Tu propiedad "${property.title}" ha sido deshabilitada por un administrador y ya no está visible para los usuarios.`,
+          title: 'Propiedad pausada por Maddi',
+          message: `Tu propiedad "${property.title}" fue dada de baja temporal por el equipo de Maddi. Si tienes preguntas, contáctanos.`,
           type: 'admin_action',
           related_billboard_id: property.id
         });
       }
 
-      toast({
-        title: "Éxito",
-        description: `Propiedad ${newStatus ? 'habilitada' : 'deshabilitada'} correctamente. Se notificó al propietario.`
-      });
-
+      toast({ title: "Éxito", description: "Propiedad pausada por Maddi. Se notificó al propietario." });
       fetchProperties();
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar el estado",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "No se pudo pausar la propiedad", variant: "destructive" });
+    } finally {
+      setProcessing(false);
+      setDialog({ type: null, propertyId: null });
+    }
+  };
+
+  const handleReactivate = async () => {
+    if (!dialog.propertyId) return;
+    setProcessing(true);
+    try {
+      const property = properties.find(p => p.id === dialog.propertyId);
+      
+      const { error } = await supabase
+        .from('billboards')
+        .update({ is_available: true, pause_reason: null } as any)
+        .eq('id', dialog.propertyId);
+
+      if (error) throw error;
+
+      if (property) {
+        await supabase.from('notifications').insert({
+          user_id: property.owner_id,
+          title: 'Propiedad reactivada',
+          message: `Tu propiedad "${property.title}" ha sido reactivada y ahora está visible nuevamente.`,
+          type: 'admin_action',
+          related_billboard_id: property.id
+        });
+      }
+
+      toast({ title: "Éxito", description: "Propiedad reactivada correctamente." });
+      fetchProperties();
+    } catch (error) {
+      console.error('Error:', error);
+      toast({ title: "Error", description: "No se pudo reactivar", variant: "destructive" });
     } finally {
       setProcessing(false);
       setDialog({ type: null, propertyId: null });
@@ -167,37 +164,23 @@ const PropertyManagement = () => {
 
   const handleDelete = async () => {
     if (!dialog.propertyId) return;
-    
     setProcessing(true);
     try {
-      // First delete related records
       await supabase.from('favorites').delete().eq('billboard_id', dialog.propertyId);
       await supabase.from('blocked_dates').delete().eq('billboard_id', dialog.propertyId);
       await supabase.from('pricing_overrides').delete().eq('billboard_id', dialog.propertyId);
       await supabase.from('traffic_data').delete().eq('billboard_id', dialog.propertyId);
       await supabase.from('inegi_demographics').delete().eq('billboard_id', dialog.propertyId);
+      await supabase.from('poi_overview_cache').delete().eq('billboard_id', dialog.propertyId);
       
-      // Delete the billboard
-      const { error } = await supabase
-        .from('billboards')
-        .delete()
-        .eq('id', dialog.propertyId);
-
+      const { error } = await supabase.from('billboards').delete().eq('id', dialog.propertyId);
       if (error) throw error;
 
-      toast({
-        title: "Éxito",
-        description: "Propiedad eliminada permanentemente"
-      });
-
+      toast({ title: "Éxito", description: "Propiedad eliminada permanentemente" });
       fetchProperties();
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar la propiedad. Puede tener reservas activas.",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "No se pudo eliminar la propiedad. Puede tener reservas activas.", variant: "destructive" });
     } finally {
       setProcessing(false);
       setDialog({ type: null, propertyId: null });
@@ -205,16 +188,19 @@ const PropertyManagement = () => {
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 0
-    }).format(value);
+    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 0 }).format(value);
+  };
+
+  const getPropertyStatus = (property: Property) => {
+    if (property.is_available) return { label: 'Activa', color: 'bg-green-500/20 text-green-400 border-green-500/30', icon: Power };
+    if ((property as any).pause_reason === 'admin') return { label: 'Pausada por Maddi', color: 'bg-orange-500/20 text-orange-400 border-orange-500/30', icon: Pause };
+    return { label: 'Pausada', color: 'bg-red-500/20 text-red-400 border-red-500/30', icon: PowerOff };
   };
 
   const filteredProperties = properties.filter(p => {
     if (statusFilter === 'available' && !p.is_available) return false;
     if (statusFilter === 'unavailable' && p.is_available) return false;
+    if (statusFilter === 'paused_admin' && (p as any).pause_reason !== 'admin') return false;
     return true;
   });
 
@@ -224,13 +210,14 @@ const PropertyManagement = () => {
         <div className="flex flex-col sm:flex-row justify-between gap-4">
           <CardTitle>Gestión de Propiedades ({properties.length})</CardTitle>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="available">Disponibles</SelectItem>
-              <SelectItem value="unavailable">No disponibles</SelectItem>
+              <SelectItem value="available">Activas</SelectItem>
+              <SelectItem value="unavailable">Pausadas</SelectItem>
+              <SelectItem value="paused_admin">Pausadas por Maddi</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -250,7 +237,6 @@ const PropertyManagement = () => {
                   <TableHead>Propietario</TableHead>
                   <TableHead>Ubicación</TableHead>
                   <TableHead className="text-right">Precio</TableHead>
-                  <TableHead className="text-right">Impresiones</TableHead>
                   <TableHead className="text-center">Campañas</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -259,124 +245,88 @@ const PropertyManagement = () => {
               <TableBody>
                 {filteredProperties.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                       No hay propiedades que mostrar
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredProperties.map((property) => (
-                    <TableRow key={property.id}>
-                      <TableCell>
-                        <div className="w-16 h-12 rounded-md overflow-hidden bg-muted">
-                          {property.image_url ? (
-                            <img 
-                              src={property.image_url} 
-                              alt={property.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium max-w-[200px] truncate">
-                          {property.title}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          {property.owner?.is_anonymous ? (
-                            <span className="text-muted-foreground text-sm">Anónimo</span>
-                          ) : (
-                            <Link 
-                              to={`/profile/${property.owner_id}`}
-                              className="text-sm text-primary hover:underline flex items-center gap-1"
-                            >
-                              {property.owner?.full_name || 'N/A'}
-                              <ExternalLink className="w-3 h-3" />
-                            </Link>
-                          )}
-                          {property.owner?.company_name && !property.owner?.is_anonymous && (
-                            <div className="text-xs text-muted-foreground">
-                              {property.owner.company_name}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {property.city}, {property.state}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(property.price_per_month)}
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {property.daily_impressions?.toLocaleString() || '-'}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="outline">{property.bookingsCount}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={property.is_available ? 'default' : 'destructive'}
-                          className={property.is_available ? '' : 'bg-red-500/20 text-red-400 border-red-500/30'}
-                        >
-                          {property.is_available ? (
-                            <span className="flex items-center gap-1">
-                              <Power className="w-3 h-3" />
-                              Activo
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-1">
-                              <PowerOff className="w-3 h-3" />
-                              Desactivado
-                            </span>
-                          )}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0"
-                            onClick={() => navigate(`/billboard/${property.id}`)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant={property.is_available ? "ghost" : "outline"}
-                            className={`h-8 w-8 p-0 ${!property.is_available ? 'border-green-500/50 hover:bg-green-500/10' : ''}`}
-                            onClick={() => setDialog({ 
-                              type: 'toggle', 
-                              propertyId: property.id, 
-                              currentStatus: property.is_available 
-                            })}
-                            title={property.is_available ? 'Desactivar propiedad' : 'Activar propiedad'}
-                          >
-                            {property.is_available ? (
-                              <ToggleRight className="h-4 w-4 text-green-500" />
+                  filteredProperties.map((property) => {
+                    const status = getPropertyStatus(property);
+                    const StatusIcon = status.icon;
+                    return (
+                      <TableRow key={property.id}>
+                        <TableCell>
+                          <div className="w-16 h-12 rounded-md overflow-hidden bg-muted">
+                            {property.image_url ? (
+                              <img src={property.image_url} alt={property.title} className="w-full h-full object-cover" />
                             ) : (
-                              <ToggleLeft className="h-4 w-4 text-muted-foreground" />
+                              <div className="w-full h-full flex items-center justify-center">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                              </div>
                             )}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                            onClick={() => setDialog({ type: 'delete', propertyId: property.id })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium max-w-[200px] truncate">{property.title}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            {property.owner?.is_anonymous ? (
+                              <span className="text-muted-foreground text-sm">Anónimo</span>
+                            ) : (
+                              <Link to={`/profile/${property.owner_id}`} className="text-sm text-primary hover:underline flex items-center gap-1">
+                                {property.owner?.full_name || 'N/A'}
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">{property.city}, {property.state}</div>
+                        </TableCell>
+                        <TableCell className="text-right font-medium">{formatCurrency(property.price_per_month)}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="outline">{property.bookingsCount}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className={status.color}>
+                            <StatusIcon className="w-3 h-3 mr-1" />
+                            {status.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-1">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => navigate(`/billboard/${property.id}`)}>
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            {property.is_available ? (
+                              <Button
+                                size="sm" variant="ghost" className="h-8 w-8 p-0 text-orange-500 hover:text-orange-600"
+                                onClick={() => setDialog({ type: 'pause_admin', propertyId: property.id, propertyTitle: property.title })}
+                                title="Pausar por Maddi"
+                              >
+                                <Pause className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm" variant="ghost" className="h-8 w-8 p-0 text-green-500 hover:text-green-600"
+                                onClick={() => setDialog({ type: 'reactivate', propertyId: property.id })}
+                                title="Reactivar"
+                              >
+                                <Power className="h-4 w-4" />
+                              </Button>
+                            )}
+                            <Button
+                              size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                              onClick={() => setDialog({ type: 'delete', propertyId: property.id })}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -384,40 +334,46 @@ const PropertyManagement = () => {
         )}
       </CardContent>
 
-      {/* Toggle Availability Dialog */}
-      <AlertDialog open={dialog.type === 'toggle'} onOpenChange={(open) => 
-        !open && setDialog({ type: null, propertyId: null })
-      }>
+      {/* Pause by Admin Dialog */}
+      <AlertDialog open={dialog.type === 'pause_admin'} onOpenChange={(open) => !open && setDialog({ type: null, propertyId: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {dialog.currentStatus ? '¿Desactivar propiedad?' : '¿Activar propiedad?'}
-            </AlertDialogTitle>
+            <AlertDialogTitle>¿Pausar propiedad por Maddi?</AlertDialogTitle>
             <AlertDialogDescription>
-              {dialog.currentStatus 
-                ? 'Al desactivar esta propiedad, dejará de ser visible para todos los usuarios en la plataforma. Podrás activarla nuevamente cuando desees.'
-                : 'Al activar esta propiedad, volverá a ser visible para todos los usuarios en la plataforma.'
-              }
+              La propiedad será ocultada de búsquedas y no podrá recibir nuevas reservas. Las campañas ya aprobadas no se verán afectadas. Se notificará al propietario automáticamente.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={toggleAvailability} 
-              disabled={processing}
-              className={dialog.currentStatus ? 'bg-amber-500 hover:bg-amber-600' : 'bg-primary hover:bg-primary/90'}
-            >
+            <AlertDialogAction onClick={handlePauseByAdmin} disabled={processing} className="bg-orange-500 hover:bg-orange-600">
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {dialog.currentStatus ? 'Desactivar' : 'Activar'}
+              Pausar propiedad
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Reactivate Dialog */}
+      <AlertDialog open={dialog.type === 'reactivate'} onOpenChange={(open) => !open && setDialog({ type: null, propertyId: null })}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Reactivar propiedad?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La propiedad volverá a ser visible para todos los usuarios en la plataforma.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReactivate} disabled={processing} className="bg-primary hover:bg-primary/90">
+              {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Reactivar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       {/* Delete Dialog */}
-      <AlertDialog open={dialog.type === 'delete'} onOpenChange={(open) => 
-        !open && setDialog({ type: null, propertyId: null })
-      }>
+      <AlertDialog open={dialog.type === 'delete'} onOpenChange={(open) => !open && setDialog({ type: null, propertyId: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar propiedad permanentemente?</AlertDialogTitle>
@@ -433,11 +389,7 @@ const PropertyManagement = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              disabled={processing}
-              className="bg-red-500 hover:bg-red-600"
-            >
+            <AlertDialogAction onClick={handleDelete} disabled={processing} className="bg-red-500 hover:bg-red-600">
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Eliminar Permanentemente
             </AlertDialogAction>

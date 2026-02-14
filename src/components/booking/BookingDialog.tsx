@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,8 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, AlertCircle, Info, Clock, Calendar as CalendarDays } from 'lucide-react';
-import { format, differenceInDays, differenceInMonths, addMonths, addDays, isWithinInterval, parseISO, areIntervalsOverlapping, isBefore } from 'date-fns';
+import { CalendarIcon, AlertCircle, Info, Clock, Calendar as CalendarDays, Upload, X, Loader2, Image as ImageIcon } from 'lucide-react';
+import { format, differenceInDays, addDays, isWithinInterval, parseISO, areIntervalsOverlapping, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -38,23 +38,24 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   
-  // Get booking constraints from billboard (default: 0 min campaign, 7 advance)
   const minCampaignDays = (billboard as any).min_campaign_days ?? 0;
   const minAdvanceBookingDays = (billboard as any).min_advance_booking_days ?? 7;
   
-  // Calculate earliest possible start date
   const earliestStartDate = addDays(new Date(), minAdvanceBookingDays);
   
-  // Default dates based on constraints
   const [startDate, setStartDate] = useState<Date | undefined>(earliestStartDate);
-  const [endDate, setEndDate] = useState<Date | undefined>(addDays(earliestStartDate, minCampaignDays));
+  const [endDate, setEndDate] = useState<Date | undefined>(addDays(earliestStartDate, Math.max(minCampaignDays, 30)));
+  const [message, setMessage] = useState('');
   const [notes, setNotes] = useState('');
-  const [adDesignUrl, setAdDesignUrl] = useState('');
   const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
   const [dateConflict, setDateConflict] = useState(false);
   const [durationError, setDurationError] = useState(false);
 
-  // Redirect to auth if user is not logged in
+  // Image attachments
+  const [designImages, setDesignImages] = useState<string[]>([]);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (open && !user) {
       toast.error('Debes iniciar sesión para reservar');
@@ -63,27 +64,27 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     }
   }, [open, user, navigate, onOpenChange]);
 
-  // Reset dates when dialog opens
   useEffect(() => {
     if (open) {
       const earliest = addDays(new Date(), minAdvanceBookingDays);
       setStartDate(earliest);
-      setEndDate(addDays(earliest, minCampaignDays));
+      setEndDate(addDays(earliest, Math.max(minCampaignDays, 30)));
+      setMessage('');
+      setNotes('');
+      setDesignImages([]);
       fetchExistingBookings();
     }
   }, [open, billboard.id, minAdvanceBookingDays, minCampaignDays]);
 
   useEffect(() => {
-    // Check for date conflicts and duration
     if (startDate && endDate) {
-      // Check minimum duration (only if minCampaignDays > 0)
       const campaignDays = differenceInDays(endDate, startDate);
       setDurationError(minCampaignDays > 0 && campaignDays < minCampaignDays);
       
-      // Check for conflicts with existing bookings
+      // Only check conflicts with APPROVED bookings (not pending)
       if (existingBookings.length > 0) {
         const hasConflict = existingBookings.some((booking) => {
-          if (booking.status === 'rejected') return false;
+          if (booking.status !== 'approved') return false;
           const bookingStart = parseISO(booking.start_date);
           const bookingEnd = parseISO(booking.end_date);
           return areIntervalsOverlapping(
@@ -106,32 +107,76 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       .from('bookings')
       .select('id, start_date, end_date, status')
       .eq('billboard_id', billboard.id)
-      .in('status', ['approved', 'pending']);
+      .in('status', ['approved']);
     
     if (data) setExistingBookings(data);
   };
 
-  const isDateBooked = (date: Date): 'booked' | 'pending' | null => {
+  const isDateBooked = (date: Date): 'booked' | null => {
     for (const booking of existingBookings) {
-      if (booking.status === 'rejected') continue;
+      if (booking.status !== 'approved') continue;
       const start = parseISO(booking.start_date);
       const end = parseISO(booking.end_date);
       if (isWithinInterval(date, { start, end })) {
-        return booking.status === 'approved' ? 'booked' : 'pending';
+        return 'booked';
       }
     }
     return null;
   };
   
-  // Check if date is within advance booking restriction
   const isDateTooSoon = (date: Date): boolean => {
     return isBefore(date, earliestStartDate);
   };
 
-  const months = startDate && endDate 
-    ? Math.max(1, differenceInMonths(endDate, startDate) + 1)
-    : 1;
-  const totalPrice = months * Number(billboard.price_per_month);
+  // Correct price calculation: days / 30 rounded to 2 decimals
+  const campaignDays = startDate && endDate ? differenceInDays(endDate, startDate) : 0;
+  const monthsEquivalent = campaignDays > 0 ? Math.round((campaignDays / 30) * 100) / 100 : 0;
+  const totalPrice = Math.round(monthsEquivalent * Number(billboard.price_per_month) * 100) / 100;
+
+  // Image upload handler
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !user) return;
+
+    const remainingSlots = 5 - designImages.length;
+    if (remainingSlots <= 0) {
+      toast.error('Máximo 5 imágenes de diseño');
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    setIsUploadingImage(true);
+
+    try {
+      for (const file of filesToUpload) {
+        if (!file.type.startsWith('image/')) continue;
+        if (file.size > 5 * 1024 * 1024) {
+          toast.error(`${file.name}: Máximo 5MB`);
+          continue;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `designs/${user.id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+
+        const { data, error } = await supabase.storage
+          .from('billboard-images')
+          .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+        if (error) continue;
+
+        const { data: urlData } = supabase.storage
+          .from('billboard-images')
+          .getPublicUrl(data.path);
+
+        setDesignImages(prev => [...prev, urlData.publicUrl]);
+      }
+    } catch (error) {
+      console.error('Error uploading:', error);
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,8 +191,13 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       return;
     }
 
+    if (message.trim().length < 20) {
+      toast.error('El mensaje al propietario debe tener al menos 20 caracteres');
+      return;
+    }
+
     if (dateConflict) {
-      toast.error('Las fechas seleccionadas ya están ocupadas');
+      toast.error('Las fechas seleccionadas ya están reservadas');
       return;
     }
     
@@ -159,6 +209,11 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     setIsLoading(true);
 
     try {
+      // Store design image URLs in ad_design_url as JSON array if multiple
+      const adDesignValue = designImages.length > 0 
+        ? JSON.stringify(designImages) 
+        : null;
+
       const { data: bookingData, error } = await supabase
         .from('bookings')
         .insert({
@@ -168,32 +223,68 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           end_date: format(endDate, 'yyyy-MM-dd'),
           total_price: totalPrice,
           status: 'pending',
-          notes: notes || null,
-          ad_design_url: adDesignUrl || null,
+          notes: message.trim() + (notes ? `\n\n--- Notas adicionales ---\n${notes}` : ''),
+          ad_design_url: adDesignValue,
         })
         .select()
         .single();
 
       if (error) throw error;
 
+      // Auto-create conversation thread linked to this booking
+      try {
+        // Check if conversation already exists
+        const { data: existingConv } = await supabase
+          .from('conversations')
+          .select('id')
+          .eq('billboard_id', billboard.id)
+          .eq('business_id', user?.id)
+          .eq('owner_id', billboard.owner_id)
+          .maybeSingle();
+
+        let conversationId: string;
+
+        if (existingConv) {
+          conversationId = existingConv.id;
+        } else {
+          const { data: newConv, error: convError } = await supabase
+            .from('conversations')
+            .insert({
+              billboard_id: billboard.id,
+              business_id: user?.id,
+              owner_id: billboard.owner_id,
+            })
+            .select('id')
+            .single();
+
+          if (convError) throw convError;
+          conversationId = newConv.id;
+        }
+
+        // Send initial message in conversation
+        await supabase.from('messages').insert({
+          conversation_id: conversationId,
+          sender_id: user?.id,
+          content: `📋 Nueva solicitud de campaña para "${billboard.title}"\n\n📅 ${format(startDate, 'd MMM yyyy', { locale: es })} — ${format(endDate, 'd MMM yyyy', { locale: es })}\n💰 Total: $${totalPrice.toLocaleString()} MXN\n\n${message.trim()}`,
+        });
+      } catch (chatError) {
+        console.error('Error creating conversation:', chatError);
+      }
+
       // Send notification email to owner
       try {
-        // Get owner's profile and email
         const { data: ownerProfile } = await supabase
           .from('profiles')
           .select('full_name, company_name')
           .eq('user_id', billboard.owner_id)
           .maybeSingle();
         
-        // Get business user's profile
         const { data: businessProfile } = await supabase
           .from('profiles')
           .select('full_name, company_name')
           .eq('user_id', user?.id)
           .maybeSingle();
 
-        // We need to send email to the owner - but we can't get their email directly
-        // The email will be sent via a database trigger or we invoke the function with owner_id
         await supabase.functions.invoke('send-notification-email', {
           body: {
             type: 'booking_request',
@@ -204,19 +295,19 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               startDate: format(startDate, 'd MMM yyyy', { locale: es }),
               endDate: format(endDate, 'd MMM yyyy', { locale: es }),
               totalPrice: totalPrice,
-              ownerId: billboard.owner_id, // Edge function can look up email
+              ownerId: billboard.owner_id,
             }
           }
         });
       } catch (emailError) {
         console.error('Error sending notification email:', emailError);
-        // Don't fail the booking if email fails
       }
 
-      toast.success('Solicitud de reserva enviada. El propietario la revisará.');
+      toast.success(
+        'Tu solicitud fue enviada. El propietario revisará tu propuesta y podrá contactarte para coordinar detalles y pago.',
+        { duration: 6000 }
+      );
       onOpenChange(false);
-      setNotes('');
-      setAdDesignUrl('');
     } catch (error: any) {
       console.error('Error creating booking:', error);
       toast.error(error.message || 'Error al crear la reserva');
@@ -227,13 +318,11 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
   const calendarModifiers = {
     booked: (date: Date) => isDateBooked(date) === 'booked',
-    pending: (date: Date) => isDateBooked(date) === 'pending',
     tooSoon: (date: Date) => isDateTooSoon(date) && !isDateBooked(date),
   };
 
   const calendarModifiersClassNames = {
     booked: 'bg-red-500/30 text-red-300',
-    pending: 'bg-yellow-500/30 text-yellow-300',
     tooSoon: 'bg-gray-500/20 text-gray-400 line-through',
   };
 
@@ -241,7 +330,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#2A2A2A] border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Solicitar Reserva</DialogTitle>
+          <DialogTitle className="text-xl font-bold">Solicitar Campaña</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -254,25 +343,28 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           </div>
           
           {/* Booking Constraints Info */}
-          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
-            <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
-              <Info className="w-4 h-4" />
-              Requisitos de reserva
-            </div>
-            <div className="grid grid-cols-2 gap-3 mt-2">
-              <div className="flex items-center gap-2 text-white/70 text-sm">
-                <CalendarDays className="w-4 h-4 text-blue-400" />
-                <span>Mínimo <strong className="text-white">{minCampaignDays} días</strong></span>
+          {(minCampaignDays > 0 || minAdvanceBookingDays > 0) && (
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
+              <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
+                <Info className="w-4 h-4" />
+                Requisitos de reserva
               </div>
-              <div className="flex items-center gap-2 text-white/70 text-sm">
-                <Clock className="w-4 h-4 text-blue-400" />
-                <span>Reservar con <strong className="text-white">{minAdvanceBookingDays} días</strong> de anticipación</span>
+              <div className="grid grid-cols-2 gap-3 mt-2">
+                {minCampaignDays > 0 && (
+                  <div className="flex items-center gap-2 text-white/70 text-sm">
+                    <CalendarDays className="w-4 h-4 text-blue-400" />
+                    <span>Mínimo <strong className="text-white">{minCampaignDays} días</strong></span>
+                  </div>
+                )}
+                {minAdvanceBookingDays > 0 && (
+                  <div className="flex items-center gap-2 text-white/70 text-sm">
+                    <Clock className="w-4 h-4 text-blue-400" />
+                    <span>Reservar con <strong className="text-white">{minAdvanceBookingDays} días</strong> de anticipación</span>
+                  </div>
+                )}
               </div>
             </div>
-            <p className="text-white/50 text-xs mt-2">
-              El propietario necesita tiempo para aprobar, preparar e instalar tu anuncio.
-            </p>
-          </div>
+          )}
 
           {/* Date Selection */}
           <div className="grid grid-cols-2 gap-4">
@@ -327,7 +419,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     selected={endDate}
                     onSelect={setEndDate}
                     disabled={(date) => {
-                      const minEndDate = startDate ? addDays(startDate, minCampaignDays - 1) : earliestStartDate;
+                      const minEndDate = startDate ? addDays(startDate, Math.max(minCampaignDays, 1)) : earliestStartDate;
                       return date < minEndDate || isDateBooked(date) === 'booked';
                     }}
                     modifiers={calendarModifiers}
@@ -344,11 +436,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           {dateConflict && (
             <div className="flex items-center gap-2 bg-red-500/20 text-red-400 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">Las fechas seleccionadas se solapan con una reserva existente</span>
+              <span className="text-sm">Las fechas seleccionadas ya están reservadas</span>
             </div>
           )}
           
-          {/* Duration error warning */}
           {durationError && !dateConflict && (
             <div className="flex items-center gap-2 bg-orange-500/20 text-orange-400 p-3 rounded-lg">
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -356,16 +447,72 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </div>
           )}
 
+          {/* Required message to owner */}
           <div>
-            <Label htmlFor="adDesignUrl">URL del diseño publicitario</Label>
-            <Input
-              id="adDesignUrl"
-              value={adDesignUrl}
-              onChange={(e) => setAdDesignUrl(e.target.value)}
-              className="bg-[#1A1A1A] border-white/10"
-              placeholder="https://..."
+            <Label htmlFor="message" className="flex items-center gap-1">
+              Mensaje al propietario <span className="text-red-400">*</span>
+            </Label>
+            <Textarea
+              id="message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="bg-[#1A1A1A] border-white/10 mt-1"
+              placeholder="Cuéntale al propietario sobre tu marca, qué quieres anunciar y cualquier detalle importante..."
+              rows={4}
+              maxLength={1000}
             />
-            <p className="text-white/40 text-xs mt-1">Link a tu diseño (Drive, Dropbox, etc.)</p>
+            <p className={cn(
+              "text-xs mt-1",
+              message.trim().length < 20 ? "text-orange-400" : "text-white/40"
+            )}>
+              {message.trim().length}/1000 caracteres (mínimo 20)
+            </p>
+          </div>
+
+          {/* Design upload section */}
+          <div className="bg-[#1A1A1A] rounded-xl p-4 border border-white/10">
+            <div className="flex items-center gap-2 mb-2">
+              <ImageIcon className="w-4 h-4 text-[#9BFF43]" />
+              <Label className="text-sm font-medium">¿Ya cuentas con diseño? Súbelo aquí</Label>
+              <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full ml-auto">Opcional</span>
+            </div>
+            <p className="text-white/50 text-xs mb-3">Sube imágenes de tu diseño publicitario para que el propietario las revise.</p>
+            
+            <div className="flex flex-wrap gap-2">
+              {designImages.map((url, index) => (
+                <div key={url} className="relative w-16 h-16 rounded-lg overflow-hidden border border-white/10 group">
+                  <img src={url} alt={`Diseño ${index + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setDesignImages(prev => prev.filter((_, i) => i !== index))}
+                    className="absolute top-0.5 right-0.5 bg-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3 text-white" />
+                  </button>
+                </div>
+              ))}
+              {designImages.length < 5 && (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-16 h-16 flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 transition-colors"
+                >
+                  {isUploadingImage ? (
+                    <Loader2 className="w-5 h-5 text-white/40 animate-spin" />
+                  ) : (
+                    <Upload className="w-5 h-5 text-white/40" />
+                  )}
+                </button>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleImageUpload}
+              className="hidden"
+              multiple
+            />
           </div>
 
           <div>
@@ -375,18 +522,25 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="bg-[#1A1A1A] border-white/10"
-              placeholder="Información adicional para el propietario..."
-              rows={3}
+              placeholder="Horarios preferidos para instalación, contacto alternativo..."
+              rows={2}
             />
           </div>
 
-          {/* Price Summary */}
+          {/* Price Summary - Corrected calculation */}
           <div className="bg-[#9BFF43]/10 rounded-xl p-4">
-            <div className="flex justify-between text-white/70 mb-2">
-              <span>{months} mes{months > 1 ? 'es' : ''} × ${billboard.price_per_month.toLocaleString()}</span>
+            <div className="space-y-1 text-sm text-white/70 mb-2">
+              <div className="flex justify-between">
+                <span>Duración</span>
+                <span className="text-white">{campaignDays} días ({monthsEquivalent} meses)</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Tarifa mensual</span>
+                <span className="text-white">${billboard.price_per_month.toLocaleString()}</span>
+              </div>
             </div>
-            <div className="flex justify-between text-white font-bold text-lg">
-              <span>Total</span>
+            <div className="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/10">
+              <span>Total estimado</span>
               <span className="text-[#9BFF43]">${totalPrice.toLocaleString()} MXN</span>
             </div>
           </div>
@@ -402,7 +556,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || dateConflict || durationError}
+              disabled={isLoading || dateConflict || durationError || message.trim().length < 20}
               className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
             >
               {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
