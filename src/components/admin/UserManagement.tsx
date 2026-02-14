@@ -5,25 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trash2, Loader2, Building2, Calendar, User } from "lucide-react";
+import { Trash2, Loader2, Building2, Calendar, User, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -39,7 +28,7 @@ interface UserData {
     avatar_url: string | null;
     phone: string | null;
   } | null;
-  count: number; // billboards for owners, bookings for businesses
+  count: number;
 }
 
 const UserManagement = () => {
@@ -50,17 +39,12 @@ const UserManagement = () => {
     open: boolean; 
     userId: string | null;
     userName: string;
-  }>({
-    open: false,
-    userId: null,
-    userName: ''
-  });
+  }>({ open: false, userId: null, userName: '' });
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
 
   const fetchUsers = async () => {
     try {
-      // Fetch all user roles
       const { data: roles, error } = await supabase
         .from('user_roles')
         .select('*')
@@ -70,14 +54,12 @@ const UserManagement = () => {
 
       const usersWithDetails = await Promise.all(
         (roles || []).map(async (role) => {
-          // Get profile
           const { data: profile } = await supabase
             .from('profiles')
             .select('full_name, company_name, avatar_url, phone')
             .eq('user_id', role.user_id)
             .single();
 
-          // Get count based on role
           let count = 0;
           if (role.role === 'owner') {
             const { count: billboardCount } = await supabase
@@ -93,11 +75,7 @@ const UserManagement = () => {
             count = bookingCount || 0;
           }
 
-          return {
-            ...role,
-            profile,
-            count
-          };
+          return { ...role, profile, count };
         })
       );
 
@@ -105,46 +83,31 @@ const UserManagement = () => {
       setBusinesses(usersWithDetails.filter(u => u.role === 'business'));
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los usuarios",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "No se pudieron cargar los usuarios", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  useEffect(() => { fetchUsers(); }, []);
 
-  const handleDeleteRole = async () => {
+  const handleDeleteUser = async () => {
     if (!deleteDialog.userId) return;
     
     setProcessing(true);
     try {
-      // Delete user role (this doesn't delete the auth user)
-      const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', deleteDialog.userId);
+      // Call edge function for complete cascade deletion
+      const { data, error } = await supabase.functions.invoke('delete-user-account', {
+        body: { target_user_id: deleteDialog.userId, admin_action: true }
+      });
 
       if (error) throw error;
 
-      toast({
-        title: "Éxito",
-        description: "Rol de usuario eliminado"
-      });
-
+      toast({ title: "Éxito", description: "Usuario y toda su información eliminados permanentemente" });
       fetchUsers();
     } catch (error) {
       console.error('Error:', error);
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el rol",
-        variant: "destructive"
-      });
+      toast({ title: "Error", description: "No se pudo eliminar el usuario", variant: "destructive" });
     } finally {
       setProcessing(false);
       setDeleteDialog({ open: false, userId: null, userName: '' });
@@ -152,12 +115,7 @@ const UserManagement = () => {
   };
 
   const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   const renderUserTable = (users: UserData[], type: 'owner' | 'business') => (
@@ -193,31 +151,19 @@ const UserManagement = () => {
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <div className="font-medium">
-                      {user.profile?.full_name || 'Sin nombre'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {user.user_id.slice(0, 8)}...
-                    </div>
+                    <div className="font-medium">{user.profile?.full_name || 'Sin nombre'}</div>
+                    <div className="text-xs text-muted-foreground">{user.user_id.slice(0, 8)}...</div>
                   </div>
                 </div>
               </TableCell>
-              <TableCell>
-                {user.profile?.company_name || '-'}
-              </TableCell>
-              <TableCell className="text-muted-foreground">
-                {user.profile?.phone || '-'}
-              </TableCell>
+              <TableCell>{user.profile?.company_name || '-'}</TableCell>
+              <TableCell className="text-muted-foreground">{user.profile?.phone || '-'}</TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {format(new Date(user.created_at), 'dd/MM/yy', { locale: es })}
               </TableCell>
               <TableCell className="text-center">
                 <Badge variant="outline" className="gap-1">
-                  {type === 'owner' ? (
-                    <Building2 className="h-3 w-3" />
-                  ) : (
-                    <Calendar className="h-3 w-3" />
-                  )}
+                  {type === 'owner' ? <Building2 className="h-3 w-3" /> : <Calendar className="h-3 w-3" />}
                   {user.count}
                 </Badge>
               </TableCell>
@@ -282,20 +228,31 @@ const UserManagement = () => {
       }>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar rol de usuario?</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-500">
+              <AlertTriangle className="h-5 w-5" />
+              ¿Eliminar usuario permanentemente?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Se eliminará el rol de "{deleteDialog.userName}". El usuario no podrá acceder a las funciones asociadas a este rol.
+              <span className="font-semibold text-foreground">Esta acción eliminará permanentemente al usuario "{deleteDialog.userName}" y toda su información:</span>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Todos sus espectaculares/propiedades</li>
+                <li>Todas sus campañas y reservas</li>
+                <li>Todos sus mensajes y conversaciones</li>
+                <li>Sus favoritos y plantillas</li>
+                <li>Su cuenta de autenticación</li>
+              </ul>
+              <p className="mt-3 text-red-500 font-medium">Esta acción no se puede deshacer.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={processing}>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleDeleteRole} 
+              onClick={handleDeleteUser} 
               disabled={processing}
               className="bg-red-500 hover:bg-red-600"
             >
               {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Eliminar
+              Eliminar permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

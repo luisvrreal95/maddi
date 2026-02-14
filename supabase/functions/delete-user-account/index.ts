@@ -35,162 +35,75 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const userId = user.id;
-
-    console.log(`Starting account deletion for user: ${userId}`);
-
-    // Delete user data in order (respecting foreign key constraints)
+    // Check if this is an admin action or self-deletion
+    let body: any = {};
+    try { body = await req.json(); } catch { /* empty body = self-deletion */ }
     
-    // 1. Delete messages
-    const { error: messagesError } = await supabase
-      .from('messages')
-      .delete()
-      .eq('sender_id', userId);
-    if (messagesError) console.error('Error deleting messages:', messagesError);
+    const isAdminAction = body?.admin_action === true;
+    const targetUserId = body?.target_user_id || user.id;
 
-    // 2. Delete conversations (as owner or business)
-    const { error: conversationsError } = await supabase
-      .from('conversations')
-      .delete()
-      .or(`owner_id.eq.${userId},business_id.eq.${userId}`);
-    if (conversationsError) console.error('Error deleting conversations:', conversationsError);
+    // If admin action, verify caller is admin
+    if (isAdminAction && targetUserId !== user.id) {
+      const { data: adminRecord } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-    // 3. Delete notifications
-    const { error: notificationsError } = await supabase
-      .from('notifications')
-      .delete()
-      .eq('user_id', userId);
-    if (notificationsError) console.error('Error deleting notifications:', notificationsError);
+      if (!adminRecord) {
+        return new Response(
+          JSON.stringify({ error: "Unauthorized: not an admin" }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
 
-    // 4. Delete reviews
-    const { error: reviewsError } = await supabase
-      .from('reviews')
-      .delete()
-      .eq('business_id', userId);
-    if (reviewsError) console.error('Error deleting reviews:', reviewsError);
+    const userId = targetUserId;
+    console.log(`Starting account deletion for user: ${userId} (admin: ${isAdminAction})`);
 
-    // 5. Delete favorites
-    const { error: favoritesError } = await supabase
-      .from('favorites')
-      .delete()
-      .eq('user_id', userId);
-    if (favoritesError) console.error('Error deleting favorites:', favoritesError);
+    // Delete in order respecting FK constraints
+    await supabase.from('messages').delete().eq('sender_id', userId);
+    await supabase.from('conversations').delete().or(`owner_id.eq.${userId},business_id.eq.${userId}`);
+    await supabase.from('notifications').delete().eq('user_id', userId);
+    await supabase.from('reviews').delete().eq('business_id', userId);
+    await supabase.from('favorites').delete().eq('user_id', userId);
+    await supabase.from('favorite_folders').delete().eq('user_id', userId);
+    await supabase.from('design_templates').delete().eq('user_id', userId);
+    await supabase.from('bookings').delete().eq('business_id', userId);
 
-    // 6. Delete favorite folders
-    const { error: foldersError } = await supabase
-      .from('favorite_folders')
-      .delete()
-      .eq('user_id', userId);
-    if (foldersError) console.error('Error deleting folders:', foldersError);
-
-    // 7. Delete design templates
-    const { error: templatesError } = await supabase
-      .from('design_templates')
-      .delete()
-      .eq('user_id', userId);
-    if (templatesError) console.error('Error deleting templates:', templatesError);
-
-    // 8. Delete bookings (as business)
-    const { error: bookingsError } = await supabase
-      .from('bookings')
-      .delete()
-      .eq('business_id', userId);
-    if (bookingsError) console.error('Error deleting bookings:', bookingsError);
-
-    // 9. Get user's billboards to delete related data
-    const { data: billboards } = await supabase
-      .from('billboards')
-      .select('id')
-      .eq('owner_id', userId);
+    // Get user's billboards to delete related data
+    const { data: billboards } = await supabase.from('billboards').select('id').eq('owner_id', userId);
 
     if (billboards && billboards.length > 0) {
       const billboardIds = billboards.map(b => b.id);
-
-      // Delete blocked dates
-      await supabase
-        .from('blocked_dates')
-        .delete()
-        .in('billboard_id', billboardIds);
-
-      // Delete pricing overrides
-      await supabase
-        .from('pricing_overrides')
-        .delete()
-        .in('billboard_id', billboardIds);
-
-      // Delete traffic data
-      await supabase
-        .from('traffic_data')
-        .delete()
-        .in('billboard_id', billboardIds);
-
-      // Delete INEGI demographics
-      await supabase
-        .from('inegi_demographics')
-        .delete()
-        .in('billboard_id', billboardIds);
-
-      // Delete API usage logs
-      await supabase
-        .from('api_usage_logs')
-        .delete()
-        .in('billboard_id', billboardIds);
+      await supabase.from('blocked_dates').delete().in('billboard_id', billboardIds);
+      await supabase.from('pricing_overrides').delete().in('billboard_id', billboardIds);
+      await supabase.from('traffic_data').delete().in('billboard_id', billboardIds);
+      await supabase.from('inegi_demographics').delete().in('billboard_id', billboardIds);
+      await supabase.from('api_usage_logs').delete().in('billboard_id', billboardIds);
+      await supabase.from('poi_overview_cache').delete().in('billboard_id', billboardIds);
+      // Delete bookings ON these billboards too
+      await supabase.from('bookings').delete().in('billboard_id', billboardIds);
     }
 
-    // 10. Delete billboards
-    const { error: billboardsError } = await supabase
-      .from('billboards')
-      .delete()
-      .eq('owner_id', userId);
-    if (billboardsError) console.error('Error deleting billboards:', billboardsError);
+    await supabase.from('billboards').delete().eq('owner_id', userId);
+    await supabase.from('user_roles').delete().eq('user_id', userId);
+    await supabase.from('profiles').delete().eq('user_id', userId);
 
-    // 11. Delete user roles
-    const { error: rolesError } = await supabase
-      .from('user_roles')
-      .delete()
-      .eq('user_id', userId);
-    if (rolesError) console.error('Error deleting roles:', rolesError);
-
-    // 12. Delete profile
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .delete()
-      .eq('user_id', userId);
-    if (profileError) console.error('Error deleting profile:', profileError);
-
-    // 13. Delete storage files from billboard-images bucket
-    try {
-      const { data: billboardFiles } = await supabase.storage
-        .from('billboard-images')
-        .list(userId);
-      
-      if (billboardFiles && billboardFiles.length > 0) {
-        const filePaths = billboardFiles.map(f => `${userId}/${f.name}`);
-        await supabase.storage
-          .from('billboard-images')
-          .remove(filePaths);
+    // Delete storage files
+    for (const bucket of ['billboard-images', 'verification-docs']) {
+      try {
+        const { data: files } = await supabase.storage.from(bucket).list(userId);
+        if (files && files.length > 0) {
+          const filePaths = files.map(f => `${userId}/${f.name}`);
+          await supabase.storage.from(bucket).remove(filePaths);
+        }
+      } catch (e) {
+        console.error(`Error deleting ${bucket} files:`, e);
       }
-    } catch (storageError) {
-      console.error('Error deleting billboard images:', storageError);
     }
 
-    // 14. Delete storage files from verification-docs bucket (private)
-    try {
-      const { data: verificationFiles } = await supabase.storage
-        .from('verification-docs')
-        .list(userId);
-      
-      if (verificationFiles && verificationFiles.length > 0) {
-        const filePaths = verificationFiles.map(f => `${userId}/${f.name}`);
-        await supabase.storage
-          .from('verification-docs')
-          .remove(filePaths);
-      }
-    } catch (storageError) {
-      console.error('Error deleting verification docs:', storageError);
-    }
-
-    // 15. Finally, delete the auth user
+    // Delete auth user
     const { error: deleteUserError } = await supabase.auth.admin.deleteUser(userId);
     
     if (deleteUserError) {

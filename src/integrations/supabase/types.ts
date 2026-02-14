@@ -145,6 +145,7 @@ export type Database = {
           min_advance_booking_days: number | null
           min_campaign_days: number | null
           owner_id: string
+          pause_reason: string | null
           points_of_interest: string[] | null
           price_per_month: number
           state: string
@@ -172,6 +173,7 @@ export type Database = {
           min_advance_booking_days?: number | null
           min_campaign_days?: number | null
           owner_id: string
+          pause_reason?: string | null
           points_of_interest?: string[] | null
           price_per_month: number
           state: string
@@ -199,6 +201,7 @@ export type Database = {
           min_advance_booking_days?: number | null
           min_campaign_days?: number | null
           owner_id?: string
+          pause_reason?: string | null
           points_of_interest?: string[] | null
           price_per_month?: number
           state?: string
