@@ -1,10 +1,8 @@
 import React from 'react';
 import HeroSection from '@/components/HeroSection';
-import RatingSection from '@/components/RatingSection';
-import BusinessModelSection from '@/components/BusinessModelSection';
-import TopListingsSection from '@/components/TopListingsSection';
-import AdvertisingSection from '@/components/AdvertisingSection';
-import CTASection from '@/components/CTASection';
+import FeaturedListingsSection from '@/components/FeaturedListingsSection';
+import FeaturesSection from '@/components/FeaturesSection';
+import OwnerCTASection from '@/components/OwnerCTASection';
 import Footer from '@/components/Footer';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
 
@@ -12,11 +10,9 @@ const Index: React.FC = () => {
   return (
     <main className="flex flex-col items-stretch relative min-h-screen pb-20 md:pb-0">
       <HeroSection />
-      <RatingSection />
-      <BusinessModelSection />
-      <TopListingsSection />
-      <AdvertisingSection />
-      <CTASection />
+      <FeaturedListingsSection />
+      <FeaturesSection />
+      <OwnerCTASection />
       <Footer />
       <MobileNavBar />
     </main>
