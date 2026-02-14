@@ -112,6 +112,11 @@ const BillboardDetail: React.FC = () => {
       toast.error('Solo negocios pueden solicitar reservas');
       return;
     }
+    // Block booking for paused properties
+    if (!billboard.is_available || billboard.pause_reason) {
+      toast.error('Este espectacular no está disponible actualmente');
+      return;
+    }
     setShowBookingDialog(true);
   };
 
@@ -243,7 +248,7 @@ const BillboardDetail: React.FC = () => {
                 </p>
               </div>
               
-              {billboard.is_available ? (
+              {billboard.is_available && !billboard.pause_reason ? (
                 <Button
                   onClick={handleBookingClick}
                   className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-5 text-base font-bold"
@@ -251,9 +256,14 @@ const BillboardDetail: React.FC = () => {
                   Solicitar Reserva
                 </Button>
               ) : (
-                <Button disabled className="w-full py-5 text-base">
-                  No Disponible
-                </Button>
+                <div>
+                  <Button disabled className="w-full py-5 text-base">
+                    No Disponible
+                  </Button>
+                  {billboard.pause_reason && (
+                    <p className="text-muted-foreground text-xs text-center mt-2">No disponible temporalmente</p>
+                  )}
+                </div>
               )}
 
               {/* Quick Stats Grid */}
