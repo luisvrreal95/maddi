@@ -55,6 +55,10 @@ const NotificationBell: React.FC = () => {
     if (notification.type === 'booking_approved' || notification.type === 'booking_rejected') {
       return '/business';
     }
+    // Admin action notifications go to the billboard detail
+    if (notification.type === 'admin_action' && notification.related_billboard_id) {
+      return `/billboard/${notification.related_billboard_id}`;
+    }
     // For billboard-related notifications, go to that billboard
     if (notification.related_billboard_id) {
       return `/billboard/${notification.related_billboard_id}`;
