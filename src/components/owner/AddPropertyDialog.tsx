@@ -84,6 +84,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const debounceRef = useRef<NodeJS.Timeout>();
   const addressInputRef = useRef<HTMLInputElement>(null);
   const isUserTypingRef = useRef(false);
+  const sessionTokenRef = useRef<string>(crypto.randomUUID());
 
   // Get user's location on mount
   useEffect(() => {
@@ -314,9 +315,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     }
   };
 
-  // Address autocomplete - only when user is typing
+  // Address autocomplete - dual source: TomTom POI + Mapbox Search Box
   useEffect(() => {
-    if (!address || address.length < 3 || !mapboxToken || !isUserTypingRef.current) {
+    if (!address || address.length < 2 || !mapboxToken || !isUserTypingRef.current) {
       setAddressSuggestions([]);
       return;
     }
@@ -328,26 +329,66 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     debounceRef.current = setTimeout(async () => {
       setIsLoadingSuggestions(true);
       try {
-        // Build URL with proximity bias if user location is available
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=6&language=es`;
-        
-        if (userLocation) {
-          url += `&proximity=${userLocation.lng},${userLocation.lat}`;
+        const proximityLng = userLocation?.lng ?? -116.9661;
+        const proximityLat = userLocation?.lat ?? 32.5149;
+
+        const [tomtomRes, mapboxRes] = await Promise.all([
+          supabase.functions.invoke('search-poi', {
+            body: { query: address, lat: proximityLat, lon: proximityLng, limit: 5 }
+          }).catch(() => ({ data: null, error: 'failed' })),
+          fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(address)}&access_token=${mapboxToken}&session_token=${sessionTokenRef.current}&language=es&country=MX&types=poi,place,neighborhood,locality,address&limit=8&proximity=${proximityLng},${proximityLat}`)
+            .then(r => r.json())
+            .catch(() => ({ suggestions: [] }))
+        ]);
+
+        if (!isUserTypingRef.current) return;
+
+        const merged: LocationSuggestion[] = [];
+        const seenNames = new Set<string>();
+
+        if (tomtomRes.data?.success && tomtomRes.data?.results) {
+          for (const r of tomtomRes.data.results) {
+            if (r.lat && r.lon && r.displayName) {
+              const key = r.displayName.toLowerCase();
+              if (!seenNames.has(key)) {
+                seenNames.add(key);
+                merged.push({
+                  id: r.id || `tt-${merged.length}`,
+                  place_name: [r.displayName, r.displayContext].filter(Boolean).join(', '),
+                  text: r.displayName,
+                  place_type: [r.type === 'POI' ? 'poi' : 'address'],
+                  center: [r.lon, r.lat] as [number, number],
+                });
+              }
+            }
+          }
         }
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.features && isUserTypingRef.current) {
-          setAddressSuggestions(data.features);
-          setShowAddressSuggestions(true);
+
+        if (mapboxRes.suggestions) {
+          for (const s of mapboxRes.suggestions) {
+            const key = s.name?.toLowerCase();
+            if (key && !seenNames.has(key)) {
+              seenNames.add(key);
+              merged.push({
+                id: s.mapbox_id,
+                place_name: s.full_address || s.place_formatted || s.name,
+                text: s.name,
+                place_type: [s.feature_type || 'place'],
+                center: [0, 0],
+                _mapboxId: s.mapbox_id,
+              } as any);
+            }
+          }
         }
+
+        setAddressSuggestions(merged.slice(0, 8));
+        setShowAddressSuggestions(true);
       } catch (error) {
         console.error('Error fetching suggestions:', error);
       } finally {
         setIsLoadingSuggestions(false);
       }
-    }, 300);
+    }, 250);
 
     return () => {
       if (debounceRef.current) {
@@ -356,26 +397,50 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     };
   }, [address, mapboxToken, userLocation]);
 
-  const handleSelectAddress = (suggestion: LocationSuggestion) => {
-    // Disable typing flag to prevent dropdown from reopening
+  const handleSelectAddress = async (suggestion: LocationSuggestion) => {
     isUserTypingRef.current = false;
-    setAddress(suggestion.place_name);
-    setLongitude(suggestion.center[0]);
-    setLatitude(suggestion.center[1]);
     setShowAddressSuggestions(false);
     setAddressSuggestions([]);
-    
-    // Extract city and state
-    const parts = suggestion.place_name.split(', ');
-    if (parts.length >= 2) {
-      setCity(parts[parts.length - 3] || parts[0]);
-      setState(parts[parts.length - 2] || '');
+    setAddress(suggestion.place_name);
+
+    let coords = suggestion.center;
+
+    if (coords[0] === 0 && coords[1] === 0 && (suggestion as any)._mapboxId && mapboxToken) {
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/search/searchbox/v1/retrieve/${(suggestion as any)._mapboxId}?access_token=${mapboxToken}&session_token=${sessionTokenRef.current}`
+        );
+        const data = await res.json();
+        if (data.features?.[0]?.geometry?.coordinates) {
+          coords = data.features[0].geometry.coordinates;
+        }
+        sessionTokenRef.current = crypto.randomUUID();
+      } catch (e) {
+        console.error('Error retrieving coordinates:', e);
+      }
+    }
+
+    if (coords[0] !== 0 || coords[1] !== 0) {
+      setLongitude(coords[0]);
+      setLatitude(coords[1]);
+      if (marker.current && map.current) {
+        marker.current.setLngLat(coords);
+        map.current.flyTo({ center: coords, zoom: 16 });
+      }
     }
     
-    // Update map
-    if (marker.current && map.current) {
-      marker.current.setLngLat(suggestion.center);
-      map.current.flyTo({ center: suggestion.center, zoom: 16 });
+    const ctx = (suggestion as any).context;
+    if (ctx) {
+      const cityCtx = ctx.find((c: any) => c.id === 'place' || c.id?.startsWith('place'));
+      const stateCtx = ctx.find((c: any) => c.id === 'region' || c.id?.startsWith('region'));
+      if (cityCtx) setCity(cityCtx.text);
+      if (stateCtx) setState(stateCtx.text);
+    } else {
+      const parts = suggestion.place_name.split(', ');
+      if (parts.length >= 2) {
+        setCity(parts[parts.length - 3] || parts[0]);
+        setState(parts[parts.length - 2] || '');
+      }
     }
   };
 

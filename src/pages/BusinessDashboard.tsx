@@ -10,7 +10,7 @@ import CampaignCard from '@/components/campaigns/CampaignCard';
 import CampaignDetail from '@/components/campaigns/CampaignDetail';
 import { Button } from '@/components/ui/button';
 
-type StatusFilter = 'all' | 'scheduled' | 'pending' | 'cancelled' | 'finished';
+type StatusFilter = 'all' | 'scheduled' | 'pending' | 'cancelled' | 'rejected' | 'finished';
 
 interface Booking {
   id: string;
@@ -108,6 +108,7 @@ const BusinessDashboard: React.FC = () => {
     const scheduled: Booking[] = [];
     const pending: Booking[] = [];
     const cancelled: Booking[] = [];
+    const rejected: Booking[] = [];
     const finished: Booking[] = [];
 
     bookings.forEach(booking => {
@@ -119,7 +120,7 @@ const BusinessDashboard: React.FC = () => {
       } else if (booking.status === 'cancelled') {
         cancelled.push(booking);
       } else if (booking.status === 'rejected') {
-        finished.push(booking);
+        rejected.push(booking);
       } else if (booking.status === 'approved') {
         if (isBefore(start, now) && isAfter(end, now)) {
           active.push(booking);
@@ -131,7 +132,7 @@ const BusinessDashboard: React.FC = () => {
       }
     });
 
-    return { active, scheduled, pending, cancelled, finished };
+    return { active, scheduled, pending, cancelled, rejected, finished };
   }, [bookings]);
 
   const filteredBookings = useMemo(() => {
@@ -139,6 +140,7 @@ const BusinessDashboard: React.FC = () => {
       case 'scheduled': return [...categorized.active, ...categorized.scheduled];
       case 'pending': return categorized.pending;
       case 'cancelled': return categorized.cancelled;
+      case 'rejected': return categorized.rejected;
       case 'finished': return categorized.finished;
       case 'all':
       default:
@@ -191,6 +193,7 @@ const BusinessDashboard: React.FC = () => {
     { id: 'scheduled', label: 'Programadas', count: categorized.active.length + categorized.scheduled.length },
     { id: 'pending', label: 'Pendientes', count: categorized.pending.length },
     { id: 'cancelled', label: 'Canceladas', count: categorized.cancelled.length },
+    { id: 'rejected', label: 'Rechazadas', count: categorized.rejected.length },
     { id: 'finished', label: 'Finalizadas', count: categorized.finished.length },
   ];
 

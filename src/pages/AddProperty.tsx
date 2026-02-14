@@ -80,6 +80,7 @@ const AddProperty: React.FC = () => {
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const sessionTokenRef = useRef<string>(crypto.randomUUID());
 
   // Step 4 form data
   const [pointsOfInterest, setPointsOfInterest] = useState<string[]>([]);
@@ -231,9 +232,9 @@ const AddProperty: React.FC = () => {
     }
   };
 
-  // Address autocomplete
+  // Address autocomplete - dual source: TomTom POI + Mapbox Search Box
   useEffect(() => {
-    if (!address || address.length < 3 || !mapboxToken || !isUserTypingRef.current) {
+    if (!address || address.length < 2 || !mapboxToken || !isUserTypingRef.current) {
       setAddressSuggestions([]);
       return;
     }
@@ -245,25 +246,73 @@ const AddProperty: React.FC = () => {
     debounceRef.current = setTimeout(async () => {
       setIsLoadingSuggestions(true);
       try {
-        let url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${mapboxToken}&country=mx&types=country,region,place,district,locality,neighborhood,address,poi&limit=6&language=es`;
-        
-        if (userLocation) {
-          url += `&proximity=${userLocation.lng},${userLocation.lat}`;
+        const proximityLng = userLocation?.lng ?? -116.9661;
+        const proximityLat = userLocation?.lat ?? 32.5149;
+
+        // Parallel: TomTom search-poi (great for POIs/businesses) + Mapbox Search Box (great for addresses)
+        const [tomtomRes, mapboxRes] = await Promise.all([
+          supabase.functions.invoke('search-poi', {
+            body: { query: address, lat: proximityLat, lon: proximityLng, limit: 5 }
+          }).catch(() => ({ data: null, error: 'failed' })),
+          fetch(`https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(address)}&access_token=${mapboxToken}&session_token=${sessionTokenRef.current}&language=es&country=MX&types=poi,place,neighborhood,locality,address&limit=8&proximity=${proximityLng},${proximityLat}`)
+            .then(r => r.json())
+            .catch(() => ({ suggestions: [] }))
+        ]);
+
+        if (!isUserTypingRef.current) return;
+
+        const merged: LocationSuggestion[] = [];
+        const seenNames = new Set<string>();
+
+        // Add TomTom POI results first (better for businesses/plazas)
+        if (tomtomRes.data?.success && tomtomRes.data?.results) {
+          for (const r of tomtomRes.data.results) {
+            if (r.lat && r.lon && r.displayName) {
+              const key = r.displayName.toLowerCase();
+              if (!seenNames.has(key)) {
+                seenNames.add(key);
+                merged.push({
+                  id: r.id || `tt-${merged.length}`,
+                  place_name: [r.displayName, r.displayContext].filter(Boolean).join(', '),
+                  text: r.displayName,
+                  place_type: [r.type === 'POI' ? 'poi' : 'address'],
+                  center: [r.lon, r.lat] as [number, number],
+                });
+              }
+            }
+          }
         }
-        
-        const response = await fetch(url);
-        const data = await response.json();
-        
-        if (data.features && isUserTypingRef.current) {
-          setAddressSuggestions(data.features);
-          setShowAddressSuggestions(true);
+
+        // Add Mapbox Search Box results (needs retrieve step for coords)
+        if (mapboxRes.suggestions) {
+          for (const s of mapboxRes.suggestions) {
+            const key = s.name?.toLowerCase();
+            if (key && !seenNames.has(key)) {
+              seenNames.add(key);
+              merged.push({
+                id: s.mapbox_id,
+                place_name: s.full_address || s.place_formatted || s.name,
+                text: s.name,
+                place_type: [s.feature_type || 'place'],
+                center: [0, 0], // Will be resolved on select via retrieve API
+                context: s.context ? [
+                  s.context.place ? { id: 'place', text: s.context.place.name } : null,
+                  s.context.region ? { id: 'region', text: s.context.region.name } : null,
+                ].filter(Boolean) as any[] : undefined,
+                _mapboxId: s.mapbox_id, // Store for retrieve
+              } as any);
+            }
+          }
         }
+
+        setAddressSuggestions(merged.slice(0, 8));
+        setShowAddressSuggestions(true);
       } catch (error) {
         console.error('Error fetching suggestions:', error);
       } finally {
         setIsLoadingSuggestions(false);
       }
-    }, 300);
+    }, 250);
 
     return () => {
       if (debounceRef.current) {
@@ -272,23 +321,54 @@ const AddProperty: React.FC = () => {
     };
   }, [address, mapboxToken, userLocation]);
 
-  const handleSelectAddress = (suggestion: LocationSuggestion) => {
+  const handleSelectAddress = async (suggestion: LocationSuggestion) => {
     isUserTypingRef.current = false;
-    setAddress(suggestion.place_name);
-    setLongitude(suggestion.center[0]);
-    setLatitude(suggestion.center[1]);
     setShowAddressSuggestions(false);
     setAddressSuggestions([]);
-    
-    const parts = suggestion.place_name.split(', ');
-    if (parts.length >= 2) {
-      setCity(parts[parts.length - 3] || parts[0]);
-      setState(parts[parts.length - 2] || '');
+    setAddress(suggestion.place_name);
+
+    let coords = suggestion.center;
+
+    // If coordinates are [0,0], this is a Mapbox Search Box result that needs retrieve
+    if (coords[0] === 0 && coords[1] === 0 && (suggestion as any)._mapboxId && mapboxToken) {
+      try {
+        const res = await fetch(
+          `https://api.mapbox.com/search/searchbox/v1/retrieve/${(suggestion as any)._mapboxId}?access_token=${mapboxToken}&session_token=${sessionTokenRef.current}`
+        );
+        const data = await res.json();
+        if (data.features?.[0]?.geometry?.coordinates) {
+          coords = data.features[0].geometry.coordinates;
+        }
+        // Reset session token after retrieve
+        sessionTokenRef.current = crypto.randomUUID();
+      } catch (e) {
+        console.error('Error retrieving coordinates:', e);
+      }
+    }
+
+    if (coords[0] !== 0 || coords[1] !== 0) {
+      setLongitude(coords[0]);
+      setLatitude(coords[1]);
+      
+      if (marker.current && map.current) {
+        marker.current.setLngLat(coords);
+        map.current.flyTo({ center: coords, zoom: 16 });
+      }
     }
     
-    if (marker.current && map.current) {
-      marker.current.setLngLat(suggestion.center);
-      map.current.flyTo({ center: suggestion.center, zoom: 16 });
+    // Extract city/state from context or place_name
+    const ctx = (suggestion as any).context;
+    if (ctx) {
+      const cityCtx = ctx.find((c: any) => c.id === 'place' || c.id?.startsWith('place'));
+      const stateCtx = ctx.find((c: any) => c.id === 'region' || c.id?.startsWith('region'));
+      if (cityCtx) setCity(cityCtx.text);
+      if (stateCtx) setState(stateCtx.text);
+    } else {
+      const parts = suggestion.place_name.split(', ');
+      if (parts.length >= 2) {
+        setCity(parts[parts.length - 3] || parts[0]);
+        setState(parts[parts.length - 2] || '');
+      }
     }
   };
 
@@ -615,7 +695,7 @@ const AddProperty: React.FC = () => {
                   ¿Dónde está ubicado?
                 </h1>
                 <p className="text-white/60">
-                  Busca la dirección o arrastra el marcador en el mapa.
+                  Busca por nombre de plaza, negocio o dirección.
                 </p>
               </div>
               
@@ -637,7 +717,7 @@ const AddProperty: React.FC = () => {
                         }
                       }}
                       className="h-14 text-lg pl-12 bg-[#2A2A2A] border-white/20 text-white placeholder:text-white/40 focus:border-[#9BFF43]"
-                      placeholder="Buscar dirección..."
+                      placeholder="Busca una plaza, negocio o dirección..."
                     />
                     {isLoadingSuggestions && (
                       <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 animate-spin" />
@@ -1089,19 +1169,6 @@ const AddProperty: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Preview Info */}
-                <div className="bg-[#9BFF43]/5 border border-[#9BFF43]/20 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="w-5 h-5 text-[#9BFF43] mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="text-white font-medium mb-1">Ejemplo con tu configuración:</p>
-                      <p className="text-white/60 text-sm">
-                        Si hoy es 1 de enero y un anunciante quiere reservar, la fecha más pronto disponible sería el {format(new Date(Date.now() + parseInt(minAdvanceBookingDays || '7') * 24 * 60 * 60 * 1000), 'd MMMM', { locale: es })}, 
-                        y la campaña duraría mínimo {minCampaignDays || '30'} días.
-                      </p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
