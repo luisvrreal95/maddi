@@ -3,7 +3,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
-import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon, Upload, X, Loader2, Image as ImageIcon, Plus, Sparkles } from 'lucide-react';
+import { ArrowLeft, Eye, Clock, MapPin, Calendar as CalendarIcon, X, Loader2, Plus, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import mapboxgl from 'mapbox-gl';
@@ -61,9 +61,15 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   
   // Step 1 form data
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
+  
+  // City autocomplete
+  const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false);
+  const [allCities, setAllCities] = useState<string[]>([]);
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState<number>(32.6245);
   const [longitude, setLongitude] = useState<number>(-115.4523);
@@ -139,7 +145,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [minCampaignDays, setMinCampaignDays] = useState('');
   const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState('');
 
-  // Fetch Mapbox token
+  // Fetch Mapbox token and cities list
   useEffect(() => {
     const fetchToken = async () => {
       try {
@@ -150,14 +156,25 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         console.error('Error fetching mapbox token:', error);
       }
     };
+    const fetchCities = async () => {
+      try {
+        const { data } = await supabase.from('billboards').select('city');
+        if (data) {
+          const unique = [...new Set(data.map(b => b.city).filter(Boolean))].sort();
+          setAllCities(unique);
+        }
+      } catch (e) { console.error(e); }
+    };
     if (open) {
       fetchToken();
+      fetchCities();
     }
   }, [open]);
 
   useEffect(() => {
     if (billboard) {
       setTitle(billboard.title);
+      setDescription(billboard.description || '');
       setPrice(billboard.price_per_month.toString());
       setCity(billboard.city);
       setState(billboard.state);
@@ -365,6 +382,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const resetForm = () => {
     setStep(1);
     setTitle('');
+    setDescription('');
     setPrice('');
     setCity('');
     setState('');
@@ -529,6 +547,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     try {
       const billboardData = {
         title,
+        description: description || null,
         price_per_month: parseFloat(price),
         city: city || 'Sin ciudad',
         state: state || 'Sin estado',
@@ -688,6 +707,23 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 </div>
               </div>
 
+              {/* Description */}
+              <div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm text-white/60">Descripción</Label>
+                  <span className="text-xs text-white/30">{description.length}/800</span>
+                </div>
+                <textarea
+                  value={description}
+                  onChange={(e) => {
+                    if (e.target.value.length <= 800) setDescription(e.target.value);
+                  }}
+                  rows={3}
+                  className="mt-1 w-full rounded-md bg-[#2A2A2A] border border-white/10 text-white placeholder:text-white/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#9BFF43]/30 resize-none"
+                  placeholder="Describe tu espectacular: ubicación estratégica, visibilidad, tráfico..."
+                />
+              </div>
+
               {/* Address with autocomplete */}
               <div className="relative">
                 <Label className="text-sm text-white/60">Dirección</Label>
@@ -738,14 +774,52 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div>
+                <div className="relative">
                   <Label className="text-sm text-white/60">Ciudad</Label>
                   <Input
                     value={city}
-                    onChange={(e) => setCity(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCity(val);
+                      if (val.length > 0) {
+                        const filtered = allCities.filter(c => c.toLowerCase().includes(val.toLowerCase()));
+                        setCitySuggestions(filtered);
+                        setShowCitySuggestions(filtered.length > 0);
+                      } else {
+                        setCitySuggestions(allCities);
+                        setShowCitySuggestions(allCities.length > 0);
+                      }
+                    }}
+                    onFocus={() => {
+                      const filtered = city.length > 0
+                        ? allCities.filter(c => c.toLowerCase().includes(city.toLowerCase()))
+                        : allCities;
+                      setCitySuggestions(filtered);
+                      setShowCitySuggestions(filtered.length > 0);
+                    }}
+                    onBlur={() => setTimeout(() => setShowCitySuggestions(false), 150)}
                     className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
                     placeholder="Mexicali"
+                    autoComplete="off"
                   />
+                  {showCitySuggestions && citySuggestions.length > 0 && (
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl max-h-40 overflow-y-auto">
+                      {citySuggestions.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => {
+                            setCity(c);
+                            setShowCitySuggestions(false);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-white hover:bg-white/5 transition-colors"
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label className="text-sm text-white/60">Estado</Label>
