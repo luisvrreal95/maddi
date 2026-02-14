@@ -125,20 +125,13 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({
             source: 'cache',
-            cached_at: cachedData.recorded_at,
-            next_update: new Date(lastUpdate.getTime() + CACHE_DURATION_MS).toISOString(),
-            current_speed: cachedData.current_speed,
-            free_flow_speed: cachedData.free_flow_speed,
-            confidence: cachedData.confidence,
-            confidence_level: cachedData.confidence >= 0.8 ? 'Alta' : cachedData.confidence >= 0.5 ? 'Media' : 'Baja',
-            estimated_daily_traffic: cachedData.estimated_daily_impressions,
-            traffic_range: {
-              min: Math.round(cachedData.estimated_daily_impressions * 0.85),
-              max: Math.round(cachedData.estimated_daily_impressions * 1.15),
+            trafficData: {
+              estimated_daily_impressions: cachedData.estimated_daily_impressions,
+              current_speed: cachedData.current_speed,
+              free_flow_speed: cachedData.free_flow_speed,
+              confidence: cachedData.confidence,
+              recorded_at: cachedData.recorded_at,
             },
-            peak_hours: '7:30-9:30, 17:30-19:30',
-            road_type: 'avenida_principal',
-            label: 'Tráfico vehicular estimado – Fuente: TomTom',
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -237,7 +230,7 @@ serve(async (req) => {
         };
       }
     } else {
-      console.log('No TomTom API key, using location-based estimate');
+      console.log('No TomTom API key, using fallback');
       const locationEstimate = estimateTrafficFromLocation(billboardCity, hasNearbyPOIs);
       trafficData = {
         ...locationEstimate,
@@ -275,25 +268,18 @@ serve(async (req) => {
 
     console.log(`Final traffic estimate for ${billboard_id}: ${trafficData.estimated_daily_traffic} (source: ${trafficData.source})`);
 
+    const responseTimestamp = new Date().toISOString();
+
     return new Response(
       JSON.stringify({
         source: trafficData.source,
-        fetched_at: new Date().toISOString(),
-        next_update: new Date(Date.now() + CACHE_DURATION_MS).toISOString(),
-        current_speed: trafficData.current_speed,
-        free_flow_speed: trafficData.free_flow_speed,
-        confidence: trafficData.confidence,
-        confidence_level: trafficData.confidence_level,
-        road_type: trafficData.road_type,
-        peak_hours: trafficData.peak_hours,
-        estimated_daily_traffic: trafficData.estimated_daily_traffic,
-        traffic_range: {
-          min: Math.round(trafficData.estimated_daily_traffic * 0.85),
-          max: Math.round(trafficData.estimated_daily_traffic * 1.15),
+        trafficData: {
+          estimated_daily_impressions: trafficData.estimated_daily_traffic,
+          current_speed: trafficData.current_speed || null,
+          free_flow_speed: trafficData.free_flow_speed || null,
+          confidence: trafficData.confidence,
+          recorded_at: responseTimestamp,
         },
-        label: trafficData.source === 'tomtom' 
-          ? 'Tráfico vehicular estimado – Fuente: TomTom'
-          : 'Tráfico vehicular estimado – Basado en ubicación',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

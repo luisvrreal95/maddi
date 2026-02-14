@@ -14,6 +14,7 @@ interface TrafficEstimateProps {
   billboardId: string;
   latitude: number;
   longitude: number;
+  city?: string;
 }
 
 interface TrafficData {
@@ -27,9 +28,11 @@ interface TrafficData {
 const TrafficEstimate: React.FC<TrafficEstimateProps> = ({ 
   billboardId, 
   latitude, 
-  longitude 
+  longitude,
+  city = '',
 }) => {
   const [trafficData, setTrafficData] = useState<TrafficData | null>(null);
+  const [source, setSource] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
@@ -41,13 +44,14 @@ const TrafficEstimate: React.FC<TrafficEstimateProps> = ({
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('get-traffic-data', {
-        body: { billboardId, latitude, longitude }
+        body: { billboard_id: billboardId, latitude, longitude, city }
       });
 
       if (error) throw error;
 
       if (data?.trafficData) {
         setTrafficData(data.trafficData);
+        setSource(data.source || null);
         if (data.trafficData.recorded_at) {
           setLastUpdate(new Date(data.trafficData.recorded_at));
         }
@@ -84,6 +88,16 @@ const TrafficEstimate: React.FC<TrafficEstimateProps> = ({
     return { label: 'Denso (alta visibilidad)', color: 'text-primary' };
   };
 
+  const getSourceLabel = (src: string | null) => {
+    switch (src) {
+      case 'tomtom': return 'TomTom';
+      case 'cache': return 'Cache';
+      case 'location_estimate':
+      case 'fallback': return 'Estimación por ubicación';
+      default: return 'Desconocido';
+    }
+  };
+
   const trafficLevel = getTrafficLevel(trafficData?.current_speed ?? null, trafficData?.free_flow_speed ?? null);
 
   return (
@@ -98,7 +112,7 @@ const TrafficEstimate: React.FC<TrafficEstimateProps> = ({
                 <Info className="w-4 h-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                <p>Estimación basada en datos de tráfico vehicular. Los valores son aproximados y pueden variar según condiciones del tráfico.</p>
+                <p>Estimación basada en datos de tráfico vehicular. Fuente: {getSourceLabel(source)}</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -154,7 +168,7 @@ const TrafficEstimate: React.FC<TrafficEstimateProps> = ({
           )}
 
           <p className="text-muted-foreground text-xs flex items-center gap-1 border-t border-border pt-3">
-            <span className="opacity-70">Fuente: TomTom Traffic API</span>
+            <span className="opacity-70">Fuente: {getSourceLabel(source)}</span>
           </p>
         </div>
       ) : (
