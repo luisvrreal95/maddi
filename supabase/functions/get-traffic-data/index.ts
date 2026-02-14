@@ -304,6 +304,18 @@ serve(async (req) => {
 
     const responseTimestamp = new Date().toISOString();
 
+    // Log API usage
+    const startTime = Date.now();
+    await supabase.from('api_usage_logs').insert({
+      api_name: 'tomtom',
+      endpoint_type: 'traffic_flow',
+      billboard_id,
+      source_screen: 'billboard_detail',
+      response_status: trafficData.source === 'tomtom' ? 200 : 204,
+      latency_ms: Date.now() - startTime,
+      metadata: { source: trafficData.source, city: billboardCity },
+    }).then(() => {}).catch(() => {});
+
     return new Response(
       JSON.stringify({
         source: trafficData.source,
