@@ -5,7 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, ChevronLeft, ChevronRight, Heart, MessageSquare, Layers, Eye } from 'lucide-react';
+import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, Layers, Eye } from 'lucide-react';
+import ImageGallery from '@/components/billboard/ImageGallery';
 import { toast } from 'sonner';
 import BookingDialog from '@/components/booking/BookingDialog';
 import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
@@ -167,58 +168,13 @@ const BillboardDetail: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto">
-        {/* Hero: Full-width image + overlay info */}
-        <div className="relative">
-          {allImages.length > 0 ? (
-            <>
-              <img
-                src={allImages[currentImageIndex]}
-                alt={billboard.title}
-                className="w-full h-[300px] md:h-[420px] lg:h-[480px] object-cover"
-              />
-              {allImages.length > 1 && (
-                <>
-                  <button
-                    onClick={prevImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/60 hover:bg-black/80 rounded-full flex items-center justify-center text-white transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-                    {allImages.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setCurrentImageIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          idx === currentImageIndex ? 'bg-white w-6' : 'bg-white/50'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <div className="absolute top-4 right-4 bg-black/60 text-white text-xs px-3 py-1.5 rounded-full">
-                    {currentImageIndex + 1} / {allImages.length}
-                  </div>
-                </>
-              )}
-            </>
-          ) : (
-            <div className="w-full h-[300px] md:h-[420px] lg:h-[480px] bg-secondary flex items-center justify-center">
-              <MapPin className="w-20 h-20 text-muted-foreground/30" />
-            </div>
-          )}
-
-          {/* Gradient overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+        {/* Airbnb-style image gallery */}
+        <div className="px-4 md:px-6 pt-4">
+          <ImageGallery images={allImages} title={billboard.title} />
         </div>
 
         {/* Content */}
-        <div className="px-4 md:px-6 -mt-16 relative z-10">
+        <div className="px-4 md:px-6 mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column - Main Info */}
             <div className="lg:col-span-2 space-y-6">
