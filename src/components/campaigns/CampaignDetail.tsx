@@ -149,7 +149,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
 
       if (error) throw error;
 
-      // Notify owner
+      // Notify owner via in-app + email
       if (billboard) {
         const { data: ownerBillboard } = await supabase
           .from('billboards')
@@ -166,6 +166,33 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
             related_booking_id: booking.id,
             related_billboard_id: booking.billboard_id,
           });
+
+          // Send cancellation email to owner
+          try {
+            const { data: ownerProfile } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('user_id', ownerBillboard.owner_id)
+              .maybeSingle();
+
+            await supabase.functions.invoke('send-notification-email', {
+              body: {
+                type: 'booking_cancelled',
+                recipientName: ownerProfile?.full_name || 'Propietario',
+                userId: ownerBillboard.owner_id,
+                entityId: booking.id,
+                data: {
+                  billboardTitle: billboard.title,
+                  startDate: new Date(booking.start_date).toLocaleDateString('es-MX'),
+                  endDate: new Date(booking.end_date).toLocaleDateString('es-MX'),
+                  cancelledBy: 'el negocio',
+                  recipientRole: 'owner',
+                }
+              }
+            });
+          } catch (emailErr) {
+            console.error('Error sending cancellation email:', emailErr);
+          }
         }
       }
 

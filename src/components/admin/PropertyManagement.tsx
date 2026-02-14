@@ -13,7 +13,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, Trash2, Loader2, MapPin, ExternalLink } from "lucide-react";
+import { Eye, Trash2, Loader2, MapPin, ExternalLink, AlertTriangle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
@@ -42,8 +42,8 @@ const PropertyManagement = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; propertyId: string | null }>({ open: false, propertyId: null });
-  const [processing, setProcessing] = useState<string | null>(null); // tracks which property is toggling
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; property: Property | null }>({ open: false, property: null });
+  const [processing, setProcessing] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -88,14 +88,35 @@ const PropertyManagement = () => {
 
   useEffect(() => { fetchProperties(); }, []);
 
+  const sendEmailToOwner = async (property: Property, type: string, extraData: Record<string, string | number | boolean> = {}) => {
+    try {
+      // We need the owner's email - fetch from auth via a workaround
+      // Since we can't access auth.users from client, we'll pass the data and let the edge function handle it
+      await supabase.functions.invoke('send-notification-email', {
+        body: {
+          email: '', // Will be resolved server-side if empty, or we skip
+          type,
+          recipientName: property.owner?.full_name || 'Propietario',
+          userId: property.owner_id,
+          entityId: property.id,
+          data: {
+            billboardTitle: property.title,
+            billboardId: property.id,
+            ...extraData,
+          }
+        }
+      });
+    } catch (err) {
+      console.error('Error sending email:', err);
+    }
+  };
+
   const handleToggleStatus = async (property: Property) => {
-    // If currently active → pause; if paused → reactivate
     const willPause = property.is_available && !property.pause_reason;
     
     setProcessing(property.id);
     try {
       if (willPause) {
-        // Pause by admin
         const { error } = await supabase
           .from('billboards')
           .update({ is_available: false, pause_reason: 'admin' } as any)
@@ -110,9 +131,9 @@ const PropertyManagement = () => {
           related_billboard_id: property.id
         });
 
+        await sendEmailToOwner(property, 'property_paused');
         toast({ title: "Propiedad pausada", description: "Se notificó al propietario." });
       } else {
-        // Reactivate
         const { error } = await supabase
           .from('billboards')
           .update({ is_available: true, pause_reason: null } as any)
@@ -127,6 +148,7 @@ const PropertyManagement = () => {
           related_billboard_id: property.id
         });
 
+        await sendEmailToOwner(property, 'property_reactivated');
         toast({ title: "Propiedad reactivada", description: "Ahora es visible para todos." });
       }
       
@@ -140,27 +162,48 @@ const PropertyManagement = () => {
   };
 
   const handleDelete = async () => {
-    if (!deleteDialog.propertyId) return;
-    setProcessing(deleteDialog.propertyId);
+    const property = deleteDialog.property;
+    if (!property) return;
+    
+    setProcessing(property.id);
     try {
-      await supabase.from('favorites').delete().eq('billboard_id', deleteDialog.propertyId);
-      await supabase.from('blocked_dates').delete().eq('billboard_id', deleteDialog.propertyId);
-      await supabase.from('pricing_overrides').delete().eq('billboard_id', deleteDialog.propertyId);
-      await supabase.from('traffic_data').delete().eq('billboard_id', deleteDialog.propertyId);
-      await supabase.from('inegi_demographics').delete().eq('billboard_id', deleteDialog.propertyId);
-      await supabase.from('poi_overview_cache').delete().eq('billboard_id', deleteDialog.propertyId);
+      // Delete all related data in order (respecting FK constraints)
+      await supabase.from('reviews').delete().eq('billboard_id', property.id);
+      await supabase.from('favorites').delete().eq('billboard_id', property.id);
+      await supabase.from('blocked_dates').delete().eq('billboard_id', property.id);
+      await supabase.from('pricing_overrides').delete().eq('billboard_id', property.id);
+      await supabase.from('traffic_data').delete().eq('billboard_id', property.id);
+      await supabase.from('inegi_demographics').delete().eq('billboard_id', property.id);
+      await supabase.from('poi_overview_cache').delete().eq('billboard_id', property.id);
+      await supabase.from('notifications').delete().eq('related_billboard_id', property.id);
       
-      const { error } = await supabase.from('billboards').delete().eq('id', deleteDialog.propertyId);
+      // Delete messages in conversations for this billboard
+      const { data: convos } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('billboard_id', property.id);
+      
+      if (convos && convos.length > 0) {
+        const convoIds = convos.map(c => c.id);
+        await supabase.from('messages').delete().in('conversation_id', convoIds);
+        await supabase.from('conversations').delete().eq('billboard_id', property.id);
+      }
+
+      // Delete bookings
+      await supabase.from('bookings').delete().eq('billboard_id', property.id);
+      
+      // Finally delete the billboard
+      const { error } = await supabase.from('billboards').delete().eq('id', property.id);
       if (error) throw error;
 
-      toast({ title: "Éxito", description: "Propiedad eliminada permanentemente" });
+      toast({ title: "Éxito", description: `"${property.title}" eliminada permanentemente` });
       fetchProperties();
     } catch (error) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo eliminar la propiedad. Puede tener reservas activas.", variant: "destructive" });
+      toast({ title: "Error", description: "No se pudo eliminar la propiedad. Verifica si tiene datos relacionados.", variant: "destructive" });
     } finally {
       setProcessing(null);
-      setDeleteDialog({ open: false, propertyId: null });
+      setDeleteDialog({ open: false, property: null });
     }
   };
 
@@ -283,8 +326,8 @@ const PropertyManagement = () => {
                               <Eye className="h-4 w-4" />
                             </Button>
                             <Button
-                              size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                              onClick={() => setDeleteDialog({ open: true, propertyId: property.id })}
+                              size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteDialog({ open: true, property })}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -301,18 +344,35 @@ const PropertyManagement = () => {
       </CardContent>
 
       {/* Delete Dialog */}
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, propertyId: null })}>
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, property: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar propiedad permanentemente?</AlertDialogTitle>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              ¿Eliminar propiedad permanentemente?
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminarán permanentemente:
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>La propiedad y toda su información</li>
-                <li>Todas las reservaciones asociadas</li>
-                <li>Datos de tráfico y análisis</li>
-                <li>Favoritos de usuarios</li>
-              </ul>
+              {deleteDialog.property && (
+                <div className="space-y-3">
+                  <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
+                    <p className="font-medium text-foreground">{deleteDialog.property.title}</p>
+                    <p className="text-sm">{deleteDialog.property.city}, {deleteDialog.property.state}</p>
+                    {deleteDialog.property.bookingsCount > 0 && (
+                      <p className="text-sm text-destructive mt-1 font-medium">
+                        ⚠️ Tiene {deleteDialog.property.bookingsCount} campaña(s) asociada(s)
+                      </p>
+                    )}
+                  </div>
+                  <p className="text-sm">Esta acción no se puede deshacer. Se eliminarán permanentemente:</p>
+                  <ul className="list-disc list-inside text-sm space-y-1">
+                    <li>La propiedad y toda su información</li>
+                    <li>Todas las reservaciones y campañas</li>
+                    <li>Datos de tráfico, análisis e INEGI</li>
+                    <li>Conversaciones y mensajes</li>
+                    <li>Favoritos y reseñas</li>
+                  </ul>
+                </div>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

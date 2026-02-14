@@ -373,6 +373,42 @@ export type Database = {
         }
         Relationships: []
       }
+      email_notifications: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          error_message: string | null
+          id: string
+          status: string
+          subject: string
+          to_email: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          error_message?: string | null
+          id?: string
+          status?: string
+          subject: string
+          to_email: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          error_message?: string | null
+          id?: string
+          status?: string
+          subject?: string
+          to_email?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       favorite_folders: {
         Row: {
           created_at: string

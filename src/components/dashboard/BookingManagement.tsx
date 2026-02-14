@@ -209,12 +209,15 @@ const BookingManagement: React.FC = () => {
         await supabase.functions.invoke('send-notification-email', {
           body: {
             type: 'booking_confirmed',
+            recipientName: selectedBooking.profile?.full_name || 'Anunciante',
+            userId: selectedBooking.business_id,
+            entityId: selectedBooking.id,
             data: {
               billboardTitle: selectedBooking.billboard?.title || 'Espectacular',
               startDate: new Date(selectedBooking.start_date).toLocaleDateString('es-MX'),
               endDate: new Date(selectedBooking.end_date).toLocaleDateString('es-MX'),
               totalPrice: selectedBooking.total_price,
-              businessId: selectedBooking.business_id,
+              ownerName: user?.user_metadata?.full_name || 'Propietario',
             }
           }
         });
@@ -249,12 +252,14 @@ const BookingManagement: React.FC = () => {
         await supabase.functions.invoke('send-notification-email', {
           body: {
             type: 'booking_rejected',
+            recipientName: selectedBooking.profile?.full_name || 'Anunciante',
+            userId: selectedBooking.business_id,
+            entityId: selectedBooking.id,
             data: {
               billboardTitle: selectedBooking.billboard?.title || 'Espectacular',
               startDate: new Date(selectedBooking.start_date).toLocaleDateString('es-MX'),
               endDate: new Date(selectedBooking.end_date).toLocaleDateString('es-MX'),
-              reason: rejectReason || undefined,
-              businessId: selectedBooking.business_id,
+              reason: rejectReason || '',
             }
           }
         });

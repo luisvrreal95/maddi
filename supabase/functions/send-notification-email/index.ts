@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -7,94 +8,129 @@ const corsHeaders = {
 };
 
 type EmailType = 
-  | 'booking_request'      // Business requests a booking
-  | 'booking_confirmed'    // Owner confirms booking
-  | 'booking_rejected'     // Owner rejects booking
-  | 'booking_cancelled'    // Booking cancelled
-  | 'new_message'          // New chat message
-  | 'review_received'      // Owner receives a review
-  | 'welcome';             // Welcome email after signup
+  | 'booking_request'
+  | 'booking_request_confirmation'
+  | 'booking_confirmed'
+  | 'booking_rejected'
+  | 'booking_cancelled'
+  | 'new_message'
+  | 'review_received'
+  | 'property_paused'
+  | 'property_reactivated'
+  | 'welcome';
 
 interface NotificationEmailRequest {
   email: string;
   type: EmailType;
   recipientName: string;
+  userId?: string;
+  entityId?: string;
   data: Record<string, string | number | boolean>;
 }
 
+const BASE_URL = 'https://maddi.lovable.app';
+
 const getEmailContent = (type: EmailType, recipientName: string, data: Record<string, string | number | boolean>) => {
   const displayName = recipientName || 'Usuario';
-  
+  const baseUrl = String(data.baseUrl || BASE_URL);
+
   switch (type) {
     case 'booking_request':
       return {
-        subject: `Nueva solicitud de reserva - ${data.billboardTitle}`,
+        subject: `Nueva solicitud para "${data.billboardTitle}"`,
         heading: `¡Hola ${displayName}!`,
-        message: `Has recibido una nueva solicitud de reserva para <strong>${data.billboardTitle}</strong>.`,
+        message: `Has recibido una nueva solicitud de campaña para <strong>${data.billboardTitle}</strong>.`,
         details: `
           <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
             <p style="margin: 4px 0; color: #FFFFFF;"><strong>Anunciante:</strong> ${data.businessName}</p>
-            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} - ${data.endDate}</p>
-            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Total:</strong> $${data.totalPrice} MXN</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} — ${data.endDate}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Total estimado:</strong> $${data.totalPrice} MXN</p>
+            ${data.message ? `<p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.8); font-style: italic;">"${String(data.message).slice(0, 200)}"</p>` : ''}
           </div>
         `,
-        cta: { text: 'Ver solicitud', url: `${data.baseUrl}/owner-dashboard` },
+        cta: { text: 'Ver solicitud', url: `${baseUrl}/owner-dashboard?tab=reservas` },
+        secondaryCta: data.conversationId 
+          ? { text: 'Ir al chat', url: `${baseUrl}/messages` }
+          : null,
+      };
+
+    case 'booking_request_confirmation':
+      return {
+        subject: `Recibimos tu solicitud para "${data.billboardTitle}"`,
+        heading: `¡Hola ${displayName}!`,
+        message: `Tu solicitud de campaña para <strong>${data.billboardTitle}</strong> fue enviada exitosamente.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} — ${data.endDate}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Total estimado:</strong> $${data.totalPrice} MXN</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El propietario revisará tu solicitud y se pondrá en contacto contigo.</p>
+        `,
+        cta: { text: 'Ver mis campañas', url: `${baseUrl}/business-dashboard` },
+        secondaryCta: null,
       };
 
     case 'booking_confirmed':
       return {
-        subject: `¡Tu reserva ha sido confirmada! - ${data.billboardTitle}`,
+        subject: `¡Tu campaña fue aprobada! — ${data.billboardTitle}`,
         heading: `¡Excelente noticia, ${displayName}!`,
-        message: `Tu solicitud de reserva para <strong>${data.billboardTitle}</strong> ha sido <span style="color: #9BFF43;">confirmada</span>.`,
+        message: `Tu solicitud para <strong>${data.billboardTitle}</strong> ha sido <span style="color: #9BFF43;">aprobada</span>.`,
         details: `
           <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
             <p style="margin: 4px 0; color: #FFFFFF;"><strong>Espectacular:</strong> ${data.billboardTitle}</p>
-            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} - ${data.endDate}</p>
-            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Propietario:</strong> ${data.ownerName}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas aprobadas:</strong> ${data.startDate} — ${data.endDate}</p>
+            ${data.ownerName ? `<p style="margin: 4px 0; color: #FFFFFF;"><strong>Propietario:</strong> ${data.ownerName}</p>` : ''}
           </div>
-          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El propietario se pondrá en contacto contigo para coordinar la instalación de tu anuncio.</p>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El siguiente paso es coordinar con el propietario la instalación de tu diseño.</p>
         `,
-        cta: { text: 'Ver mi campaña', url: `${data.baseUrl}/business-dashboard` },
+        cta: { text: 'Ver mi campaña', url: `${baseUrl}/business-dashboard` },
+        secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
       };
 
     case 'booking_rejected':
       return {
-        subject: `Actualización de tu reserva - ${data.billboardTitle}`,
+        subject: `Tu solicitud fue rechazada — ${data.billboardTitle}`,
         heading: `Hola ${displayName}`,
-        message: `Tu solicitud de reserva para <strong>${data.billboardTitle}</strong> no pudo ser confirmada.`,
+        message: `Tu solicitud para <strong>${data.billboardTitle}</strong> no pudo ser confirmada.`,
         details: data.reason ? `
           <div style="background: rgba(255, 100, 100, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
             <p style="margin: 0; color: rgba(255,255,255,0.8);"><strong>Motivo:</strong> ${data.reason}</p>
           </div>
-        ` : '',
-        cta: { text: 'Buscar otros espacios', url: `${data.baseUrl}/search` },
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">No te preocupes, hay muchos más espacios disponibles para tu marca.</p>
+        ` : `<p style="color: rgba(255,255,255,0.6); font-size: 14px;">No te preocupes, hay muchos más espacios disponibles para tu marca.</p>`,
+        cta: { text: 'Buscar otros espacios', url: `${baseUrl}/search` },
+        secondaryCta: null,
       };
 
     case 'booking_cancelled':
       return {
-        subject: `Reserva cancelada - ${data.billboardTitle}`,
+        subject: `Campaña cancelada — ${data.billboardTitle}`,
         heading: `Hola ${displayName}`,
-        message: `La reserva para <strong>${data.billboardTitle}</strong> ha sido cancelada.`,
+        message: `La campaña para <strong>${data.billboardTitle}</strong> ha sido cancelada${data.cancelledBy ? ` por ${data.cancelledBy}` : ''}.`,
         details: `
           <div style="background: rgba(255, 200, 100, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
-            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} - ${data.endDate}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} — ${data.endDate}</p>
             ${data.reason ? `<p style="margin: 4px 0; color: rgba(255,255,255,0.8);"><strong>Motivo:</strong> ${data.reason}</p>` : ''}
           </div>
         `,
-        cta: null,
+        cta: data.recipientRole === 'business' 
+          ? { text: 'Ver mis campañas', url: `${baseUrl}/business-dashboard` }
+          : { text: 'Ver mis propiedades', url: `${baseUrl}/owner-dashboard` },
+        secondaryCta: null,
       };
 
     case 'new_message':
       return {
         subject: `Nuevo mensaje de ${data.senderName}`,
         heading: `¡Hola ${displayName}!`,
-        message: `Has recibido un nuevo mensaje de <strong>${data.senderName}</strong> sobre <strong>${data.billboardTitle}</strong>.`,
+        message: `Tienes un nuevo mensaje de <strong>${data.senderName}</strong> sobre <strong>${data.billboardTitle}</strong>.`,
         details: `
           <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
-            <p style="margin: 0; color: rgba(255,255,255,0.8); font-style: italic;">"${String(data.messagePreview).slice(0, 150)}${String(data.messagePreview).length > 150 ? '...' : ''}"</p>
+            <p style="margin: 0; color: rgba(255,255,255,0.8); font-style: italic;">"${String(data.messagePreview).slice(0, 120)}${String(data.messagePreview).length > 120 ? '...' : ''}"</p>
           </div>
         `,
-        cta: { text: 'Responder mensaje', url: `${data.baseUrl}/messages` },
+        cta: { text: 'Responder mensaje', url: `${baseUrl}/messages` },
+        secondaryCta: null,
       };
 
     case 'review_received':
@@ -108,7 +144,38 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
             ${data.comment ? `<p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.8); font-style: italic;">"${data.comment}"</p>` : ''}
           </div>
         `,
-        cta: { text: 'Ver reseña', url: `${data.baseUrl}/billboard/${data.billboardId}` },
+        cta: { text: 'Ver reseña', url: `${baseUrl}/billboard/${data.billboardId}` },
+        secondaryCta: null,
+      };
+
+    case 'property_paused':
+      return {
+        subject: `Tu propiedad fue pausada por Maddi`,
+        heading: `Hola ${displayName}`,
+        message: `Tu propiedad <strong>${data.billboardTitle}</strong> fue dada de baja temporal por el equipo de Maddi.`,
+        details: `
+          <div style="background: rgba(255, 165, 0, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.8);">Tu propiedad no será visible para los anunciantes mientras esté pausada. Las campañas ya aprobadas no se ven afectadas.</p>
+            ${data.reason ? `<p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.6);"><strong>Motivo:</strong> ${data.reason}</p>` : ''}
+          </div>
+          <p style="color: rgba(255,255,255,0.5); font-size: 13px;">Si tienes preguntas, contáctanos respondiendo a este correo.</p>
+        `,
+        cta: { text: 'Ver detalles', url: `${baseUrl}/owner-dashboard` },
+        secondaryCta: null,
+      };
+
+    case 'property_reactivated':
+      return {
+        subject: `¡Tu propiedad fue reactivada!`,
+        heading: `¡Buenas noticias, ${displayName}!`,
+        message: `Tu propiedad <strong>${data.billboardTitle}</strong> ha sido reactivada y ahora está visible nuevamente.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.8);">Los anunciantes pueden encontrar y solicitar campañas en tu espacio publicitario.</p>
+          </div>
+        `,
+        cta: { text: 'Ver mi propiedad', url: `${baseUrl}/billboard/${data.billboardId}` },
+        secondaryCta: null,
       };
 
     case 'welcome':
@@ -134,8 +201,9 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
             </ul>
           `,
         cta: data.role === 'owner' 
-          ? { text: 'Agregar mi primer espacio', url: `${data.baseUrl}/owner-dashboard` }
-          : { text: 'Explorar espacios', url: `${data.baseUrl}/search` },
+          ? { text: 'Agregar mi primer espacio', url: `${baseUrl}/owner-dashboard` }
+          : { text: 'Explorar espacios', url: `${baseUrl}/search` },
+        secondaryCta: null,
       };
 
     default:
@@ -144,7 +212,8 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
         heading: `Hola ${displayName}`,
         message: 'Tienes una nueva notificación.',
         details: '',
-        cta: { text: 'Ver en Maddi', url: `${data.baseUrl || 'https://maddi.lovable.app'}` },
+        cta: { text: 'Ver en Maddi', url: baseUrl },
+        secondaryCta: null,
       };
   }
 };
@@ -186,6 +255,12 @@ const generateEmailHtml = (content: ReturnType<typeof getEmailContent>) => `
       </a>
     ` : ''}
 
+    ${content.secondaryCta ? `
+      <a href="${content.secondaryCta.url}" style="display: block; color: #9BFF43; text-decoration: none; padding: 10px 24px; text-align: center; font-size: 14px; margin-top: 8px;">
+        ${content.secondaryCta.text} →
+      </a>
+    ` : ''}
+
     <div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
       <p style="color: rgba(255,255,255,0.3); font-size: 11px; margin: 0;">
         © 2026 Maddi. Todos los derechos reservados.
@@ -211,7 +286,7 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, type, recipientName, data }: NotificationEmailRequest = await req.json();
+    const { email, type, recipientName, userId, entityId, data }: NotificationEmailRequest = await req.json();
 
     if (!email || !type) {
       return new Response(
@@ -220,23 +295,73 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    // Ensure baseUrl is always set
-    const enrichedData = {
-      ...data,
-      baseUrl: data.baseUrl || 'https://maddi.lovable.app',
-    };
+    // Spam protection: check if we sent a similar email recently
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
 
+    // For new_message type, limit to 1 email per 5 minutes per user+type
+    if (type === 'new_message' && userId) {
+      const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { data: recentEmails } = await supabaseAdmin
+        .from('email_notifications')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('type', 'new_message')
+        .gte('created_at', fiveMinAgo)
+        .limit(1);
+
+      if (recentEmails && recentEmails.length > 0) {
+        console.log(`Skipping duplicate new_message email for user ${userId} (rate limited)`);
+        return new Response(
+          JSON.stringify({ success: true, skipped: true, reason: 'rate_limited' }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const enrichedData = { ...data, baseUrl: data.baseUrl || BASE_URL };
     const resend = new Resend(resendKey);
     const emailContent = getEmailContent(type, recipientName, enrichedData);
 
-    const emailResult = await resend.emails.send({
-      from: "Maddi <onboarding@resend.dev>",
-      to: [email],
-      subject: emailContent.subject,
-      html: generateEmailHtml(emailContent),
-    });
+    let status = 'sent';
+    let errorMessage: string | null = null;
 
-    console.log("Notification email sent:", emailResult);
+    try {
+      const emailResult = await resend.emails.send({
+        from: "Maddi <onboarding@resend.dev>",
+        to: [email],
+        subject: emailContent.subject,
+        html: generateEmailHtml(emailContent),
+      });
+      console.log("Email sent:", emailResult);
+    } catch (sendError: any) {
+      status = 'failed';
+      errorMessage = sendError.message || 'Unknown send error';
+      console.error("Email send failed:", sendError);
+    }
+
+    // Log to email_notifications table
+    try {
+      await supabaseAdmin.from('email_notifications').insert({
+        to_email: email,
+        user_id: userId || null,
+        type,
+        entity_id: entityId || null,
+        subject: emailContent.subject,
+        status,
+        error_message: errorMessage,
+      });
+    } catch (logError) {
+      console.error("Failed to log email notification:", logError);
+    }
+
+    if (status === 'failed') {
+      return new Response(
+        JSON.stringify({ success: false, error: errorMessage }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     return new Response(
       JSON.stringify({ success: true }),
