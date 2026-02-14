@@ -30,7 +30,7 @@ interface OwnerHomeProps {
   userId: string;
 }
 
-type FilterType = 'all' | 'today' | 'upcoming' | 'expiring' | 'pending';
+type FilterType = 'all' | 'today' | 'upcoming' | 'expiring' | 'pending' | 'cancelled';
 
 const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
   const navigate = useNavigate();
@@ -129,8 +129,12 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       acc.concluded.push(booking);
     }
 
+    if (booking.status === 'cancelled') {
+      acc.cancelled.push(booking);
+    }
+
     return acc;
-  }, { today: [], upcoming: [], expiring: [], pending: [], active: [], concluded: [] } as Record<string, Booking[]>);
+  }, { today: [], upcoming: [], expiring: [], pending: [], active: [], concluded: [], cancelled: [] } as Record<string, Booking[]>);
 
   const billboardsWithActiveBookings = new Set(categorizedBookings.active.map(b => b.billboard_id));
   const occupancyRate = billboards.length > 0 
@@ -153,6 +157,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         return categorizedBookings.expiring;
       case 'pending':
         return categorizedBookings.pending;
+      case 'cancelled':
+        return categorizedBookings.cancelled;
       case 'all':
       default:
         return billboardFiltered
@@ -298,6 +304,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
             { id: 'upcoming', label: 'Próximos', count: categorizedBookings.upcoming.length },
             { id: 'expiring', label: 'Por vencer', count: categorizedBookings.expiring.length },
             { id: 'pending', label: 'Pendientes', count: categorizedBookings.pending.length },
+            { id: 'cancelled', label: 'Canceladas', count: categorizedBookings.cancelled.length },
           ].map((f) => (
             <Button
               key={f.id}
@@ -341,7 +348,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
            filter === 'today' ? 'Actividad de hoy' :
            filter === 'upcoming' ? 'Próximas reservas' :
            filter === 'expiring' ? 'Reservas por vencer' :
-           'Reservas pendientes de aprobación'}
+           filter === 'pending' ? 'Reservas pendientes de aprobación' :
+           'Reservas canceladas'}
         </h2>
         
         {getFilteredBookings().length === 0 ? (
