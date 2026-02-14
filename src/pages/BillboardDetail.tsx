@@ -37,6 +37,7 @@ interface Billboard {
   image_url: string | null;
   image_urls: string[] | null;
   is_available: boolean;
+  pause_reason: string | null;
   points_of_interest: string[] | null;
   created_at: string;
   updated_at: string;
