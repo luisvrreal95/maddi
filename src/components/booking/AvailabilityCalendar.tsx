@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { format, isWithinInterval, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import type { DateRange } from 'react-day-picker';
 
 interface Booking {
   id: string;
@@ -22,19 +23,20 @@ interface BlockedDate {
 interface AvailabilityCalendarProps {
   billboardId: string;
   className?: string;
+  onRangeSelect?: (range: DateRange | undefined) => void;
 }
 
 const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   billboardId,
   className,
+  onRangeSelect,
 }) => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [blockedDates, setBlockedDates] = useState<BlockedDate[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>(undefined);
 
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch bookings
       const { data: bookingsData, error: bookingsError } = await supabase
         .from('bookings')
         .select('id, start_date, end_date, status')
@@ -45,7 +47,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
         setBookings(bookingsData);
       }
 
-      // Fetch blocked dates (visible to all users)
       const { data: blockedData, error: blockedError } = await supabase
         .from('blocked_dates')
         .select('id, start_date, end_date, reason')
@@ -58,7 +59,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
 
     fetchData();
 
-    // Subscribe to realtime updates
     const channel = supabase
       .channel(`availability-${billboardId}`)
       .on(
@@ -93,7 +93,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   }, [billboardId]);
 
   const getDateStatus = (date: Date): 'available' | 'pending' | 'booked' | 'blocked' => {
-    // Check blocked dates first
     for (const blocked of blockedDates) {
       const start = parseISO(blocked.start_date);
       const end = parseISO(blocked.end_date);
@@ -102,7 +101,6 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
       }
     }
 
-    // Check bookings
     for (const booking of bookings) {
       const start = parseISO(booking.start_date);
       const end = parseISO(booking.end_date);
@@ -126,26 +124,40 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
     blocked: 'bg-gray-500/30 text-gray-400 cursor-not-allowed',
   };
 
-  // Disable selection of blocked and booked dates
   const isDateDisabled = (date: Date) => {
     const status = getDateStatus(date);
     return date < new Date() || status === 'blocked' || status === 'booked';
   };
 
+  const handleRangeSelect = (range: DateRange | undefined) => {
+    setSelectedRange(range);
+    onRangeSelect?.(range);
+  };
+
   return (
     <div className={cn("bg-[#2A2A2A] rounded-2xl p-4", className)}>
-      <h3 className="text-white font-bold mb-3">Disponibilidad</h3>
+      <h3 className="text-white font-bold mb-1">Disponibilidad</h3>
+      <p className="text-white/50 text-xs mb-3">Haz clic en una fecha de inicio y luego en una de fin para seleccionar un rango.</p>
       
       <Calendar
-        mode="single"
-        selected={selectedDate}
-        onSelect={setSelectedDate}
+        mode="range"
+        selected={selectedRange}
+        onSelect={handleRangeSelect}
         locale={es}
         modifiers={modifiers}
         modifiersClassNames={modifiersClassNames}
         disabled={isDateDisabled}
         className="pointer-events-auto bg-transparent"
       />
+
+      {selectedRange?.from && selectedRange?.to && (
+        <div className="mt-3 p-2 bg-[#1A1A1A] rounded-lg text-sm">
+          <span className="text-white/60">Rango: </span>
+          <span className="text-white font-medium">{format(selectedRange.from, 'd MMM yyyy', { locale: es })}</span>
+          <span className="text-white/60"> — </span>
+          <span className="text-white font-medium">{format(selectedRange.to, 'd MMM yyyy', { locale: es })}</span>
+        </div>
+      )}
       
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-white/10">

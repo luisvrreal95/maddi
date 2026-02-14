@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Users, MapPin, Clock, Check, X, ChevronRight } from 'lucide-react';
+import { Calendar, Users, MapPin, Clock, Check, X, ChevronRight, Ban } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format, differenceInDays, isAfter, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -35,6 +35,7 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ booking, onSelect, isActive
   const isPast = booking.status === 'approved' && isBefore(endDate, now);
   const isPending = booking.status === 'pending';
   const isRejected = booking.status === 'rejected';
+  const isCancelled = booking.status === 'cancelled';
 
   const totalDays = differenceInDays(endDate, startDate) + 1;
   const estimatedImpressions = (booking.billboard?.daily_impressions || 1000) * totalDays;
@@ -69,6 +70,14 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ booking, onSelect, isActive
         <Badge variant="outline" className="border-destructive text-destructive gap-1">
           <X className="w-3 h-3" />
           Rechazada
+        </Badge>
+      );
+    }
+    if (isCancelled) {
+      return (
+        <Badge variant="outline" className="border-muted-foreground text-muted-foreground gap-1">
+          <Ban className="w-3 h-3" />
+          Cancelada
         </Badge>
       );
     }

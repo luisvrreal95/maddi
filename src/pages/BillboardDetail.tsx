@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -139,10 +139,21 @@ const BillboardDetail: React.FC = () => {
       {/* Header */}
       <header className="bg-card border-b border-border px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <Link to="/search" className="flex items-center gap-3 text-foreground hover:text-primary transition-colors w-fit">
+          <button 
+            onClick={() => {
+              // Navigate back preserving search params
+              const savedSearch = sessionStorage.getItem('lastSearchUrl');
+              if (savedSearch) {
+                navigate(savedSearch);
+              } else {
+                navigate('/search');
+              }
+            }}
+            className="flex items-center gap-3 text-foreground hover:text-primary transition-colors w-fit"
+          >
             <ArrowLeft className="w-5 h-5" />
             <span className="hidden sm:inline">Volver a búsqueda</span>
-          </Link>
+          </button>
           <ShareDialog
             title={billboard.title}
             subtitle={`${billboard.city}, ${billboard.state} · $${billboard.price_per_month.toLocaleString()}/mes`}

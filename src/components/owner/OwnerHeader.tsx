@@ -29,7 +29,7 @@ const OwnerHeader: React.FC<OwnerHeaderProps> = ({
     <header className="bg-[#1A1A1A] px-4 md:px-8 py-4 border-b border-white/10">
       <div className="flex items-center justify-between w-full">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-1 flex-shrink-0">
+        <Link to="/owner?tab=inicio" className="flex items-center gap-1 flex-shrink-0">
           <span className="text-3xl font-black italic text-[#9BFF43]">M</span>
           <span className="text-2xl font-bold text-white">addi</span>
         </Link>

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import UserMenu from '@/components/navigation/UserMenu';
 
@@ -8,13 +9,31 @@ const Header: React.FC = () => {
   const { user, userRole } = useAuth();
   const navigate = useNavigate();
 
+  // Check if user is admin
+  const [isAdmin, setIsAdmin] = useState(false);
+  
+  useEffect(() => {
+    const checkAdmin = async () => {
+      if (!user) return;
+      const { data } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      setIsAdmin(!!data);
+    };
+    checkAdmin();
+  }, [user]);
+
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!user) {
       navigate('/');
       return;
     }
-    if (userRole === 'owner') {
+    if (isAdmin) {
+      navigate('/admin/dashboard');
+    } else if (userRole === 'owner') {
       navigate('/owner?tab=inicio');
     } else if (userRole === 'business') {
       navigate('/search');
