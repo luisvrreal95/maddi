@@ -368,7 +368,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
     const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
     
     return (
-      <div className="grid grid-cols-7 gap-2 select-none">
+      <div className="grid grid-cols-7 gap-1 md:gap-2 select-none">
         {days.map((day) => {
           const { isBlocked, booking, priceOverride } = getDayStatus(day);
           const isSelected = selectedDates.some(d => isSameDay(d, day));
@@ -382,7 +382,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
               onMouseEnter={() => handleDateMouseEnter(day, isBlocked, !!booking)}
               onMouseUp={handleDateMouseUp}
               className={cn(
-                "p-4 rounded-xl border transition-all min-h-[120px] select-none",
+                "p-2 md:p-4 rounded-lg md:rounded-xl border transition-all min-h-[70px] md:min-h-[120px] select-none",
                 isBlocked && "bg-red-500/10 border-red-500/30 cursor-not-allowed",
                 booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-pointer",
                 booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-pointer",
@@ -392,30 +392,32 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                 !isBlocked && !booking && "border-white/10 hover:border-white/30 cursor-pointer"
               )}
             >
-              <div className="text-white/50 text-sm">
+              <div className="text-white/50 text-[10px] md:text-sm">
                 {format(day, 'EEE', { locale: es })}
               </div>
-              <div className="text-white text-2xl font-bold">
+              <div className="text-white text-base md:text-2xl font-bold">
                 {format(day, 'd')}
               </div>
-              <div className="mt-2">
+              <div className="mt-1 md:mt-2">
                 {isBlocked && (
-                  <div className="flex items-center gap-1 text-red-400 text-xs">
-                    <Lock className="w-3 h-3" />
-                    Bloqueado
+                  <div className="flex items-center gap-1 text-red-400 text-[10px] md:text-xs">
+                    <Lock className="w-3 h-3 hidden md:block" />
+                    <span className="hidden md:inline">Bloqueado</span>
+                    <Lock className="w-2.5 h-2.5 md:hidden" />
                   </div>
                 )}
                 {booking && (
                   <div className={cn(
-                    "text-xs",
+                    "text-[10px] md:text-xs",
                     booking.status === 'approved' ? "text-[#9BFF43]" : "text-yellow-400"
                   )}>
-                    {booking.status === 'approved' ? 'Reservado' : 'Pendiente'}
+                    <span className="hidden md:inline">{booking.status === 'approved' ? 'Reservado' : 'Pendiente'}</span>
+                    <span className="md:hidden">{booking.status === 'approved' ? '✓' : '⏳'}</span>
                   </div>
                 )}
                 {!isBlocked && !booking && (
-                  <div className="text-white/70 text-sm font-medium">
-                    ${price.toLocaleString()}
+                  <div className="text-white/70 text-[10px] md:text-sm font-medium">
+                    <span className="hidden md:inline">${price.toLocaleString()}</span>
                   </div>
                 )}
               </div>
@@ -441,9 +443,9 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
     
     return (
       <div className="select-none">
-        <div className="grid grid-cols-7 gap-1 mb-2">
+      <div className="grid grid-cols-7 gap-1 mb-2">
           {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-            <div key={d} className="text-center text-white/50 text-sm py-2">
+            <div key={d} className="text-center text-white/50 text-[10px] md:text-sm py-1 md:py-2">
               {d}
             </div>
           ))}
@@ -462,8 +464,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                 onMouseDown={() => isCurrentMonth && handleDateMouseDown(day, isBlocked, !!booking)}
                 onMouseEnter={() => isCurrentMonth && handleDateMouseEnter(day, isBlocked, !!booking)}
                 onMouseUp={handleDateMouseUp}
-                className={cn(
-                  "p-2 rounded-lg border transition-all min-h-[80px] select-none",
+              className={cn(
+                  "p-1 md:p-2 rounded-md md:rounded-lg border transition-all min-h-[48px] md:min-h-[80px] select-none",
                   !isCurrentMonth && "opacity-30",
                   isBlocked && "bg-red-500/10 border-red-500/30 cursor-not-allowed",
                   booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-pointer",
@@ -474,7 +476,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                   !isBlocked && !booking && isCurrentMonth && "border-white/10 hover:border-white/30 cursor-pointer"
                 )}
               >
-                <div className="text-white text-sm font-medium">
+              <div className="text-white text-[11px] md:text-sm font-medium">
                   {format(day, 'd')}
                 </div>
                 {isCurrentMonth && (
@@ -507,7 +509,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
     });
     
     return (
-      <div className="grid grid-cols-3 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 md:gap-4">
         {months.map((month) => {
           // Count bookings in this month
           const monthBookings = bookings.filter(b => {
@@ -624,7 +626,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
         </div>
 
         {/* Calendar Grid */}
-        <div className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5">
+        <div className="bg-[#1E1E1E] rounded-xl p-2 md:p-4 border border-white/5">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-white/60">Cargando...</div>

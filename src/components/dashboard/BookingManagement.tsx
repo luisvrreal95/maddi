@@ -286,7 +286,7 @@ const BookingManagement: React.FC = () => {
     const isActive = selectedBooking.status === 'approved' && isBefore(new Date(selectedBooking.start_date), now) && isAfter(new Date(selectedBooking.end_date), now);
 
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-2xl mx-auto space-y-4 md:space-y-6 pb-24 md:pb-0">
         {/* Back button */}
         <button onClick={() => setSelectedBooking(null)} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
           <ArrowLeft className="w-4 h-4" />
@@ -519,13 +519,13 @@ const BookingManagement: React.FC = () => {
                 onClick={() => setSelectedBooking(booking)}
                 className="w-full text-left bg-[#222] rounded-2xl border border-white/5 hover:border-white/10 transition-all group"
               >
-                <div className="flex gap-4 p-4">
+                <div className="flex gap-3 md:gap-4 p-3 md:p-4">
                   {/* Billboard thumbnail */}
                   {booking.billboard?.image_url ? (
-                    <img src={booking.billboard.image_url} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
+                    <img src={booking.billboard.image_url} alt="" className="w-14 h-14 md:w-20 md:h-20 rounded-xl object-cover flex-shrink-0" />
                   ) : (
-                    <div className="w-20 h-20 rounded-xl bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-6 h-6 text-white/20" />
+                    <div className="w-14 h-14 md:w-20 md:h-20 rounded-xl bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 md:w-6 md:h-6 text-white/20" />
                     </div>
                   )}
                   
