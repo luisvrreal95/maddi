@@ -9,6 +9,7 @@ import EmptyCampaigns from '@/components/campaigns/EmptyCampaigns';
 import CampaignCard from '@/components/campaigns/CampaignCard';
 import CampaignDetail from '@/components/campaigns/CampaignDetail';
 import { Button } from '@/components/ui/button';
+import MobileNavBar from '@/components/navigation/MobileNavBar';
 
 type StatusFilter = 'all' | 'scheduled' | 'pending' | 'cancelled' | 'rejected' | 'finished';
 
@@ -212,7 +213,7 @@ const BusinessDashboard: React.FC = () => {
     <div className="min-h-screen bg-background">
       <BusinessHeader title="Mis Campañas" />
 
-      <main className="p-6 max-w-3xl mx-auto">
+      <main className="p-6 pb-24 md:pb-6 max-w-3xl mx-auto">
         {isLoading ? (
           <div className="text-muted-foreground text-center py-12">Cargando campañas...</div>
         ) : selectedBooking ? (
@@ -270,6 +271,7 @@ const BusinessDashboard: React.FC = () => {
           </div>
         )}
       </main>
+      <MobileNavBar />
     </div>
   );
 };

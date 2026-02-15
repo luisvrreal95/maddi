@@ -20,6 +20,7 @@ import PropertyFilters from '@/components/owner/PropertyFilters';
 import PropertyListItem from '@/components/owner/PropertyListItem';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
 import ShareDialog from '@/components/share/ShareDialog';
+import MobileNavBar from '@/components/navigation/MobileNavBar';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -432,7 +433,7 @@ const OwnerDashboard: React.FC = () => {
         {activeTab === 'reservas' && (
           <>
             <div className="mb-4 md:mb-8"><h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">Gestión de Reservas</h1></div>
-            <div className="max-w-4xl mx-auto"><BookingManagement /></div>
+            <BookingManagement />
           </>
         )}
       </main>
@@ -455,6 +456,7 @@ const OwnerDashboard: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <MobileNavBar />
     </div>
   );
 };
