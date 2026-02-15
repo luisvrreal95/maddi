@@ -286,11 +286,11 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    const { email, type, recipientName, userId, entityId, data }: NotificationEmailRequest = await req.json();
+    let { email, type, recipientName, userId, entityId, data }: NotificationEmailRequest = await req.json();
 
-    if (!email || !type) {
+    if (!type) {
       return new Response(
-        JSON.stringify({ error: "Email and type are required" }),
+        JSON.stringify({ error: "Type is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -299,6 +299,27 @@ serve(async (req: Request): Promise<Response> => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+
+    // If email is empty but userId is provided, look up the user's email
+    if (!email && userId) {
+      const { data: authData } = await supabaseAdmin.auth.admin.getUserById(userId);
+      if (authData?.user?.email) {
+        email = authData.user.email;
+      } else {
+        console.log(`Could not find email for user ${userId}`);
+        return new Response(
+          JSON.stringify({ success: false, error: "User email not found" }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    if (!email) {
+      return new Response(
+        JSON.stringify({ error: "Email or userId is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // For new_message type, limit to 1 email per 5 minutes per user+type
     if (type === 'new_message' && userId) {
