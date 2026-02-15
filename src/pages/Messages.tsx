@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin, MapPin, DollarSign } from 'lucide-react';
+import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin, MapPin, DollarSign, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -553,36 +553,74 @@ const Messages: React.FC = () => {
                     const isMyMessage = msg.sender_id === user?.id;
                     const isLastInGroup = idx === messages.length - 1 || messages[idx + 1]?.sender_id !== msg.sender_id;
                     
+                    // Date separator logic
+                    const msgDate = new Date(msg.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+                    const prevMsgDate = idx > 0 ? new Date(messages[idx - 1].created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+                    const showDateSeparator = idx === 0 || msgDate !== prevMsgDate;
+                    
+                    // System booking message detection
+                    const isSystemBooking = msg.content.startsWith('__SYSTEM_BOOKING__');
+                    let bookingMeta: { bookingId: string; billboardTitle: string; startDate: string; endDate: string; totalPrice: number } | null = null;
+                    if (isSystemBooking) {
+                      try {
+                        bookingMeta = JSON.parse(msg.content.replace('__SYSTEM_BOOKING__', ''));
+                      } catch { /* ignore */ }
+                    }
+
                     return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div
-                          className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                            isMyMessage
-                              ? 'bg-[#9BFF43] text-[#141414] rounded-br-md'
-                              : 'bg-[#2A2A2A] text-white rounded-bl-md'
-                          }`}
-                        >
-                          <p>{msg.content}</p>
-                          <div className={`flex items-center gap-1 justify-end mt-1 ${
-                            isMyMessage ? 'text-[#141414]/60' : 'text-white/40'
-                          }`}>
-                            <span className="text-xs">
-                              {new Date(msg.created_at).toLocaleTimeString('es-MX', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
+                      <React.Fragment key={msg.id}>
+                        {showDateSeparator && (
+                          <div className="flex items-center justify-center my-4">
+                            <span className="text-white/40 text-xs bg-[#1A1A1A] px-3 py-1 rounded-full border border-white/10">
+                              {msgDate}
                             </span>
-                            {isMyMessage && isLastInGroup && (
-                              msg.is_read 
-                                ? <CheckCheck className="w-3.5 h-3.5" />
-                                : <Check className="w-3.5 h-3.5" />
-                            )}
                           </div>
-                        </div>
-                      </div>
+                        )}
+                        
+                        {isSystemBooking && bookingMeta ? (
+                          <div className="flex justify-center my-3">
+                            <div className="bg-[#2A2A2A] border border-white/10 rounded-xl px-4 py-3 max-w-[85%] text-center">
+                              <p className="text-white/70 text-sm">
+                                Tu solicitud para <strong className="text-white">{bookingMeta.billboardTitle}</strong> del {bookingMeta.startDate} al {bookingMeta.endDate} ha sido enviada.
+                              </p>
+                              <Link
+                                to={`/business?booking=${bookingMeta.bookingId}`}
+                                className="inline-flex items-center gap-1 text-[#9BFF43] text-sm font-medium mt-1.5 hover:underline"
+                              >
+                                Ver solicitud
+                                <ExternalLink className="w-3 h-3" />
+                              </Link>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
+                            <div
+                              className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                                isMyMessage
+                                  ? 'bg-[#9BFF43] text-[#141414] rounded-br-md'
+                                  : 'bg-[#2A2A2A] text-white rounded-bl-md'
+                              }`}
+                            >
+                              <p>{msg.content}</p>
+                              <div className={`flex items-center gap-1 justify-end mt-1 ${
+                                isMyMessage ? 'text-[#141414]/60' : 'text-white/40'
+                              }`}>
+                                <span className="text-xs">
+                                  {new Date(msg.created_at).toLocaleTimeString('es-MX', { 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                                {isMyMessage && isLastInGroup && (
+                                  msg.is_read 
+                                    ? <CheckCheck className="w-3.5 h-3.5" />
+                                    : <Check className="w-3.5 h-3.5" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </React.Fragment>
                     );
                   })}
                   <div ref={messagesEndRef} />

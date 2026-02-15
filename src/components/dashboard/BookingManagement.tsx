@@ -7,6 +7,7 @@ import { Check, X, Clock, Calendar, Eye, MessageSquare, AlertTriangle, Image as 
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { differenceInDays } from 'date-fns';
+import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -41,6 +42,7 @@ const BookingManagement: React.FC = () => {
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [overlapWarning, setOverlapWarning] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [resolvedImages, setResolvedImages] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     if (user) {
@@ -279,14 +281,23 @@ const BookingManagement: React.FC = () => {
   };
 
   const getDesignImages = (booking: Booking): string[] => {
-    if (!booking.ad_design_url) return [];
-    try {
-      const parsed = JSON.parse(booking.ad_design_url);
-      return Array.isArray(parsed) ? parsed : [booking.ad_design_url];
-    } catch {
-      return booking.ad_design_url.startsWith('http') ? [booking.ad_design_url] : [];
-    }
+    return resolvedImages[booking.id] || [];
   };
+
+  // Resolve design image URLs for all bookings that have them
+  useEffect(() => {
+    const resolveAll = async () => {
+      for (const booking of bookings) {
+        if (!booking.ad_design_url || resolvedImages[booking.id]) continue;
+        const paths = parseDesignPaths(booking.ad_design_url);
+        if (paths.length > 0) {
+          const urls = await resolveDesignImageUrls(paths);
+          setResolvedImages(prev => ({ ...prev, [booking.id]: urls }));
+        }
+      }
+    };
+    if (bookings.length > 0) resolveAll();
+  }, [bookings]);
 
   // Extract message from notes (before "--- Notas adicionales ---")
   const getMessageFromNotes = (notes: string | null): { message: string; extraNotes: string | null } => {

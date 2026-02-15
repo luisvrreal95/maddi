@@ -51,8 +51,9 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const [dateConflict, setDateConflict] = useState(false);
   const [durationError, setDurationError] = useState(false);
 
-  // Image attachments
-  const [designImages, setDesignImages] = useState<string[]>([]);
+  // Image attachments - stores private bucket paths (not public URLs)
+  const [designPaths, setDesignPaths] = useState<string[]>([]);
+  const [designPreviews, setDesignPreviews] = useState<{ path: string; url: string }[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -75,7 +76,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         to: addDays(earliest, Math.max(minCampaignDays, 30)),
       });
       setMessage('');
-      setDesignImages([]);
+      setDesignPaths([]);
+      setDesignPreviews([]);
       fetchExistingBookings();
     }
   }, [open, billboard.id, minAdvanceBookingDays, minCampaignDays]);
@@ -139,7 +141,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     const files = e.target.files;
     if (!files || files.length === 0 || !user) return;
 
-    const remainingSlots = 5 - designImages.length;
+    const remainingSlots = 5 - designPaths.length;
     if (remainingSlots <= 0) {
       toast.error('Máximo 5 imágenes de diseño');
       return;
@@ -157,19 +159,26 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         }
 
         const fileExt = file.name.split('.').pop();
-        const fileName = `designs/${user.id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+        const storagePath = `${user.id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
 
         const { data, error } = await supabase.storage
-          .from('billboard-images')
-          .upload(fileName, file, { cacheControl: '3600', upsert: false });
+          .from('campaign-designs')
+          .upload(storagePath, file, { cacheControl: '3600', upsert: false });
 
-        if (error) continue;
+        if (error) {
+          console.error('Upload error:', error);
+          continue;
+        }
 
-        const { data: urlData } = supabase.storage
-          .from('billboard-images')
-          .getPublicUrl(data.path);
+        // Create a signed URL for preview
+        const { data: signedData } = await supabase.storage
+          .from('campaign-designs')
+          .createSignedUrl(data.path, 3600);
 
-        setDesignImages(prev => [...prev, urlData.publicUrl]);
+        if (signedData?.signedUrl) {
+          setDesignPaths(prev => [...prev, data.path]);
+          setDesignPreviews(prev => [...prev, { path: data.path, url: signedData.signedUrl }]);
+        }
       }
     } catch (error) {
       console.error('Error uploading:', error);
@@ -177,6 +186,14 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       setIsUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
+  };
+
+  const handleRemoveImage = async (index: number) => {
+    const pathToRemove = designPaths[index];
+    // Delete from storage
+    await supabase.storage.from('campaign-designs').remove([pathToRemove]);
+    setDesignPaths(prev => prev.filter((_, i) => i !== index));
+    setDesignPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -216,8 +233,8 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     setIsLoading(true);
 
     try {
-      const adDesignValue = designImages.length > 0 
-        ? JSON.stringify(designImages) 
+      const adDesignValue = designPaths.length > 0 
+        ? JSON.stringify(designPaths) 
         : null;
 
       const { data: bookingData, error } = await supabase
@@ -266,7 +283,24 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
           conversationId = newConv.id;
         }
 
-        // Send ONLY the user's message text, no metadata
+        // Insert system message with booking info (Airbnb-style)
+        const formattedStartShort = format(startDate, "d MMM yyyy", { locale: es });
+        const formattedEndShort = format(endDate, "d MMM yyyy", { locale: es });
+        const systemContent = `__SYSTEM_BOOKING__${JSON.stringify({
+          bookingId: bookingData.id,
+          billboardTitle: billboard.title,
+          startDate: formattedStartShort,
+          endDate: formattedEndShort,
+          totalPrice: totalPrice,
+        })}`;
+        
+        await supabase.from('messages').insert({
+          conversation_id: conversationId,
+          sender_id: user?.id,
+          content: systemContent,
+        });
+
+        // Send the user's message text
         await supabase.from('messages').insert({
           conversation_id: conversationId,
           sender_id: user?.id,
@@ -466,18 +500,18 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               <span className="text-xs text-white/40">Opcional · Máx 5</span>
             </div>
             
-            {/* Uploaded file names list */}
-            {designImages.length > 0 && (
+            {/* Uploaded file previews */}
+            {designPreviews.length > 0 && (
               <div className="space-y-1.5 mb-2">
-                {designImages.map((url, index) => {
-                  const fileName = decodeURIComponent(url.split('/').pop() || `imagen-${index + 1}.png`).replace(/^\d+-[a-z0-9]+\./, '');
+                {designPreviews.map((item, index) => {
+                  const fileName = decodeURIComponent(item.path.split('/').pop() || `imagen-${index + 1}.png`).replace(/^\d+-[a-z0-9]+\./, '');
                   return (
-                    <div key={url} className="flex items-center gap-2 bg-[#1A1A1A] rounded-lg px-3 py-2 border border-white/10">
-                      <img src={url} alt={fileName} className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                    <div key={item.path} className="flex items-center gap-2 bg-[#1A1A1A] rounded-lg px-3 py-2 border border-white/10">
+                      <img src={item.url} alt={fileName} className="w-8 h-8 rounded object-cover flex-shrink-0" />
                       <span className="text-white text-xs truncate flex-1">{fileName}</span>
                       <button
                         type="button"
-                        onClick={() => setDesignImages(prev => prev.filter((_, i) => i !== index))}
+                        onClick={() => handleRemoveImage(index)}
                         className="text-white/40 hover:text-red-400 transition-colors flex-shrink-0"
                       >
                         <X className="w-3.5 h-3.5" />
@@ -488,7 +522,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               </div>
             )}
 
-            {designImages.length < 5 && (
+            {designPaths.length < 5 && (
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -542,7 +576,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate}
+              disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate || isUploadingImage}
               className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
             >
               {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
