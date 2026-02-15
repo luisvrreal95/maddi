@@ -15,6 +15,7 @@ import CampaignTrendChart from './CampaignTrendChart';
 import { Link } from 'react-router-dom';
 import { parseDateOnlyStart, parseDateOnlyEnd, getTodayStart } from '@/lib/dateUtils';
 import { toast } from 'sonner';
+import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -81,18 +82,15 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
       ? totalDays 
       : 0;
 
-  // Parse design images from ad_design_url
-  const getDesignImages = (): string[] => {
-    if (!booking.ad_design_url) return [];
-    try {
-      const parsed = JSON.parse(booking.ad_design_url);
-      return Array.isArray(parsed) ? parsed : [booking.ad_design_url];
-    } catch {
-      return booking.ad_design_url.startsWith('http') ? [booking.ad_design_url] : [];
-    }
-  };
+  // Resolve design images (handles both legacy public URLs and private paths)
+  const [designImages, setDesignImages] = useState<string[]>([]);
 
-  const designImages = getDesignImages();
+  useEffect(() => {
+    const paths = parseDesignPaths(booking.ad_design_url);
+    if (paths.length > 0) {
+      resolveDesignImageUrls(paths).then(setDesignImages);
+    }
+  }, [booking.ad_design_url]);
 
   useEffect(() => {
     const fetchData = async () => {
