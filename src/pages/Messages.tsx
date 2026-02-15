@@ -3,6 +3,7 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin, MapPin, DollarSign, ExternalLink } from 'lucide-react';
+import { sendNotificationEmail, getUserEmailAndName } from '@/lib/emailService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -296,13 +297,15 @@ const Messages: React.FC = () => {
   const sendMessage = async () => {
     if (!user || !selectedConversation || !newMessage.trim()) return;
 
+    const messageContent = newMessage.trim();
+
     try {
       const { error } = await supabase
         .from('messages')
         .insert({
           conversation_id: selectedConversation.id,
           sender_id: user.id,
-          content: newMessage.trim()
+          content: messageContent
         });
 
       if (error) throw error;
@@ -310,6 +313,30 @@ const Messages: React.FC = () => {
       
       // Refresh conversations to show updated last message
       fetchConversations();
+
+      // Send email notification to the other user (fire-and-forget)
+      const recipientId = selectedConversation.business_id === user.id 
+        ? selectedConversation.owner_id 
+        : selectedConversation.business_id;
+      
+      const recipientInfo = await getUserEmailAndName(recipientId);
+      // Try to get email from auth - we need to use edge function for this
+      // The edge function handles rate limiting (5 min per conversation)
+      const preview = messageContent.length > 120 ? messageContent.substring(0, 120) + '...' : messageContent;
+      
+      sendNotificationEmail({
+        email: '', // Edge function will look up the email
+        type: 'new_message',
+        recipientName: recipientInfo.name,
+        userId: recipientId,
+        entityId: selectedConversation.id,
+        data: {
+          senderName: user.user_metadata?.full_name || 'Usuario',
+          messagePreview: preview,
+          billboardTitle: selectedConversation.billboard?.title || '',
+          conversationId: selectedConversation.id,
+        }
+      }).catch(() => {}); // Silent fail for email
     } catch (error) {
       console.error('Error sending message:', error);
       toast.error('Error al enviar mensaje');
