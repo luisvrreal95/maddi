@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar, ChevronLeft, ChevronRight, DollarSign, Lock, X, Clock } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isWithinInterval, addWeeks, subWeeks, startOfYear, addYears, subYears, eachMonthOfInterval, differenceInDays } from 'date-fns';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isWithinInterval, addWeeks, subWeeks, startOfYear, addYears, subYears, eachMonthOfInterval } from 'date-fns';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -65,10 +66,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   const [newPrice, setNewPrice] = useState('');
   const [blockReason, setBlockReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedBookingSummary, setSelectedBookingSummary] = useState<{
-    booking: Booking;
-    profile?: { full_name: string; company_name: string | null; };
-  } | null>(null);
+  const [bookingProfiles, setBookingProfiles] = useState<Record<string, { full_name: string; company_name: string | null }>>({});
 
   useEffect(() => {
     if (billboards.length > 0 && !selectedBillboard) {
@@ -114,6 +112,17 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
       if (bookingsError) throw bookingsError;
       setBookings(bookingsData || []);
+
+      // Fetch profiles for all bookings
+      const profileMap: Record<string, { full_name: string; company_name: string | null }> = {};
+      for (const b of (bookingsData || [])) {
+        if (!profileMap[b.business_id]) {
+          const { data: profile } = await supabase
+            .from('profiles').select('full_name, company_name').eq('user_id', b.business_id).maybeSingle();
+          if (profile) profileMap[b.business_id] = profile;
+        }
+      }
+      setBookingProfiles(profileMap);
 
     } catch (error) {
       console.error('Error fetching calendar data:', error);
@@ -178,25 +187,18 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
   // Handle click-to-click date range selection
   const handleDateClick = async (date: Date, isBlocked: boolean, hasBooking: boolean) => {
-    // If clicking on a booked day, show booking summary
+    // If clicking on a booked day, navigate directly to booking detail
     if (hasBooking) {
       const { booking } = getDayStatus(date);
-      if (booking) {
-        // Fetch profile for the booking
-        const { data: profile } = await supabase
-          .from('profiles').select('full_name, company_name').eq('user_id', (booking as any).business_id).maybeSingle();
-        setSelectedBookingSummary({ booking, profile: profile || undefined });
-        setSelectedDates([]);
-        setRangeStart(null);
+      if (booking && onNavigateToBooking) {
+        onNavigateToBooking(booking.id);
       }
       return;
     }
     
     if (isBlocked) return;
     
-    // Clear booking summary when selecting dates
-    setSelectedBookingSummary(null);
-    // If a real drag happened (mouse moved to different cells), the drag already set selectedDates
+    // Clear selection when selecting dates
     // Don't do click-to-click in this case
     if (didDrag) {
       setDidDrag(false);
@@ -457,7 +459,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
             const isCurrentMonth = isSameMonth(day, currentDate);
             const price = getPriceForDate(day);
             
-            return (
+            const cellContent = (
               <div
                 key={day.toISOString()}
                 onClick={() => isCurrentMonth && handleDateClick(day, isBlocked, !!booking)}
@@ -468,8 +470,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                   "p-1 md:p-2 rounded-md md:rounded-lg border transition-all min-h-[48px] md:min-h-[80px] select-none",
                   !isCurrentMonth && "opacity-30",
                   isBlocked && "bg-red-500/10 border-red-500/30 cursor-not-allowed",
-                  booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-pointer",
-                  booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-pointer",
+                  booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-pointer hover:bg-[#9BFF43]/20",
+                  booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-pointer hover:bg-yellow-500/20",
                   priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30 cursor-pointer",
                   isSelected && "ring-2 ring-[#9BFF43]",
                   rangeStart && isSameDay(day, rangeStart) && "ring-2 ring-white bg-white/10",
@@ -495,6 +497,31 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                 )}
               </div>
             );
+
+            // Wrap booked cells with tooltip
+            if (booking && isCurrentMonth) {
+              const profile = bookingProfiles[booking.business_id];
+              return (
+                <Tooltip key={day.toISOString()} delayDuration={200}>
+                  <TooltipTrigger asChild>
+                    {cellContent}
+                  </TooltipTrigger>
+                  <TooltipContent 
+                    side="top" 
+                    className="bg-[#2A2A2A] border-white/10 text-white p-3 max-w-[220px] space-y-1.5"
+                  >
+                    <p className="font-semibold text-sm">{profile?.company_name || profile?.full_name || 'Negocio'}</p>
+                    <p className="text-white/60 text-xs">
+                      {format(new Date(booking.start_date), "d MMM", { locale: es })} — {format(new Date(booking.end_date), "d MMM yyyy", { locale: es })}
+                    </p>
+                    <p className="text-[#9BFF43] text-xs font-bold">${booking.total_price.toLocaleString()} MXN</p>
+                    <p className="text-white/40 text-[10px]">Click para ver detalle</p>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+
+            return React.cloneElement(cellContent, { key: day.toISOString() });
           })}
         </div>
       </div>
@@ -663,61 +690,6 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
       {/* Sidebar */}
       <div className="w-full lg:w-80 space-y-4">
-        {/* Booking Summary Card */}
-        {selectedBookingSummary && (
-          <Card className="bg-[#1E1E1E] border-[#9BFF43]/30">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-white text-lg flex items-center justify-between">
-                Reservación
-                <Button variant="ghost" size="icon" onClick={() => setSelectedBookingSummary(null)} className="text-white/50 hover:text-white h-7 w-7">
-                  <X className="w-4 h-4" />
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center">
-                  <Calendar className="w-4 h-4 text-[#9BFF43]" />
-                </div>
-                <div>
-                  <p className="text-white font-medium text-sm">{selectedBookingSummary.profile?.company_name || selectedBookingSummary.profile?.full_name || 'Negocio'}</p>
-                  <p className="text-white/40 text-xs">Anunciante</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-[#2A2A2A] rounded-lg p-3">
-                  <p className="text-white/40 text-[10px]">Inicio</p>
-                  <p className="text-white text-xs font-medium">{format(new Date(selectedBookingSummary.booking.start_date), "d MMM yyyy", { locale: es })}</p>
-                </div>
-                <div className="bg-[#2A2A2A] rounded-lg p-3">
-                  <p className="text-white/40 text-[10px]">Fin</p>
-                  <p className="text-white text-xs font-medium">{format(new Date(selectedBookingSummary.booking.end_date), "d MMM yyyy", { locale: es })}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between bg-[#2A2A2A] rounded-lg p-3">
-                <span className="text-white/50 text-xs">Total</span>
-                <span className="text-[#9BFF43] font-bold">${selectedBookingSummary.booking.total_price.toLocaleString()} MXN</span>
-              </div>
-              <div className="flex items-center justify-between bg-[#2A2A2A] rounded-lg p-3">
-                <span className="text-white/50 text-xs">Estado</span>
-                <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
-                  selectedBookingSummary.booking.status === 'approved' ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"
-                )}>
-                  {selectedBookingSummary.booking.status === 'approved' ? 'Aprobada' : 'Pendiente'}
-                </span>
-              </div>
-              {onNavigateToBooking && (
-                <Button 
-                  onClick={() => onNavigateToBooking(selectedBookingSummary.booking.id)}
-                  className="w-full bg-[#9BFF43] text-[#121212] hover:bg-[#8AE63A] text-sm"
-                >
-                  Ver detalle completo
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
-
         {/* Range selection hint */}
         {rangeStart && selectedDates.length === 1 && (
           <Card className="bg-blue-500/10 border-blue-500/30">

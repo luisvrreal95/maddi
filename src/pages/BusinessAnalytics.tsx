@@ -6,6 +6,7 @@ import { TrendingUp, Users, DollarSign, Calendar, MapPin, BarChart3, Loader2, Re
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
+import MobileNavBar from '@/components/navigation/MobileNavBar';
 import {
   ChartContainer,
   ChartTooltip,
@@ -305,6 +306,7 @@ const BusinessAnalytics: React.FC = () => {
           </div>
         )}
       </main>
+      <MobileNavBar />
     </div>
   );
 };
