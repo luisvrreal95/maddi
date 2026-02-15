@@ -229,21 +229,20 @@ const OwnerDashboard: React.FC = () => {
     <div className="min-h-screen bg-[#121212] flex flex-col">
       <OwnerDashboardHeader activeTab={activeTab} onTabChange={handleTabChange} />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-6 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-4 md:px-6 md:py-8 pb-24 md:pb-8">
         {activeTab === 'inicio' && (
           <>
-            <div className="flex items-center justify-between mb-8">
-              <h1 className="text-3xl md:text-4xl font-bold text-white">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 md:mb-8">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
                 Bienvenido, {displayName}
               </h1>
               <Button
                 onClick={() => navigate('/owner/add-property')}
-                className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2"
+                className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" />
                 Agregar espectacular
               </Button>
-
             </div>
             <OwnerHome billboards={billboards} userId={user?.id || ''} />
           </>
@@ -251,9 +250,9 @@ const OwnerDashboard: React.FC = () => {
 
         {activeTab === 'propiedades' && (
           <>
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl md:text-4xl font-bold text-white">Mis Espectaculares</h1>
-              <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">Mis Espectaculares</h1>
+              <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
                 {/* View Toggle */}
                 <div className="flex items-center bg-[#2A2A2A] rounded-lg p-1">
                   <button
@@ -278,9 +277,10 @@ const OwnerDashboard: React.FC = () => {
                   subtitle={`${billboards.length} propiedades en Maddi`}
                   shareUrl={`/profile/${user?.id}`}
                 />
-                <Button onClick={() => navigate('/owner/add-property')} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2">
+                <Button onClick={() => navigate('/owner/add-property')} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
                   <Plus className="w-4 h-4" />
-                  Agregar espectacular
+                  <span className="hidden sm:inline">Agregar espectacular</span>
+                  <span className="sm:hidden">Agregar</span>
                 </Button>
               </div>
             </div>
@@ -431,8 +431,8 @@ const OwnerDashboard: React.FC = () => {
 
         {activeTab === 'reservas' && (
           <>
-            <div className="mb-8"><h1 className="text-3xl md:text-4xl font-bold text-white">Gestión de Reservas</h1></div>
-            <div className="max-w-4xl"><BookingManagement /></div>
+            <div className="mb-4 md:mb-8"><h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">Gestión de Reservas</h1></div>
+            <div className="max-w-4xl mx-auto"><BookingManagement /></div>
           </>
         )}
       </main>

@@ -131,7 +131,7 @@ const BusinessAnalytics: React.FC = () => {
     <div className="min-h-screen bg-[#111]">
       <BusinessHeader title="Analytics" />
 
-      <main className="p-4 md:p-6 max-w-6xl mx-auto">
+      <main className="p-4 md:p-6 max-w-6xl mx-auto pb-24 md:pb-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-[#9BFF43]" />
@@ -171,15 +171,15 @@ const BusinessAnalytics: React.FC = () => {
                 { label: 'Costo/impresión', value: `$${costPerImpression.toFixed(4)}`, sub: 'MXN por vehículo', icon: TrendingUp, accent: '#FF9B43' },
                 { label: 'Días activos', value: totalDays.toString(), sub: 'de publicidad', icon: Calendar, accent: '#FF4393' },
               ].map((kpi, i) => (
-                <div key={i} className="bg-[#1A1A1A] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-colors">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: `${kpi.accent}15` }}>
-                      <kpi.icon className="w-4 h-4" style={{ color: kpi.accent }} />
+                <div key={i} className="bg-[#1A1A1A] rounded-xl md:rounded-2xl p-3 md:p-5 border border-white/5 hover:border-white/10 transition-colors">
+                  <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
+                    <div className="w-6 h-6 md:w-8 md:h-8 rounded-md md:rounded-lg flex items-center justify-center" style={{ backgroundColor: `${kpi.accent}15` }}>
+                      <kpi.icon className="w-3 h-3 md:w-4 md:h-4" style={{ color: kpi.accent }} />
                     </div>
-                    <span className="text-white/40 text-xs">{kpi.label}</span>
+                    <span className="text-white/40 text-[10px] md:text-xs">{kpi.label}</span>
                   </div>
-                  <p className="text-white text-2xl font-bold">{kpi.value}</p>
-                  <p className="text-white/30 text-xs mt-0.5">{kpi.sub}</p>
+                  <p className="text-white text-lg md:text-2xl font-bold">{kpi.value}</p>
+                  <p className="text-white/30 text-[10px] md:text-xs mt-0.5">{kpi.sub}</p>
                 </div>
               ))}
             </div>
@@ -270,6 +270,11 @@ const BusinessAnalytics: React.FC = () => {
                           {booking.billboard?.city} · {format(new Date(booking.start_date), "d MMM", { locale: es })} — {format(new Date(booking.end_date), "d MMM yyyy", { locale: es })}
                         </p>
                       </div>
+                      {/* Mobile: show just price */}
+                      <div className="flex md:hidden items-center">
+                        <p className="text-[#9BFF43] text-sm font-semibold">${booking.total_price.toLocaleString()}</p>
+                      </div>
+                      {/* Desktop: full metrics */}
                       <div className="hidden md:flex items-center gap-6 text-right">
                         <div>
                           <p className="text-white/40 text-[10px]">Tráfico est.</p>
