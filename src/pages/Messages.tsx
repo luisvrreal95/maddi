@@ -608,10 +608,16 @@ const Messages: React.FC = () => {
                           <div className="flex justify-center my-3">
                             <div className="bg-[#2A2A2A] border border-white/10 rounded-xl px-4 py-3 max-w-[85%] text-center">
                               <p className="text-white/70 text-sm">
-                                Tu solicitud para <strong className="text-white">{bookingMeta.billboardTitle}</strong> del {bookingMeta.startDate} al {bookingMeta.endDate} ha sido enviada.
+                                {userRole === 'owner' 
+                                  ? <>Has recibido una nueva solicitud para <strong className="text-white">{bookingMeta.billboardTitle}</strong> del {bookingMeta.startDate} al {bookingMeta.endDate}.</>
+                                  : <>Tu solicitud para <strong className="text-white">{bookingMeta.billboardTitle}</strong> del {bookingMeta.startDate} al {bookingMeta.endDate} ha sido enviada.</>
+                                }
                               </p>
                               <Link
-                                to={`/business?booking=${bookingMeta.bookingId}`}
+                                to={userRole === 'owner' 
+                                  ? `/owner?tab=reservas`
+                                  : `/business?booking=${bookingMeta.bookingId}`
+                                }
                                 className="inline-flex items-center gap-1 text-[#9BFF43] text-sm font-medium mt-1.5 hover:underline"
                               >
                                 Ver solicitud
