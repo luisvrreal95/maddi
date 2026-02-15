@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Billboard } from '@/hooks/useBillboards';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, ChevronLeft, ChevronRight, DollarSign, Lock, Unlock, X, Clock } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isWithinInterval, addWeeks, subWeeks, startOfYear, addYears, subYears, eachMonthOfInterval } from 'date-fns';
+import { Calendar, ChevronLeft, ChevronRight, DollarSign, Lock, X, Clock } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, addMonths, subMonths, isSameMonth, isSameDay, isWithinInterval, addWeeks, subWeeks, startOfYear, addYears, subYears, eachMonthOfInterval, differenceInDays } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -36,17 +36,20 @@ interface Booking {
   end_date: string;
   status: string;
   total_price: number;
+  business_id: string;
+  notes: string | null;
 }
 
 interface OwnerCalendarProps {
   billboards: Billboard[];
   userId: string;
   onBillboardsRefresh?: () => void;
+  onNavigateToBooking?: (bookingId: string) => void;
 }
 
 type ViewMode = 'week' | 'month' | 'year';
 
-const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBillboardsRefresh }) => {
+const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBillboardsRefresh, onNavigateToBooking }) => {
   const [selectedBillboard, setSelectedBillboard] = useState<Billboard | null>(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<ViewMode>('month');
@@ -56,13 +59,16 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<Date | null>(null);
-  const [didDrag, setDidDrag] = useState(false); // true if mouse moved to a different cell during drag
-  const [rangeStart, setRangeStart] = useState<Date | null>(null); // For click-to-click range selection
-  const [isEditing, setIsEditing] = useState(false);
+  const [didDrag, setDidDrag] = useState(false);
+  const [rangeStart, setRangeStart] = useState<Date | null>(null);
   const [editMode, setEditMode] = useState<'price' | 'block' | null>(null);
   const [newPrice, setNewPrice] = useState('');
   const [blockReason, setBlockReason] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedBookingSummary, setSelectedBookingSummary] = useState<{
+    booking: Booking;
+    profile?: { full_name: string; company_name: string | null; };
+  } | null>(null);
 
   useEffect(() => {
     if (billboards.length > 0 && !selectedBillboard) {
@@ -171,9 +177,25 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
   }, [isDragging]);
 
   // Handle click-to-click date range selection
-  const handleDateClick = (date: Date, isBlocked: boolean, hasBooking: boolean) => {
-    if (hasBooking || isBlocked) return;
+  const handleDateClick = async (date: Date, isBlocked: boolean, hasBooking: boolean) => {
+    // If clicking on a booked day, show booking summary
+    if (hasBooking) {
+      const { booking } = getDayStatus(date);
+      if (booking) {
+        // Fetch profile for the booking
+        const { data: profile } = await supabase
+          .from('profiles').select('full_name, company_name').eq('user_id', (booking as any).business_id).maybeSingle();
+        setSelectedBookingSummary({ booking, profile: profile || undefined });
+        setSelectedDates([]);
+        setRangeStart(null);
+      }
+      return;
+    }
     
+    if (isBlocked) return;
+    
+    // Clear booking summary when selecting dates
+    setSelectedBookingSummary(null);
     // If a real drag happened (mouse moved to different cells), the drag already set selectedDates
     // Don't do click-to-click in this case
     if (didDrag) {
@@ -362,8 +384,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
               className={cn(
                 "p-4 rounded-xl border transition-all min-h-[120px] select-none",
                 isBlocked && "bg-red-500/10 border-red-500/30 cursor-not-allowed",
-                booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-not-allowed",
-                booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed",
+                booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-pointer",
+                booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-pointer",
                 priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30 cursor-pointer",
                 isSelected && "ring-2 ring-[#9BFF43]",
                 rangeStart && isSameDay(day, rangeStart) && "ring-2 ring-white bg-white/10",
@@ -444,8 +466,8 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                   "p-2 rounded-lg border transition-all min-h-[80px] select-none",
                   !isCurrentMonth && "opacity-30",
                   isBlocked && "bg-red-500/10 border-red-500/30 cursor-not-allowed",
-                  booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-not-allowed",
-                  booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-not-allowed",
+                  booking?.status === 'approved' && "bg-[#9BFF43]/10 border-[#9BFF43]/30 cursor-pointer",
+                  booking?.status === 'pending' && "bg-yellow-500/10 border-yellow-500/30 cursor-pointer",
                   priceOverride && !isBlocked && !booking && "bg-blue-500/10 border-blue-500/30 cursor-pointer",
                   isSelected && "ring-2 ring-[#9BFF43]",
                   rangeStart && isSameDay(day, rangeStart) && "ring-2 ring-white bg-white/10",
@@ -639,6 +661,61 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
       {/* Sidebar */}
       <div className="w-full lg:w-80 space-y-4">
+        {/* Booking Summary Card */}
+        {selectedBookingSummary && (
+          <Card className="bg-[#1E1E1E] border-[#9BFF43]/30">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-white text-lg flex items-center justify-between">
+                Reservación
+                <Button variant="ghost" size="icon" onClick={() => setSelectedBookingSummary(null)} className="text-white/50 hover:text-white h-7 w-7">
+                  <X className="w-4 h-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center">
+                  <Calendar className="w-4 h-4 text-[#9BFF43]" />
+                </div>
+                <div>
+                  <p className="text-white font-medium text-sm">{selectedBookingSummary.profile?.company_name || selectedBookingSummary.profile?.full_name || 'Negocio'}</p>
+                  <p className="text-white/40 text-xs">Anunciante</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="bg-[#2A2A2A] rounded-lg p-3">
+                  <p className="text-white/40 text-[10px]">Inicio</p>
+                  <p className="text-white text-xs font-medium">{format(new Date(selectedBookingSummary.booking.start_date), "d MMM yyyy", { locale: es })}</p>
+                </div>
+                <div className="bg-[#2A2A2A] rounded-lg p-3">
+                  <p className="text-white/40 text-[10px]">Fin</p>
+                  <p className="text-white text-xs font-medium">{format(new Date(selectedBookingSummary.booking.end_date), "d MMM yyyy", { locale: es })}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between bg-[#2A2A2A] rounded-lg p-3">
+                <span className="text-white/50 text-xs">Total</span>
+                <span className="text-[#9BFF43] font-bold">${selectedBookingSummary.booking.total_price.toLocaleString()} MXN</span>
+              </div>
+              <div className="flex items-center justify-between bg-[#2A2A2A] rounded-lg p-3">
+                <span className="text-white/50 text-xs">Estado</span>
+                <span className={cn("text-xs font-medium px-2 py-0.5 rounded-full",
+                  selectedBookingSummary.booking.status === 'approved' ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"
+                )}>
+                  {selectedBookingSummary.booking.status === 'approved' ? 'Aprobada' : 'Pendiente'}
+                </span>
+              </div>
+              {onNavigateToBooking && (
+                <Button 
+                  onClick={() => onNavigateToBooking(selectedBookingSummary.booking.id)}
+                  className="w-full bg-[#9BFF43] text-[#121212] hover:bg-[#8AE63A] text-sm"
+                >
+                  Ver detalle completo
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         {/* Range selection hint */}
         {rangeStart && selectedDates.length === 1 && (
           <Card className="bg-blue-500/10 border-blue-500/30">

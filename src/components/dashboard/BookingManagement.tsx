@@ -84,6 +84,17 @@ const BookingManagement: React.FC = () => {
     }
   }, [user]);
 
+  // Listen for select-booking event from calendar
+  useEffect(() => {
+    const handler = (e: CustomEvent) => {
+      const bookingId = e.detail;
+      const booking = bookings.find(b => b.id === bookingId);
+      if (booking) setSelectedBooking(booking);
+    };
+    window.addEventListener('select-booking', handler as EventListener);
+    return () => window.removeEventListener('select-booking', handler as EventListener);
+  }, [bookings]);
+
   const fetchBookings = async () => {
     try {
       const { data: billboards, error: billboardsError } = await supabase
@@ -275,7 +286,7 @@ const BookingManagement: React.FC = () => {
     const isActive = selectedBooking.status === 'approved' && isBefore(new Date(selectedBooking.start_date), now) && isAfter(new Date(selectedBooking.end_date), now);
 
     return (
-      <div className="space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6">
         {/* Back button */}
         <button onClick={() => setSelectedBooking(null)} className="flex items-center gap-2 text-white/60 hover:text-white transition-colors">
           <ArrowLeft className="w-4 h-4" />

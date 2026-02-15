@@ -190,12 +190,12 @@ const BusinessAnalytics: React.FC = () => {
               <div className="lg:col-span-3 bg-[#1A1A1A] rounded-2xl p-5 border border-white/5">
                 <h3 className="text-white font-semibold mb-1">Tráfico por espectacular</h3>
                 <p className="text-white/40 text-xs mb-5">Estimado de vehículos durante cada campaña</p>
-                <div className="h-[280px]">
+                <div className="h-[280px] -mx-2 overflow-hidden">
                   <ChartContainer config={chartConfig}>
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={campaignPerformance} barCategoryGap="25%">
+                      <BarChart data={campaignPerformance} barCategoryGap="25%" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                         <XAxis dataKey="name" stroke="#444" fontSize={11} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#444" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                        <YAxis stroke="#444" fontSize={11} tickLine={false} axisLine={false} width={45} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
                         <ChartTooltip content={<ChartTooltipContent />} />
                         <Bar dataKey="impressions" fill="#9BFF43" radius={[6, 6, 0, 0]} />
                       </BarChart>
@@ -209,10 +209,10 @@ const BusinessAnalytics: React.FC = () => {
                 <h3 className="text-white font-semibold mb-1">Inversión por ciudad</h3>
                 <p className="text-white/40 text-xs mb-5">Distribución de gasto publicitario</p>
                 {cityChartData.length > 0 ? (
-                  <div className="flex flex-col items-center">
-                    <ResponsiveContainer width={180} height={180}>
+                  <div className="flex flex-col items-center overflow-hidden">
+                    <ResponsiveContainer width={160} height={160}>
                       <PieChart>
-                        <Pie data={cityChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={75} innerRadius={45} strokeWidth={0}>
+                        <Pie data={cityChartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={65} innerRadius={40} strokeWidth={0}>
                           {cityChartData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                         </Pie>
                       </PieChart>
