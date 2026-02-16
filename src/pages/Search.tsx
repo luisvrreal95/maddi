@@ -88,7 +88,23 @@ const SearchPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
   const [searchQuery, setSearchQuery] = useState(location);
   const [confirmedLocation, setConfirmedLocation] = useState(location);
-  const [selectedLocationData, setSelectedLocationData] = useState<SelectedLocation | null>(null);
+  // Initialize selectedLocationData from URL lat/lng params (e.g., from homepage hero search)
+  const [selectedLocationData, setSelectedLocationData] = useState<SelectedLocation | null>(() => {
+    const lat = searchParams.get('lat');
+    const lng = searchParams.get('lng');
+    if (lat && lng) {
+      const latNum = parseFloat(lat);
+      const lngNum = parseFloat(lng);
+      if (!isNaN(latNum) && !isNaN(lngNum)) {
+        return {
+          placeName: location,
+          center: [lngNum, latNum] as [number, number],
+          placeType: 'poi',
+        };
+      }
+    }
+    return null;
+  });
   const [mapboxToken, setMapboxToken] = useState<string>('');
   const [isLoadingToken, setIsLoadingToken] = useState(true);
   
