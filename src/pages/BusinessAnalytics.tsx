@@ -93,16 +93,23 @@ const BusinessAnalytics: React.FC = () => {
   };
 
   const approvedBookings = bookings.filter(b => b.status === 'approved');
-  const totalSpent = approvedBookings.reduce((sum, b) => sum + b.total_price, 0);
-  const totalImpressions = approvedBookings.reduce((sum, b) => {
-    const days = Math.max(1, differenceInDays(new Date(b.end_date), new Date(b.start_date)));
+  // Only include campaigns that have started for real metrics
+  const startedBookings = approvedBookings.filter(b => new Date() >= new Date(b.start_date));
+  const totalSpent = startedBookings.reduce((sum, b) => sum + b.total_price, 0);
+  const totalImpressions = startedBookings.reduce((sum, b) => {
+    const endDate = new Date(b.end_date) > new Date() ? new Date() : new Date(b.end_date);
+    const days = Math.max(1, differenceInDays(endDate, new Date(b.start_date)));
     return sum + (b.billboard?.daily_impressions || 0) * days;
   }, 0);
   const costPerImpression = totalImpressions > 0 ? totalSpent / totalImpressions : 0;
-  const totalDays = approvedBookings.reduce((sum, b) => sum + Math.max(1, differenceInDays(new Date(b.end_date), new Date(b.start_date))), 0);
+  const totalDays = startedBookings.reduce((sum, b) => {
+    const endDate = new Date(b.end_date) > new Date() ? new Date() : new Date(b.end_date);
+    return sum + Math.max(1, differenceInDays(endDate, new Date(b.start_date)));
+  }, 0);
 
-  const campaignPerformance = approvedBookings.map(b => {
-    const days = Math.max(1, differenceInDays(new Date(b.end_date), new Date(b.start_date)));
+  const campaignPerformance = startedBookings.map(b => {
+    const endDate = new Date(b.end_date) > new Date() ? new Date() : new Date(b.end_date);
+    const days = Math.max(1, differenceInDays(endDate, new Date(b.start_date)));
     const impressions = (b.billboard?.daily_impressions || 0) * days;
     return {
       name: b.billboard?.title?.substring(0, 12) || 'Espectacular',
@@ -111,7 +118,7 @@ const BusinessAnalytics: React.FC = () => {
     };
   });
 
-  const spendingByCity = approvedBookings.reduce((acc, b) => {
+  const spendingByCity = startedBookings.reduce((acc, b) => {
     const city = b.billboard?.city || 'Otro';
     acc[city] = (acc[city] || 0) + b.total_price;
     return acc;
@@ -244,10 +251,14 @@ const BusinessAnalytics: React.FC = () => {
               </div>
               <div className="divide-y divide-white/5">
                 {approvedBookings.map((booking) => {
-                  const days = Math.max(1, differenceInDays(new Date(booking.end_date), new Date(booking.start_date)));
-                  const impressions = (booking.billboard?.daily_impressions || 0) * days;
+                  const hasStarted = new Date() >= new Date(booking.start_date);
+                  const isActive = hasStarted && new Date() <= new Date(booking.end_date);
+                  const isPending = !hasStarted;
+                  // For started campaigns, use actual elapsed days (capped at end_date)
+                  const endDate = new Date(booking.end_date) > new Date() ? new Date() : new Date(booking.end_date);
+                  const elapsedDays = hasStarted ? Math.max(1, differenceInDays(endDate, new Date(booking.start_date))) : 0;
+                  const impressions = (booking.billboard?.daily_impressions || 0) * elapsedDays;
                   const cpi = impressions > 0 ? booking.total_price / impressions : 0;
-                  const isActive = new Date() >= new Date(booking.start_date) && new Date() <= new Date(booking.end_date);
 
                   return (
                     <div key={booking.id} onClick={() => navigate(`/business?booking=${booking.id}`)} className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors cursor-pointer">
@@ -266,6 +277,11 @@ const BusinessAnalytics: React.FC = () => {
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Activa
                             </span>
                           )}
+                          {isPending && (
+                            <span className="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-full">
+                              Programada
+                            </span>
+                          )}
                         </div>
                         <p className="text-white/40 text-xs mt-0.5">
                           {booking.billboard?.city} · {format(new Date(booking.start_date), "d MMM", { locale: es })} — {format(new Date(booking.end_date), "d MMM yyyy", { locale: es })}
@@ -275,20 +291,29 @@ const BusinessAnalytics: React.FC = () => {
                       <div className="flex md:hidden items-center">
                         <p className="text-[#9BFF43] text-sm font-semibold">${booking.total_price.toLocaleString()}</p>
                       </div>
-                      {/* Desktop: full metrics */}
+                      {/* Desktop: full metrics - only show traffic/CPI for started campaigns */}
                       <div className="hidden md:flex items-center gap-6 text-right">
-                        <div>
-                          <p className="text-white/40 text-[10px]">Tráfico est.</p>
-                          <p className="text-white text-sm font-medium">~{impressions.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-white/40 text-[10px]">Inversión</p>
-                          <p className="text-white text-sm font-medium">${booking.total_price.toLocaleString()}</p>
-                        </div>
-                        <div>
-                          <p className="text-white/40 text-[10px]">CPI</p>
-                          <p className="text-white text-sm font-medium">${cpi.toFixed(4)}</p>
-                        </div>
+                        {hasStarted ? (
+                          <>
+                            <div>
+                              <p className="text-white/40 text-[10px]">Tráfico est.</p>
+                              <p className="text-white text-sm font-medium">~{impressions.toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <p className="text-white/40 text-[10px]">Inversión</p>
+                              <p className="text-white text-sm font-medium">${booking.total_price.toLocaleString()}</p>
+                            </div>
+                            <div>
+                              <p className="text-white/40 text-[10px]">CPI</p>
+                              <p className="text-white text-sm font-medium">${cpi.toFixed(4)}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <div>
+                            <p className="text-white/40 text-[10px]">Inversión contratada</p>
+                            <p className="text-white text-sm font-medium">${booking.total_price.toLocaleString()}</p>
+                          </div>
+                        )}
                       </div>
                       <ArrowUpRight className="w-4 h-4 text-white/30" />
                     </div>
