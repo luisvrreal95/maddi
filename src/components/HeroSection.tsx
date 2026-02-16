@@ -103,7 +103,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative flex flex-col items-center bg-[hsl(0,0%,12.5%)] pt-0 pb-32 max-md:pb-24 max-sm:pb-16 overflow-hidden">
+    <section className="relative flex flex-col items-center bg-[hsl(0,0%,12.5%)] pt-0 pb-32 max-md:pb-24 max-sm:pb-16 overflow-visible">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[hsl(0,0%,8%)] pointer-events-none" />
       
@@ -153,7 +153,8 @@ const HeroSection: React.FC = () => {
               {showSuggestions && suggestions.length > 0 && (
                 <div
                   ref={dropdownRef}
-                  className="absolute top-full left-0 right-0 mt-1 bg-[hsl(0,0%,14%)] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 max-h-[300px] overflow-y-auto"
+                  className="absolute top-full left-0 mt-2 bg-[hsl(0,0%,13%)] border border-white/10 rounded-xl shadow-2xl z-[100] max-h-[320px] overflow-y-auto"
+                  style={{ minWidth: '340px', width: 'max-content', maxWidth: '500px' }}
                 >
                   {userLocation && (
                     <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/30">

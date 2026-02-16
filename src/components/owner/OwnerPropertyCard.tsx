@@ -26,7 +26,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
 
   // Use stored points_of_interest from DB - no API call needed
-  const storedPois = billboard.points_of_interest || [];
+  const storedPois = (billboard.points_of_interest || []).filter(Boolean);
   const poisDisplay = nearbyPOIs.length > 0 
     ? nearbyPOIs.slice(0, 3).map(p => `${p.name} (${p.count})`).join(', ')
     : storedPois.length > 0 
@@ -39,10 +39,10 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   const isPausedByAdmin = billboard.pause_reason === 'admin';
   const size = `${billboard.width_m}m x ${billboard.height_m}m`;
 
-  // Only fetch POIs from API if billboard has no stored points_of_interest
+  // Fetch POIs from API if billboard has no stored points_of_interest
   useEffect(() => {
     const fetchNearbyPOIs = async () => {
-      // Skip if we already have stored POIs or no coordinates
+      // Skip if we already have meaningful stored POIs or no coordinates
       if (storedPois.length > 0 || !billboard.latitude || !billboard.longitude) return;
       
       setIsLoadingPOIs(true);
@@ -63,12 +63,15 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
             .map((cat: any) => ({ name: cat.name, count: cat.count }));
           setNearbyPOIs(topCategories);
           
-          // Save POI names to billboard for future use
-          const poiNames = topCategories.map((c: POICategory) => c.name);
-          if (poiNames.length > 0) {
+          // Save top POI place names to billboard for future use
+          const topPlaceNames = data.categories
+            .flatMap((cat: any) => (cat.items || []).map((item: any) => item.name))
+            .filter(Boolean)
+            .slice(0, 6);
+          if (topPlaceNames.length > 0) {
             await supabase
               .from('billboards')
-              .update({ points_of_interest: poiNames })
+              .update({ points_of_interest: topPlaceNames })
               .eq('id', billboard.id);
           }
         }
