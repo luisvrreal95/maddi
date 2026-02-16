@@ -87,9 +87,13 @@ const HeroSection: React.FC = () => {
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (location) params.set('location', location);
+    // If user selected a suggestion, use its coordinates; otherwise search by text only
     if (selectedCoords) {
       params.set('lat', String(selectedCoords.lat));
       params.set('lng', String(selectedCoords.lng));
+    } else if (location) {
+      // No coordinates selected — do NOT pass lat/lng so the search page
+      // will geocode based on the text or show all results
     }
     if (dateRange?.from) params.set('from', format(dateRange.from, 'yyyy-MM-dd'));
     if (dateRange?.to) params.set('to', format(dateRange.to, 'yyyy-MM-dd'));

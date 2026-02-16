@@ -250,7 +250,7 @@ const BusinessAnalytics: React.FC = () => {
                   const isActive = new Date() >= new Date(booking.start_date) && new Date() <= new Date(booking.end_date);
 
                   return (
-                    <div key={booking.id} className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors">
+                    <div key={booking.id} onClick={() => navigate(`/business?booking=${booking.id}`)} className="flex items-center gap-4 p-4 hover:bg-white/[0.02] transition-colors cursor-pointer">
                       {booking.billboard?.image_url ? (
                         <img src={booking.billboard.image_url} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
                       ) : (
@@ -290,9 +290,7 @@ const BusinessAnalytics: React.FC = () => {
                           <p className="text-white text-sm font-medium">${cpi.toFixed(4)}</p>
                         </div>
                       </div>
-                      <Link to={`/billboard/${booking.billboard_id}`} className="text-white/30 hover:text-[#9BFF43] transition-colors">
-                        <ArrowUpRight className="w-4 h-4" />
-                      </Link>
+                      <ArrowUpRight className="w-4 h-4 text-white/30" />
                     </div>
                   );
                 })}
