@@ -268,6 +268,22 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
         Volver a campañas
       </Button>
 
+      {/* Metrics at top for active/past campaigns */}
+      {(isOngoing || isPast) && (
+        <div>
+          <h2 className="font-semibold text-foreground mb-3">Métricas de Impacto</h2>
+          <CampaignMetrics
+            totalImpressions={totalImpressions}
+            averageDaily={dailyImpressions}
+            activeDays={activeDays}
+            totalDays={totalDays}
+          />
+          <p className="text-xs text-muted-foreground mt-2">
+            Estimaciones basadas en datos de movilidad · Fuente: TomTom
+          </p>
+        </div>
+      )}
+
       {/* Header with image */}
       <Card className="overflow-hidden">
         <div className="relative h-64 md:h-80">
@@ -382,21 +398,6 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
             </div>
           </div>
         </Card>
-      )}
-
-      {(isOngoing || isPast) && (
-        <div>
-          <h2 className="font-semibold text-foreground mb-3">Métricas de Impacto</h2>
-          <CampaignMetrics
-            totalImpressions={totalImpressions}
-            averageDaily={dailyImpressions}
-            activeDays={activeDays}
-            totalDays={totalDays}
-          />
-          <p className="text-xs text-muted-foreground mt-2">
-            Estimaciones basadas en datos de movilidad · Fuente: TomTom
-          </p>
-        </div>
       )}
 
       {inegiData && (
