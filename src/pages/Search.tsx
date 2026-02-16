@@ -217,12 +217,37 @@ const SearchPage: React.FC = () => {
     });
   };
 
+  // Generate a bbox from coordinates when we have a point location but no bbox/city
+  // This enables proximity-based search (~5km radius) similar to Airbnb
+  const billboardFilters = useMemo(() => {
+    // If we already have a bbox from the location selection, use it
+    if (selectedLocationData?.bbox) {
+      return {
+        location: confirmedLocation,
+        city: selectedLocationData?.city,
+        bbox: selectedLocationData.bbox as [number, number, number, number],
+      };
+    }
+    // If we have coordinates (e.g. from a POI search) but no bbox, generate one
+    if (selectedLocationData?.center) {
+      const [lng, lat] = selectedLocationData.center;
+      // ~10km radius in degrees to capture nearby billboards across the city
+      const latDelta = 0.09;
+      const lngDelta = 0.11;
+      return {
+        location: confirmedLocation,
+        bbox: [lng - lngDelta, lat - latDelta, lng + lngDelta, lat + latDelta] as [number, number, number, number],
+      };
+    }
+    // Fallback to text-based location/city filtering
+    return {
+      location: confirmedLocation,
+      city: selectedLocationData?.city,
+    };
+  }, [confirmedLocation, selectedLocationData]);
+
   // Fetch billboards - exclude paused properties
-  const { billboards, isLoading: isLoadingBillboards } = useBillboards({
-    location: confirmedLocation,
-    city: selectedLocationData?.city,
-    bbox: selectedLocationData?.bbox,
-  });
+  const { billboards, isLoading: isLoadingBillboards } = useBillboards(billboardFilters);
 
   // Fetch review stats for all billboards
   const { statsMap: reviewStatsMap } = useBillboardReviewStats();
