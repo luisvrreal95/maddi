@@ -1,23 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-// Allowed origins for CORS
-const ALLOWED_ORIGINS = [
-  'https://maddi.lovable.app',
-  'https://id-preview--1e558385-54d9-4439-8b22-6503a152ac9e.lovable.app',
-  'http://localhost:5173',
-  'http://localhost:8080',
-];
-
-function getCorsHeaders(origin: string | null) {
-  const allowedOrigin = origin && ALLOWED_ORIGINS.some(o => origin.startsWith(o.replace('https://', '').replace('http://', '')) || o === origin) 
-    ? origin 
-    : ALLOWED_ORIGINS[0];
-  
-  return {
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  };
-}
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+};
 
 // 8 main categories for efficient overview (no duplicates)
 const OVERVIEW_CATEGORIES = [
@@ -48,20 +34,22 @@ interface POIResult {
   lon?: number;
 }
 
-async function searchPOIs(lat: number, lon: number, categoryId: string, apiKey: string, radius: number, limit: number): Promise<any[]> {
-  const url = `https://api.tomtom.com/search/2/categorySearch/${categoryId}.json?lat=${lat}&lon=${lon}&radius=${radius}&limit=${limit}&key=${apiKey}`;
+async function searchNearbyPOIs(lat: number, lon: number, categorySet: string, apiKey: string, radius: number, limit: number): Promise<any[]> {
+  // Use TomTom Nearby Search with categorySet (comma-separated IDs in one call)
+  const url = `https://api.tomtom.com/search/2/nearbySearch/.json?lat=${lat}&lon=${lon}&radius=${radius}&limit=${limit}&categorySet=${categorySet}&key=${apiKey}`;
   
   try {
     const response = await fetch(url);
     if (!response.ok) {
-      console.error(`TomTom API error for category ${categoryId}: ${response.status}`);
+      const body = await response.text();
+      console.error(`TomTom Nearby Search error (categories: ${categorySet}): ${response.status}, body: ${body}`);
       return [];
     }
     
     const data = await response.json();
     return data.results || [];
   } catch (error) {
-    console.error(`Error fetching POIs for category ${categoryId}:`, error);
+    console.error(`Error fetching nearby POIs (categories: ${categorySet}):`, error);
     return [];
   }
 }
@@ -93,39 +81,37 @@ serve(async (req) => {
       );
     }
 
-    // Mode-based configuration
     const isOverview = mode === 'overview';
-    const searchRadius = isOverview ? 500 : Math.min(1000, parseInt(radius) || 500);
+    const searchRadius = isOverview ? 1000 : Math.min(2000, parseInt(radius) || 1000);
     const limitPerCategory = isOverview ? 20 : 50;
     const categoriesToUse = isOverview ? OVERVIEW_CATEGORIES : EXPANDED_CATEGORIES;
 
-    console.log(`Analyzing POIs for billboard at ${latitude}, ${longitude} with mode=${mode}, radius=${searchRadius}m`);
+    console.log(`Analyzing POIs at ${latitude}, ${longitude}, mode=${mode}, radius=${searchRadius}m`);
 
-    // Fetch POIs for all categories in parallel
+    // One API call per category group (8 calls total, not 20+)
     const categoryResults: Record<string, { count: number; items: POIResult[] }> = {};
     const allTopPOIs: POIResult[] = [];
 
-    await Promise.all(
-      categoriesToUse.map(async (category) => {
-        // Fetch all TomTom IDs for this category in parallel
-        const allResults: any[] = [];
-        await Promise.all(
-          category.tomtomIds.map(async (tomtomId) => {
-            const results = await searchPOIs(latitude, longitude, tomtomId, TOMTOM_API_KEY, searchRadius, limitPerCategory);
-            allResults.push(...results);
-          })
-        );
-
-        // Dedupe by name and sort by distance
-        const uniqueResults = allResults
-          .filter((poi, index, self) => 
+    // Run category groups sequentially in pairs to avoid rate limiting
+    for (let i = 0; i < categoriesToUse.length; i += 2) {
+      const batch = categoriesToUse.slice(i, i + 2);
+      const batchResults = await Promise.all(
+        batch.map(async (category) => {
+          const categorySet = category.tomtomIds.join(',');
+          const results = await searchNearbyPOIs(latitude, longitude, categorySet, TOMTOM_API_KEY, searchRadius, limitPerCategory);
+          return { category, results };
+        })
+      );
+      
+      for (const { category, results } of batchResults) {
+        const uniqueResults = results
+          .filter((poi: any, index: number, self: any[]) => 
             index === self.findIndex(p => p.poi?.name === poi.poi?.name)
           )
-          .sort((a, b) => (a.dist || 0) - (b.dist || 0))
+          .sort((a: any, b: any) => (a.dist || 0) - (b.dist || 0))
           .slice(0, limitPerCategory);
 
-        const count = uniqueResults.length;
-        const items = uniqueResults.map(poi => ({
+        const items = uniqueResults.map((poi: any) => ({
           name: poi.poi?.name || 'Sin nombre',
           category: category.name,
           distance: Math.round(poi.dist || 0),
@@ -134,24 +120,27 @@ serve(async (req) => {
           address: poi.address?.freeformAddress,
         }));
 
-        categoryResults[category.name] = { count, items };
-        
-        // Add top 3 from each category to global top
-        items.slice(0, 3).forEach(item => allTopPOIs.push(item));
-      })
-    );
+        if (items.length > 0) {
+          categoryResults[category.name] = { count: items.length, items };
+          items.slice(0, 3).forEach((item: POIResult) => allTopPOIs.push(item));
+        }
+      }
+      
+      // Small delay between batches
+      if (i + 2 < categoriesToUse.length) {
+        await new Promise(r => setTimeout(r, 200));
+      }
+    }
 
-    // Get top 5 most relevant POIs (sorted by distance)
     const top5POIs = allTopPOIs
       .sort((a, b) => a.distance - b.distance)
       .slice(0, 5);
 
-    // Build categories array for response (sorted by count)
     const categories = Object.entries(categoryResults)
       .map(([name, data]) => ({
         name,
         count: data.count,
-        items: data.items.slice(0, isOverview ? 5 : 10), // Limit items in response
+        items: data.items.slice(0, isOverview ? 5 : 10),
       }))
       .filter(cat => cat.count > 0)
       .sort((a, b) => b.count - a.count);
@@ -168,7 +157,6 @@ serve(async (req) => {
         categories,
         top5: top5POIs,
         totalPOIs,
-        // No AI analysis - removed as requested
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
