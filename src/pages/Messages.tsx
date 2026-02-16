@@ -615,7 +615,7 @@ const Messages: React.FC = () => {
                               </p>
                               <Link
                                 to={userRole === 'owner' 
-                                  ? `/owner?tab=reservas`
+                                  ? `/owner?tab=reservas&booking=${bookingMeta.bookingId}`
                                   : `/business?booking=${bookingMeta.bookingId}`
                                 }
                                 className="inline-flex items-center gap-1 text-[#9BFF43] text-sm font-medium mt-1.5 hover:underline"
