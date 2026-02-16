@@ -47,9 +47,11 @@ const NotificationBell: React.FC = () => {
   };
 
   const getNotificationLink = (notification: Notification): string | null => {
-    // For booking requests, go to owner's booking management
+    // For booking requests, go to owner's booking management with specific booking
     if (notification.type === 'booking_request') {
-      return '/owner?tab=reservas';
+      return notification.related_booking_id 
+        ? `/owner?tab=reservas&booking=${notification.related_booking_id}`
+        : '/owner?tab=reservas';
     }
     // For booking approved/rejected, go to business dashboard
     if (notification.type === 'booking_approved' || notification.type === 'booking_rejected') {

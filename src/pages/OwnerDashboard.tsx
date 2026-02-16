@@ -75,6 +75,13 @@ const OwnerDashboard: React.FC = () => {
         setSelectedBillboard(billboard);
       }
     }
+    // Handle booking selection from URL (e.g. from messages "Ver solicitud")
+    const bookingId = searchParams.get('booking');
+    if (bookingId && tab === 'reservas') {
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('select-booking', { detail: bookingId }));
+      }, 500);
+    }
   }, [searchParams, billboards]);
 
   const handleTabChange = (tab: string) => {

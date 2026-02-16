@@ -25,13 +25,13 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   const [nearbyPOIs, setNearbyPOIs] = useState<POICategory[]>([]);
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
 
-  // Create display for POIs - either from fetched data or stored points_of_interest
-  const storedPois = (billboard as any).points_of_interest || [];
+  // Use stored points_of_interest from DB - no API call needed
+  const storedPois = billboard.points_of_interest || [];
   const poisDisplay = nearbyPOIs.length > 0 
     ? nearbyPOIs.slice(0, 3).map(p => `${p.name} (${p.count})`).join(', ')
     : storedPois.length > 0 
       ? storedPois.slice(0, 3).join(', ')
-      : 'Analizando...';
+      : 'Sin datos';
   
   const dailyViews = billboard.daily_impressions || 0;
   const peakHours = '8am-12pm';
@@ -39,10 +39,11 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   const isPausedByAdmin = billboard.pause_reason === 'admin';
   const size = `${billboard.width_m}m x ${billboard.height_m}m`;
 
-  // Fetch nearby POIs from the analyze-nearby-poi function
+  // Only fetch POIs from API if billboard has no stored points_of_interest
   useEffect(() => {
     const fetchNearbyPOIs = async () => {
-      if (!billboard.latitude || !billboard.longitude) return;
+      // Skip if we already have stored POIs or no coordinates
+      if (storedPois.length > 0 || !billboard.latitude || !billboard.longitude) return;
       
       setIsLoadingPOIs(true);
       try {
@@ -56,12 +57,20 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
         });
         
         if (!error && data?.success && data?.categories) {
-          // Get top categories with counts
           const topCategories = data.categories
             .filter((cat: any) => cat.count > 0)
             .slice(0, 4)
             .map((cat: any) => ({ name: cat.name, count: cat.count }));
           setNearbyPOIs(topCategories);
+          
+          // Save POI names to billboard for future use
+          const poiNames = topCategories.map((c: POICategory) => c.name);
+          if (poiNames.length > 0) {
+            await supabase
+              .from('billboards')
+              .update({ points_of_interest: poiNames })
+              .eq('id', billboard.id);
+          }
         }
       } catch (err) {
         console.error('Error fetching POIs:', err);
@@ -71,7 +80,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
     };
 
     fetchNearbyPOIs();
-  }, [billboard.id, billboard.latitude, billboard.longitude]);
+  }, [billboard.id]);
 
   // Fetch traffic data to calculate impression change
   useEffect(() => {
