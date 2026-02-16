@@ -47,19 +47,23 @@ serve(async (req) => {
     }
 
     // Use TomTom Fuzzy Search for POI + address autocomplete
-    let url = `https://api.tomtom.com/search/2/search/${encodeURIComponent(query)}.json?key=${TOMTOM_API_KEY}&limit=${limit}&countrySet=${countrySet}&language=es-MX&typeahead=true`;
+    const encodedQuery = encodeURIComponent(query);
+    let url = `https://api.tomtom.com/search/2/search/${encodedQuery}.json?key=${TOMTOM_API_KEY}&limit=${limit}&countrySet=${countrySet}&language=es-ES&typeahead=true`;
     
-    // Add proximity bias if coordinates provided
-    if (lat && lon) {
-      url += `&lat=${lat}&lon=${lon}&radius=50000`; // 50km radius for bias
+    // Add proximity bias if coordinates provided - validate they are numbers
+    if (lat != null && lon != null && !isNaN(Number(lat)) && !isNaN(Number(lon))) {
+      url += `&lat=${Number(lat)}&lon=${Number(lon)}&radius=50000`;
     }
 
-    console.log(`Searching POIs for: "${query}" near ${lat || 'N/A'}, ${lon || 'N/A'}`);
+    console.log(`Searching POIs for: "${query}" (encoded: "${encodedQuery}") near ${lat || 'N/A'}, ${lon || 'N/A'}`);
+    console.log(`TomTom API Key prefix: ${TOMTOM_API_KEY.substring(0, 6)}..., length: ${TOMTOM_API_KEY.length}`);
 
     const response = await fetch(url);
     
     if (!response.ok) {
-      console.error('TomTom Search API error:', response.status);
+      const errorBody = await response.text();
+      console.error(`TomTom Search API error: ${response.status}, body: ${errorBody}`);
+      console.error(`Request URL (without key): ${url.replace(TOMTOM_API_KEY, '***')}`);
       return new Response(
         JSON.stringify({ success: false, error: 'Error en búsqueda' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
