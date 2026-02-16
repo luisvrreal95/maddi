@@ -585,6 +585,8 @@ const SearchPage: React.FC = () => {
             billboard={selectedBillboard}
           />
         )}
+        
+        <MobileNavBar />
       </>
     );
   }

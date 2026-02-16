@@ -12,7 +12,7 @@ const MobileNavBar: React.FC = () => {
   const { unreadCount } = useUnreadMessages();
   
   // Hide on admin, messages, settings, auth pages
-  const hiddenPaths = ['/admin', '/messages', '/settings', '/auth'];
+  const hiddenPaths = ['/admin', '/settings', '/auth'];
   const shouldHide = hiddenPaths.some(path => location.pathname.startsWith(path));
   
   if (shouldHide || !user) {
