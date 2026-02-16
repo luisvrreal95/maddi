@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ArrowLeft, Calendar, MapPin, ExternalLink, Eye, Clock, Check, X, Info, Ban, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, ExternalLink, Eye, Clock, Check, X, Info, Ban, Image as ImageIcon, DollarSign, Ruler, Lightbulb, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -31,6 +31,11 @@ interface Billboard {
   daily_impressions: number | null;
   latitude: number;
   longitude: number;
+  width_m: number;
+  height_m: number;
+  billboard_type: string;
+  illumination: string;
+  faces: number;
 }
 
 interface INEGIData {
@@ -320,6 +325,78 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
           </div>
         </div>
       </Card>
+
+      {/* Active campaign progress */}
+      {isOngoing && (
+        <Card className="p-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-semibold text-foreground text-sm">Progreso de campaña</h3>
+            <span className="text-sm text-muted-foreground">{activeDays}/{totalDays} días</span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-muted overflow-hidden">
+            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${Math.min(100, Math.round((activeDays / totalDays) * 100))}%` }} />
+          </div>
+          <p className="text-xs text-muted-foreground mt-2">
+            {totalDays - activeDays} día{totalDays - activeDays !== 1 ? 's' : ''} restante{totalDays - activeDays !== 1 ? 's' : ''}
+          </p>
+        </Card>
+      )}
+
+      {/* Investment & Financial Details */}
+      <Card className="p-5">
+        <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+          <DollarSign className="w-4 h-4 text-primary" />
+          Inversión
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <p className="text-xs text-muted-foreground">Total contratado</p>
+            <p className="text-lg font-bold text-foreground">${booking.total_price.toLocaleString()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Costo diario</p>
+            <p className="text-lg font-bold text-foreground">${(booking.total_price / Math.max(1, totalDays)).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
+          </div>
+          {(isOngoing || isPast) && totalImpressions > 0 && (
+            <div>
+              <p className="text-xs text-muted-foreground">CPI actual</p>
+              <p className="text-lg font-bold text-foreground">${(booking.total_price / totalImpressions).toFixed(4)}</p>
+            </div>
+          )}
+          <div>
+            <p className="text-xs text-muted-foreground">Tráfico diario est.</p>
+            <p className="text-lg font-bold text-foreground">~{dailyImpressions.toLocaleString()}</p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Billboard Specifications */}
+      {billboard && (
+        <Card className="p-5">
+          <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+            <Ruler className="w-4 h-4 text-primary" />
+            Especificaciones del espectacular
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Dimensiones</p>
+              <p className="text-sm font-medium text-foreground">{billboard.width_m}m × {billboard.height_m}m</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Tipo</p>
+              <p className="text-sm font-medium text-foreground capitalize">{billboard.billboard_type}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><Lightbulb className="w-3 h-3" />Iluminación</p>
+              <p className="text-sm font-medium text-foreground capitalize">{billboard.illumination === 'ninguna' ? 'Sin iluminación' : billboard.illumination}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground flex items-center gap-1"><Layers className="w-3 h-3" />Caras</p>
+              <p className="text-sm font-medium text-foreground">{billboard.faces}</p>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Design images section */}
       {designImages.length > 0 && (
