@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.delete-user-account]
 verify_jwt = false
+
+[functions.campaign-lifecycle-notifications]
+verify_jwt = false

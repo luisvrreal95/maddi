@@ -54,10 +54,14 @@ const OwnerDashboard: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('grid');
 
-  // Auto-select first billboard when billboards load
+  // Auto-select first billboard when billboards load, and sync selectedBillboard data
   useEffect(() => {
     if (billboards.length > 0 && !selectedBillboard) {
       setSelectedBillboard(billboards[0]);
+    } else if (selectedBillboard) {
+      // Re-sync selectedBillboard with latest data from fetched billboards
+      const updated = billboards.find(b => b.id === selectedBillboard.id);
+      if (updated) setSelectedBillboard(updated);
     }
   }, [billboards]);
 
