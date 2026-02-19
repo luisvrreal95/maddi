@@ -14,7 +14,9 @@ interface SearchResult {
   id: string;
   name: string;
   type: string;
+  category: string;
   address: string;
+  municipality: string;
   lat: number;
   lon: number;
   distance: number | null;
@@ -67,10 +69,16 @@ const HeroSection: React.FC = () => {
       setIsLoading(true);
       try {
         const { data, error } = await supabase.functions.invoke('search-poi', {
-          body: { query: location, lat: userLocation?.lat, lon: userLocation?.lng, limit: 6 }
+          body: { query: location, limit: 8 }
         });
         if (!error && data?.success && data?.results) {
-          setSuggestions(data.results);
+          // Sort: Geography (cities) first, then POIs
+          const sorted = [...data.results].sort((a: SearchResult, b: SearchResult) => {
+            if (a.type === 'Geography' && b.type !== 'Geography') return -1;
+            if (a.type !== 'Geography' && b.type === 'Geography') return 1;
+            return 0;
+          });
+          setSuggestions(sorted);
           setShowSuggestions(true);
         }
       } catch { /* ignore */ } finally { setIsLoading(false); }
@@ -100,10 +108,36 @@ const HeroSection: React.FC = () => {
     navigate(`/search?${params.toString()}`);
   };
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type: string, suggestion?: SearchResult) => {
     if (type === 'POI') return <Store className="w-4 h-4 text-primary" />;
-    if (type === 'Geography' || type === 'Street') return <Building2 className="w-4 h-4 text-primary" />;
+    if (type === 'Geography') {
+      const name = suggestion?.displayName || suggestion?.name || '';
+      const municipality = suggestion?.municipality || '';
+      if (municipality && name.toLowerCase().includes(municipality.toLowerCase())) {
+        return <MapPin className="w-4 h-4 text-primary" />;
+      }
+      return <Building2 className="w-4 h-4 text-primary" />;
+    }
+    if (type === 'Street') return <Building2 className="w-4 h-4 text-primary" />;
     return <MapPin className="w-4 h-4 text-primary" />;
+  };
+
+  const getTypeLabel = (type: string, suggestion?: SearchResult) => {
+    if (type === 'Geography') {
+      const name = suggestion?.displayName || suggestion?.name || '';
+      const municipality = suggestion?.municipality || '';
+      if (municipality && name.toLowerCase().includes(municipality.toLowerCase())) {
+        return 'Ciudad';
+      }
+      return 'Zona';
+    }
+    const labels: Record<string, string> = {
+      POI: 'Lugar',
+      Street: 'Calle',
+      Address: 'Dirección',
+      'Cross Street': 'Intersección',
+    };
+    return labels[type] || 'Ubicación';
   };
 
   return (
@@ -173,11 +207,14 @@ const HeroSection: React.FC = () => {
                       onClick={() => handleSelectSuggestion(s)}
                       className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-white/5 transition-colors"
                     >
-                      {getTypeIcon(s.type)}
+                      {getTypeIcon(s.type, s)}
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm truncate">{s.displayName || s.name}</p>
                         <p className="text-white/40 text-xs truncate">{s.displayContext || s.address}</p>
                       </div>
+                      <span className="text-white/30 text-xs bg-white/5 px-2 py-0.5 rounded-full flex-shrink-0">
+                        {getTypeLabel(s.type, s)}
+                      </span>
                       {s.distance && (
                         <span className="text-white/30 text-xs">{(s.distance / 1000).toFixed(1)} km</span>
                       )}
