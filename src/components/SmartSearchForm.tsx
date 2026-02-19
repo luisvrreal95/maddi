@@ -154,17 +154,33 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
   const displayText = hasInteracted ? searchQuery : placeholderText;
   const isNaturalLanguageQuery = /quiero|busco|cerca|necesito|muestra|encuentra/i.test(searchQuery);
 
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type: string, suggestion?: SearchResult) => {
     if (type === 'POI') return <Store className="w-5 h-5 text-[#9BFF43]" />;
-    if (type === 'Geography' || type === 'Street') return <Building2 className="w-5 h-5 text-[#9BFF43]" />;
+    if (type === 'Geography') {
+      const name = suggestion?.displayName || suggestion?.name || '';
+      const municipality = suggestion?.municipality || '';
+      if (municipality && name.toLowerCase().includes(municipality.toLowerCase())) {
+        return <MapPin className="w-5 h-5 text-[#9BFF43]" />;
+      }
+      return <Building2 className="w-5 h-5 text-[#9BFF43]" />;
+    }
+    if (type === 'Street') return <Building2 className="w-5 h-5 text-[#9BFF43]" />;
     return <MapPin className="w-5 h-5 text-[#9BFF43]" />;
   };
 
-  const getTypeLabel = (type: string) => {
+  const getTypeLabel = (type: string, suggestion?: SearchResult) => {
+    // For Geography type, check if it's a city (municipality matches the name)
+    if (type === 'Geography') {
+      const name = suggestion?.displayName || suggestion?.name || '';
+      const municipality = suggestion?.municipality || '';
+      if (municipality && name.toLowerCase().includes(municipality.toLowerCase())) {
+        return 'Ciudad';
+      }
+      return 'Zona';
+    }
     const labels: Record<string, string> = {
       POI: 'Lugar',
       Street: 'Calle',
-      Geography: 'Zona',
       Address: 'Dirección',
       'Cross Street': 'Intersección',
     };
@@ -256,14 +272,14 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
                 onClick={() => handleSelectSuggestion(suggestion)}
                 className="w-full px-5 py-4 flex items-start gap-3 text-left hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0 bg-[#2A2A2A]"
               >
-                {getTypeIcon(suggestion.type)}
+                {getTypeIcon(suggestion.type, suggestion)}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-white truncate">{suggestion.displayName || suggestion.name}</p>
                   <p className="text-sm text-white/50 truncate">{suggestion.displayContext || suggestion.address}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
                   <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
-                    {getTypeLabel(suggestion.type)}
+                    {getTypeLabel(suggestion.type, suggestion)}
                   </span>
                   {suggestion.distance && (
                     <span className="text-xs text-white/40">{(suggestion.distance / 1000).toFixed(1)} km</span>

@@ -226,28 +226,54 @@ const BusinessDashboard: React.FC = () => {
           <EmptyCampaigns />
         ) : (
           <div className="space-y-6">
-            {/* Status Filters */}
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-              {filters.map((f) => (
-                <Button
-                  key={f.id}
-                  variant={statusFilter === f.id ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setStatusFilter(f.id)}
-                  className="whitespace-nowrap gap-1.5"
-                >
-                  {f.label}
-                  {f.count > 0 && (
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                      statusFilter === f.id
-                        ? 'bg-primary-foreground/20 text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {f.count}
-                    </span>
-                  )}
-                </Button>
-              ))}
+            {/* Status Filters - Two-row grouped layout */}
+            <div className="space-y-2">
+              {/* Primary filters: Active campaigns */}
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {filters.filter(f => ['all', 'scheduled', 'pending'].includes(f.id)).map((f) => (
+                  <Button
+                    key={f.id}
+                    variant={statusFilter === f.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setStatusFilter(f.id)}
+                    className="whitespace-nowrap gap-1.5"
+                  >
+                    {f.label}
+                    {f.count > 0 && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        statusFilter === f.id
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted text-muted-foreground'
+                      }`}>
+                        {f.count}
+                      </span>
+                    )}
+                  </Button>
+                ))}
+              </div>
+              {/* Secondary filters: Past/inactive */}
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                {filters.filter(f => ['finished', 'cancelled', 'rejected'].includes(f.id)).map((f) => (
+                  <Button
+                    key={f.id}
+                    variant={statusFilter === f.id ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setStatusFilter(f.id)}
+                    className="whitespace-nowrap gap-1.5 text-muted-foreground"
+                  >
+                    {f.label}
+                    {f.count > 0 && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        statusFilter === f.id
+                          ? 'bg-primary-foreground/20 text-primary-foreground'
+                          : 'bg-muted/50 text-muted-foreground'
+                      }`}>
+                        {f.count}
+                      </span>
+                    )}
+                  </Button>
+                ))}
+              </div>
             </div>
 
             {/* Campaign List */}
