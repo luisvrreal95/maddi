@@ -11,7 +11,7 @@ import CampaignDetail from '@/components/campaigns/CampaignDetail';
 import { Button } from '@/components/ui/button';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
 
-type StatusFilter = 'all' | 'scheduled' | 'pending' | 'cancelled' | 'rejected' | 'finished';
+type StatusFilter = 'all' | 'scheduled' | 'pending' | 'finished';
 
 interface Booking {
   id: string;
@@ -143,9 +143,7 @@ const BusinessDashboard: React.FC = () => {
     switch (statusFilter) {
       case 'scheduled': return [...categorized.active, ...categorized.scheduled];
       case 'pending': return categorized.pending;
-      case 'cancelled': return categorized.cancelled;
-      case 'rejected': return categorized.rejected;
-      case 'finished': return categorized.finished;
+      case 'finished': return [...categorized.finished, ...categorized.cancelled, ...categorized.rejected];
       case 'all':
       default:
         return bookings;
@@ -192,13 +190,11 @@ const BusinessDashboard: React.FC = () => {
     }
   };
 
-  const filters: { id: StatusFilter; label: string; count: number }[] = [
-    { id: 'all', label: 'Todas', count: bookings.length },
-    { id: 'scheduled', label: 'Programadas', count: categorized.active.length + categorized.scheduled.length },
-    { id: 'pending', label: 'Pendientes', count: categorized.pending.length },
-    { id: 'cancelled', label: 'Canceladas', count: categorized.cancelled.length },
-    { id: 'rejected', label: 'Rechazadas', count: categorized.rejected.length },
-    { id: 'finished', label: 'Finalizadas', count: categorized.finished.length },
+  const filters: { id: StatusFilter; label: string; count: number; show: boolean }[] = [
+    { id: 'all', label: 'Todas', count: bookings.length, show: true },
+    { id: 'pending', label: 'Pendientes', count: categorized.pending.length, show: categorized.pending.length > 0 },
+    { id: 'scheduled', label: 'Activas y próximas', count: categorized.active.length + categorized.scheduled.length, show: true },
+    { id: 'finished', label: 'Historial', count: categorized.finished.length + categorized.cancelled.length + categorized.rejected.length, show: true },
   ];
 
   if (authLoading || !user) {
@@ -226,54 +222,28 @@ const BusinessDashboard: React.FC = () => {
           <EmptyCampaigns />
         ) : (
           <div className="space-y-6">
-            {/* Status Filters - Two-row grouped layout */}
-            <div className="space-y-2">
-              {/* Primary filters: Active campaigns */}
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                {filters.filter(f => ['all', 'scheduled', 'pending'].includes(f.id)).map((f) => (
-                  <Button
-                    key={f.id}
-                    variant={statusFilter === f.id ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setStatusFilter(f.id)}
-                    className="whitespace-nowrap gap-1.5"
-                  >
-                    {f.label}
-                    {f.count > 0 && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        statusFilter === f.id
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted text-muted-foreground'
-                      }`}>
-                        {f.count}
-                      </span>
-                    )}
-                  </Button>
-                ))}
-              </div>
-              {/* Secondary filters: Past/inactive */}
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-                {filters.filter(f => ['finished', 'cancelled', 'rejected'].includes(f.id)).map((f) => (
-                  <Button
-                    key={f.id}
-                    variant={statusFilter === f.id ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setStatusFilter(f.id)}
-                    className="whitespace-nowrap gap-1.5 text-muted-foreground"
-                  >
-                    {f.label}
-                    {f.count > 0 && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        statusFilter === f.id
-                          ? 'bg-primary-foreground/20 text-primary-foreground'
-                          : 'bg-muted/50 text-muted-foreground'
-                      }`}>
-                        {f.count}
-                      </span>
-                    )}
-                  </Button>
-                ))}
-              </div>
+            {/* Status Filters */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {filters.filter(f => f.show).map((f) => (
+                <Button
+                  key={f.id}
+                  variant={statusFilter === f.id ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setStatusFilter(f.id)}
+                  className="whitespace-nowrap gap-1.5"
+                >
+                  {f.label}
+                  {f.count > 0 && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      statusFilter === f.id
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {f.count}
+                    </span>
+                  )}
+                </Button>
+              ))}
             </div>
 
             {/* Campaign List */}
