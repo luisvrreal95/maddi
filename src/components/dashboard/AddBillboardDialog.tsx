@@ -63,6 +63,8 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
     daily_impressions: 0,
     price_per_month: 10000,
     image_url: '',
+    min_campaign_days: 0,
+    min_advance_booking_days: 7,
   });
 
   useEffect(() => {
@@ -83,6 +85,8 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
         daily_impressions: billboard.daily_impressions || 0,
         price_per_month: Number(billboard.price_per_month),
         image_url: billboard.image_url || '',
+        min_campaign_days: (billboard as any).min_campaign_days ?? 0,
+        min_advance_booking_days: (billboard as any).min_advance_booking_days ?? 7,
       });
     } else {
       setFormData({
@@ -101,6 +105,8 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
         daily_impressions: 0,
         price_per_month: 10000,
         image_url: '',
+        min_campaign_days: 0,
+        min_advance_booking_days: 7,
       });
     }
     setErrors({});
@@ -128,6 +134,8 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
         daily_impressions: formData.daily_impressions || null,
         image_url: formData.image_url || null,
         description: formData.description || null,
+        min_campaign_days: formData.min_campaign_days || 0,
+        min_advance_booking_days: formData.min_advance_booking_days || 7,
       };
 
       if (billboard) {
@@ -364,6 +372,37 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
               className="bg-[#1A1A1A] border-white/10"
             />
             {errors.price_per_month && <p className="text-red-400 text-sm mt-1">{errors.price_per_month}</p>}
+          </div>
+
+          {/* Booking Constraints */}
+          <div className="border border-white/10 rounded-lg p-4 space-y-4">
+            <Label className="text-base font-medium">⏱ Requisitos de reserva (opcional)</Label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="min_campaign_days" className="text-sm text-white/60">Duración mínima (días)</Label>
+                <Input
+                  id="min_campaign_days"
+                  type="number"
+                  min="0"
+                  value={formData.min_campaign_days}
+                  onChange={(e) => setFormData({ ...formData, min_campaign_days: parseInt(e.target.value) || 0 })}
+                  className="bg-[#1A1A1A] border-white/10"
+                />
+                <p className="text-white/40 text-xs mt-1">0 = sin mínimo</p>
+              </div>
+              <div>
+                <Label htmlFor="min_advance_booking_days" className="text-sm text-white/60">Anticipación mínima (días)</Label>
+                <Input
+                  id="min_advance_booking_days"
+                  type="number"
+                  min="0"
+                  value={formData.min_advance_booking_days}
+                  onChange={(e) => setFormData({ ...formData, min_advance_booking_days: parseInt(e.target.value) || 0 })}
+                  className="bg-[#1A1A1A] border-white/10"
+                />
+                <p className="text-white/40 text-xs mt-1">Recomendado: 7 días</p>
+              </div>
+            </div>
           </div>
 
           <div className="flex gap-3 pt-4">
