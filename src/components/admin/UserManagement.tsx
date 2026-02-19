@@ -11,8 +11,11 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Trash2, Loader2, Building2, Calendar, User, AlertTriangle } from "lucide-react";
+import { Trash2, Loader2, Building2, Calendar, User, AlertTriangle, Eye, Mail, Phone, ShieldCheck, ShieldX, Clock, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -27,7 +30,15 @@ interface UserData {
     company_name: string | null;
     avatar_url: string | null;
     phone: string | null;
+    is_verified: boolean;
+    verification_status: string | null;
+    verification_document_type: string | null;
+    verification_document_url: string | null;
+    verification_submitted_at: string | null;
+    verification_reviewed_at: string | null;
+    verification_notes: string | null;
   } | null;
+  email: string | null;
   count: number;
 }
 
@@ -40,6 +51,7 @@ const UserManagement = () => {
     userId: string | null;
     userName: string;
   }>({ open: false, userId: null, userName: '' });
+  const [detailDialog, setDetailDialog] = useState<{ open: boolean; user: UserData | null }>({ open: false, user: null });
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
 
@@ -56,9 +68,19 @@ const UserManagement = () => {
         (roles || []).map(async (role) => {
           const { data: profile } = await supabase
             .from('profiles')
-            .select('full_name, company_name, avatar_url, phone')
+            .select('full_name, company_name, avatar_url, phone, is_verified, verification_status, verification_document_type, verification_document_url, verification_submitted_at, verification_reviewed_at, verification_notes')
             .eq('user_id', role.user_id)
             .single();
+
+          // Get email from admin_users or notifications (workaround since we can't access auth.users)
+          let email: string | null = null;
+          const { data: emailLog } = await supabase
+            .from('email_notifications')
+            .select('to_email')
+            .eq('user_id', role.user_id)
+            .limit(1)
+            .maybeSingle();
+          if (emailLog) email = emailLog.to_email;
 
           let count = 0;
           if (role.role === 'owner') {
@@ -75,7 +97,7 @@ const UserManagement = () => {
             count = bookingCount || 0;
           }
 
-          return { ...role, profile, count };
+          return { ...role, profile, email, count };
         })
       );
 
@@ -96,13 +118,10 @@ const UserManagement = () => {
     
     setProcessing(true);
     try {
-      // Call edge function for complete cascade deletion
       const { data, error } = await supabase.functions.invoke('delete-user-account', {
         body: { target_user_id: deleteDialog.userId, admin_action: true }
       });
-
       if (error) throw error;
-
       toast({ title: "Éxito", description: "Usuario y toda su información eliminados permanentemente" });
       fetchUsers();
     } catch (error) {
@@ -118,13 +137,22 @@ const UserManagement = () => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
+  const getVerificationBadge = (status: string | null | undefined) => {
+    if (!status || status === 'none') return <Badge variant="outline" className="text-xs">Sin verificar</Badge>;
+    if (status === 'pending') return <Badge variant="secondary" className="text-xs gap-1"><Clock className="w-3 h-3" /> Pendiente</Badge>;
+    if (status === 'approved') return <Badge variant="default" className="text-xs gap-1"><ShieldCheck className="w-3 h-3" /> Verificado</Badge>;
+    if (status === 'rejected') return <Badge variant="destructive" className="text-xs gap-1"><ShieldX className="w-3 h-3" /> Rechazado</Badge>;
+    return <Badge variant="outline" className="text-xs">{status}</Badge>;
+  };
+
   const renderUserTable = (users: UserData[], type: 'owner' | 'business') => (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Usuario</TableHead>
+          <TableHead>Email</TableHead>
           <TableHead>Empresa</TableHead>
-          <TableHead>Teléfono</TableHead>
+          <TableHead>Verificación</TableHead>
           <TableHead>Registro</TableHead>
           <TableHead className="text-center">
             {type === 'owner' ? 'Propiedades' : 'Campañas'}
@@ -135,7 +163,7 @@ const UserManagement = () => {
       <TableBody>
         {users.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
               No hay {type === 'owner' ? 'propietarios' : 'anunciantes'} registrados
             </TableCell>
           </TableRow>
@@ -156,8 +184,11 @@ const UserManagement = () => {
                   </div>
                 </div>
               </TableCell>
+              <TableCell>
+                <span className="text-sm text-muted-foreground">{user.email || '—'}</span>
+              </TableCell>
               <TableCell>{user.profile?.company_name || '-'}</TableCell>
-              <TableCell className="text-muted-foreground">{user.profile?.phone || '-'}</TableCell>
+              <TableCell>{getVerificationBadge(user.profile?.verification_status)}</TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {format(new Date(user.created_at), 'dd/MM/yy', { locale: es })}
               </TableCell>
@@ -168,18 +199,28 @@ const UserManagement = () => {
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                  onClick={() => setDeleteDialog({ 
-                    open: true, 
-                    userId: user.user_id,
-                    userName: user.profile?.full_name || 'Usuario'
-                  })}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                <div className="flex justify-end gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setDetailDialog({ open: true, user })}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                    onClick={() => setDeleteDialog({ 
+                      open: true, 
+                      userId: user.user_id,
+                      userName: user.profile?.full_name || 'Usuario'
+                    })}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))
@@ -223,6 +264,7 @@ const UserManagement = () => {
         )}
       </CardContent>
 
+      {/* Delete Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => 
         setDeleteDialog({ ...deleteDialog, open })
       }>
@@ -257,6 +299,106 @@ const UserManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* User Detail Dialog */}
+      <Dialog open={detailDialog.open} onOpenChange={(open) => !open && setDetailDialog({ open: false, user: null })}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalle de Usuario</DialogTitle>
+          </DialogHeader>
+          {detailDialog.user && (() => {
+            const u = detailDialog.user;
+            return (
+              <div className="space-y-4">
+                {/* Avatar & Name */}
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={u.profile?.avatar_url || ''} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-xl">
+                      {getInitials(u.profile?.full_name || 'U')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-bold text-lg">{u.profile?.full_name || 'Sin nombre'}</h3>
+                    <Badge variant="outline">{u.role === 'owner' ? 'Propietario' : 'Negocio'}</Badge>
+                  </div>
+                </div>
+
+                {/* Contact */}
+                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">Contacto</p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <span>{u.email || 'No disponible'}</span>
+                  </div>
+                  {u.profile?.phone && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <span>{u.profile.phone}</span>
+                    </div>
+                  )}
+                  {u.profile?.company_name && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                      <span>{u.profile.company_name}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Verification */}
+                <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+                  <p className="text-xs text-muted-foreground font-medium">Verificación</p>
+                  <div className="flex items-center gap-2">
+                    {getVerificationBadge(u.profile?.verification_status)}
+                  </div>
+                  {u.profile?.verification_document_type && (
+                    <p className="text-sm">Documento: <span className="font-medium">{u.profile.verification_document_type}</span></p>
+                  )}
+                  {u.profile?.verification_submitted_at && (
+                    <p className="text-xs text-muted-foreground">
+                      Enviado: {format(new Date(u.profile.verification_submitted_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                    </p>
+                  )}
+                  {u.profile?.verification_reviewed_at && (
+                    <p className="text-xs text-muted-foreground">
+                      Revisado: {format(new Date(u.profile.verification_reviewed_at), 'dd/MM/yyyy HH:mm', { locale: es })}
+                    </p>
+                  )}
+                  {u.profile?.verification_notes && (
+                    <div className="bg-background rounded p-2 mt-1">
+                      <p className="text-xs text-muted-foreground flex items-center gap-1"><FileText className="w-3 h-3" /> Notas</p>
+                      <p className="text-sm">{u.profile.verification_notes}</p>
+                    </div>
+                  )}
+                  {u.profile?.verification_document_url && (
+                    <a href={u.profile.verification_document_url} target="_blank" rel="noopener noreferrer"
+                      className="text-xs text-primary hover:underline">
+                      Ver documento de verificación →
+                    </a>
+                  )}
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold">{u.count}</p>
+                    <p className="text-xs text-muted-foreground">{u.role === 'owner' ? 'Propiedades' : 'Campañas'}</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-sm font-medium">{format(new Date(u.created_at), 'dd/MM/yyyy', { locale: es })}</p>
+                    <p className="text-xs text-muted-foreground">Registrado</p>
+                  </div>
+                </div>
+
+                {/* IDs */}
+                <div className="text-xs text-muted-foreground pt-2 border-t">
+                  <p>User ID: {u.user_id}</p>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

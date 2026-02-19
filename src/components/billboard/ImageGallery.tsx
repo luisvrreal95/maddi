@@ -39,12 +39,12 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
     <>
       {/* Airbnb-style grid */}
       <div className="rounded-xl overflow-hidden cursor-pointer">
-        {images.length === 1 ? (
+      {images.length === 1 ? (
           <img
             src={images[0]}
             alt={title}
             onClick={() => openLightbox(0)}
-            className="w-full h-[300px] md:h-[420px] object-cover hover:opacity-90 transition-opacity"
+            className="w-full h-[300px] md:h-[420px] object-contain bg-secondary hover:opacity-90 transition-opacity"
           />
         ) : images.length === 2 ? (
           <div className="grid grid-cols-2 gap-1 h-[300px] md:h-[420px]">
