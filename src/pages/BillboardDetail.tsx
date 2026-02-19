@@ -40,6 +40,8 @@ interface Billboard {
   is_available: boolean;
   pause_reason: string | null;
   points_of_interest: string[] | null;
+  min_campaign_days: number | null;
+  min_advance_booking_days: number | null;
   created_at: string;
   updated_at: string;
 }

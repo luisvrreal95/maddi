@@ -846,22 +846,22 @@ interface BookingConstraintsCardProps {
 
 const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboard, onUpdate }) => {
   const [minCampaignDays, setMinCampaignDays] = useState(
-    ((billboard as any).min_campaign_days ?? 0).toString()
+    (billboard.min_campaign_days ?? 0).toString()
   );
   const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState(
-    ((billboard as any).min_advance_booking_days ?? 7).toString()
+    (billboard.min_advance_booking_days ?? 7).toString()
   );
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Sync local state when billboard changes
   useEffect(() => {
-    const newMinCampaign = ((billboard as any).min_campaign_days ?? 0).toString();
-    const newMinAdvance = ((billboard as any).min_advance_booking_days ?? 7).toString();
+    const newMinCampaign = (billboard.min_campaign_days ?? 0).toString();
+    const newMinAdvance = (billboard.min_advance_booking_days ?? 7).toString();
     setMinCampaignDays(newMinCampaign);
     setMinAdvanceBookingDays(newMinAdvance);
     setHasChanges(false);
-  }, [billboard.id, (billboard as any).min_campaign_days, (billboard as any).min_advance_booking_days]);
+  }, [billboard.id, billboard.min_campaign_days, billboard.min_advance_booking_days]);
 
   const handleMinCampaignChange = (value: string) => {
     setMinCampaignDays(value);
