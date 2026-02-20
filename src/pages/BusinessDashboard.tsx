@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { isBefore, isAfter } from 'date-fns';
+import { parseDateOnlyStart, parseDateOnlyEnd, getTodayStart } from '@/lib/dateUtils';
 import BusinessHeader from '@/components/navigation/BusinessHeader';
 import EmptyCampaigns from '@/components/campaigns/EmptyCampaigns';
 import CampaignCard from '@/components/campaigns/CampaignCard';
@@ -107,7 +107,7 @@ const BusinessDashboard: React.FC = () => {
 
   // Categorize campaigns
   const categorized = useMemo(() => {
-    const now = new Date();
+    const now = getTodayStart();
     const active: Booking[] = [];
     const scheduled: Booking[] = [];
     const pending: Booking[] = [];
@@ -116,8 +116,8 @@ const BusinessDashboard: React.FC = () => {
     const finished: Booking[] = [];
 
     bookings.forEach(booking => {
-      const start = new Date(booking.start_date);
-      const end = new Date(booking.end_date);
+      const start = parseDateOnlyStart(booking.start_date);
+      const end = parseDateOnlyEnd(booking.end_date);
 
       if (booking.status === 'pending') {
         pending.push(booking);
@@ -126,9 +126,9 @@ const BusinessDashboard: React.FC = () => {
       } else if (booking.status === 'rejected') {
         rejected.push(booking);
       } else if (booking.status === 'approved') {
-        if (isBefore(start, now) && isAfter(end, now)) {
+        if (start <= now && end >= now) {
           active.push(booking);
-        } else if (isAfter(start, now)) {
+        } else if (start > now) {
           scheduled.push(booking);
         } else {
           finished.push(booking);

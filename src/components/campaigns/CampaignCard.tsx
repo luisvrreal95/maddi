@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { format, differenceInDays, isAfter, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { parseDateOnlyStart, parseDateOnlyEnd, getTodayStart } from '@/lib/dateUtils';
 
 interface CampaignCardProps {
   booking: {
@@ -35,9 +36,9 @@ interface CampaignCardProps {
 const CampaignCard: React.FC<CampaignCardProps> = ({ booking, onSelect, isActive = false, onCancel }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const startDate = new Date(booking.start_date);
-  const endDate = new Date(booking.end_date);
-  const now = new Date();
+  const startDate = parseDateOnlyStart(booking.start_date);
+  const endDate = parseDateOnlyEnd(booking.end_date);
+  const now = getTodayStart();
   
   const isOngoing = booking.status === 'approved' && isBefore(startDate, now) && isAfter(endDate, now);
   const isScheduled = booking.status === 'approved' && isAfter(startDate, now);
