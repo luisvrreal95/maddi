@@ -50,11 +50,10 @@ const CampaignTrendChart: React.FC<CampaignTrendChartProps> = ({
     });
   }, [startDate, endDate, dailyImpressions, isActive]);
 
-  const totalImpressions = chartData.reduce((sum, day) => sum + day.impressions, 0);
-  const averageImpressions = Math.round(
-    chartData.reduce((sum, d) => sum + d.impressions, 0) / 
-    Math.max(1, chartData.length)
-  );
+  // Use raw dailyImpressions for summary stats to stay consistent with CampaignMetrics
+  const activeDaysCount = chartData.length;
+  const totalImpressions = dailyImpressions * activeDaysCount;
+  const averageImpressions = dailyImpressions;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
