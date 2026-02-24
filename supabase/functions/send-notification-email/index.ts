@@ -350,7 +350,7 @@ serve(async (req: Request): Promise<Response> => {
 
     try {
       const emailResult = await resend.emails.send({
-        from: "Maddi <onboarding@resend.dev>",
+        from: "Maddi <noreply@maddi.com.mx>",
         to: [email],
         subject: emailContent.subject,
         html: generateEmailHtml(emailContent),
