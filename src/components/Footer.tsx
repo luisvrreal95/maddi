@@ -1,12 +1,12 @@
 import React from 'react';
-import { Facebook, Instagram, Twitter } from 'lucide-react';
+import { Facebook, Instagram, Linkedin } from 'lucide-react';
 import maddiLogo from '@/assets/maddi-logo.svg';
 
 const Footer: React.FC = () => {
   const socialLinks = [
     { icon: Facebook, href: 'https://www.facebook.com/profile.php?id=61588000959820', label: 'Facebook' },
     { icon: Instagram, href: 'https://www.instagram.com/maddiplatform/', label: 'Instagram' },
-    { icon: Twitter, href: '#', label: 'Twitter' }
+    { icon: Linkedin, href: 'https://www.linkedin.com/company/maddiplatform/', label: 'LinkedIn' }
   ];
 
   const navLinks = [
