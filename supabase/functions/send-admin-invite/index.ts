@@ -141,7 +141,7 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     // Build invite URL
-    const baseUrl = req.headers.get("origin") || "https://maddiapp.lovable.app";
+    const baseUrl = "https://maddi.com.mx";
     const inviteUrl = `${baseUrl}/admin/accept-invite?token=${invitation.token}`;
 
     // Send email
