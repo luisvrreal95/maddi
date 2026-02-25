@@ -48,7 +48,7 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
             ${data.message ? `<p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.8); font-style: italic;">"${String(data.message).slice(0, 200)}"</p>` : ''}
           </div>
         `,
-        cta: { text: 'Ver solicitud', url: `${baseUrl}/owner-dashboard?tab=reservas` },
+        cta: { text: 'Ver solicitud', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
         secondaryCta: data.conversationId 
           ? { text: 'Ir al chat', url: `${baseUrl}/messages` }
           : null,
@@ -66,7 +66,7 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
           </div>
           <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El propietario revisará tu solicitud y se pondrá en contacto contigo.</p>
         `,
-        cta: { text: 'Ver mis campañas', url: `${baseUrl}/business-dashboard` },
+        cta: { text: 'Ver mis campañas', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
         secondaryCta: null,
       };
 
@@ -83,7 +83,7 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
           </div>
           <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El siguiente paso es coordinar con el propietario la instalación de tu diseño.</p>
         `,
-        cta: { text: 'Ver mi campaña', url: `${baseUrl}/business-dashboard` },
+        cta: { text: 'Ver mi campaña', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
         secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
       };
 
@@ -114,8 +114,8 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
           </div>
         `,
         cta: data.recipientRole === 'business' 
-          ? { text: 'Ver mis campañas', url: `${baseUrl}/business-dashboard` }
-          : { text: 'Ver mis propiedades', url: `${baseUrl}/owner-dashboard` },
+          ? { text: 'Ver mis campañas', url: `${baseUrl}/business` }
+          : { text: 'Ver mis propiedades', url: `${baseUrl}/owner?tab=reservas` },
         secondaryCta: null,
       };
 
@@ -160,7 +160,7 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
           </div>
           <p style="color: rgba(255,255,255,0.5); font-size: 13px;">Si tienes preguntas, contáctanos respondiendo a este correo.</p>
         `,
-        cta: { text: 'Ver detalles', url: `${baseUrl}/owner-dashboard` },
+        cta: { text: 'Ver detalles', url: `${baseUrl}/owner` },
         secondaryCta: null,
       };
 
@@ -201,7 +201,7 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
             </ul>
           `,
         cta: data.role === 'owner' 
-          ? { text: 'Agregar mi primer espacio', url: `${baseUrl}/owner-dashboard` }
+          ? { text: 'Agregar mi primer espacio', url: `${baseUrl}/owner` }
           : { text: 'Explorar espacios', url: `${baseUrl}/search` },
         secondaryCta: null,
       };
