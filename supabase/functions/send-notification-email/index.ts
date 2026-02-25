@@ -28,7 +28,7 @@ interface NotificationEmailRequest {
   data: Record<string, string | number | boolean>;
 }
 
-const BASE_URL = 'https://maddi.lovable.app';
+const BASE_URL = 'https://maddi.com.mx';
 
 const getEmailContent = (type: EmailType, recipientName: string, data: Record<string, string | number | boolean>) => {
   const displayName = recipientName || 'Usuario';
