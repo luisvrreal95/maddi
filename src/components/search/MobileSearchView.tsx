@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import FiltersDialog from '@/components/search/FiltersDialog';
+import LocationAutocomplete, { SelectedLocation } from '@/components/search/LocationAutocomplete';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -45,6 +46,10 @@ interface MobileSearchViewProps {
   inegiDataMap: Record<string, INEGICardData>;
   onReserveClick: (property: MapProperty) => void;
   mapComponent: React.ReactNode | null;
+  searchQuery: string;
+  onSearchQueryChange: (value: string) => void;
+  onLocationSelect: (placeName: string, structured: SelectedLocation) => void;
+  mapboxToken: string;
 }
 
 type ListingState = 'collapsed' | 'expanded';
@@ -131,6 +136,10 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
   inegiDataMap,
   onReserveClick,
   mapComponent,
+  searchQuery,
+  onSearchQueryChange,
+  onLocationSelect,
+  mapboxToken,
 }) => {
   const navigate = useNavigate();
   const { user, userRole } = useAuth();
@@ -244,17 +253,29 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
         )}
       </div>
 
-      {/* Floating Filter Button */}
-      <div className="absolute top-4 right-4 z-30">
-        <FiltersDialog 
-          onFiltersChange={onFiltersChange}
-          onFiltersPreview={onFiltersPreview}
-          resultsCount={resultsCount}
-        />
+      {/* Top Search Bar */}
+      <div className="absolute top-0 left-0 right-0 z-30 p-3 bg-gradient-to-b from-background/90 via-background/60 to-transparent">
+        <div className="flex items-center gap-2">
+          <LocationAutocomplete
+            value={searchQuery}
+            onChange={onSearchQueryChange}
+            onSelect={(location, structured) => {
+              onLocationSelect(location.place_name, structured);
+            }}
+            mapboxToken={mapboxToken}
+            placeholder="Buscar ubicación..."
+            className="flex-1"
+          />
+          <FiltersDialog 
+            onFiltersChange={onFiltersChange}
+            onFiltersPreview={onFiltersPreview}
+            resultsCount={resultsCount}
+          />
+        </div>
       </div>
 
       {/* Results Badge */}
-      <div className="absolute top-4 left-4 z-30">
+      <div className="absolute top-16 left-3 z-30">
         <Badge variant="secondary" className="bg-card/95 backdrop-blur-sm shadow-lg px-3 py-1.5">
           {isLoading ? '...' : resultsCount} resultados
         </Badge>

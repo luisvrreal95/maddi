@@ -617,6 +617,14 @@ const SearchPage: React.FC = () => {
           inegiDataMap={inegiDataMap}
           onReserveClick={handleReserveClick}
           mapComponent={mapComponent}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          onLocationSelect={(placeName, structured) => {
+            setSearchQuery(placeName);
+            setConfirmedLocation(placeName);
+            setSelectedLocationData(structured);
+          }}
+          mapboxToken={mapboxToken}
         />
         
         {selectedBillboard && (
