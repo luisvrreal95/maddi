@@ -105,6 +105,8 @@ const AddProperty: React.FC = () => {
   const [availableFrom, setAvailableFrom] = useState<Date | undefined>(undefined);
   const [minCampaignDays, setMinCampaignDays] = useState('30');
   const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState('7');
+  const [ownershipType, setOwnershipType] = useState<'owner' | 'admin' | 'broker'>('owner');
+  const [authorizationConfirmed, setAuthorizationConfirmed] = useState(false);
 
   // Get user's location on mount
   useEffect(() => {
@@ -509,6 +511,10 @@ const AddProperty: React.FC = () => {
         }
         return true;
       case 5:
+        if (ownershipType !== 'owner' && !authorizationConfirmed) {
+          toast.error('Debes confirmar que tienes autorización para comercializar esta ubicación');
+          return false;
+        }
         return true;
       default:
         return true;
@@ -1184,6 +1190,67 @@ const AddProperty: React.FC = () => {
                         />
                         <span className="text-white/60">días antes</span>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ownership Type */}
+                <div className="bg-[#1E1E1E] rounded-xl p-6 border border-white/10">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-6 h-6 text-purple-400" />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-white font-medium mb-1 block">Relación con el espectacular</Label>
+                      <p className="text-white/50 text-sm mb-4">
+                        ¿Cuál es tu relación con esta ubicación publicitaria?
+                      </p>
+                      <div className="space-y-3">
+                        {[
+                          { value: 'owner' as const, label: 'Soy dueño legal' },
+                          { value: 'admin' as const, label: 'Soy administrador autorizado' },
+                          { value: 'broker' as const, label: 'Soy broker' },
+                        ].map((option) => (
+                          <button
+                            key={option.value}
+                            type="button"
+                            onClick={() => {
+                              setOwnershipType(option.value);
+                              if (option.value === 'owner') setAuthorizationConfirmed(false);
+                            }}
+                            className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
+                              ownershipType === option.value
+                                ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                                : 'border-white/20 hover:border-white/30 text-white/70'
+                            }`}
+                          >
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                              ownershipType === option.value ? 'border-[#9BFF43]' : 'border-white/40'
+                            }`}>
+                              {ownershipType === option.value && (
+                                <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
+                              )}
+                            </div>
+                            {option.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {(ownershipType === 'admin' || ownershipType === 'broker') && (
+                        <div className="mt-4 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              id="authorization-confirm"
+                              checked={authorizationConfirmed}
+                              onCheckedChange={(checked) => setAuthorizationConfirmed(checked === true)}
+                              className="mt-0.5 border-yellow-500/50 data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500"
+                            />
+                            <Label htmlFor="authorization-confirm" className="cursor-pointer text-sm text-yellow-200/80 leading-relaxed">
+                              Declaro que tengo autorización para comercializar esta ubicación.
+                            </Label>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
