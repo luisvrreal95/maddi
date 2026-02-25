@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
+import BookingSuccessScreen from './BookingSuccessScreen';
 
 interface BookingDialogProps {
   open: boolean;
@@ -50,6 +51,12 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
   const [dateConflict, setDateConflict] = useState(false);
   const [durationError, setDurationError] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState<{
+    billboardTitle: string;
+    startDate: string;
+    endDate: string;
+    totalPrice: number;
+  } | null>(null);
 
   // Image attachments - stores private bucket paths (not public URLs)
   const [designPaths, setDesignPaths] = useState<string[]>([]);
@@ -78,6 +85,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       setMessage('');
       setDesignPaths([]);
       setDesignPreviews([]);
+      setBookingSuccess(null);
       fetchExistingBookings();
     }
   }, [open, billboard.id, minAdvanceBookingDays, minCampaignDays]);
@@ -342,6 +350,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               endDate: formattedEnd,
               totalPrice: totalPrice,
               message: message.trim().slice(0, 200),
+              bookingId: bookingData.id,
             }
           }
         });
@@ -358,6 +367,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               startDate: formattedStart,
               endDate: formattedEnd,
               totalPrice: totalPrice,
+              bookingId: bookingData.id,
             }
           }
         });
@@ -365,11 +375,14 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
         console.error('Error sending notification email:', emailError);
       }
 
-      toast.success(
-        'Tu solicitud fue enviada. El propietario revisará tu propuesta y podrá contactarte para coordinar detalles y pago.',
-        { duration: 6000 }
-      );
-      onOpenChange(false);
+      const formattedStartDisplay = format(startDate, "d MMM yyyy", { locale: es });
+      const formattedEndDisplay = format(endDate, "d MMM yyyy", { locale: es });
+      setBookingSuccess({
+        billboardTitle: billboard.title,
+        startDate: formattedStartDisplay,
+        endDate: formattedEndDisplay,
+        totalPrice,
+      });
     } catch (error: any) {
       console.error('Error creating booking:', error);
       toast.error(error.message || 'Error al crear la reserva');
@@ -391,198 +404,208 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-[#2A2A2A] border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Solicitar Campaña</DialogTitle>
-        </DialogHeader>
+        {bookingSuccess ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold sr-only">Solicitud enviada</DialogTitle>
+            </DialogHeader>
+            <BookingSuccessScreen
+              data={bookingSuccess}
+              onClose={() => onOpenChange(false)}
+            />
+          </>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Solicitar Campaña</DialogTitle>
+            </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="bg-[#1A1A1A] rounded-xl p-4 mb-4">
-            <p className="text-white/60 text-sm">Espectacular</p>
-            <p className="text-white font-bold">{billboard.title}</p>
-            <p className="text-[#9BFF43] font-bold mt-1">
-              ${billboard.price_per_month.toLocaleString()}/mes
-            </p>
-          </div>
-          
-          {(minCampaignDays > 0 || minAdvanceBookingDays > 0) && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
-              <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
-                <Info className="w-4 h-4" />
-                Requisitos de reserva
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* ... keep existing code (form content from billboard info through submit buttons) */}
+              <div className="bg-[#1A1A1A] rounded-xl p-4 mb-4">
+                <p className="text-white/60 text-sm">Espectacular</p>
+                <p className="text-white font-bold">{billboard.title}</p>
+                <p className="text-[#9BFF43] font-bold mt-1">
+                  ${billboard.price_per_month.toLocaleString()}/mes
+                </p>
               </div>
-              <div className="grid grid-cols-2 gap-3 mt-2">
-                {minCampaignDays > 0 && (
-                  <div className="flex items-center gap-2 text-white/70 text-sm">
-                    <CalendarDays className="w-4 h-4 text-blue-400" />
-                    <span>Mínimo <strong className="text-white">{minCampaignDays} días</strong></span>
+              
+              {(minCampaignDays > 0 || minAdvanceBookingDays > 0) && (
+                <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-blue-400 text-sm font-medium">
+                    <Info className="w-4 h-4" />
+                    Requisitos de reserva
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mt-2">
+                    {minCampaignDays > 0 && (
+                      <div className="flex items-center gap-2 text-white/70 text-sm">
+                        <CalendarDays className="w-4 h-4 text-blue-400" />
+                        <span>Mínimo <strong className="text-white">{minCampaignDays} días</strong></span>
+                      </div>
+                    )}
+                    {minAdvanceBookingDays > 0 && (
+                      <div className="flex items-center gap-2 text-white/70 text-sm">
+                        <Clock className="w-4 h-4 text-blue-400" />
+                        <span>Reservar con <strong className="text-white">{minAdvanceBookingDays} días</strong> de anticipación</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <Label className="mb-2 block">Selecciona rango de fechas</Label>
+                <p className="text-white/50 text-xs mb-2">Haz clic en una fecha para establecer el inicio, luego en otra para el fin.</p>
+                <div className="bg-[#1A1A1A] rounded-xl p-2 border border-white/10">
+                  <Calendar
+                    mode="range"
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    disabled={(date) => date < earliestStartDate || isDateBooked(date) === 'booked'}
+                    modifiers={calendarModifiers}
+                    modifiersClassNames={calendarModifiersClassNames}
+                    locale={es}
+                    numberOfMonths={1}
+                    className="pointer-events-auto"
+                  />
+                </div>
+                {startDate && endDate && (
+                  <div className="mt-2 flex items-center gap-2 text-sm">
+                    <span className="text-white/60">Desde</span>
+                    <span className="text-white font-medium">{format(startDate, 'd MMM yyyy', { locale: es })}</span>
+                    <span className="text-white/60">hasta</span>
+                    <span className="text-white font-medium">{format(endDate, 'd MMM yyyy', { locale: es })}</span>
                   </div>
                 )}
-                {minAdvanceBookingDays > 0 && (
-                  <div className="flex items-center gap-2 text-white/70 text-sm">
-                    <Clock className="w-4 h-4 text-blue-400" />
-                    <span>Reservar con <strong className="text-white">{minAdvanceBookingDays} días</strong> de anticipación</span>
+              </div>
+
+              {dateConflict && (
+                <div className="flex items-center gap-2 bg-red-500/20 text-red-400 p-3 rounded-lg">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm">Las fechas seleccionadas ya están reservadas</span>
+                </div>
+              )}
+              
+              {durationError && !dateConflict && (
+                <div className="flex items-center gap-2 bg-orange-500/20 text-orange-400 p-3 rounded-lg">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span className="text-sm">La duración mínima de la campaña es {minCampaignDays} días</span>
+                </div>
+              )}
+
+              <div>
+                <Label htmlFor="message" className="flex items-center gap-1">
+                  Mensaje al propietario <span className="text-red-400">*</span>
+                </Label>
+                <Textarea
+                  id="message"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  className="bg-[#1A1A1A] border-white/10 mt-1"
+                  placeholder="Cuéntale al propietario sobre tu marca, qué quieres anunciar y cualquier detalle importante..."
+                  rows={4}
+                  maxLength={1000}
+                />
+                <p className={cn(
+                  "text-xs mt-1",
+                  message.trim().length < 20 ? "text-orange-400" : "text-white/40"
+                )}>
+                  {message.trim().length}/1000 caracteres (mínimo 20)
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label className="text-sm flex items-center gap-1.5">
+                    <ImageIcon className="w-3.5 h-3.5 text-[#9BFF43]" />
+                    Sube tu diseño
+                  </Label>
+                  <span className="text-xs text-white/40">Opcional · Máx 5</span>
+                </div>
+                
+                {designPreviews.length > 0 && (
+                  <div className="space-y-1.5 mb-2">
+                    {designPreviews.map((item, index) => {
+                      const fileName = decodeURIComponent(item.path.split('/').pop() || `imagen-${index + 1}.png`).replace(/^\d+-[a-z0-9]+\./, '');
+                      return (
+                        <div key={item.path} className="flex items-center gap-2 bg-[#1A1A1A] rounded-lg px-3 py-2 border border-white/10">
+                          <img src={item.url} alt={fileName} className="w-8 h-8 rounded object-cover flex-shrink-0" />
+                          <span className="text-white text-xs truncate flex-1">{fileName}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="text-white/40 hover:text-red-400 transition-colors flex-shrink-0"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
-              </div>
-            </div>
-          )}
 
-          {/* Calendar with range selection - click to select start, click again for end */}
-          <div>
-            <Label className="mb-2 block">Selecciona rango de fechas</Label>
-            <p className="text-white/50 text-xs mb-2">Haz clic en una fecha para establecer el inicio, luego en otra para el fin.</p>
-            <div className="bg-[#1A1A1A] rounded-xl p-2 border border-white/10">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={setDateRange}
-                disabled={(date) => date < earliestStartDate || isDateBooked(date) === 'booked'}
-                modifiers={calendarModifiers}
-                modifiersClassNames={calendarModifiersClassNames}
-                locale={es}
-                numberOfMonths={1}
-                className="pointer-events-auto"
-              />
-            </div>
-            {startDate && endDate && (
-              <div className="mt-2 flex items-center gap-2 text-sm">
-                <span className="text-white/60">Desde</span>
-                <span className="text-white font-medium">{format(startDate, 'd MMM yyyy', { locale: es })}</span>
-                <span className="text-white/60">hasta</span>
-                <span className="text-white font-medium">{format(endDate, 'd MMM yyyy', { locale: es })}</span>
-              </div>
-            )}
-          </div>
-
-          {dateConflict && (
-            <div className="flex items-center gap-2 bg-red-500/20 text-red-400 p-3 rounded-lg">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">Las fechas seleccionadas ya están reservadas</span>
-            </div>
-          )}
-          
-          {durationError && !dateConflict && (
-            <div className="flex items-center gap-2 bg-orange-500/20 text-orange-400 p-3 rounded-lg">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
-              <span className="text-sm">La duración mínima de la campaña es {minCampaignDays} días</span>
-            </div>
-          )}
-
-          {/* Required message to owner */}
-          <div>
-            <Label htmlFor="message" className="flex items-center gap-1">
-              Mensaje al propietario <span className="text-red-400">*</span>
-            </Label>
-            <Textarea
-              id="message"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="bg-[#1A1A1A] border-white/10 mt-1"
-              placeholder="Cuéntale al propietario sobre tu marca, qué quieres anunciar y cualquier detalle importante..."
-              rows={4}
-              maxLength={1000}
-            />
-            <p className={cn(
-              "text-xs mt-1",
-              message.trim().length < 20 ? "text-orange-400" : "text-white/40"
-            )}>
-              {message.trim().length}/1000 caracteres (mínimo 20)
-            </p>
-          </div>
-
-          {/* Compact design upload */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <Label className="text-sm flex items-center gap-1.5">
-                <ImageIcon className="w-3.5 h-3.5 text-[#9BFF43]" />
-                Sube tu diseño
-              </Label>
-              <span className="text-xs text-white/40">Opcional · Máx 5</span>
-            </div>
-            
-            {/* Uploaded file previews */}
-            {designPreviews.length > 0 && (
-              <div className="space-y-1.5 mb-2">
-                {designPreviews.map((item, index) => {
-                  const fileName = decodeURIComponent(item.path.split('/').pop() || `imagen-${index + 1}.png`).replace(/^\d+-[a-z0-9]+\./, '');
-                  return (
-                    <div key={item.path} className="flex items-center gap-2 bg-[#1A1A1A] rounded-lg px-3 py-2 border border-white/10">
-                      <img src={item.url} alt={fileName} className="w-8 h-8 rounded object-cover flex-shrink-0" />
-                      <span className="text-white text-xs truncate flex-1">{fileName}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveImage(index)}
-                        className="text-white/40 hover:text-red-400 transition-colors flex-shrink-0"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {designPaths.length < 5 && (
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isUploadingImage}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 text-white/60 hover:text-white transition-colors"
-              >
-                {isUploadingImage ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <ImageIcon className="w-3.5 h-3.5" />
+                {designPaths.length < 5 && (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingImage}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 text-white/60 hover:text-white transition-colors"
+                  >
+                    {isUploadingImage ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <ImageIcon className="w-3.5 h-3.5" />
+                    )}
+                    {isUploadingImage ? 'Subiendo...' : 'Adjuntar imagen'}
+                  </button>
                 )}
-                {isUploadingImage ? 'Subiendo...' : 'Adjuntar imagen'}
-              </button>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleImageUpload}
-              className="hidden"
-              multiple
-            />
-          </div>
-
-          {/* Price Summary */}
-          <div className="bg-[#9BFF43]/10 rounded-xl p-4">
-            <div className="space-y-1 text-sm text-white/70 mb-2">
-              <div className="flex justify-between">
-                <span>Duración</span>
-                <span className="text-white">{campaignDays} días ({monthsEquivalent} meses)</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  multiple
+                />
               </div>
-              <div className="flex justify-between">
-                <span>Tarifa mensual</span>
-                <span className="text-white">${billboard.price_per_month.toLocaleString()}</span>
-              </div>
-            </div>
-            <div className="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/10">
-              <span>Total estimado</span>
-              <span className="text-[#9BFF43]">${totalPrice.toLocaleString()} MXN</span>
-            </div>
-          </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="flex-1 border-white/20 text-white hover:bg-white/10"
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate || isUploadingImage}
-              className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
-            >
-              {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
-            </Button>
-          </div>
-        </form>
+              <div className="bg-[#9BFF43]/10 rounded-xl p-4">
+                <div className="space-y-1 text-sm text-white/70 mb-2">
+                  <div className="flex justify-between">
+                    <span>Duración</span>
+                    <span className="text-white">{campaignDays} días ({monthsEquivalent} meses)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tarifa mensual</span>
+                    <span className="text-white">${billboard.price_per_month.toLocaleString()}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/10">
+                  <span>Total estimado</span>
+                  <span className="text-[#9BFF43]">${totalPrice.toLocaleString()} MXN</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  className="flex-1 border-white/20 text-white hover:bg-white/10"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate || isUploadingImage}
+                  className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
+                >
+                  {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
+                </Button>
+              </div>
+            </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
