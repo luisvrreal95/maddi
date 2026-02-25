@@ -10,6 +10,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { Billboard } from '@/hooks/useBillboards';
 import { toast } from 'sonner';
 import { z } from 'zod';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import ImageUpload from './ImageUpload';
 
 const billboardSchema = z.object({
@@ -65,6 +67,8 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
     image_url: '',
     min_campaign_days: 0,
     min_advance_booking_days: 7,
+    ownership_type: 'owner' as 'owner' | 'admin' | 'broker',
+    authorization_confirmed: false,
   });
 
   useEffect(() => {
@@ -87,6 +91,8 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
         image_url: billboard.image_url || '',
         min_campaign_days: (billboard as any).min_campaign_days ?? 0,
         min_advance_booking_days: (billboard as any).min_advance_booking_days ?? 7,
+        ownership_type: (billboard as any).ownership_type ?? 'owner',
+        authorization_confirmed: (billboard as any).authorization_confirmed ?? false,
       });
     } else {
       setFormData({
@@ -107,6 +113,8 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
         image_url: '',
         min_campaign_days: 0,
         min_advance_booking_days: 7,
+        ownership_type: 'owner',
+        authorization_confirmed: false,
       });
     }
     setErrors({});
@@ -115,6 +123,12 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Check authorization for non-owners
+    if (formData.ownership_type !== 'owner' && !formData.authorization_confirmed) {
+      setErrors({ authorization_confirmed: 'Debes confirmar que tienes autorización' });
+      return;
+    }
+
     const result = billboardSchema.safeParse(formData);
     if (!result.success) {
       const newErrors: Record<string, string> = {};
@@ -403,6 +417,50 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 <p className="text-white/40 text-xs mt-1">Recomendado: 7 días</p>
               </div>
             </div>
+          </div>
+
+          {/* Ownership Type */}
+          <div className="border border-white/10 rounded-lg p-4 space-y-3">
+            <Label className="text-base font-medium">🏷 Relación con el espectacular *</Label>
+            <RadioGroup
+              value={formData.ownership_type}
+              onValueChange={(value: 'owner' | 'admin' | 'broker') => 
+                setFormData({ ...formData, ownership_type: value, authorization_confirmed: value === 'owner' ? false : formData.authorization_confirmed })
+              }
+              className="space-y-2"
+            >
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="owner" id="ownership-owner" className="border-white/30" />
+                <Label htmlFor="ownership-owner" className="cursor-pointer text-white/80">Soy dueño legal</Label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="admin" id="ownership-admin" className="border-white/30" />
+                <Label htmlFor="ownership-admin" className="cursor-pointer text-white/80">Soy administrador autorizado</Label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <RadioGroupItem value="broker" id="ownership-broker" className="border-white/30" />
+                <Label htmlFor="ownership-broker" className="cursor-pointer text-white/80">Soy broker</Label>
+              </div>
+            </RadioGroup>
+
+            {(formData.ownership_type === 'admin' || formData.ownership_type === 'broker') && (
+              <div className="mt-3 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="authorization-confirm"
+                    checked={formData.authorization_confirmed}
+                    onCheckedChange={(checked) => setFormData({ ...formData, authorization_confirmed: checked === true })}
+                    className="mt-0.5 border-yellow-500/50 data-[state=checked]:bg-yellow-500 data-[state=checked]:border-yellow-500"
+                  />
+                  <Label htmlFor="authorization-confirm" className="cursor-pointer text-sm text-yellow-200/80 leading-relaxed">
+                    Declaro que tengo autorización para comercializar esta ubicación.
+                  </Label>
+                </div>
+                {errors.authorization_confirmed && (
+                  <p className="text-red-400 text-sm mt-2">{errors.authorization_confirmed}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex gap-3 pt-4">
