@@ -141,7 +141,7 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative flex flex-col items-center bg-[hsl(0,0%,12.5%)] pt-0 pb-32 max-md:pb-24 max-sm:pb-16 overflow-visible">
+    <section className="relative flex flex-col items-center bg-[hsl(0,0%,12.5%)] pt-0 pb-32 max-md:pb-20 max-sm:pb-10 overflow-visible">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[hsl(0,0%,8%)] pointer-events-none" />
       
@@ -152,15 +152,15 @@ const HeroSection: React.FC = () => {
         <Header />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-10 w-full max-w-4xl px-6 pt-16 max-md:pt-12 max-sm:pt-8">
+      <div className="relative z-10 flex flex-col items-center gap-10 max-sm:gap-6 w-full max-w-4xl px-6 max-sm:px-4 pt-16 max-md:pt-12 max-sm:pt-4">
         {/* Title */}
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h1 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight max-sm:text-3xl">
+        <div className="flex flex-col items-center gap-4 max-sm:gap-3 text-center">
+          <h1 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight max-sm:text-[1.75rem] max-sm:leading-[1.2]">
             Encuentra el espectacular{' '}
             <span className="text-primary">perfecto</span>{' '}
             para tu marca
           </h1>
-          <p className="text-white/50 text-lg md:text-xl max-w-2xl max-sm:text-base">
+          <p className="text-white/50 text-lg md:text-xl max-w-2xl max-sm:text-sm">
             Explora ubicaciones estratégicas con datos reales de tráfico y perfil comercial
           </p>
         </div>
@@ -170,7 +170,7 @@ const HeroSection: React.FC = () => {
           <div className="flex items-stretch bg-[hsl(0,0%,16%)] rounded-2xl border border-white/10 overflow-visible shadow-2xl max-md:flex-col max-md:rounded-xl">
             {/* Location field */}
             <div className="flex-1 relative">
-              <div className="flex items-center gap-3 px-5 py-4 max-md:border-b max-md:border-white/10">
+              <div className="flex items-center gap-3 px-5 py-4 max-sm:px-4 max-sm:py-3 max-md:border-b max-md:border-white/10">
                 <MapPin className="w-5 h-5 text-white/40 flex-shrink-0" />
                 <div className="flex-1">
                   <label className="text-white/40 text-xs font-medium uppercase tracking-wider">Ubicación</label>
@@ -261,7 +261,7 @@ const HeroSection: React.FC = () => {
             {/* Search button */}
             <button
               onClick={handleSearch}
-              className="flex items-center gap-2 bg-primary text-primary-foreground font-bold px-8 py-4 hover:bg-primary/90 transition-colors max-md:rounded-b-xl md:rounded-r-2xl"
+              className="flex items-center justify-center gap-2 bg-primary text-primary-foreground font-bold px-8 py-4 max-sm:py-3 hover:bg-primary/90 transition-colors max-md:rounded-b-xl md:rounded-r-2xl"
             >
               <Search className="w-5 h-5" />
               <span className="max-md:block">Buscar espacios</span>

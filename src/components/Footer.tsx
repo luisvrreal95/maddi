@@ -18,9 +18,9 @@ const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="w-full bg-[#181818] py-16 px-16 max-md:py-12 max-md:px-8 max-sm:py-10 max-sm:px-5">
+    <footer className="w-full bg-[#181818] py-16 px-16 max-md:py-12 max-md:px-8 max-sm:py-10 max-sm:px-4 pb-28 md:pb-16">
       <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-12">
+        <div className="flex flex-col md:flex-row justify-between items-start gap-8 max-sm:gap-6 mb-12">
           {/* Logo */}
           <div className="flex flex-col gap-3">
             <img src={maddiLogo} alt="Maddi" className="h-10 w-auto" />

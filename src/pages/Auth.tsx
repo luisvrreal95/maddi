@@ -223,16 +223,16 @@ const Auth: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#1A1A1A] flex">
       {/* Left Side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col p-8 lg:p-12">
-        <Link to="/" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors mb-8 group">
+      <div className="w-full lg:w-1/2 flex flex-col p-8 max-sm:p-5 lg:p-12">
+        <Link to="/" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors mb-8 max-sm:mb-5 group">
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <img src="/favicon.svg" alt="Maddi" className="h-10" />
+          <img src="/favicon.svg" alt="Maddi" className="h-10 max-sm:h-8" />
         </Link>
 
         <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
           {/* Header with icon */}
-          <div className="mb-8">
-            <div className="w-16 h-16 bg-[#9BFF43] rounded-2xl flex items-center justify-center mb-6">
+          <div className="mb-8 max-sm:mb-5">
+            <div className="w-16 h-16 max-sm:w-12 max-sm:h-12 bg-[#9BFF43] rounded-2xl flex items-center justify-center mb-6 max-sm:mb-4">
               {mode === 'login' ? (
                 <svg className="w-8 h-8 text-[#1A1A1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -243,10 +243,10 @@ const Auth: React.FC = () => {
                 </svg>
               )}
             </div>
-            <h1 className="text-4xl font-bold text-white mb-3">
+            <h1 className="text-4xl max-sm:text-2xl font-bold text-white mb-3 max-sm:mb-2">
               {mode === 'login' ? 'Bienvenido de nuevo' : 'Crear Cuenta'}
             </h1>
-            <p className="text-white/50 text-lg">
+            <p className="text-white/50 text-lg max-sm:text-sm">
               {mode === 'login' 
                 ? 'Ingresa tus credenciales para continuar' 
                 : isOwnerFlow
