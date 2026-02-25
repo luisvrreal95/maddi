@@ -47,7 +47,15 @@ const STEPS = [
 
 const AddProperty: React.FC = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, userRole, isLoading: authLoading } = useAuth();
+
+  // Guard: only owners can access
+  useEffect(() => {
+    if (!authLoading && (!user || userRole !== 'owner')) {
+      toast.error('Acceso denegado. Solo propietarios pueden publicar.');
+      navigate('/');
+    }
+  }, [user, userRole, authLoading, navigate]);
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
@@ -624,6 +632,17 @@ const AddProperty: React.FC = () => {
           <span className="text-white/50 text-sm">{step}/5</span>
         </div>
       </header>
+
+      {/* Quick info block */}
+      <div className="max-w-xl mx-auto px-6 pt-6 pb-0">
+        <div className="flex items-center gap-3 bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl px-5 py-3">
+          <CheckCircle className="w-5 h-5 text-[#9BFF43] flex-shrink-0" />
+          <div>
+            <p className="text-white font-medium text-sm">Paso {step} de 5 — Publica tu ubicación</p>
+            <p className="text-white/40 text-xs">Te tomará menos de 3 minutos</p>
+          </div>
+        </div>
+      </div>
 
       {/* Step Content */}
       <div className="flex-1 overflow-hidden relative">

@@ -22,9 +22,12 @@ const OwnerCTASection: React.FC = () => {
             onClick={() => navigate('/auth?role=owner')}
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-bold text-lg px-10 py-4 rounded-full hover:bg-primary/90 transition-colors relative z-10"
           >
-            Publicar propiedad
+            Publicar mis espectaculares gratis
             <ArrowRight className="w-5 h-5" />
           </button>
+          <p className="text-white/30 text-sm mt-4 relative z-10">
+            Sin comisiones por ahora. Cupos limitados en etapa inicial.
+          </p>
         </div>
       </div>
     </section>
