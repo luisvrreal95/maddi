@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,10 +18,14 @@ type UserType = 'owner' | 'business' | null;
 
 const Auth: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, userRole, needsRoleSelection, signUp, signIn, signInWithGoogle, assignRole } = useAuth();
   
-  const [mode, setMode] = useState<AuthMode>('login');
-  const [selectedType, setSelectedType] = useState<UserType>(null);
+  const roleParam = searchParams.get('role') as 'owner' | 'business' | null;
+  const isOwnerFlow = roleParam === 'owner';
+  
+  const [mode, setMode] = useState<AuthMode>(roleParam === 'owner' || roleParam === 'business' ? 'signup' : 'login');
+  const [selectedType, setSelectedType] = useState<UserType>(roleParam === 'owner' || roleParam === 'business' ? roleParam : null);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -245,7 +249,9 @@ const Auth: React.FC = () => {
             <p className="text-white/50 text-lg">
               {mode === 'login' 
                 ? 'Ingresa tus credenciales para continuar' 
-                : 'Únete a la plataforma de publicidad exterior más grande de México'}
+                : isOwnerFlow
+                  ? 'Publica tus espectaculares gratis. Conecta con marcas interesadas en tu ubicación.'
+                  : 'Únete a la plataforma de publicidad exterior más grande de México'}
             </p>
           </div>
 
@@ -255,7 +261,7 @@ const Auth: React.FC = () => {
                 {/* User Type Selection */}
                 <div className="space-y-3">
                   <Label className="text-white/80 text-sm font-medium">Tipo de cuenta</Label>
-                  <div className="grid grid-cols-2 gap-3">
+                <div className={`grid ${isOwnerFlow ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
                     <button
                       type="button"
                       onClick={() => setSelectedType('owner')}
@@ -273,23 +279,25 @@ const Auth: React.FC = () => {
                       }`}>Propietario</p>
                       <p className="text-xs text-white/40 mt-1">Tengo espectaculares</p>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedType('business')}
-                      className={`p-5 rounded-2xl border-2 transition-all duration-200 ${
-                        selectedType === 'business'
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10 shadow-lg shadow-[#9BFF43]/20'
-                          : 'border-white/10 hover:border-white/20 bg-white/5'
-                      }`}
-                    >
-                      <Store className={`w-7 h-7 mx-auto mb-3 ${
-                        selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white/50'
-                      }`} />
-                      <p className={`font-semibold ${
-                        selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white'
-                      }`}>Negocio</p>
-                      <p className="text-xs text-white/40 mt-1">Quiero anunciarme</p>
-                    </button>
+                    {!isOwnerFlow && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedType('business')}
+                        className={`p-5 rounded-2xl border-2 transition-all duration-200 ${
+                          selectedType === 'business'
+                            ? 'border-[#9BFF43] bg-[#9BFF43]/10 shadow-lg shadow-[#9BFF43]/20'
+                            : 'border-white/10 hover:border-white/20 bg-white/5'
+                        }`}
+                      >
+                        <Store className={`w-7 h-7 mx-auto mb-3 ${
+                          selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white/50'
+                        }`} />
+                        <p className={`font-semibold ${
+                          selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white'
+                        }`}>Negocio</p>
+                        <p className="text-xs text-white/40 mt-1">Quiero anunciarme</p>
+                      </button>
+                    )}
                   </div>
                   {errors.type && <p className="text-red-400 text-sm">{errors.type}</p>}
                 </div>
