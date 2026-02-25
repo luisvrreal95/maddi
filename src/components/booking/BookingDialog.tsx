@@ -43,10 +43,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   
   const earliestStartDate = addDays(new Date(), minAdvanceBookingDays);
   
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: earliestStartDate,
-    to: addDays(earliestStartDate, Math.max(minCampaignDays, 30)),
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [message, setMessage] = useState('');
   const [existingBookings, setExistingBookings] = useState<ExistingBooking[]>([]);
   const [dateConflict, setDateConflict] = useState(false);
@@ -77,11 +74,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
   useEffect(() => {
     if (open) {
-      const earliest = addDays(new Date(), minAdvanceBookingDays);
-      setDateRange({
-        from: earliest,
-        to: addDays(earliest, Math.max(minCampaignDays, 30)),
-      });
+      setDateRange(undefined);
       setMessage('');
       setDesignPaths([]);
       setDesignPreviews([]);
@@ -475,6 +468,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     <span className="text-white font-medium">{format(startDate, 'd MMM yyyy', { locale: es })}</span>
                     <span className="text-white/60">hasta</span>
                     <span className="text-white font-medium">{format(endDate, 'd MMM yyyy', { locale: es })}</span>
+                    <span className="text-white/40 ml-auto">({campaignDays} días)</span>
                   </div>
                 )}
               </div>
