@@ -65,11 +65,11 @@ const FeaturedListingsSection: React.FC = () => {
   }
 
   return (
-    <section className="bg-[hsl(0,0%,8%)] py-20 px-6 md:px-16">
+    <section className="bg-[hsl(0,0%,8%)] py-20 max-sm:py-12 px-6 max-sm:px-4 md:px-16">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-end justify-between mb-10">
+        <div className="flex items-end justify-between mb-10 max-sm:mb-6">
           <div>
-            <h2 className="text-white text-3xl md:text-4xl font-bold">
+            <h2 className="text-white text-3xl max-sm:text-2xl md:text-4xl font-bold">
               Espectaculares destacados en{' '}
               <span className="text-primary">{displayCity}</span>
             </h2>
@@ -166,23 +166,23 @@ const CategoriesSection: React.FC = () => {
   ];
 
   return (
-    <section className="bg-[hsl(0,0%,8%)] py-20 px-6 md:px-16">
+    <section className="bg-[hsl(0,0%,8%)] py-20 max-sm:py-12 px-6 max-sm:px-4 md:px-16">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-white text-3xl md:text-4xl font-bold mb-3">
+        <h2 className="text-white text-3xl max-sm:text-2xl md:text-4xl font-bold mb-3">
           Explora por categoría
         </h2>
-        <p className="text-white/40 mb-10">Encuentra el formato ideal para tu marca</p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <p className="text-white/40 mb-10 max-sm:mb-6 max-sm:text-sm">Encuentra el formato ideal para tu marca</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-sm:gap-3">
           {categories.map((cat) => (
             <button
               key={cat.label}
               onClick={() => navigate(`/search?type=${encodeURIComponent(cat.label)}`)}
-              className="group flex flex-col items-start gap-3 p-6 rounded-2xl bg-[hsl(0,0%,13%)] border border-white/5 hover:border-primary/30 hover:bg-[hsl(0,0%,15%)] transition-all duration-300"
+              className="group flex flex-col items-start gap-3 max-sm:gap-2 p-6 max-sm:p-4 rounded-2xl bg-[hsl(0,0%,13%)] border border-white/5 hover:border-primary/30 hover:bg-[hsl(0,0%,15%)] transition-all duration-300"
             >
-              <span className="text-3xl">{cat.icon}</span>
+              <span className="text-3xl max-sm:text-2xl">{cat.icon}</span>
               <div>
-                <h3 className="text-white font-semibold group-hover:text-primary transition-colors">{cat.label}</h3>
-                <p className="text-white/40 text-sm mt-1">{cat.desc}</p>
+                <h3 className="text-white font-semibold max-sm:text-sm group-hover:text-primary transition-colors">{cat.label}</h3>
+                <p className="text-white/40 text-sm max-sm:text-xs mt-1">{cat.desc}</p>
               </div>
             </button>
           ))}

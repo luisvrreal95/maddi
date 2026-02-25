@@ -158,7 +158,7 @@ const BillboardDetail: React.FC = () => {
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Header */}
-      <header className="bg-card/80 backdrop-blur-md border-b border-border px-6 py-3 sticky top-0 z-30">
+      <header className="bg-card/80 backdrop-blur-md border-b border-border px-6 max-sm:px-4 py-3 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button
             onClick={() => {
@@ -229,8 +229,8 @@ const BillboardDetail: React.FC = () => {
               </div>
 
               {/* Specs Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div className="bg-card border border-border rounded-xl p-4 text-center hover:border-white/20 transition-colors">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-sm:gap-2">
+                <div className="bg-card border border-border rounded-xl p-4 max-sm:p-3 text-center hover:border-white/20 transition-colors">
                   <Maximize2 className="w-5 h-5 text-primary mx-auto mb-2" />
                   <p className="text-foreground text-sm font-bold">{billboard.width_m}m × {billboard.height_m}m</p>
                   <p className="text-muted-foreground text-xs">Dimensiones</p>
@@ -294,8 +294,8 @@ const BillboardDetail: React.FC = () => {
               <OwnerSection ownerId={billboard.owner_id} />
             </div>
 
-            {/* Right Column - Sticky Sidebar */}
-            <div className="lg:sticky lg:top-20 lg:self-start space-y-4">
+            {/* Right Column - Sticky Sidebar (hidden on mobile, shown as sticky bottom CTA) */}
+            <div className="hidden lg:block lg:sticky lg:top-20 lg:self-start space-y-4">
               {/* Price & CTA Card */}
               <Card className="bg-card border-border p-6">
                 <p className="text-muted-foreground text-sm mb-1">Precio mensual</p>
@@ -343,6 +343,29 @@ const BillboardDetail: React.FC = () => {
           </div>
         </div>
       </main>
+
+      {/* Mobile Sticky Bottom CTA */}
+      <div className="fixed bottom-16 left-0 right-0 z-20 lg:hidden bg-card/95 backdrop-blur-md border-t border-border px-4 py-3 safe-area-bottom">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-primary text-xl font-bold">
+              ${billboard.price_per_month.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">MXN/mes</span>
+            </p>
+          </div>
+          {billboard.is_available && !billboard.pause_reason ? (
+            <Button
+              onClick={handleBookingClick}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2.5 font-bold rounded-xl"
+            >
+              Solicitar Reserva
+            </Button>
+          ) : (
+            <Button disabled className="px-6 py-2.5 rounded-xl">
+              No Disponible
+            </Button>
+          )}
+        </div>
+      </div>
 
       {/* Booking Dialog */}
       <BookingDialog

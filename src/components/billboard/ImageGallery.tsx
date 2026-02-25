@@ -72,7 +72,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
           </div>
         ) : (
           /* 4+ images: main left + 2x2 grid right */
-          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-1 h-[300px] md:h-[420px]">
+          <div className="relative grid grid-cols-1 md:grid-cols-2 gap-1 h-[250px] md:h-[420px]">
             <div className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(0)}>
               <img src={images[0]} alt={title}
                 className="w-full h-full object-cover hover:opacity-90 transition-opacity" />

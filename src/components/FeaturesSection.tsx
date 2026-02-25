@@ -26,10 +26,10 @@ const features = [
 
 const FeaturesSection: React.FC = () => {
   return (
-    <section className="bg-[hsl(0,0%,10%)] py-20 px-6 md:px-16">
+    <section className="bg-[hsl(0,0%,10%)] py-20 max-sm:py-12 px-6 max-sm:px-4 md:px-16">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-14">
-          <h2 className="text-white text-3xl md:text-4xl font-bold">
+        <div className="text-center mb-14 max-sm:mb-8">
+          <h2 className="text-white text-3xl max-sm:text-2xl md:text-4xl font-bold">
             Todo lo que necesitas para{' '}
             <span className="text-primary">decidir mejor</span>
           </h2>
@@ -38,17 +38,17 @@ const FeaturesSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 max-sm:gap-3">
           {features.map((f) => (
             <div
               key={f.title}
-              className="group flex flex-col items-start gap-4 p-6 rounded-2xl bg-[hsl(0,0%,13%)] border border-white/5 hover:border-primary/20 transition-all duration-300"
+              className="group flex flex-col items-start gap-4 max-sm:gap-3 p-6 max-sm:p-4 rounded-2xl bg-[hsl(0,0%,13%)] border border-white/5 hover:border-primary/20 transition-all duration-300"
             >
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <f.icon className="w-6 h-6 text-primary" />
+              <div className="w-12 h-12 max-sm:w-10 max-sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                <f.icon className="w-6 h-6 max-sm:w-5 max-sm:h-5 text-primary" />
               </div>
-              <h3 className="text-white font-semibold text-lg">{f.title}</h3>
-              <p className="text-white/40 text-sm leading-relaxed">{f.description}</p>
+              <h3 className="text-white font-semibold text-lg max-sm:text-sm">{f.title}</h3>
+              <p className="text-white/40 text-sm max-sm:text-xs leading-relaxed">{f.description}</p>
             </div>
           ))}
         </div>
