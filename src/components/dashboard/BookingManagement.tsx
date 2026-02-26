@@ -47,6 +47,7 @@ const BookingManagement: React.FC = () => {
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [overlapWarning, setOverlapWarning] = useState<string | null>(null);
+  const [selectedBookingIsDigital, setSelectedBookingIsDigital] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [resolvedImages, setResolvedImages] = useState<Record<string, string[]>>({});
   const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
@@ -196,7 +197,14 @@ const BookingManagement: React.FC = () => {
   const handleApproveClick = async (booking: Booking) => {
     setSelectedBooking(booking);
     setOverlapWarning(null);
-    await checkOverlap(booking);
+
+    const isDigital = await isBillboardDigital(booking.billboard_id);
+    setSelectedBookingIsDigital(isDigital);
+
+    if (!isDigital) {
+      await checkOverlap(booking);
+    }
+
     setShowApproveDialog(true);
   };
 
@@ -606,7 +614,7 @@ const BookingManagement: React.FC = () => {
       )}
 
       {/* Approve Confirmation Dialog */}
-      <AlertDialog open={showApproveDialog} onOpenChange={(open) => { setShowApproveDialog(open); if (!open) setSelectedBooking(null); }}>
+      <AlertDialog open={showApproveDialog} onOpenChange={(open) => { setShowApproveDialog(open); if (!open) { setSelectedBooking(null); setSelectedBookingIsDigital(false); } }}>
         <AlertDialogContent className="bg-[#1E1E1E] border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">
@@ -620,7 +628,9 @@ const BookingManagement: React.FC = () => {
                 </div>
               ) : (
                 <>
-                  Al aprobar, las fechas serán bloqueadas y el negocio recibirá una notificación.
+                  {selectedBookingIsDigital
+                    ? 'Al aprobar, el negocio recibirá una notificación. Esta propiedad es digital: las fechas NO se bloquean y se permiten campañas simultáneas.'
+                    : 'Al aprobar, las fechas serán bloqueadas y el negocio recibirá una notificación.'}
                   <br /><br />
                   <strong className="text-white">Periodo:</strong> {selectedBooking && `${format(new Date(selectedBooking.start_date), "d MMM yyyy", { locale: es })} — ${format(new Date(selectedBooking.end_date), "d MMM yyyy", { locale: es })}`}
                 </>
