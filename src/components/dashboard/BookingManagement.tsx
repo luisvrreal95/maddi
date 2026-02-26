@@ -154,7 +154,28 @@ const BookingManagement: React.FC = () => {
   const tabCounts = { pending: categorized.pending.length, approved: categorized.approved.length, past: categorized.past.length };
   const currentBookings = categorized[activeTab];
 
+  const isBillboardDigital = async (billboardId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('billboards')
+      .select('is_digital')
+      .eq('id', billboardId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error checking billboard digital status:', error);
+      return false;
+    }
+
+    return data?.is_digital === true;
+  };
+
   const checkOverlap = async (booking: Booking): Promise<boolean> => {
+    const isDigital = await isBillboardDigital(booking.billboard_id);
+    if (isDigital) {
+      setOverlapWarning(null);
+      return false;
+    }
+
     const { data: approvedBookings } = await supabase
       .from('bookings').select('id, start_date, end_date').eq('billboard_id', booking.billboard_id).eq('status', 'approved').neq('id', booking.id);
     if (approvedBookings && approvedBookings.length > 0) {
@@ -189,14 +210,20 @@ const BookingManagement: React.FC = () => {
     if (!selectedBooking || overlapWarning) return;
     setProcessing(true);
     try {
+      const isDigital = await isBillboardDigital(selectedBooking.billboard_id);
+
       const { error } = await supabase.from('bookings').update({ status: 'approved' }).eq('id', selectedBooking.id);
       if (error) throw error;
-      await supabase.from('blocked_dates').insert({
-        billboard_id: selectedBooking.billboard_id,
-        start_date: selectedBooking.start_date,
-        end_date: selectedBooking.end_date,
-        reason: `Campaña aprobada #${selectedBooking.id.slice(0, 8)}`,
-      });
+
+      if (!isDigital) {
+        const { error: blockError } = await supabase.from('blocked_dates').insert({
+          billboard_id: selectedBooking.billboard_id,
+          start_date: selectedBooking.start_date,
+          end_date: selectedBooking.end_date,
+          reason: `Campaña aprobada #${selectedBooking.id.slice(0, 8)}`,
+        });
+        if (blockError) throw blockError;
+      }
       try {
         await supabase.functions.invoke('send-notification-email', {
           body: {
