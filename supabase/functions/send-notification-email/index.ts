@@ -17,7 +17,8 @@ type EmailType =
   | 'review_received'
   | 'property_paused'
   | 'property_reactivated'
-  | 'welcome';
+  | 'welcome'
+  | 'owner_activation';
 
 interface NotificationEmailRequest {
   email: string;
@@ -203,6 +204,27 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
         cta: data.role === 'owner' 
           ? { text: 'Agregar mi primer espacio', url: `${baseUrl}/owner` }
           : { text: 'Explorar espacios', url: `${baseUrl}/search` },
+        secondaryCta: null,
+      };
+
+    case 'owner_activation':
+      return {
+        subject: `Tu espectacular está esperando — Programa Fundadores 2026`,
+        heading: `Hola ${displayName}`,
+        message: `Gracias por registrarte en Maddi 🙌`,
+        details: `
+          <div style="color: rgba(255,255,255,0.8); font-size: 14px; line-height: 1.8;">
+            <p>Actualmente estamos integrando las primeras ubicaciones en Mexicali dentro del <strong style="color: #9BFF43;">Programa Fundadores 2026</strong>.</p>
+            <p>Tu cuenta ya está activa, solo falta subir tu espectacular para que quede visible ante marcas que están revisando espacios disponibles.</p>
+            <p>Publicarlo toma menos de 5 minutos.</p>
+          </div>
+          <div style="margin-top: 32px; color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.6;">
+            <p style="margin: 0;">Si necesitas ayuda, con gusto puedo apoyarte directamente.</p>
+            <p style="margin: 8px 0 0 0;">Estamos construyendo el mapa inicial de espectaculares en Mexicali y me gustaría incluir tu ubicación en esta etapa.</p>
+            <p style="margin: 16px 0 0 0; color: rgba(255,255,255,0.8);">Saludos,<br/><strong style="color: #FFFFFF;">Luis Villarreal</strong><br/>Fundador — Maddi</p>
+          </div>
+        `,
+        cta: { text: '👉 Subir mi espectacular ahora', url: `${baseUrl}/owner` },
         secondaryCta: null,
       };
 
