@@ -42,6 +42,7 @@ interface Billboard {
   points_of_interest: string[] | null;
   min_campaign_days: number | null;
   min_advance_booking_days: number | null;
+  is_digital: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -337,7 +338,7 @@ const BillboardDetail: React.FC = () => {
                   <Calendar className="w-4 h-4 text-primary" />
                   <h3 className="font-semibold text-foreground text-sm">Disponibilidad</h3>
                 </div>
-                <AvailabilityCalendar billboardId={billboard.id} />
+                <AvailabilityCalendar billboardId={billboard.id} isDigital={billboard.is_digital} />
               </Card>
             </div>
           </div>

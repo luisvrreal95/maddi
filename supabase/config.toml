@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.campaign-lifecycle-notifications]
 verify_jwt = false
+
+[functions.get-admin-user-details]
+verify_jwt = false

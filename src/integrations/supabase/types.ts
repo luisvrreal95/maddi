@@ -139,6 +139,7 @@ export type Database = {
           image_url: string | null
           image_urls: string[] | null
           is_available: boolean
+          is_digital: boolean
           last_traffic_update: string | null
           latitude: number
           longitude: number
@@ -167,6 +168,7 @@ export type Database = {
           image_url?: string | null
           image_urls?: string[] | null
           is_available?: boolean
+          is_digital?: boolean
           last_traffic_update?: string | null
           latitude: number
           longitude: number
@@ -195,6 +197,7 @@ export type Database = {
           image_url?: string | null
           image_urls?: string[] | null
           is_available?: boolean
+          is_digital?: boolean
           last_traffic_update?: string | null
           latitude?: number
           longitude?: number

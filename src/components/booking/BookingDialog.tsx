@@ -19,7 +19,7 @@ import BookingSuccessScreen from './BookingSuccessScreen';
 interface BookingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  billboard: Billboard;
+  billboard: Billboard & { is_digital?: boolean };
 }
 
 interface ExistingBooking {
@@ -40,6 +40,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   
   const minCampaignDays = (billboard as any).min_campaign_days ?? 0;
   const minAdvanceBookingDays = (billboard as any).min_advance_booking_days ?? 7;
+  const isDigital = (billboard as any).is_digital === true;
   
   const earliestStartDate = addDays(new Date(), minAdvanceBookingDays);
   
@@ -79,9 +80,13 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       setDesignPaths([]);
       setDesignPreviews([]);
       setBookingSuccess(null);
-      fetchExistingBookings();
+      if (!isDigital) {
+        fetchExistingBookings();
+      } else {
+        setExistingBookings([]);
+      }
     }
-  }, [open, billboard.id, minAdvanceBookingDays, minCampaignDays]);
+  }, [open, billboard.id, minAdvanceBookingDays, minCampaignDays, isDigital]);
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -215,7 +220,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       return;
     }
 
-    if (dateConflict) {
+    if (!isDigital && dateConflict) {
       toast.error('Las fechas seleccionadas ya están reservadas');
       return;
     }
@@ -385,7 +390,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
   };
 
   const calendarModifiers = {
-    booked: (date: Date) => isDateBooked(date) === 'booked',
+    booked: (date: Date) => !isDigital && isDateBooked(date) === 'booked',
     tooSoon: (date: Date) => isDateTooSoon(date) && !isDateBooked(date),
   };
 
@@ -454,7 +459,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     mode="range"
                     selected={dateRange}
                     onSelect={setDateRange}
-                    disabled={(date) => date < earliestStartDate || isDateBooked(date) === 'booked'}
+                    disabled={(date) => date < earliestStartDate || (!isDigital && isDateBooked(date) === 'booked')}
                     modifiers={calendarModifiers}
                     modifiersClassNames={calendarModifiersClassNames}
                     locale={es}
