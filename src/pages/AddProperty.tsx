@@ -96,6 +96,7 @@ const AddProperty: React.FC = () => {
   const [detectedPOIs, setDetectedPOIs] = useState<string[]>([]);
   const [isLoadingPOIs, setIsLoadingPOIs] = useState(false);
   const [billboardType, setBillboardType] = useState('espectacular');
+  const [isDigital, setIsDigital] = useState(false);
   const [isIlluminated, setIsIlluminated] = useState(true);
   const [height, setHeight] = useState('');
   const [width, setWidth] = useState('');
@@ -558,6 +559,7 @@ const AddProperty: React.FC = () => {
         latitude,
         longitude,
         billboard_type: billboardType,
+        is_digital: billboardType === 'pantalla_digital' ? true : isDigital,
         illumination: isIlluminated ? 'iluminado' : 'no_iluminado',
         faces: 1,
         image_url: imageUrls[0] || null,
@@ -929,6 +931,40 @@ const AddProperty: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Digital Format - only for non-digital screen types */}
+                {billboardType !== 'pantalla_digital' && (
+                  <div>
+                    <Label className="text-white/80 mb-2 block">¿Es formato digital?</Label>
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setIsDigital(true)}
+                        className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
+                          isDigital
+                            ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                            : 'border-white/20 hover:border-white/30 text-white/70'
+                        }`}
+                      >
+                        Sí
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsDigital(false)}
+                        className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
+                          !isDigital
+                            ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                            : 'border-white/20 hover:border-white/30 text-white/70'
+                        }`}
+                      >
+                        No
+                      </button>
+                    </div>
+                    <p className="text-white/40 text-xs mt-2">
+                      Los formatos digitales permiten múltiples campañas simultáneas.
+                    </p>
+                  </div>
+                )}
 
                 {/* Size */}
                 <div>

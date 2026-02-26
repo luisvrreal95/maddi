@@ -22,12 +22,14 @@ interface BlockedDate {
 
 interface AvailabilityCalendarProps {
   billboardId: string;
+  isDigital?: boolean;
   className?: string;
   onRangeSelect?: (range: DateRange | undefined) => void;
 }
 
 const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   billboardId,
+  isDigital = false,
   className,
   onRangeSelect,
 }) => {
@@ -114,8 +116,8 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   };
 
   const modifiers = {
-    booked: (date: Date) => getDateStatus(date) === 'booked',
-    pending: (date: Date) => getDateStatus(date) === 'pending',
+    booked: (date: Date) => !isDigital && getDateStatus(date) === 'booked',
+    pending: (date: Date) => !isDigital && getDateStatus(date) === 'pending',
     blocked: (date: Date) => getDateStatus(date) === 'blocked',
   };
 
@@ -126,7 +128,12 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   };
 
   // Only approved (booked) and blocked dates are disabled; pending does NOT block
+  // Digital billboards never block dates from bookings
   const isDateDisabled = (date: Date) => {
+    if (isDigital) {
+      const status = getDateStatus(date);
+      return date < new Date() || status === 'blocked';
+    }
     const status = getDateStatus(date);
     return date < new Date() || status === 'blocked' || status === 'booked';
   };
@@ -167,14 +174,18 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
           <div className="w-3 h-3 rounded-full bg-[#9BFF43]" />
           <span className="text-white/60 text-sm">Disponible</span>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-yellow-500" />
-          <span className="text-white/60 text-sm">Pendiente</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-red-500" />
-          <span className="text-white/60 text-sm">Reservado</span>
-        </div>
+        {!isDigital && (
+          <>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-yellow-500" />
+              <span className="text-white/60 text-sm">Pendiente</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <span className="text-white/60 text-sm">Reservado</span>
+            </div>
+          </>
+        )}
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-gray-500" />
           <span className="text-white/60 text-sm">Bloqueado</span>

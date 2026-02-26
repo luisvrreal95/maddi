@@ -39,6 +39,7 @@ interface UserData {
     verification_notes: string | null;
   } | null;
   email: string | null;
+  last_sign_in_at: string | null;
   count: number;
 }
 
@@ -57,6 +58,17 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      // Fetch auth user details (email + last_sign_in_at) via edge function
+      let authUserMap: Record<string, { email: string; last_sign_in_at: string | null }> = {};
+      try {
+        const { data: authData, error: authError } = await supabase.functions.invoke('get-admin-user-details');
+        if (!authError && authData?.users) {
+          authUserMap = authData.users;
+        }
+      } catch (e) {
+        console.error('Error fetching auth user details:', e);
+      }
+
       const { data: roles, error } = await supabase
         .from('user_roles')
         .select('*')
@@ -72,15 +84,9 @@ const UserManagement = () => {
             .eq('user_id', role.user_id)
             .single();
 
-          // Get email from admin_users or notifications (workaround since we can't access auth.users)
-          let email: string | null = null;
-          const { data: emailLog } = await supabase
-            .from('email_notifications')
-            .select('to_email')
-            .eq('user_id', role.user_id)
-            .limit(1)
-            .maybeSingle();
-          if (emailLog) email = emailLog.to_email;
+          const authInfo = authUserMap[role.user_id];
+          const email = authInfo?.email || null;
+          const last_sign_in_at = authInfo?.last_sign_in_at || null;
 
           let count = 0;
           if (role.role === 'owner') {
@@ -97,7 +103,7 @@ const UserManagement = () => {
             count = bookingCount || 0;
           }
 
-          return { ...role, profile, email, count };
+          return { ...role, profile, email, last_sign_in_at, count };
         })
       );
 
@@ -153,6 +159,7 @@ const UserManagement = () => {
           <TableHead>Email</TableHead>
           <TableHead>Empresa</TableHead>
           <TableHead>Verificación</TableHead>
+          <TableHead>Último acceso</TableHead>
           <TableHead>Registro</TableHead>
           <TableHead className="text-center">
             {type === 'owner' ? 'Propiedades' : 'Campañas'}
@@ -163,7 +170,7 @@ const UserManagement = () => {
       <TableBody>
         {users.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+            <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
               No hay {type === 'owner' ? 'propietarios' : 'anunciantes'} registrados
             </TableCell>
           </TableRow>
@@ -189,6 +196,11 @@ const UserManagement = () => {
               </TableCell>
               <TableCell>{user.profile?.company_name || '-'}</TableCell>
               <TableCell>{getVerificationBadge(user.profile?.verification_status)}</TableCell>
+              <TableCell className="text-sm text-muted-foreground">
+                {user.last_sign_in_at 
+                  ? format(new Date(user.last_sign_in_at), 'dd/MM/yy HH:mm', { locale: es })
+                  : '—'}
+              </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {format(new Date(user.created_at), 'dd/MM/yy', { locale: es })}
               </TableCell>
@@ -379,7 +391,7 @@ const UserManagement = () => {
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div className="bg-muted/50 rounded-lg p-3 text-center">
                     <p className="text-2xl font-bold">{u.count}</p>
                     <p className="text-xs text-muted-foreground">{u.role === 'owner' ? 'Propiedades' : 'Campañas'}</p>
@@ -387,6 +399,14 @@ const UserManagement = () => {
                   <div className="bg-muted/50 rounded-lg p-3 text-center">
                     <p className="text-sm font-medium">{format(new Date(u.created_at), 'dd/MM/yyyy', { locale: es })}</p>
                     <p className="text-xs text-muted-foreground">Registrado</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-sm font-medium">
+                      {u.last_sign_in_at 
+                        ? format(new Date(u.last_sign_in_at), 'dd/MM/yy HH:mm', { locale: es })
+                        : '—'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Último acceso</p>
                   </div>
                 </div>
 
