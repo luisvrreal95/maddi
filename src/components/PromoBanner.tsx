@@ -29,7 +29,7 @@ const PromoBanner: React.FC = () => {
             Nuevo
           </span>
           <span className="text-white/80 text-xs md:text-sm">
-            Lanzamiento 2026 — Sin comisión para Propietarios Fundadores
+            Lanzamiento 2026 — Comisión 0% en etapa inicial para Propietarios Fundadores
           </span>
           <span className="text-[#9BFF43] font-medium text-xs md:text-sm whitespace-nowrap">
             Conocer más →
