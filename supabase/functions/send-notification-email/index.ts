@@ -224,7 +224,7 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
             <p style="margin: 16px 0 0 0; color: rgba(255,255,255,0.8);">Saludos,<br/><strong style="color: #FFFFFF;">Luis Villarreal</strong><br/>Fundador — Maddi</p>
           </div>
         `,
-        cta: { text: '👉 Subir mi espectacular ahora', url: `${baseUrl}/owner` },
+        cta: { text: '👉 Subir mi espectacular ahora', url: `${baseUrl}/owner/add-property` },
         secondaryCta: null,
       };
 
