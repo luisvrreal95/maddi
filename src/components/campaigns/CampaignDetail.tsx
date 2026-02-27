@@ -433,7 +433,18 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
 
       {/* Mini Map */}
       <Card className="overflow-hidden">
-        <div ref={mapContainer} className="h-48 w-full" />
+        <div
+          ref={mapContainer}
+          className="h-48 w-full cursor-pointer"
+          onClick={() => {
+            if (!billboard) return;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const url = isIOS
+              ? `maps://maps.apple.com/?q=${billboard.latitude},${billboard.longitude}`
+              : `https://www.google.com/maps/search/?api=1&query=${billboard.latitude},${billboard.longitude}`;
+            window.open(url, '_blank');
+          }}
+        />
         <div className="p-3 flex justify-between items-center">
           <span className="text-sm text-muted-foreground">Ubicación del espectacular</span>
           <Button variant="outline" size="sm" asChild className="gap-1">

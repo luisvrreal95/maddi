@@ -265,12 +265,25 @@ const BillboardDetail: React.FC = () => {
 
               {/* Mini Map */}
               {mapboxToken && (
-                <div className="rounded-xl overflow-hidden border border-border">
+                <div className="relative rounded-xl overflow-hidden border border-border group cursor-pointer"
+                  onClick={() => {
+                    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                    const url = isIOS
+                      ? `maps://maps.apple.com/?q=${billboard.latitude},${billboard.longitude}`
+                      : `https://www.google.com/maps/search/?api=1&query=${billboard.latitude},${billboard.longitude}`;
+                    window.open(url, '_blank');
+                  }}
+                >
                   <img
                     src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9BFF43(${billboard.longitude},${billboard.latitude})/${billboard.longitude},${billboard.latitude},14,0/1200x200@2x?access_token=${mapboxToken}`}
                     alt="Ubicación"
                     className="w-full h-[200px] object-cover"
                   />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/60 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4" /> Abrir en mapas
+                    </span>
+                  </div>
                 </div>
               )}
 
