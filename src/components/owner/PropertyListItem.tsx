@@ -1,6 +1,6 @@
 import React from 'react';
 import { Billboard } from '@/hooks/useBillboards';
-import { MapPin, Calendar, Eye, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { MapPin, Calendar, Eye, MoreVertical, Pencil, Trash2, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -14,14 +14,17 @@ interface PropertyListItemProps {
   onClick?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  onPause?: () => void;
 }
 
 const PropertyListItem: React.FC<PropertyListItemProps> = ({ 
   billboard, 
   onClick,
   onEdit,
-  onDelete 
+  onDelete,
+  onPause 
 }) => {
+  const isPausedByOwner = !billboard.is_available && billboard.pause_reason === 'owner';
   return (
     <div 
       className="bg-[#1E1E1E] rounded-xl border border-white/10 p-4 cursor-pointer hover:border-[#9BFF43]/30 hover:shadow-[0_0_20px_rgba(155,255,67,0.05)] transition-all"
@@ -50,14 +53,16 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
             <span className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
               billboard.pause_reason === 'admin'
                 ? 'bg-orange-500/20 text-orange-400'
-                : billboard.is_available 
-                  ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
-                  : 'bg-orange-500/20 text-orange-400'
+                : isPausedByOwner
+                  ? 'bg-yellow-500/20 text-yellow-400'
+                  : billboard.is_available 
+                    ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
+                    : 'bg-orange-500/20 text-orange-400'
             }`}>
               <span className={`w-1.5 h-1.5 rounded-full ${
-                billboard.pause_reason === 'admin' ? 'bg-orange-400' : billboard.is_available ? 'bg-[#9BFF43]' : 'bg-orange-400'
+                billboard.pause_reason === 'admin' ? 'bg-orange-400' : isPausedByOwner ? 'bg-yellow-400' : billboard.is_available ? 'bg-[#9BFF43]' : 'bg-orange-400'
               }`}></span>
-              {billboard.pause_reason === 'admin' ? 'Pausada por Maddi' : billboard.is_available ? 'Disponible' : 'Ocupado'}
+              {billboard.pause_reason === 'admin' ? 'Pausada por Maddi' : isPausedByOwner ? 'Pausada por ti' : billboard.is_available ? 'Disponible' : 'Ocupado'}
             </span>
           </div>
           <p className="text-white/50 text-sm truncate flex items-center gap-1">
@@ -88,7 +93,7 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
         </div>
         
         {/* Actions */}
-        {(onEdit || onDelete) && (
+        {(onEdit || onDelete || onPause) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10">
@@ -103,6 +108,15 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
                 >
                   <Pencil className="w-4 h-4" />
                   Editar
+                </DropdownMenuItem>
+              )}
+              {onPause && billboard.pause_reason !== 'admin' && (
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); onPause(); }}
+                  className="text-orange-400 hover:bg-orange-500/10 gap-2"
+                >
+                  {isPausedByOwner ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+                  {isPausedByOwner ? 'Reactivar' : 'Pausar'}
                 </DropdownMenuItem>
               )}
               {onDelete && (

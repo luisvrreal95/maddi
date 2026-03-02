@@ -46,6 +46,8 @@ const OwnerDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('inicio');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [billboardToDelete, setBillboardToDelete] = useState<Billboard | null>(null);
+  const [pauseDialogOpen, setPauseDialogOpen] = useState(false);
+  const [billboardToPause, setBillboardToPause] = useState<Billboard | null>(null);
   const [selectedBillboard, setSelectedBillboard] = useState<Billboard | null>(null);
   
   // Property filters
@@ -202,6 +204,14 @@ const OwnerDashboard: React.FC = () => {
     if (!billboardToDelete) return;
     
     try {
+      // Delete storage images
+      if (billboardToDelete.image_urls?.length) {
+        for (const url of billboardToDelete.image_urls) {
+          const path = url.split('/billboard-images/')[1];
+          if (path) await supabase.storage.from('billboard-images').remove([path]);
+        }
+      }
+      
       const { error } = await supabase
         .from('billboards')
         .delete()
@@ -210,6 +220,7 @@ const OwnerDashboard: React.FC = () => {
       if (error) throw error;
       
       toast.success('Espectacular eliminado correctamente');
+      if (selectedBillboard?.id === billboardToDelete.id) setSelectedBillboard(null);
       fetchBillboards();
     } catch (error) {
       console.error('Error deleting billboard:', error);
@@ -217,6 +228,38 @@ const OwnerDashboard: React.FC = () => {
     } finally {
       setDeleteDialogOpen(false);
       setBillboardToDelete(null);
+    }
+  };
+
+  const handlePauseClick = (billboard: Billboard) => {
+    setBillboardToPause(billboard);
+    setPauseDialogOpen(true);
+  };
+
+  const handleConfirmPause = async () => {
+    if (!billboardToPause) return;
+    
+    const isPausedByOwner = !billboardToPause.is_available && billboardToPause.pause_reason === 'owner';
+    
+    try {
+      const { error } = await supabase
+        .from('billboards')
+        .update({
+          is_available: isPausedByOwner ? true : false,
+          pause_reason: isPausedByOwner ? null : 'owner',
+        })
+        .eq('id', billboardToPause.id);
+      
+      if (error) throw error;
+      
+      toast.success(isPausedByOwner ? 'Espectacular reactivado' : 'Espectacular pausado');
+      fetchBillboards();
+    } catch (error) {
+      console.error('Error toggling pause:', error);
+      toast.error('Error al cambiar el estado');
+    } finally {
+      setPauseDialogOpen(false);
+      setBillboardToPause(null);
     }
   };
 
@@ -324,7 +367,7 @@ const OwnerDashboard: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredBillboards.map((billboard) => (
                   <div key={billboard.id} onClick={() => handlePropertyClick(billboard)} className="cursor-pointer">
-                    <OwnerPropertyCard billboard={billboard} onEdit={() => handleEditBillboard(billboard)} onDelete={() => handleDeleteClick(billboard)} />
+                    <OwnerPropertyCard billboard={billboard} onEdit={() => handleEditBillboard(billboard)} onDelete={() => handleDeleteClick(billboard)} onPause={() => handlePauseClick(billboard)} />
                   </div>
                 ))}
               </div>
@@ -337,6 +380,7 @@ const OwnerDashboard: React.FC = () => {
                     onClick={() => handlePropertyClick(billboard)}
                     onEdit={() => handleEditBillboard(billboard)}
                     onDelete={() => handleDeleteClick(billboard)}
+                    onPause={() => handlePauseClick(billboard)}
                   />
                 ))}
               </div>
@@ -459,11 +503,36 @@ const OwnerDashboard: React.FC = () => {
         <AlertDialogContent className="bg-[#1E1E1E] border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">¿Eliminar espectacular?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">Esta acción no se puede deshacer. Se eliminará permanentemente "{billboardToDelete?.title}".</AlertDialogDescription>
+            <AlertDialogDescription className="text-white/60">
+              Esta acción no se puede deshacer. Se eliminará permanentemente "{billboardToDelete?.title}" junto con todas sus reservas, datos de tráfico, conversaciones y demás información asociada.
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="bg-[#2A2A2A] border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700 text-white">Eliminar</AlertDialogAction>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700 text-white">Eliminar permanentemente</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
+        <AlertDialogContent className="bg-[#1E1E1E] border-white/10">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">
+              {billboardToPause && !billboardToPause.is_available && billboardToPause.pause_reason === 'owner'
+                ? '¿Reactivar espectacular?'
+                : '¿Pausar espectacular?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
+              {billboardToPause && !billboardToPause.is_available && billboardToPause.pause_reason === 'owner'
+                ? `"${billboardToPause?.title}" volverá a ser visible para negocios y marcas en las búsquedas.`
+                : `"${billboardToPause?.title}" dejará de aparecer en búsquedas y no será visible para negocios ni marcas mientras esté pausado.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#2A2A2A] border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmPause} className="bg-orange-600 hover:bg-orange-700 text-white">
+              {billboardToPause && !billboardToPause.is_available && billboardToPause.pause_reason === 'owner' ? 'Reactivar' : 'Pausar'}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
