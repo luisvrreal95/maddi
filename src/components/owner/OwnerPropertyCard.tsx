@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Pencil, Trash2, Eye, Clock, CheckCircle2, Maximize, MapPin, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, Eye, Clock, CheckCircle2, Maximize, MapPin, Loader2, Pause, Play } from 'lucide-react';
 import { Billboard } from '@/hooks/useBillboards';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -7,6 +7,7 @@ interface OwnerPropertyCardProps {
   billboard: Billboard;
   onEdit: () => void;
   onDelete: () => void;
+  onPause?: () => void;
 }
 
 interface TrafficData {
@@ -19,7 +20,8 @@ interface POICategory {
   count: number;
 }
 
-const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit, onDelete }) => {
+const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit, onDelete, onPause }) => {
+  const isPausedByOwner = !billboard.is_available && billboard.pause_reason === 'owner';
   const [impressionChange, setImpressionChange] = useState<number | null>(null);
   const [isLoadingTraffic, setIsLoadingTraffic] = useState(false);
   const [nearbyPOIs, setNearbyPOIs] = useState<POICategory[]>([]);
@@ -35,8 +37,8 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   
   const dailyViews = billboard.daily_impressions || 0;
   const peakHours = '8am-12pm';
-  const status = billboard.pause_reason === 'admin' ? 'Pausada por Maddi' : billboard.is_available ? 'Disponible' : 'Ocupado';
   const isPausedByAdmin = billboard.pause_reason === 'admin';
+  const status = isPausedByAdmin ? 'Pausada por Maddi' : isPausedByOwner ? 'Pausada por ti' : billboard.is_available ? 'Disponible' : 'Ocupado';
   const size = `${billboard.width_m}m x ${billboard.height_m}m`;
 
   // Fetch POIs from API if billboard has no stored points_of_interest
@@ -135,6 +137,15 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
           </a>
         </div>
       )}
+      {/* Owner pause banner */}
+      {isPausedByOwner && (
+        <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3 mb-4 flex items-center justify-between">
+          <div>
+            <p className="text-yellow-400 text-sm font-medium">⏸️ Pausada por ti</p>
+            <p className="text-yellow-400/60 text-xs mt-0.5">No visible en búsquedas. Reactívala cuando quieras.</p>
+          </div>
+        </div>
+      )}
       {/* Image - Always show with fixed height */}
       <div className="relative mb-4 rounded-xl overflow-hidden h-40 flex-shrink-0">
         {billboard.image_url ? (
@@ -156,13 +167,22 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
       {/* Action Buttons */}
       <div className="absolute top-4 right-4 flex gap-2">
         <button
-          onClick={onEdit}
+          onClick={(e) => { e.stopPropagation(); onEdit(); }}
           className="text-white/60 hover:text-[#9BFF43] transition-colors bg-[#2A2A2A] p-2 rounded-lg"
         >
           <Pencil className="w-4 h-4" />
         </button>
+        {onPause && billboard.pause_reason !== 'admin' && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onPause(); }}
+            className="text-white/60 hover:text-orange-400 transition-colors bg-[#2A2A2A] p-2 rounded-lg"
+            title={isPausedByOwner ? 'Reactivar' : 'Pausar'}
+          >
+            {isPausedByOwner ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+          </button>
+        )}
         <button
-          onClick={onDelete}
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
           className="text-white/60 hover:text-red-500 transition-colors bg-[#2A2A2A] p-2 rounded-lg"
         >
           <Trash2 className="w-4 h-4" />
