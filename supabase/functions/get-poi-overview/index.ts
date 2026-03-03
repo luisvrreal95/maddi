@@ -83,7 +83,7 @@ serve(async (req) => {
     }
 
     // No cache or expired, fetch fresh data
-    const TOMTOM_API_KEY = Deno.env.get('TOMTOM_API_KEY');
+    const TOMTOM_API_KEY = Deno.env.get('MADDI_TOMTOM_API_KEY') || Deno.env.get('TOMTOM_API_KEY');
     if (!TOMTOM_API_KEY) {
       return new Response(
         JSON.stringify({ success: false, error: 'TomTom API key not configured' }),
