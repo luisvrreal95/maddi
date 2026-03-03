@@ -13,7 +13,7 @@ import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
 import StartChatButton from '@/components/chat/StartChatButton';
 import BillboardAnalytics from '@/components/billboard/BillboardAnalytics';
-import TrafficEstimate from '@/components/billboard/TrafficEstimate';
+// TrafficEstimate merged into BillboardAnalytics
 import ShareDialog from '@/components/share/ShareDialog';
 import OwnerSection from '@/components/billboard/OwnerSection';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
@@ -287,21 +287,14 @@ const BillboardDetail: React.FC = () => {
                 </div>
               )}
 
-              {/* Traffic Estimate */}
-              <TrafficEstimate
-                billboardId={billboard.id}
-                latitude={billboard.latitude}
-                longitude={billboard.longitude}
-                city={billboard.city}
-              />
-
-              {/* Analytics */}
+              {/* Analytics - unified view */}
               <BillboardAnalytics
                 billboardId={billboard.id}
                 latitude={billboard.latitude}
                 longitude={billboard.longitude}
                 dailyImpressions={billboard.daily_impressions}
                 city={billboard.city}
+                pricePerMonth={billboard.price_per_month}
               />
 
               {/* Owner Section */}
