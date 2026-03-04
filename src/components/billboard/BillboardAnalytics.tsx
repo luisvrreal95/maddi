@@ -278,27 +278,63 @@ const BillboardAnalytics: React.FC<BillboardAnalyticsProps> = ({
           Métricas de impacto
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="bg-primary/10 rounded-xl p-4 text-center">
-            <Eye className="w-5 h-5 text-primary mx-auto mb-1.5" />
-            <p className="text-xl font-bold text-foreground">{formatNumber(impressions)}</p>
-            <p className="text-xs text-muted-foreground">Impresiones/día</p>
-          </div>
-          <div className="bg-blue-500/10 rounded-xl p-4 text-center">
-            <Calendar className="w-5 h-5 text-blue-500 mx-auto mb-1.5" />
-            <p className="text-xl font-bold text-foreground">{formatNumber(monthlyImpressions)}</p>
-            <p className="text-xs text-muted-foreground">Impresiones/mes</p>
-          </div>
-          <div className="bg-purple-500/10 rounded-xl p-4 text-center">
-            <Users className="w-5 h-5 text-purple-500 mx-auto mb-1.5" />
-            <p className="text-xl font-bold text-foreground">{formatNumber(estimatedReach)}</p>
-            <p className="text-xs text-muted-foreground">Alcance mensual</p>
-          </div>
+          <TooltipProvider>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-primary/10 rounded-xl p-4 text-center cursor-help">
+                  <Eye className="w-5 h-5 text-primary mx-auto mb-1.5" />
+                  <p className="text-xl font-bold text-foreground">{formatNumber(impressions)}</p>
+                  <p className="text-xs text-muted-foreground">Impresiones/día</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                <p>Veces que el espectacular es visto por día, basado en datos de tráfico vehicular de TomTom.</p>
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-blue-500/10 rounded-xl p-4 text-center cursor-help">
+                  <Calendar className="w-5 h-5 text-blue-500 mx-auto mb-1.5" />
+                  <p className="text-xl font-bold text-foreground">{formatNumber(monthlyImpressions)}</p>
+                  <p className="text-xs text-muted-foreground">Impresiones/mes</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                <p>Impresiones diarias × 30 días. Incluye vistas repetidas del mismo espectador.</p>
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-purple-500/10 rounded-xl p-4 text-center cursor-help">
+                  <Users className="w-5 h-5 text-purple-500 mx-auto mb-1.5" />
+                  <p className="text-xl font-bold text-foreground">{formatNumber(estimatedReach)}</p>
+                  <p className="text-xs text-muted-foreground">Alcance mensual</p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                <p>Personas únicas estimadas que ven el espectacular al mes (70% de impresiones totales, descontando repeticiones).</p>
+              </TooltipContent>
+            </UITooltip>
+          </TooltipProvider>
           {cpm && (
-            <div className="bg-emerald-500/10 rounded-xl p-4 text-center">
-              <DollarSign className="w-5 h-5 text-emerald-500 mx-auto mb-1.5" />
-              <p className="text-xl font-bold text-foreground">${cpm}</p>
-              <p className="text-xs text-muted-foreground">CPM estimado</p>
-            </div>
+            <TooltipProvider>
+              <UITooltip>
+                <TooltipTrigger asChild>
+                  <div className="bg-emerald-500/10 rounded-xl p-4 text-center cursor-help">
+                    <DollarSign className="w-5 h-5 text-emerald-500 mx-auto mb-1.5" />
+                    <p className="text-xl font-bold text-foreground">${cpm}</p>
+                    <p className="text-xs text-muted-foreground">CPM estimado</p>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                  <p>Costo por cada 1,000 impresiones. Se calcula: precio mensual ÷ (impresiones mensuales ÷ 1,000).</p>
+                </TooltipContent>
+              </UITooltip>
+            </TooltipProvider>
           )}
         </div>
 
