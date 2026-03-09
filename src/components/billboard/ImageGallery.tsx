@@ -47,7 +47,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
       <div className="rounded-xl overflow-hidden cursor-pointer">
       {images.length === 1 ? (
           <div onClick={() => openLightbox(0)} className="hover:opacity-90 transition-opacity">
-            <BlurredImage src={images[0]} alt={title} className="w-full h-[300px] md:h-[420px] bg-secondary" />
+            <GalleryImage src={images[0]} alt={title} className="w-full h-[300px] md:h-[420px] bg-secondary" />
           </div>
         ) : images.length === 2 ? (
           <div className="grid grid-cols-2 gap-1 h-[300px] md:h-[420px]">
