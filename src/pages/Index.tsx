@@ -18,6 +18,7 @@ const Index: React.FC = () => {
       <OwnerCTASection />
       <Footer />
       <MobileNavBar />
+      <ChatbotWidget />
     </main>
   );
 };

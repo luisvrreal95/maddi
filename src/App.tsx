@@ -49,6 +49,7 @@ const App = () => (
             <Route path="/admin/reset-password" element={<AdminResetPassword />} />
             <Route path="/admin/accept-invite" element={<AdminAcceptInvite />} />
             <Route path="/profile/:userId" element={<PublicProfile />} />
+            <Route path="/valor-espectacular" element={<ValorEspectacular />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

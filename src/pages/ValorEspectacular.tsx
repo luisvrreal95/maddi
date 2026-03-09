@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+
 import Footer from '@/components/Footer';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
 
