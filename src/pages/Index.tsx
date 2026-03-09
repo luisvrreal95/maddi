@@ -6,6 +6,7 @@ import OwnerCTASection from '@/components/OwnerCTASection';
 import Footer from '@/components/Footer';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
 import PromoBanner from '@/components/PromoBanner';
+import ChatbotWidget from '@/components/chatbot/ChatbotWidget';
 
 const Index: React.FC = () => {
   return (
