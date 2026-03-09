@@ -58,7 +58,7 @@ const ValorEspectacular: React.FC = () => {
     setSaving(true);
     try {
       // Classify zone
-      const zoneCategory = classifyZone(zone, city);
+      const zoneCategory = classifyZone(zone, city, trafficDaily);
 
       // Get traffic estimate (try edge function first, fallback to city estimate)
       let trafficDaily = estimateTrafficByCity(city);
