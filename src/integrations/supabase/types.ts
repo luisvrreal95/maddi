@@ -860,48 +860,102 @@ export type Database = {
           },
         ]
       }
+      road_traffic_data: {
+        Row: {
+          created_at: string
+          id: string
+          last_updated: string
+          lat: number
+          lng: number
+          source: string
+          traffic_daily_estimate: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          lat: number
+          lng: number
+          source?: string
+          traffic_daily_estimate: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_updated?: string
+          lat?: number
+          lng?: number
+          source?: string
+          traffic_daily_estimate?: number
+        }
+        Relationships: []
+      }
       spectacular_valuation_leads: {
         Row: {
           city: string | null
+          cpm_base: number | null
           created_at: string
           email: string
+          estimated_value: number | null
           estimated_value_max: number | null
           estimated_value_min: number | null
+          format_multiplier: number | null
           id: string
+          impressions_monthly: number | null
           is_currently_rented: string | null
           location_coordinates: Json | null
           name: string
           phone: string | null
           size: string | null
           structure_type: string | null
+          traffic_daily: number | null
+          visibility_score: number | null
+          zone_category: string | null
+          zone_multiplier: number | null
         }
         Insert: {
           city?: string | null
+          cpm_base?: number | null
           created_at?: string
           email: string
+          estimated_value?: number | null
           estimated_value_max?: number | null
           estimated_value_min?: number | null
+          format_multiplier?: number | null
           id?: string
+          impressions_monthly?: number | null
           is_currently_rented?: string | null
           location_coordinates?: Json | null
           name: string
           phone?: string | null
           size?: string | null
           structure_type?: string | null
+          traffic_daily?: number | null
+          visibility_score?: number | null
+          zone_category?: string | null
+          zone_multiplier?: number | null
         }
         Update: {
           city?: string | null
+          cpm_base?: number | null
           created_at?: string
           email?: string
+          estimated_value?: number | null
           estimated_value_max?: number | null
           estimated_value_min?: number | null
+          format_multiplier?: number | null
           id?: string
+          impressions_monthly?: number | null
           is_currently_rented?: string | null
           location_coordinates?: Json | null
           name?: string
           phone?: string | null
           size?: string | null
           structure_type?: string | null
+          traffic_daily?: number | null
+          visibility_score?: number | null
+          zone_category?: string | null
+          zone_multiplier?: number | null
         }
         Relationships: []
       }
