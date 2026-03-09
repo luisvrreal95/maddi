@@ -21,6 +21,7 @@ import AdminDashboard from "./pages/AdminDashboard";
 import AdminResetPassword from "./pages/AdminResetPassword";
 import AdminAcceptInvite from "./pages/AdminAcceptInvite";
 import PublicProfile from "./pages/PublicProfile";
+import ValorEspectacular from "./pages/ValorEspectacular";
 
 const queryClient = new QueryClient();
 
