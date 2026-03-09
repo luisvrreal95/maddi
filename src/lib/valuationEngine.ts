@@ -25,11 +25,11 @@ export function getVisibilityScore(zone: ZoneCategory): number {
 export function getCPMBase(zone: ZoneCategory): number {
   const map: Record<ZoneCategory, number> = {
     premium: 60,
-    comercial: 40,
-    media: 25,
-    periferica: 25,
+    comercial: 45,
+    media: 35,
+    periferica: 30,
   };
-  return map[zone] ?? 25;
+  return Math.max(map[zone] ?? 35, 30);
 }
 
 export function getZoneMultiplier(zone: ZoneCategory): number {
