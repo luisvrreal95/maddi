@@ -860,6 +860,51 @@ export type Database = {
           },
         ]
       }
+      spectacular_valuation_leads: {
+        Row: {
+          city: string | null
+          created_at: string
+          email: string
+          estimated_value_max: number | null
+          estimated_value_min: number | null
+          id: string
+          is_currently_rented: string | null
+          location_coordinates: Json | null
+          name: string
+          phone: string | null
+          size: string | null
+          structure_type: string | null
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          email: string
+          estimated_value_max?: number | null
+          estimated_value_min?: number | null
+          id?: string
+          is_currently_rented?: string | null
+          location_coordinates?: Json | null
+          name: string
+          phone?: string | null
+          size?: string | null
+          structure_type?: string | null
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          email?: string
+          estimated_value_max?: number | null
+          estimated_value_min?: number | null
+          id?: string
+          is_currently_rented?: string | null
+          location_coordinates?: Json | null
+          name?: string
+          phone?: string | null
+          size?: string | null
+          structure_type?: string | null
+        }
+        Relationships: []
+      }
       traffic_data: {
         Row: {
           billboard_id: string
