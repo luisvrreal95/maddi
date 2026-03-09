@@ -74,7 +74,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
           /* 4+ images: main left + 2x2 grid right */
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-1 h-[250px] md:h-[420px]">
             <div onClick={() => openLightbox(0)} className="hover:opacity-90 transition-opacity">
-              <BlurredImage src={images[0]} alt={title} className="w-full h-full bg-secondary" />
+              <GalleryImage src={images[0]} alt={title} className="w-full h-full bg-secondary" />
             </div>
             <div className="hidden md:grid grid-cols-2 grid-rows-2 gap-1">
               {images.slice(1, 5).map((img, i) => (
