@@ -13,6 +13,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [showAll, setShowAll] = useState(false);
 
+  const BlurredImage = ({ src, alt, className = '' }: { src: string; alt: string; className?: string }) => (
+    <div className={`relative overflow-hidden ${className}`}>
+      <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60" />
+      <img src={src} alt={alt} className="relative w-full h-full object-contain z-10" />
+    </div>
+  );
+
   if (images.length === 0) {
     return (
       <div className="w-full h-[300px] md:h-[420px] bg-secondary flex items-center justify-center rounded-xl">
@@ -40,32 +47,26 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
       {/* Airbnb-style grid */}
       <div className="rounded-xl overflow-hidden cursor-pointer">
       {images.length === 1 ? (
-          <img
-            src={images[0]}
-            alt={title}
-            onClick={() => openLightbox(0)}
-            className="w-full h-[300px] md:h-[420px] object-cover hover:opacity-90 transition-opacity"
-          />
+          <div onClick={() => openLightbox(0)} className="hover:opacity-90 transition-opacity">
+            <BlurredImage src={images[0]} alt={title} className="w-full h-[300px] md:h-[420px] bg-secondary" />
+          </div>
         ) : images.length === 2 ? (
           <div className="grid grid-cols-2 gap-1 h-[300px] md:h-[420px]">
             {images.slice(0, 2).map((img, i) => (
-              <div key={i} className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(i)}>
-                <img src={img} alt={`${title} ${i + 1}`}
-                  className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+              <div key={i} onClick={() => openLightbox(i)} className="hover:opacity-90 transition-opacity">
+                <BlurredImage src={img} alt={`${title} ${i + 1}`} className="w-full h-full bg-secondary" />
               </div>
             ))}
           </div>
         ) : images.length === 3 ? (
           <div className="grid grid-cols-2 gap-1 h-[300px] md:h-[420px]">
-            <div className="relative w-full h-full overflow-hidden row-span-2" onClick={() => openLightbox(0)}>
-              <img src={images[0]} alt={title}
-                className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+            <div onClick={() => openLightbox(0)} className="row-span-2 hover:opacity-90 transition-opacity">
+              <BlurredImage src={images[0]} alt={title} className="w-full h-full bg-secondary" />
             </div>
             <div className="grid grid-rows-2 gap-1">
               {images.slice(1, 3).map((img, i) => (
-                <div key={i} className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(i + 1)}>
-                  <img src={img} alt={`${title} ${i + 2}`}
-                    className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                <div key={i} onClick={() => openLightbox(i + 1)} className="hover:opacity-90 transition-opacity">
+                  <BlurredImage src={img} alt={`${title} ${i + 2}`} className="w-full h-full bg-secondary" />
                 </div>
               ))}
             </div>
@@ -73,15 +74,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
         ) : (
           /* 4+ images: main left + 2x2 grid right */
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-1 h-[250px] md:h-[420px]">
-            <div className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(0)}>
-              <img src={images[0]} alt={title}
-                className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+            <div onClick={() => openLightbox(0)} className="hover:opacity-90 transition-opacity">
+              <BlurredImage src={images[0]} alt={title} className="w-full h-full bg-secondary" />
             </div>
             <div className="hidden md:grid grid-cols-2 grid-rows-2 gap-1">
               {images.slice(1, 5).map((img, i) => (
-                <div key={i} className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(i + 1)}>
-                  <img src={img} alt={`${title} ${i + 2}`}
-                    className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                <div key={i} onClick={() => openLightbox(i + 1)} className="hover:opacity-90 transition-opacity">
+                  <BlurredImage src={img} alt={`${title} ${i + 2}`} className="w-full h-full bg-secondary" />
                 </div>
               ))}
             </div>
@@ -154,8 +153,11 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
                   </Button>
                 </>
               )}
-              <img src={images[lightboxIndex]} alt={`${title} ${lightboxIndex + 1}`}
-                className="max-h-[85vh] max-w-[90vw] object-contain" />
+              <div className="relative max-h-[85vh] max-w-[90vw]">
+                <img src={images[lightboxIndex]} alt="" className="absolute inset-0 w-full h-full object-cover blur-3xl scale-125 opacity-40" />
+                <img src={images[lightboxIndex]} alt={`${title} ${lightboxIndex + 1}`}
+                  className="relative max-h-[85vh] max-w-[90vw] object-contain z-10" />
+              </div>
               {images.length > 1 && (
                 <Button variant="ghost" size="sm" onClick={() => setShowAll(true)}
                   className="absolute bottom-6 text-white/70 hover:text-white hover:bg-white/10 gap-1.5 text-xs">
