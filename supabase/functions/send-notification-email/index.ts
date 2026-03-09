@@ -18,7 +18,10 @@ type EmailType =
   | 'property_paused'
   | 'property_reactivated'
   | 'welcome'
-  | 'owner_activation';
+  | 'owner_activation'
+  | 'support_contact'
+  | 'valuation_result'
+  | 'valuation_admin_notification';
 
 interface NotificationEmailRequest {
   email: string;
@@ -225,6 +228,67 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
           </div>
         `,
         cta: { text: '👉 Subir mi espectacular ahora', url: `${baseUrl}/owner/add-property` },
+        secondaryCta: null,
+      };
+
+    case 'support_contact':
+      return {
+        subject: `Nuevo contacto de soporte: ${data.contactName}`,
+        heading: `Nuevo contacto de soporte`,
+        message: `Un usuario ha solicitado contacto con el equipo de Maddi.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Nombre:</strong> ${data.contactName}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Email:</strong> ${data.contactEmail}</p>
+            ${data.contactPhone ? `<p style="margin: 4px 0; color: #FFFFFF;"><strong>Teléfono:</strong> ${data.contactPhone}</p>` : ''}
+          </div>
+        `,
+        cta: null,
+        secondaryCta: null,
+      };
+
+    case 'valuation_result':
+      return {
+        subject: `Tu estimación de valor — Maddi`,
+        heading: `¡Hola ${displayName}!`,
+        message: `Gracias por usar la calculadora de valor de Maddi. Aquí tienes el resultado de tu estimación:`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 20px; margin: 16px 0; text-align: center;">
+            <p style="margin: 0 0 4px 0; color: rgba(255,255,255,0.6); font-size: 13px;">Ubicaciones similares en esta zona se rentan entre:</p>
+            <p style="margin: 0; color: #9BFF43; font-size: 28px; font-weight: bold;">$${data.valueMin} — $${data.valueMax} MXN</p>
+            <p style="margin: 4px 0 0 0; color: rgba(255,255,255,0.5); font-size: 12px;">por periodo mensual</p>
+          </div>
+          <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Ciudad:</strong> ${data.city}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Zona:</strong> ${data.zone}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Estructura:</strong> ${data.structureType}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Medidas:</strong> ${data.size}</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 12px;">Este cálculo es una estimación basada en datos de tráfico y ubicaciones similares.</p>
+        `,
+        cta: { text: 'Publicar mi espectacular', url: `${baseUrl}/auth?role=owner` },
+        secondaryCta: null,
+      };
+
+    case 'valuation_admin_notification':
+      return {
+        subject: `Nuevo cálculo de valor — ${data.contactName}`,
+        heading: `Nuevo lead de calculadora`,
+        message: `Un usuario completó la calculadora de valor de espectacular.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Nombre:</strong> ${data.contactName}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Email:</strong> ${data.contactEmail}</p>
+            ${data.contactPhone ? `<p style="margin: 4px 0; color: #FFFFFF;"><strong>Teléfono:</strong> ${data.contactPhone}</p>` : ''}
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Ciudad:</strong> ${data.city}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Zona:</strong> ${data.zone}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Estructura:</strong> ${data.structureType}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Medidas:</strong> ${data.size}</p>
+            <p style="margin: 4px 0; color: #9BFF43; font-weight: bold;"><strong>Valor estimado:</strong> $${data.valueMin} — $${data.valueMax} MXN</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>¿Rentado actualmente?:</strong> ${data.isRented}</p>
+          </div>
+        `,
+        cta: null,
         secondaryCta: null,
       };
 
