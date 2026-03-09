@@ -1,48 +1,24 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Calculator, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calculator, CheckCircle2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
-
 import Footer from '@/components/Footer';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
+import {
+  estimateSpectacularValue,
+  classifyZone,
+  estimateTrafficByCity,
+  STRUCTURE_OPTIONS,
+  type StructureType,
+  type ValuationResult,
+} from '@/lib/valuationEngine';
 
 const CITIES = ['Mexicali', 'Tijuana', 'Otra'];
-const STRUCTURES = [
-  { value: 'unipolar', label: 'Espectacular unipolar', factor: 1.2 },
-  { value: 'valla', label: 'Valla publicitaria', factor: 1.0 },
-  { value: 'azotea', label: 'Azotea', factor: 1.1 },
-  { value: 'digital', label: 'Pantalla digital', factor: 1.6 },
-  { value: 'muro', label: 'Muro', factor: 0.8 },
-];
-const SIZES = [
-  { value: '12x4', label: '12 × 4 m', factor: 1.0 },
-  { value: '14x4', label: '14 × 4 m', factor: 1.2 },
-  { value: '16x4', label: '16 × 4 m', factor: 1.4 },
-  { value: 'otra', label: 'Otra medida', factor: 1.1 },
-];
 const RENTED_OPTIONS = ['Sí', 'No', 'A veces'];
-
-const TOTAL_STEPS = 6; // 5 form steps + lead capture
-
-function estimateValue(city: string, structureType: string, size: string) {
-  // Base value by city traffic estimate
-  const cityBase: Record<string, number> = {
-    Mexicali: 14000,
-    Tijuana: 18000,
-    Otra: 12000,
-  };
-  const base = cityBase[city] || 12000;
-  const structureFactor = STRUCTURES.find(s => s.value === structureType)?.factor || 1.0;
-  const sizeFactor = SIZES.find(s => s.value === size)?.factor || 1.0;
-
-  const mid = base * structureFactor * sizeFactor;
-  const min = Math.round(mid * 0.75 / 1000) * 1000;
-  const max = Math.round(mid * 1.35 / 1000) * 1000;
-  return { min, max };
-}
+const TOTAL_STEPS = 5; // city, zone, structure, rented, contact
 
 const ValorEspectacular: React.FC = () => {
   const navigate = useNavigate();
@@ -51,100 +27,134 @@ const ValorEspectacular: React.FC = () => {
   const [showResult, setShowResult] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Form data
   const [city, setCity] = useState('');
   const [zone, setZone] = useState('');
-  const [structureType, setStructureType] = useState('');
-  const [size, setSize] = useState('');
+  const [structureType, setStructureType] = useState<StructureType | ''>('');
   const [rented, setRented] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
 
-  const [result, setResult] = useState<{ min: number; max: number } | null>(null);
+  const [result, setResult] = useState<ValuationResult | null>(null);
 
   const canAdvance = () => {
     switch (step) {
       case 1: return !!city;
       case 2: return zone.length >= 3;
       case 3: return !!structureType;
-      case 4: return !!size;
-      case 5: return !!rented;
-      case 6: return name.trim().length > 0 && email.includes('@');
+      case 4: return !!rented;
+      case 5: return name.trim().length > 0 && email.includes('@');
       default: return false;
     }
   };
 
   const handleNext = async () => {
-    if (step < 6) {
+    if (step < TOTAL_STEPS) {
       setStep(s => s + 1);
-    } else {
-      // Save lead and show result
-      setSaving(true);
-      const estimated = estimateValue(city, structureType, size);
-      setResult(estimated);
-
-      const structureLabel = STRUCTURES.find(s => s.value === structureType)?.label || structureType;
-      const sizeLabel = SIZES.find(s => s.value === size)?.label || size;
-
-      try {
-        await supabase.from('spectacular_valuation_leads').insert({
-          name: name.trim(),
-          email: email.trim(),
-          phone: phone.trim() || null,
-          city,
-          location_coordinates: { zone },
-          structure_type: structureType,
-          size,
-          is_currently_rented: rented,
-          estimated_value_min: estimated.min,
-          estimated_value_max: estimated.max,
-        });
-        console.log('[chatbot_event] calculator_completed');
-
-        // Send result email to user
-        supabase.functions.invoke('send-notification-email', {
-          body: {
-            email: email.trim(),
-            type: 'valuation_result',
-            recipientName: name.trim(),
-            data: {
-              valueMin: estimated.min.toLocaleString(),
-              valueMax: estimated.max.toLocaleString(),
-              city,
-              zone,
-              structureType: structureLabel,
-              size: sizeLabel,
-            },
-          },
-        }).catch(err => console.error('Error sending valuation email to user:', err));
-
-        // Notify admin
-        supabase.functions.invoke('send-notification-email', {
-          body: {
-            email: 'luis@maddi.com.mx',
-            type: 'valuation_admin_notification',
-            recipientName: 'Luis',
-            data: {
-              contactName: name.trim(),
-              contactEmail: email.trim(),
-              contactPhone: phone.trim() || '',
-              city,
-              zone,
-              structureType: structureLabel,
-              size: sizeLabel,
-              valueMin: estimated.min.toLocaleString(),
-              valueMax: estimated.max.toLocaleString(),
-              isRented: rented,
-            },
-          },
-        }).catch(err => console.error('Error sending admin notification:', err));
-      } catch (err) {
-        console.error('Error saving lead:', err);
-      }
-      setSaving(false);
-      setShowResult(true);
+      return;
     }
+
+    // Final step — calculate and save
+    setSaving(true);
+    try {
+      // Classify zone
+      const zoneCategory = classifyZone(zone, city);
+
+      // Get traffic estimate (try edge function first, fallback to city estimate)
+      let trafficDaily = estimateTrafficByCity(city);
+      try {
+        // Use a simple lat/lng from city as proxy (MVP)
+        const cityCoords: Record<string, [number, number]> = {
+          Mexicali: [32.6245, -115.4523],
+          Tijuana: [32.5149, -117.0382],
+        };
+        const coords = cityCoords[city];
+        if (coords) {
+          const { data } = await supabase.functions.invoke('get-traffic-estimate', {
+            body: { latitude: coords[0], longitude: coords[1], city },
+          });
+          if (data?.traffic_daily) {
+            trafficDaily = data.traffic_daily;
+          }
+        }
+      } catch {
+        // Use fallback — already set
+      }
+
+      const valuation = estimateSpectacularValue({
+        trafficDaily,
+        structureType: structureType as StructureType,
+        zoneCategory,
+      });
+      setResult(valuation);
+
+      const structureLabel = STRUCTURE_OPTIONS.find(s => s.value === structureType)?.label || structureType;
+
+      // Save lead
+      await supabase.from('spectacular_valuation_leads').insert({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim() || null,
+        city,
+        location_coordinates: { zone },
+        structure_type: structureType,
+        size: structureLabel,
+        is_currently_rented: rented,
+        estimated_value_min: valuation.valueLow,
+        estimated_value_max: valuation.valueHigh,
+        zone_category: zoneCategory,
+        traffic_daily: valuation.trafficDaily,
+        impressions_monthly: valuation.impressionsMonthly,
+        cpm_base: valuation.cpmBase,
+        visibility_score: valuation.visibilityScore,
+        format_multiplier: valuation.formatMultiplier,
+        zone_multiplier: valuation.zoneMultiplier,
+        estimated_value: valuation.estimatedValue,
+      } as any);
+
+      console.log('[chatbot_event] calculator_completed');
+
+      // Send emails (fire-and-forget)
+      supabase.functions.invoke('send-notification-email', {
+        body: {
+          email: email.trim(),
+          type: 'valuation_result',
+          recipientName: name.trim(),
+          data: {
+            valueMin: valuation.valueLow.toLocaleString(),
+            valueMax: valuation.valueHigh.toLocaleString(),
+            city,
+            zone,
+            structureType: structureLabel,
+            size: structureLabel,
+          },
+        },
+      }).catch(err => console.error('Error sending valuation email:', err));
+
+      supabase.functions.invoke('send-notification-email', {
+        body: {
+          email: 'luis@maddi.com.mx',
+          type: 'valuation_admin_notification',
+          recipientName: 'Luis',
+          data: {
+            contactName: name.trim(),
+            contactEmail: email.trim(),
+            contactPhone: phone.trim() || '',
+            city,
+            zone,
+            structureType: structureLabel,
+            size: structureLabel,
+            valueMin: valuation.valueLow.toLocaleString(),
+            valueMax: valuation.valueHigh.toLocaleString(),
+            isRented: rented,
+          },
+        },
+      }).catch(err => console.error('Error sending admin notification:', err));
+    } catch (err) {
+      console.error('Error saving lead:', err);
+    }
+    setSaving(false);
+    setShowResult(true);
   };
 
   const handleBack = () => {
@@ -164,6 +174,7 @@ const ValorEspectacular: React.FC = () => {
     </button>
   );
 
+  // ── Landing ───────────────────────────────────────────────
   if (!started) {
     return (
       <main className="min-h-screen bg-background flex flex-col pb-20 md:pb-0">
@@ -194,6 +205,7 @@ const ValorEspectacular: React.FC = () => {
     );
   }
 
+  // ── Result ────────────────────────────────────────────────
   if (showResult && result) {
     return (
       <main className="min-h-screen bg-background flex flex-col pb-20 md:pb-0">
@@ -206,14 +218,17 @@ const ValorEspectacular: React.FC = () => {
               Valor estimado de renta
             </h2>
             <div className="bg-card border border-border rounded-2xl p-8">
-              <p className="text-muted-foreground text-sm mb-2">Ubicaciones similares en esta zona se rentan entre:</p>
-              <p className="text-3xl md:text-4xl font-bold text-primary">
-                ${result.min.toLocaleString()} — ${result.max.toLocaleString()} <span className="text-lg font-normal text-muted-foreground">MXN</span>
+              <p className="text-muted-foreground text-sm mb-2">
+                Ubicaciones similares en esta zona podrían rentarse entre:
               </p>
-              <p className="text-muted-foreground text-xs mt-3">por periodo mensual</p>
+              <p className="text-3xl md:text-4xl font-bold text-primary">
+                ${result.valueLow.toLocaleString()} — ${result.valueHigh.toLocaleString()}{' '}
+                <span className="text-lg font-normal text-muted-foreground">MXN</span>
+              </p>
+              <p className="text-muted-foreground text-xs mt-3">por mes</p>
             </div>
             <p className="text-xs text-muted-foreground">
-              Este cálculo es una estimación basada en datos de tráfico y ubicaciones similares. El valor real puede variar.
+              Este cálculo es una estimación basada en tráfico vehicular, visibilidad de la ubicación y tipo de estructura.
             </p>
 
             <div className="bg-card border border-border rounded-2xl p-6 text-left space-y-3">
@@ -221,7 +236,7 @@ const ValorEspectacular: React.FC = () => {
                 ¿Quieres recibir solicitudes de marcas interesadas en tu espectacular?
               </p>
               <p className="text-sm text-muted-foreground">
-                Publica tu ubicación en Maddi y permite que marcas evalúen tu espacio usando datos de tráfico.
+                Publica tu ubicación en Maddi y permite que marcas evalúen tu espacio usando datos de tráfico y perfil demográfico.
               </p>
               <Button
                 className="w-full rounded-xl"
@@ -246,11 +261,11 @@ const ValorEspectacular: React.FC = () => {
     );
   }
 
+  // ── Form steps ────────────────────────────────────────────
   return (
     <main className="min-h-screen bg-background flex flex-col pb-20 md:pb-0">
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="max-w-lg w-full space-y-6">
-          {/* Progress */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>Paso {step} de {TOTAL_STEPS}</span>
@@ -259,7 +274,6 @@ const ValorEspectacular: React.FC = () => {
             <Progress value={(step / TOTAL_STEPS) * 100} className="h-2" />
           </div>
 
-          {/* Step content */}
           <div className="bg-card border border-border rounded-2xl p-6 md:p-8 space-y-5 min-h-[280px]">
             {step === 1 && (
               <>
@@ -287,9 +301,9 @@ const ValorEspectacular: React.FC = () => {
 
             {step === 3 && (
               <>
-                <h2 className="text-lg font-bold text-foreground">¿Qué tipo de estructura es?</h2>
+                <h2 className="text-lg font-bold text-foreground">¿Qué tipo de espectacular tienes?</h2>
                 <div className="flex flex-col gap-2">
-                  {STRUCTURES.map(s => (
+                  {STRUCTURE_OPTIONS.map(s => (
                     <ChoiceButton key={s.value} selected={structureType === s.value} onClick={() => setStructureType(s.value)}>
                       {s.label}
                     </ChoiceButton>
@@ -300,19 +314,6 @@ const ValorEspectacular: React.FC = () => {
 
             {step === 4 && (
               <>
-                <h2 className="text-lg font-bold text-foreground">¿Cuáles son las medidas aproximadas?</h2>
-                <div className="flex flex-col gap-2">
-                  {SIZES.map(s => (
-                    <ChoiceButton key={s.value} selected={size === s.value} onClick={() => setSize(s.value)}>
-                      {s.label}
-                    </ChoiceButton>
-                  ))}
-                </div>
-              </>
-            )}
-
-            {step === 5 && (
-              <>
                 <h2 className="text-lg font-bold text-foreground">¿Tu espectacular está actualmente rentado?</h2>
                 <div className="flex flex-col gap-2">
                   {RENTED_OPTIONS.map(r => (
@@ -322,7 +323,7 @@ const ValorEspectacular: React.FC = () => {
               </>
             )}
 
-            {step === 6 && (
+            {step === 5 && (
               <>
                 <h2 className="text-lg font-bold text-foreground">Casi listo — ¿a dónde enviamos tu estimación?</h2>
                 <div className="space-y-3">
@@ -334,7 +335,6 @@ const ValorEspectacular: React.FC = () => {
             )}
           </div>
 
-          {/* Nav buttons */}
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleBack} disabled={step === 1} className="rounded-xl">
               <ArrowLeft className="w-4 h-4 mr-1" />
@@ -345,7 +345,12 @@ const ValorEspectacular: React.FC = () => {
               disabled={!canAdvance() || saving}
               className="flex-1 rounded-xl"
             >
-              {saving ? 'Calculando...' : step === 6 ? 'Ver mi estimación' : 'Siguiente'}
+              {saving ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  Calculando...
+                </>
+              ) : step === TOTAL_STEPS ? 'Ver mi estimación' : 'Siguiente'}
               {!saving && <ArrowRight className="w-4 h-4 ml-1" />}
             </Button>
           </div>
