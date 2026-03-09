@@ -15,21 +15,21 @@ export type ZoneCategory = 'premium' | 'comercial' | 'media' | 'periferica';
 export function getVisibilityScore(zone: ZoneCategory): number {
   const map: Record<ZoneCategory, number> = {
     premium: 0.45,
-    comercial: 0.35,
-    media: 0.25,
-    periferica: 0.15,
+    comercial: 0.38,
+    media: 0.30,
+    periferica: 0.20,
   };
-  return map[zone] ?? 0.25;
+  return Math.max(map[zone] ?? 0.30, 0.20);
 }
 
 export function getCPMBase(zone: ZoneCategory): number {
   const map: Record<ZoneCategory, number> = {
     premium: 60,
-    comercial: 40,
-    media: 25,
-    periferica: 25,
+    comercial: 45,
+    media: 35,
+    periferica: 30,
   };
-  return map[zone] ?? 25;
+  return Math.max(map[zone] ?? 35, 30);
 }
 
 export function getZoneMultiplier(zone: ZoneCategory): number {
@@ -105,7 +105,15 @@ const COMERCIAL_KEYWORDS = [
   'autopista', 'carretera', 'industrial',
 ];
 
-export function classifyZone(zone: string, city: string): ZoneCategory {
+export function classifyZone(zone: string, city: string, trafficDaily?: number): ZoneCategory {
+  // Traffic-based classification takes priority when available
+  if (trafficDaily) {
+    if (trafficDaily > 40000) return 'premium';
+    if (trafficDaily >= 25000) return 'comercial';
+    if (trafficDaily >= 12000) return 'media';
+    return 'periferica';
+  }
+
   const text = `${zone} ${city}`.toLowerCase();
 
   if (PREMIUM_KEYWORDS.some(k => text.includes(k))) return 'premium';
@@ -146,11 +154,15 @@ export function estimateSpectacularValue(input: ValuationInput): ValuationResult
 
   const impressionsMonthly = Math.round(input.trafficDaily * 30 * visibilityScore);
   const valueBase = (impressionsMonthly / 1000) * cpmBase;
-  const estimatedValue = Math.round(valueBase * formatMultiplier * zoneMultiplier);
+  let estimatedValue = Math.round(valueBase * formatMultiplier * zoneMultiplier);
 
-  // Use wider range to make estimates more realistic
-  const valueLow = Math.round(estimatedValue * 0.85 / 500) * 500;
-  const valueHigh = Math.round(estimatedValue * 1.15 / 500) * 500;
+  // Floor to prevent unrealistically low values for urban locations
+  if (estimatedValue < 8000) {
+    estimatedValue = 8000;
+  }
+
+  const valueLow = Math.round(estimatedValue * 0.90 / 500) * 500;
+  const valueHigh = Math.round(estimatedValue * 1.10 / 500) * 500;
 
   return {
     trafficDaily: input.trafficDaily,
@@ -160,7 +172,7 @@ export function estimateSpectacularValue(input: ValuationInput): ValuationResult
     formatMultiplier,
     zoneMultiplier,
     estimatedValue,
-    valueLow: Math.max(valueLow, 3000), // floor at $3,000
-    valueHigh: Math.max(valueHigh, 5000),
+    valueLow: Math.max(valueLow, 7000),
+    valueHigh: Math.max(valueHigh, 9000),
   };
 }

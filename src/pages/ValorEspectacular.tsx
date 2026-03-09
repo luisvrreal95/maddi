@@ -57,13 +57,9 @@ const ValorEspectacular: React.FC = () => {
     // Final step — calculate and save
     setSaving(true);
     try {
-      // Classify zone
-      const zoneCategory = classifyZone(zone, city);
-
       // Get traffic estimate (try edge function first, fallback to city estimate)
       let trafficDaily = estimateTrafficByCity(city);
       try {
-        // Use a simple lat/lng from city as proxy (MVP)
         const cityCoords: Record<string, [number, number]> = {
           Mexicali: [32.6245, -115.4523],
           Tijuana: [32.5149, -117.0382],
@@ -80,6 +76,9 @@ const ValorEspectacular: React.FC = () => {
       } catch {
         // Use fallback — already set
       }
+
+      // Classify zone using traffic data when available
+      const zoneCategory = classifyZone(zone, city, trafficDaily);
 
       const valuation = estimateSpectacularValue({
         trafficDaily,
