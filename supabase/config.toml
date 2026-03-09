@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.owner-activation-reminder]
 verify_jwt = false
+
+[functions.get-traffic-estimate]
+verify_jwt = false
