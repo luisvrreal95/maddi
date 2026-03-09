@@ -35,8 +35,7 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
         <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-[#2A2A2A] relative">
           {billboard.image_url ? (
             <>
-              <img src={billboard.image_url} alt="" className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 opacity-60" />
-              <img src={billboard.image_url} alt={billboard.title} className="relative w-full h-full object-contain z-10" />
+              <img src={billboard.image_url} alt={billboard.title} className="w-full h-full object-cover" />
             </>
           ) : (
             <div className="w-full h-full flex items-center justify-center">
