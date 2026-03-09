@@ -93,11 +93,11 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
     >
       {/* Image Carousel */}
       {allImages.length > 0 && (
-        <div className="relative w-full h-48 group bg-secondary flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-48 group">
           <img 
             src={allImages[currentImageIndex]} 
             alt={property.name}
-            className="max-w-full max-h-full w-full h-full object-contain"
+            className="w-full h-full object-cover"
           />
           {/* Gradient overlay at bottom */}
           <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/40 to-transparent" />
