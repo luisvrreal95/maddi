@@ -146,11 +146,15 @@ export function estimateSpectacularValue(input: ValuationInput): ValuationResult
 
   const impressionsMonthly = Math.round(input.trafficDaily * 30 * visibilityScore);
   const valueBase = (impressionsMonthly / 1000) * cpmBase;
-  const estimatedValue = Math.round(valueBase * formatMultiplier * zoneMultiplier);
+  let estimatedValue = Math.round(valueBase * formatMultiplier * zoneMultiplier);
 
-  // Use wider range to make estimates more realistic
-  const valueLow = Math.round(estimatedValue * 0.85 / 500) * 500;
-  const valueHigh = Math.round(estimatedValue * 1.15 / 500) * 500;
+  // Floor to prevent unrealistically low values for urban locations
+  if (estimatedValue < 8000) {
+    estimatedValue = 8000;
+  }
+
+  const valueLow = Math.round(estimatedValue * 0.90 / 500) * 500;
+  const valueHigh = Math.round(estimatedValue * 1.10 / 500) * 500;
 
   return {
     trafficDaily: input.trafficDaily,
@@ -160,7 +164,7 @@ export function estimateSpectacularValue(input: ValuationInput): ValuationResult
     formatMultiplier,
     zoneMultiplier,
     estimatedValue,
-    valueLow: Math.max(valueLow, 3000), // floor at $3,000
-    valueHigh: Math.max(valueHigh, 5000),
+    valueLow: Math.max(valueLow, 7000),
+    valueHigh: Math.max(valueHigh, 9000),
   };
 }
