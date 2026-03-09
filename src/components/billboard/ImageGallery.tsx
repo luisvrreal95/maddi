@@ -79,7 +79,7 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
             <div className="hidden md:grid grid-cols-2 grid-rows-2 gap-1">
               {images.slice(1, 5).map((img, i) => (
                 <div key={i} onClick={() => openLightbox(i + 1)} className="hover:opacity-90 transition-opacity">
-                  <BlurredImage src={img} alt={`${title} ${i + 2}`} className="w-full h-full bg-secondary" />
+                  <GalleryImage src={img} alt={`${title} ${i + 2}`} className="w-full h-full bg-secondary" />
                 </div>
               ))}
             </div>
