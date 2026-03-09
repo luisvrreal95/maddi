@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, X, ArrowLeft } from 'lucide-react';
+import { MessageCircle, X, ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
-type FlowStep = 'welcome' | 'owner-city' | 'owner-cta' | 'brand-city' | 'brand-cta' | 'calculator-cta' | 'exploring';
+type FlowStep = 'welcome' | 'owner-city' | 'owner-cta' | 'brand-city' | 'brand-cta' | 'calculator-cta' | 'support-form' | 'support-sent';
 
 interface ChatMessage {
   id: string;
@@ -23,6 +24,12 @@ const ChatbotWidget: React.FC = () => {
   const [showPulse, setShowPulse] = useState(true);
   const navigate = useNavigate();
 
+  // Support form state
+  const [supportName, setSupportName] = useState('');
+  const [supportEmail, setSupportEmail] = useState('');
+  const [supportPhone, setSupportPhone] = useState('');
+  const [sendingSupport, setSendingSupport] = useState(false);
+
   const addBotMessage = useCallback((content: React.ReactNode) => {
     setMessages(prev => [...prev, { id: crypto.randomUUID(), content, isBot: true }]);
   }, []);
@@ -30,6 +37,15 @@ const ChatbotWidget: React.FC = () => {
   const addUserMessage = useCallback((content: string) => {
     setMessages(prev => [...prev, { id: crypto.randomUUID(), content, isBot: false }]);
   }, []);
+
+  const welcomeMessage = (
+    <div>
+      <p>Hola 👋</p>
+      <p className="mt-1">Bienvenido a <strong>Maddi</strong>.</p>
+      <p className="mt-2 text-muted-foreground text-sm">Estamos organizando el mapa digital de espectaculares en México.</p>
+      <p className="mt-3 font-medium">¿Qué te gustaría hacer?</p>
+    </div>
+  );
 
   // Auto-open after 6 seconds
   useEffect(() => {
@@ -45,18 +61,7 @@ const ChatbotWidget: React.FC = () => {
   // Initialize welcome messages
   useEffect(() => {
     if (messages.length === 0) {
-      setMessages([{
-        id: 'welcome-1',
-        content: (
-          <div>
-            <p>Hola 👋</p>
-            <p className="mt-1">Bienvenido a <strong>Maddi</strong>.</p>
-            <p className="mt-2 text-muted-foreground text-sm">Estamos organizando el mapa digital de espectaculares en México.</p>
-            <p className="mt-3 font-medium">¿Qué te gustaría hacer?</p>
-          </div>
-        ),
-        isBot: true,
-      }]);
+      setMessages([{ id: 'welcome-1', content: welcomeMessage, isBot: true }]);
     }
   }, [messages.length]);
 
@@ -70,18 +75,10 @@ const ChatbotWidget: React.FC = () => {
 
   const handleReset = () => {
     setFlowStep('welcome');
-    setMessages([{
-      id: 'welcome-1',
-      content: (
-        <div>
-          <p>Hola 👋</p>
-          <p className="mt-1">Bienvenido a <strong>Maddi</strong>.</p>
-          <p className="mt-2 text-muted-foreground text-sm">Estamos organizando el mapa digital de espectaculares en México.</p>
-          <p className="mt-3 font-medium">¿Qué te gustaría hacer?</p>
-        </div>
-      ),
-      isBot: true,
-    }]);
+    setSupportName('');
+    setSupportEmail('');
+    setSupportPhone('');
+    setMessages([{ id: 'welcome-1', content: welcomeMessage, isBot: true }]);
   };
 
   const handleOwnerFlow = () => {
@@ -107,11 +104,7 @@ const ChatbotWidget: React.FC = () => {
     addUserMessage(city);
     setFlowStep('owner-cta');
     setTimeout(() => {
-      addBotMessage(
-        <div>
-          <p>Publicar tu ubicación toma menos de 5 minutos.</p>
-        </div>
-      );
+      addBotMessage(<p>Publicar tu ubicación toma menos de 5 minutos.</p>);
     }, 400);
   };
 
@@ -156,20 +149,51 @@ const ChatbotWidget: React.FC = () => {
     }, 400);
   };
 
-  const handleExploring = () => {
+  const handleSupportFlow = () => {
     logEvent('chatbot_option_selected');
-    addUserMessage('Solo estoy explorando');
-    setFlowStep('exploring');
+    addUserMessage('Contactar al equipo de soporte');
+    setFlowStep('support-form');
     setTimeout(() => {
       addBotMessage(
         <div>
-          <p>¡Bienvenido! 🚀</p>
+          <p>Con gusto te ayudamos 🙌</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            Explora el sitio y si tienes alguna duda, aquí estaré.
+            Déjanos tus datos y nuestro equipo se pondrá en contacto contigo en breve.
           </p>
         </div>
       );
     }, 400);
+  };
+
+  const handleSendSupport = async () => {
+    if (!supportName.trim() || !supportEmail.includes('@')) return;
+    setSendingSupport(true);
+    try {
+      await supabase.functions.invoke('send-notification-email', {
+        body: {
+          email: 'luis@maddi.com.mx',
+          type: 'support_contact',
+          recipientName: 'Luis',
+          data: {
+            contactName: supportName.trim(),
+            contactEmail: supportEmail.trim(),
+            contactPhone: supportPhone.trim() || '',
+          },
+        },
+      });
+    } catch (err) {
+      console.error('Error sending support contact:', err);
+    }
+    setSendingSupport(false);
+    setFlowStep('support-sent');
+    addBotMessage(
+      <div>
+        <p>¡Gracias, {supportName.trim()}! ✅</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Recibimos tus datos. Nuestro equipo se pondrá en contacto contigo en breve a <strong>{supportEmail.trim()}</strong>.
+        </p>
+      </div>
+    );
   };
 
   const OptionButton: React.FC<{ onClick: () => void; children: React.ReactNode; variant?: 'primary' | 'outline' }> = ({ onClick, children, variant = 'outline' }) => (
@@ -186,11 +210,12 @@ const ChatbotWidget: React.FC = () => {
     </button>
   );
 
-  const ActionButton: React.FC<{ onClick: () => void; children: React.ReactNode; primary?: boolean }> = ({ onClick, children, primary }) => (
+  const ActionButton: React.FC<{ onClick: () => void; children: React.ReactNode; primary?: boolean; disabled?: boolean }> = ({ onClick, children, primary, disabled }) => (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={cn(
-        "w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all",
+        "w-full px-4 py-2.5 rounded-xl text-sm font-medium transition-all disabled:opacity-50",
         primary
           ? "bg-primary text-primary-foreground hover:bg-primary/90"
           : "bg-secondary hover:bg-secondary/80 text-foreground border border-border"
@@ -208,7 +233,7 @@ const ChatbotWidget: React.FC = () => {
             <OptionButton onClick={handleOwnerFlow}>🏗️ Tengo un espectacular y quiero publicarlo</OptionButton>
             <OptionButton onClick={handleBrandFlow}>📢 Quiero anunciar una marca o campaña</OptionButton>
             <OptionButton onClick={handleCalculatorFlow}>💰 Calcular cuánto podría valer mi espectacular</OptionButton>
-            <OptionButton onClick={handleExploring}>👀 Solo estoy explorando</OptionButton>
+            <OptionButton onClick={handleSupportFlow}>💬 Contactar al equipo de soporte</OptionButton>
           </div>
         );
       case 'owner-city':
@@ -260,15 +285,47 @@ const ChatbotWidget: React.FC = () => {
             </ActionButton>
           </div>
         );
-      case 'exploring':
+      case 'support-form':
         return (
           <div className="flex flex-col gap-2 p-3">
-            <ActionButton onClick={() => { navigate('/search'); handleClose(); }}>
-              🗺️ Explorar espectaculares
+            <input
+              type="text"
+              placeholder="Tu nombre *"
+              value={supportName}
+              onChange={e => setSupportName(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <input
+              type="email"
+              placeholder="Tu correo *"
+              value={supportEmail}
+              onChange={e => setSupportEmail(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <input
+              type="tel"
+              placeholder="Teléfono (opcional)"
+              value={supportPhone}
+              onChange={e => setSupportPhone(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm bg-secondary border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+            <ActionButton
+              primary
+              onClick={handleSendSupport}
+              disabled={!supportName.trim() || !supportEmail.includes('@') || sendingSupport}
+            >
+              {sendingSupport ? (
+                <span className="flex items-center justify-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Enviando...</span>
+              ) : (
+                <span className="flex items-center justify-center gap-2"><Send className="w-4 h-4" /> Enviar</span>
+              )}
             </ActionButton>
-            <ActionButton onClick={handleReset}>
-              ← Volver al inicio
-            </ActionButton>
+          </div>
+        );
+      case 'support-sent':
+        return (
+          <div className="flex flex-col gap-2 p-3">
+            <ActionButton onClick={handleReset}>← Volver al inicio</ActionButton>
           </div>
         );
       default:
@@ -278,7 +335,6 @@ const ChatbotWidget: React.FC = () => {
 
   return (
     <>
-      {/* Floating button */}
       {!isOpen && (
         <button
           onClick={handleOpen}
@@ -292,12 +348,10 @@ const ChatbotWidget: React.FC = () => {
         </button>
       )}
 
-      {/* Chat panel */}
       {isOpen && (
         <div className="fixed bottom-24 md:bottom-6 right-4 md:right-6 z-50 w-[340px] max-w-[calc(100vw-2rem)] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 fade-in duration-300"
           style={{ maxHeight: 'min(520px, calc(100vh - 120px))' }}
         >
-          {/* Header */}
           <div className="bg-foreground px-4 py-3 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">
               {flowStep !== 'welcome' && (
@@ -313,7 +367,6 @@ const ChatbotWidget: React.FC = () => {
             </button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
             {messages.map(msg => (
               <div key={msg.id} className={cn("flex", msg.isBot ? "justify-start" : "justify-end")}>
@@ -329,7 +382,6 @@ const ChatbotWidget: React.FC = () => {
             ))}
           </div>
 
-          {/* Options */}
           <div className="border-t border-border shrink-0">
             {renderOptions()}
           </div>

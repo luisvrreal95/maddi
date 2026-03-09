@@ -84,6 +84,9 @@ const ValorEspectacular: React.FC = () => {
       const estimated = estimateValue(city, structureType, size);
       setResult(estimated);
 
+      const structureLabel = STRUCTURES.find(s => s.value === structureType)?.label || structureType;
+      const sizeLabel = SIZES.find(s => s.value === size)?.label || size;
+
       try {
         await supabase.from('spectacular_valuation_leads').insert({
           name: name.trim(),
@@ -98,6 +101,44 @@ const ValorEspectacular: React.FC = () => {
           estimated_value_max: estimated.max,
         });
         console.log('[chatbot_event] calculator_completed');
+
+        // Send result email to user
+        supabase.functions.invoke('send-notification-email', {
+          body: {
+            email: email.trim(),
+            type: 'valuation_result',
+            recipientName: name.trim(),
+            data: {
+              valueMin: estimated.min.toLocaleString(),
+              valueMax: estimated.max.toLocaleString(),
+              city,
+              zone,
+              structureType: structureLabel,
+              size: sizeLabel,
+            },
+          },
+        }).catch(err => console.error('Error sending valuation email to user:', err));
+
+        // Notify admin
+        supabase.functions.invoke('send-notification-email', {
+          body: {
+            email: 'luis@maddi.com.mx',
+            type: 'valuation_admin_notification',
+            recipientName: 'Luis',
+            data: {
+              contactName: name.trim(),
+              contactEmail: email.trim(),
+              contactPhone: phone.trim() || '',
+              city,
+              zone,
+              structureType: structureLabel,
+              size: sizeLabel,
+              valueMin: estimated.min.toLocaleString(),
+              valueMax: estimated.max.toLocaleString(),
+              isRented: rented,
+            },
+          },
+        }).catch(err => console.error('Error sending admin notification:', err));
       } catch (err) {
         console.error('Error saving lead:', err);
       }
