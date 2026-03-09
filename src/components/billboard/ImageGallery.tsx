@@ -13,6 +13,13 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [showAll, setShowAll] = useState(false);
 
+  const BlurredImage = ({ src, alt, className = '' }: { src: string; alt: string; className?: string }) => (
+    <div className={`relative overflow-hidden ${className}`}>
+      <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60" />
+      <img src={src} alt={alt} className="relative w-full h-full object-contain z-10" />
+    </div>
+  );
+
   if (images.length === 0) {
     return (
       <div className="w-full h-[300px] md:h-[420px] bg-secondary flex items-center justify-center rounded-xl">
