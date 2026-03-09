@@ -147,12 +147,12 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
         </div>
       )}
       {/* Image - Always show with fixed height */}
-      <div className="relative mb-4 rounded-xl overflow-hidden h-40 flex-shrink-0">
+      <div className="relative mb-4 rounded-xl overflow-hidden h-40 flex-shrink-0 bg-secondary flex items-center justify-center">
         {billboard.image_url ? (
           <img 
             src={billboard.image_url} 
             alt={billboard.title}
-            className="w-full h-full object-cover"
+            className="max-w-full max-h-full w-full h-full object-contain"
           />
         ) : (
           <div className="w-full h-full bg-[#2A2A2A] flex items-center justify-center">
