@@ -105,7 +105,15 @@ const COMERCIAL_KEYWORDS = [
   'autopista', 'carretera', 'industrial',
 ];
 
-export function classifyZone(zone: string, city: string): ZoneCategory {
+export function classifyZone(zone: string, city: string, trafficDaily?: number): ZoneCategory {
+  // Traffic-based classification takes priority when available
+  if (trafficDaily) {
+    if (trafficDaily > 40000) return 'premium';
+    if (trafficDaily >= 25000) return 'comercial';
+    if (trafficDaily >= 12000) return 'media';
+    return 'periferica';
+  }
+
   const text = `${zone} ${city}`.toLowerCase();
 
   if (PREMIUM_KEYWORDS.some(k => text.includes(k))) return 'premium';
