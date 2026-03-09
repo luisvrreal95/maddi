@@ -60,12 +60,12 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
         ) : images.length === 3 ? (
           <div className="grid grid-cols-2 gap-1 h-[300px] md:h-[420px]">
             <div onClick={() => openLightbox(0)} className="row-span-2 hover:opacity-90 transition-opacity">
-              <BlurredImage src={images[0]} alt={title} className="w-full h-full bg-secondary" />
+              <GalleryImage src={images[0]} alt={title} className="w-full h-full bg-secondary" />
             </div>
             <div className="grid grid-rows-2 gap-1">
               {images.slice(1, 3).map((img, i) => (
                 <div key={i} onClick={() => openLightbox(i + 1)} className="hover:opacity-90 transition-opacity">
-                  <BlurredImage src={img} alt={`${title} ${i + 2}`} className="w-full h-full bg-secondary" />
+                  <GalleryImage src={img} alt={`${title} ${i + 2}`} className="w-full h-full bg-secondary" />
                 </div>
               ))}
             </div>
