@@ -96,13 +96,8 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
         <div className="relative w-full h-48 group overflow-hidden">
           <img 
             src={allImages[currentImageIndex]} 
-            alt=""
-            className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60"
-          />
-          <img 
-            src={allImages[currentImageIndex]} 
             alt={property.name}
-            className="relative w-full h-full object-contain z-10"
+            className="w-full h-full object-cover"
           />
           {/* Gradient overlay at bottom */}
           <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/40 to-transparent" />

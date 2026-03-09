@@ -152,11 +152,8 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
                   </Button>
                 </>
               )}
-              <div className="relative max-h-[85vh] max-w-[90vw]">
-                <img src={images[lightboxIndex]} alt="" className="absolute inset-0 w-full h-full object-cover blur-3xl scale-125 opacity-40" />
-                <img src={images[lightboxIndex]} alt={`${title} ${lightboxIndex + 1}`}
-                  className="relative max-h-[85vh] max-w-[90vw] object-contain z-10" />
-              </div>
+              <img src={images[lightboxIndex]} alt={`${title} ${lightboxIndex + 1}`}
+                className="max-h-[85vh] max-w-[90vw] object-contain" />
               {images.length > 1 && (
                 <Button variant="ghost" size="sm" onClick={() => setShowAll(true)}
                   className="absolute bottom-6 text-white/70 hover:text-white hover:bg-white/10 gap-1.5 text-xs">
