@@ -40,32 +40,33 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
       {/* Airbnb-style grid */}
       <div className="rounded-xl overflow-hidden cursor-pointer">
       {images.length === 1 ? (
-          <img
-            src={images[0]}
-            alt={title}
-            onClick={() => openLightbox(0)}
-            className="w-full h-[300px] md:h-[420px] object-cover hover:opacity-90 transition-opacity"
-          />
+          <div className="w-full h-[300px] md:h-[420px] bg-secondary flex items-center justify-center" onClick={() => openLightbox(0)}>
+            <img
+              src={images[0]}
+              alt={title}
+              className="max-w-full max-h-full w-full h-full object-contain hover:opacity-90 transition-opacity"
+            />
+          </div>
         ) : images.length === 2 ? (
           <div className="grid grid-cols-2 gap-1 h-[300px] md:h-[420px]">
             {images.slice(0, 2).map((img, i) => (
-              <div key={i} className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(i)}>
+              <div key={i} className="relative w-full h-full bg-secondary flex items-center justify-center overflow-hidden" onClick={() => openLightbox(i)}>
                 <img src={img} alt={`${title} ${i + 1}`}
-                  className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                  className="max-w-full max-h-full w-full h-full object-contain hover:opacity-90 transition-opacity" />
               </div>
             ))}
           </div>
         ) : images.length === 3 ? (
           <div className="grid grid-cols-2 gap-1 h-[300px] md:h-[420px]">
-            <div className="relative w-full h-full overflow-hidden row-span-2" onClick={() => openLightbox(0)}>
+            <div className="relative w-full h-full bg-secondary flex items-center justify-center overflow-hidden row-span-2" onClick={() => openLightbox(0)}>
               <img src={images[0]} alt={title}
-                className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                className="max-w-full max-h-full w-full h-full object-contain hover:opacity-90 transition-opacity" />
             </div>
             <div className="grid grid-rows-2 gap-1">
               {images.slice(1, 3).map((img, i) => (
-                <div key={i} className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(i + 1)}>
+                <div key={i} className="relative w-full h-full bg-secondary flex items-center justify-center overflow-hidden" onClick={() => openLightbox(i + 1)}>
                   <img src={img} alt={`${title} ${i + 2}`}
-                    className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                    className="max-w-full max-h-full w-full h-full object-contain hover:opacity-90 transition-opacity" />
                 </div>
               ))}
             </div>
@@ -73,15 +74,15 @@ const ImageGallery: React.FC<ImageGalleryProps> = ({ images, title }) => {
         ) : (
           /* 4+ images: main left + 2x2 grid right */
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-1 h-[250px] md:h-[420px]">
-            <div className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(0)}>
+            <div className="relative w-full h-full bg-secondary flex items-center justify-center overflow-hidden" onClick={() => openLightbox(0)}>
               <img src={images[0]} alt={title}
-                className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                className="max-w-full max-h-full w-full h-full object-contain hover:opacity-90 transition-opacity" />
             </div>
             <div className="hidden md:grid grid-cols-2 grid-rows-2 gap-1">
               {images.slice(1, 5).map((img, i) => (
-                <div key={i} className="relative w-full h-full overflow-hidden" onClick={() => openLightbox(i + 1)}>
+                <div key={i} className="relative w-full h-full bg-secondary flex items-center justify-center overflow-hidden" onClick={() => openLightbox(i + 1)}>
                   <img src={img} alt={`${title} ${i + 2}`}
-                    className="w-full h-full object-cover hover:opacity-90 transition-opacity" />
+                    className="max-w-full max-h-full w-full h-full object-contain hover:opacity-90 transition-opacity" />
                 </div>
               ))}
             </div>

@@ -152,7 +152,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
           <img 
             src={billboard.image_url} 
             alt={billboard.title}
-            className="w-full h-full object-cover"
+            className="max-w-full max-h-full w-full h-full object-contain"
           />
         ) : (
           <div className="w-full h-full bg-[#2A2A2A] flex items-center justify-center">
