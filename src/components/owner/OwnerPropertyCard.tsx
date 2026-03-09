@@ -147,7 +147,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
         </div>
       )}
       {/* Image - Always show with fixed height */}
-      <div className="relative mb-4 rounded-xl overflow-hidden h-40 flex-shrink-0">
+      <div className="relative mb-4 rounded-xl overflow-hidden h-40 flex-shrink-0 bg-secondary flex items-center justify-center">
         {billboard.image_url ? (
           <img 
             src={billboard.image_url} 
