@@ -1,20 +1,22 @@
 /**
  * Valuation Engine for Maddi Billboard Rental Estimation
  *
- * Uses a CPM-based model:
+ * Hybrid model: max(traffic-based value, corridor floor)
+ *
  *   impressions_monthly = traffic_daily * 30 * visibility_score
- *   value_base = (impressions_monthly / 1000) * cpm_base
- *   value_estimated = value_base * format_multiplier * zone_multiplier
- *   range = [value_estimated * 0.85, value_estimated * 1.15]
+ *   value_traffic = (impressions_monthly / 1000) * cpm_base * format_mult * zone_mult
+ *   value_final = max(value_traffic, zone_floor)
+ *   range = [value_final * 0.90, value_final * 1.10]
  */
 
 // ── Zone classification ──────────────────────────────────────────────
 
-export type ZoneCategory = 'premium' | 'comercial' | 'media' | 'periferica';
+export type ZoneCategory = 'premium' | 'comercial_fuerte' | 'comercial' | 'media' | 'periferica';
 
 export function getVisibilityScore(zone: ZoneCategory): number {
   const map: Record<ZoneCategory, number> = {
     premium: 0.45,
+    comercial_fuerte: 0.40,
     comercial: 0.38,
     media: 0.30,
     periferica: 0.20,
@@ -25,6 +27,7 @@ export function getVisibilityScore(zone: ZoneCategory): number {
 export function getCPMBase(zone: ZoneCategory): number {
   const map: Record<ZoneCategory, number> = {
     premium: 60,
+    comercial_fuerte: 50,
     comercial: 45,
     media: 35,
     periferica: 30,
@@ -35,11 +38,23 @@ export function getCPMBase(zone: ZoneCategory): number {
 export function getZoneMultiplier(zone: ZoneCategory): number {
   const map: Record<ZoneCategory, number> = {
     premium: 1.30,
+    comercial_fuerte: 1.22,
     comercial: 1.15,
     media: 1.00,
     periferica: 0.85,
   };
   return map[zone] ?? 1.00;
+}
+
+export function getZoneFloor(zone: ZoneCategory): number {
+  const map: Record<ZoneCategory, number> = {
+    premium: 20000,
+    comercial_fuerte: 18000,
+    comercial: 14000,
+    media: 10000,
+    periferica: 7000,
+  };
+  return map[zone] ?? 10000;
 }
 
 // ── Format / structure multiplier ────────────────────────────────────
@@ -92,7 +107,67 @@ export function estimateTrafficByCity(city: string): number {
   return 15000;
 }
 
-// ── Zone classification heuristic (MVP) ──────────────────────────────
+// ── Corridor detection ───────────────────────────────────────────────
+
+interface CorridorEntry {
+  keywords: string[];
+  category: ZoneCategory;
+}
+
+const MEXICALI_CORRIDORS: CorridorEntry[] = [
+  { keywords: ['lazaro cardenas', 'lázaro cárdenas', 'lazaro cárdenas'], category: 'premium' },
+  { keywords: ['justo sierra'], category: 'premium' },
+  { keywords: ['cetys', 'calzada cetys'], category: 'premium' },
+  { keywords: ['lopez mateos', 'lópez mateos'], category: 'premium' },
+  { keywords: ['benito juarez', 'benito juárez', 'centro civico', 'centro cívico'], category: 'premium' },
+  { keywords: ['independencia'], category: 'premium' },
+  { keywords: ['anahuac', 'anáhuac'], category: 'comercial_fuerte' },
+  { keywords: ['venustiano carranza', 'carranza'], category: 'comercial_fuerte' },
+  { keywords: ['rio nuevo', 'río nuevo'], category: 'comercial_fuerte' },
+  { keywords: ['cuauhtemoc', 'cuauhtémoc'], category: 'comercial' },
+  { keywords: ['carretera san luis'], category: 'comercial' },
+];
+
+const TIJUANA_CORRIDORS: CorridorEntry[] = [
+  { keywords: ['zona rio', 'zona río'], category: 'premium' },
+  { keywords: ['agua caliente'], category: 'premium' },
+  { keywords: ['via rapida', 'vía rápida'], category: 'comercial_fuerte' },
+  { keywords: ['otay'], category: 'comercial' },
+];
+
+const CITY_CORRIDORS: Record<string, CorridorEntry[]> = {
+  mexicali: MEXICALI_CORRIDORS,
+  tijuana: TIJUANA_CORRIDORS,
+};
+
+export function detectCorridor(zone: string, city: string): ZoneCategory | null {
+  const cityKey = city.toLowerCase();
+  const text = zone.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const textOriginal = zone.toLowerCase();
+
+  // Find corridors for this city
+  let corridors: CorridorEntry[] = [];
+  for (const [key, entries] of Object.entries(CITY_CORRIDORS)) {
+    if (cityKey.includes(key)) {
+      corridors = entries;
+      break;
+    }
+  }
+
+  for (const corridor of corridors) {
+    for (const kw of corridor.keywords) {
+      const kwNorm = kw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      if (text.includes(kwNorm) || textOriginal.includes(kw)) {
+        return corridor.category;
+      }
+    }
+  }
+
+  return null;
+}
+
+// ── Zone classification heuristic ────────────────────────────────────
 
 const PREMIUM_KEYWORDS = [
   'zona dorada', 'zona río', 'polanco', 'santa fe', 'reforma',
@@ -106,7 +181,11 @@ const COMERCIAL_KEYWORDS = [
 ];
 
 export function classifyZone(zone: string, city: string, trafficDaily?: number): ZoneCategory {
-  // Traffic-based classification takes priority when available
+  // 1. Corridor detection takes highest priority
+  const corridor = detectCorridor(zone, city);
+  if (corridor) return corridor;
+
+  // 2. Traffic-based classification
   if (trafficDaily) {
     if (trafficDaily > 40000) return 'premium';
     if (trafficDaily >= 25000) return 'comercial';
@@ -114,16 +193,16 @@ export function classifyZone(zone: string, city: string, trafficDaily?: number):
     return 'periferica';
   }
 
+  // 3. Keyword heuristic
   const text = `${zone} ${city}`.toLowerCase();
 
   if (PREMIUM_KEYWORDS.some(k => text.includes(k))) return 'premium';
   if (COMERCIAL_KEYWORDS.some(k => text.includes(k))) return 'comercial';
 
-  // Cities that are generally higher-traffic default to 'media'
   const bigCities = ['cdmx', 'guadalajara', 'monterrey', 'tijuana', 'cancun'];
   if (bigCities.some(c => text.includes(c))) return 'media';
 
-  return 'media'; // safe default for MVP
+  return 'media';
 }
 
 // ── Main estimation function ─────────────────────────────────────────
@@ -141,6 +220,8 @@ export interface ValuationResult {
   visibilityScore: number;
   formatMultiplier: number;
   zoneMultiplier: number;
+  valueByTraffic: number;
+  zoneFloor: number;
   estimatedValue: number;
   valueLow: number;
   valueHigh: number;
@@ -154,11 +235,14 @@ export function estimateSpectacularValue(input: ValuationInput): ValuationResult
 
   const impressionsMonthly = Math.round(input.trafficDaily * 30 * visibilityScore);
   const valueBase = (impressionsMonthly / 1000) * cpmBase;
-  let estimatedValue = Math.round(valueBase * formatMultiplier * zoneMultiplier);
+  const valueByTraffic = Math.round(valueBase * formatMultiplier * zoneMultiplier);
 
-  // Floor to prevent unrealistically low values for urban locations
-  if (estimatedValue < 8000) {
-    estimatedValue = 8000;
+  const zoneFloor = getZoneFloor(input.zoneCategory);
+  let estimatedValue = Math.max(valueByTraffic, zoneFloor);
+
+  // Apply format multiplier to floor if floor was used
+  if (estimatedValue === zoneFloor && formatMultiplier > 1.0) {
+    estimatedValue = Math.round(zoneFloor * formatMultiplier);
   }
 
   const valueLow = Math.round(estimatedValue * 0.90 / 500) * 500;
@@ -171,8 +255,10 @@ export function estimateSpectacularValue(input: ValuationInput): ValuationResult
     visibilityScore,
     formatMultiplier,
     zoneMultiplier,
+    valueByTraffic,
+    zoneFloor,
     estimatedValue,
-    valueLow: Math.max(valueLow, 7000),
-    valueHigh: Math.max(valueHigh, 9000),
+    valueLow: Math.max(valueLow, 6500),
+    valueHigh: Math.max(valueHigh, 7500),
   };
 }
