@@ -18,7 +18,10 @@ type EmailType =
   | 'property_paused'
   | 'property_reactivated'
   | 'welcome'
-  | 'owner_activation';
+  | 'owner_activation'
+  | 'support_contact'
+  | 'valuation_result'
+  | 'valuation_admin_notification';
 
 interface NotificationEmailRequest {
   email: string;
