@@ -91,7 +91,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [sessionToken, setSessionToken] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
   // Generate a session token for the Search Box API
   useEffect(() => {

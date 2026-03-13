@@ -80,7 +80,7 @@ const AddProperty: React.FC = () => {
   const [addressSuggestions, setAddressSuggestions] = useState<LocationSuggestion[]>([]);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const addressInputRef = useRef<HTMLInputElement>(null);
   const isUserTypingRef = useRef(false);
   
