@@ -394,6 +394,16 @@ const Auth: React.FC = () => {
                 </button>
               </div>
               {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isSendingReset}
+                  className="text-white/50 hover:text-[#9BFF43] text-sm transition-colors mt-1 disabled:opacity-50"
+                >
+                  {isSendingReset ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
+                </button>
+              )}
             </div>
 
             {mode === 'signup' && (
