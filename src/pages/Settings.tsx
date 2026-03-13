@@ -207,7 +207,7 @@ const Settings: React.FC = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `https://maddi.com.mx/reset-password`,
       });
 
       if (error) throw error;

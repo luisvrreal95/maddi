@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, fullName: string, role: 'owner' | 'business', companyName?: string) => {
     // Redirect to home page after email verification
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `https://maddi.com.mx/`;
     
     // Store role in user_metadata - a trigger will create the user_role record
     const { data, error } = await supabase.auth.signUp({
@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `https://maddi.com.mx/auth`,
       },
     });
     return { error };
@@ -126,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'facebook',
       options: {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: `https://maddi.com.mx/auth`,
       },
     });
     return { error };

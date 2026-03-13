@@ -9,7 +9,7 @@ import {
   Head,
   Heading,
   Html,
-  Link,
+  Img,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -27,31 +27,27 @@ export const SignupEmail = ({
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirma tu email en Maddi</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
+        <Img
+          src="https://maddi.com.mx/favicon.svg"
+          alt="Maddi"
+          width="48"
+          height="48"
+          style={{ marginBottom: '24px' }}
+        />
+        <Heading style={h1}>¡Bienvenido a Maddi!</Heading>
         <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
+          Gracias por registrarte. Confirma tu dirección de correo electrónico ({recipient}) haciendo clic en el botón de abajo:
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Verify Email
+          Verificar email
         </Button>
         <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
+          Si no creaste una cuenta en Maddi, puedes ignorar este correo.
         </Text>
       </Container>
     </Body>
@@ -60,27 +56,39 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#0A0A0A', fontFamily: 'Arial, sans-serif' }
+const container = {
+  padding: '40px 32px',
+  backgroundColor: '#1A1A1A',
+  borderRadius: '16px',
+  maxWidth: '480px',
+  margin: '40px auto',
+}
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  color: '#ffffff',
+  margin: '0 0 16px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: 'rgba(255,255,255,0.65)',
+  lineHeight: '1.6',
+  margin: '0 0 28px',
 }
-const link = { color: 'inherit', textDecoration: 'underline' }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  backgroundColor: '#9BFF43',
+  color: '#1A1A1A',
+  fontSize: '15px',
+  fontWeight: 'bold' as const,
+  borderRadius: '12px',
+  padding: '14px 28px',
   textDecoration: 'none',
+  display: 'inline-block' as const,
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = {
+  fontSize: '13px',
+  color: 'rgba(255,255,255,0.4)',
+  margin: '32px 0 0',
+  lineHeight: '1.5',
+}
