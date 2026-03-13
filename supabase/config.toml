@@ -1,61 +1,45 @@
 project_id = "szmflagbbuxcuuxpvnkt"
 
-[functions.ai-search]
-verify_jwt = false
-
-[functions.get-mapbox-token]
-verify_jwt = false
-
-[functions.get-traffic-data]
-verify_jwt = false
-
-[functions.analyze-nearby-poi]
-verify_jwt = false
-
-[functions.get-tomtom-layers]
-verify_jwt = false
-
-[functions.analyze-inegi-data]
-verify_jwt = false
-
-[functions.send-notification-email]
-verify_jwt = false
-
-[functions.get-poi-overview]
-verify_jwt = false
-
-[functions.search-poi]
-verify_jwt = false
-
-[functions.get-tomtom-tile-url]
-verify_jwt = false
-
-[functions.send-admin-invite]
-verify_jwt = false
-
-[functions.validate-admin-invite]
-verify_jwt = false
-
-[functions.accept-admin-invite]
-verify_jwt = false
-
-[functions.send-verification-email]
-verify_jwt = false
-
-[functions.delete-user-account]
-verify_jwt = false
-
-[functions.campaign-lifecycle-notifications]
-verify_jwt = false
-
-[functions.get-admin-user-details]
-verify_jwt = false
-
-[functions.owner-activation-reminder]
-verify_jwt = false
-
-[functions.get-traffic-estimate]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.accept-admin-invite]
+    verify_jwt = false
+  [functions.ai-search]
+    verify_jwt = false
+  [functions.analyze-inegi-data]
+    verify_jwt = false
+  [functions.analyze-nearby-poi]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.campaign-lifecycle-notifications]
+    verify_jwt = false
+  [functions.delete-user-account]
+    verify_jwt = false
+  [functions.get-admin-user-details]
+    verify_jwt = false
+  [functions.get-mapbox-token]
+    verify_jwt = false
+  [functions.get-poi-overview]
+    verify_jwt = false
+  [functions.get-tomtom-layers]
+    verify_jwt = false
+  [functions.get-tomtom-tile-url]
+    verify_jwt = false
+  [functions.get-traffic-data]
+    verify_jwt = false
+  [functions.get-traffic-estimate]
+    verify_jwt = false
+  [functions.owner-activation-reminder]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.search-poi]
+    verify_jwt = false
+  [functions.send-admin-invite]
+    verify_jwt = false
+  [functions.send-notification-email]
+    verify_jwt = false
+  [functions.send-verification-email]
+    verify_jwt = false
+  [functions.validate-admin-invite]
+    verify_jwt = false
