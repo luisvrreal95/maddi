@@ -9,6 +9,7 @@ import {
   Head,
   Heading,
   Html,
+  Img,
   Preview,
   Text,
 } from 'npm:@react-email/components@0.0.22'
@@ -22,22 +23,29 @@ export const RecoveryEmail = ({
   siteName,
   confirmationUrl,
 }: RecoveryEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Reset your password for {siteName}</Preview>
+    <Preview>Restablece tu contraseña en Maddi</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Reset your password</Heading>
+        <Img
+          src="https://maddi.com.mx/favicon.svg"
+          alt="Maddi"
+          width="48"
+          height="48"
+          style={{ marginBottom: '24px' }}
+        />
+        <Heading style={h1}>Restablece tu contraseña</Heading>
         <Text style={text}>
-          We received a request to reset your password for {siteName}. Click
-          the button below to choose a new password.
+          Recibimos una solicitud para restablecer la contraseña de tu cuenta en Maddi.
+          Haz clic en el botón de abajo para elegir una nueva contraseña.
         </Text>
         <Button style={button} href={confirmationUrl}>
-          Reset Password
+          Restablecer contraseña
         </Button>
         <Text style={footer}>
-          If you didn't request a password reset, you can safely ignore this
-          email. Your password will not be changed.
+          Si no solicitaste este cambio, puedes ignorar este correo.
+          Tu contraseña no será modificada.
         </Text>
       </Container>
     </Body>
@@ -46,26 +54,39 @@ export const RecoveryEmail = ({
 
 export default RecoveryEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
+const main = { backgroundColor: '#0A0A0A', fontFamily: 'Arial, sans-serif' }
+const container = {
+  padding: '40px 32px',
+  backgroundColor: '#1A1A1A',
+  borderRadius: '16px',
+  maxWidth: '480px',
+  margin: '40px auto',
+}
 const h1 = {
-  fontSize: '22px',
+  fontSize: '24px',
   fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
+  color: '#ffffff',
+  margin: '0 0 16px',
 }
 const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
+  fontSize: '15px',
+  color: 'rgba(255,255,255,0.65)',
+  lineHeight: '1.6',
+  margin: '0 0 28px',
 }
 const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
+  backgroundColor: '#9BFF43',
+  color: '#1A1A1A',
+  fontSize: '15px',
+  fontWeight: 'bold' as const,
+  borderRadius: '12px',
+  padding: '14px 28px',
   textDecoration: 'none',
+  display: 'inline-block' as const,
 }
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const footer = {
+  fontSize: '13px',
+  color: 'rgba(255,255,255,0.4)',
+  margin: '32px 0 0',
+  lineHeight: '1.5',
+}
