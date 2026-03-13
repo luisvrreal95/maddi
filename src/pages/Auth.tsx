@@ -42,6 +42,32 @@ const Auth: React.FC = () => {
   const [selectedRoleForModal, setSelectedRoleForModal] = useState<UserType>(null);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [isSendingReset, setIsSendingReset] = useState(false);
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error('Ingresa tu email para recuperar tu contraseña');
+      return;
+    }
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      toast.error('Ingresa un email válido');
+      return;
+    }
+    setIsSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
+    } catch (err: any) {
+      console.error('Reset password error:', err);
+      toast.error(err?.message ?? 'Error al enviar correo de recuperación');
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
 
   useEffect(() => {
     // Only redirect if we have both user AND userRole loaded
