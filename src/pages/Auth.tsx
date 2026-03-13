@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -41,6 +42,32 @@ const Auth: React.FC = () => {
   const [selectedRoleForModal, setSelectedRoleForModal] = useState<UserType>(null);
   const [showVerificationMessage, setShowVerificationMessage] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
+  const [isSendingReset, setIsSendingReset] = useState(false);
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error('Ingresa tu email para recuperar tu contraseña');
+      return;
+    }
+    const emailResult = emailSchema.safeParse(email);
+    if (!emailResult.success) {
+      toast.error('Ingresa un email válido');
+      return;
+    }
+    setIsSendingReset(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      toast.success('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
+    } catch (err: any) {
+      console.error('Reset password error:', err);
+      toast.error(err?.message ?? 'Error al enviar correo de recuperación');
+    } finally {
+      setIsSendingReset(false);
+    }
+  };
 
   useEffect(() => {
     // Only redirect if we have both user AND userRole loaded
@@ -367,6 +394,16 @@ const Auth: React.FC = () => {
                 </button>
               </div>
               {errors.password && <p className="text-red-400 text-sm">{errors.password}</p>}
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={isSendingReset}
+                  className="text-white/50 hover:text-[#9BFF43] text-sm transition-colors mt-1 disabled:opacity-50"
+                >
+                  {isSendingReset ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
+                </button>
+              )}
             </div>
 
             {mode === 'signup' && (
