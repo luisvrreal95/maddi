@@ -20,6 +20,7 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminResetPassword from "./pages/AdminResetPassword";
 import AdminAcceptInvite from "./pages/AdminAcceptInvite";
+import ResetPassword from "./pages/ResetPassword";
 import PublicProfile from "./pages/PublicProfile";
 import ValorEspectacular from "./pages/ValorEspectacular";
 
