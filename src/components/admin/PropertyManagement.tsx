@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,10 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, Trash2, Loader2, MapPin, ExternalLink, AlertTriangle } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog";
+import { Eye, Trash2, Loader2, MapPin, ExternalLink, AlertTriangle, ImageIcon, Plus, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate, Link } from "react-router-dom";
@@ -28,6 +31,7 @@ interface Property {
   pause_reason: string | null;
   daily_impressions: number | null;
   image_url: string | null;
+  image_urls: string[] | null;
   created_at: string;
   owner_id: string;
   owner: {
@@ -44,6 +48,9 @@ const PropertyManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; property: Property | null }>({ open: false, property: null });
   const [processing, setProcessing] = useState<string | null>(null);
+  const [imageDialog, setImageDialog] = useState<{ open: boolean; property: Property | null }>({ open: false, property: null });
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -90,11 +97,9 @@ const PropertyManagement = () => {
 
   const sendEmailToOwner = async (property: Property, type: string, extraData: Record<string, string | number | boolean> = {}) => {
     try {
-      // We need the owner's email - fetch from auth via a workaround
-      // Since we can't access auth.users from client, we'll pass the data and let the edge function handle it
       await supabase.functions.invoke('send-notification-email', {
         body: {
-          email: '', // Will be resolved server-side if empty, or we skip
+          email: '',
           type,
           recipientName: property.owner?.full_name || 'Propietario',
           userId: property.owner_id,
@@ -167,7 +172,6 @@ const PropertyManagement = () => {
     
     setProcessing(property.id);
     try {
-      // Delete all related data in order (respecting FK constraints)
       await supabase.from('reviews').delete().eq('billboard_id', property.id);
       await supabase.from('favorites').delete().eq('billboard_id', property.id);
       await supabase.from('blocked_dates').delete().eq('billboard_id', property.id);
@@ -177,7 +181,6 @@ const PropertyManagement = () => {
       await supabase.from('poi_overview_cache').delete().eq('billboard_id', property.id);
       await supabase.from('notifications').delete().eq('related_billboard_id', property.id);
       
-      // Delete messages in conversations for this billboard
       const { data: convos } = await supabase
         .from('conversations')
         .select('id')
@@ -189,10 +192,8 @@ const PropertyManagement = () => {
         await supabase.from('conversations').delete().eq('billboard_id', property.id);
       }
 
-      // Delete bookings
       await supabase.from('bookings').delete().eq('billboard_id', property.id);
       
-      // Finally delete the billboard
       const { error } = await supabase.from('billboards').delete().eq('id', property.id);
       if (error) throw error;
 
@@ -205,6 +206,122 @@ const PropertyManagement = () => {
       setProcessing(null);
       setDeleteDialog({ open: false, property: null });
     }
+  };
+
+  // --- Image Management ---
+  const getPropertyImages = (property: Property): string[] => {
+    if (property.image_urls && property.image_urls.length > 0) return property.image_urls;
+    if (property.image_url) return [property.image_url];
+    return [];
+  };
+
+  const handleAdminImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    const property = imageDialog.property;
+    if (!files || files.length === 0 || !property) return;
+
+    const currentImages = getPropertyImages(property);
+    const remainingSlots = 6 - currentImages.length;
+    if (remainingSlots <= 0) {
+      toast({ title: "Límite", description: "Máximo 6 imágenes permitidas", variant: "destructive" });
+      return;
+    }
+
+    const filesToUpload = Array.from(files).slice(0, remainingSlots);
+    setIsUploadingImage(true);
+    const newUrls: string[] = [];
+
+    try {
+      for (const file of filesToUpload) {
+        if (!file.type.startsWith('image/')) {
+          toast({ title: "Error", description: `${file.name}: Solo se permiten imágenes`, variant: "destructive" });
+          continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+          toast({ title: "Error", description: `${file.name}: Máximo 5MB`, variant: "destructive" });
+          continue;
+        }
+
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${property.owner_id}/${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+
+        const { data, error } = await supabase.storage
+          .from('billboard-images')
+          .upload(fileName, file, { cacheControl: '3600', upsert: false });
+
+        if (error) {
+          console.error('Upload error:', error);
+          continue;
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('billboard-images')
+          .getPublicUrl(data.path);
+
+        newUrls.push(urlData.publicUrl);
+      }
+
+      if (newUrls.length > 0) {
+        const updatedImages = [...currentImages, ...newUrls];
+        const { error } = await supabase
+          .from('billboards')
+          .update({ image_url: updatedImages[0], image_urls: updatedImages })
+          .eq('id', property.id);
+
+        if (error) throw error;
+
+        // Update local state
+        const updatedProperty = { ...property, image_url: updatedImages[0], image_urls: updatedImages };
+        setImageDialog({ open: true, property: updatedProperty });
+        setProperties(prev => prev.map(p => p.id === property.id ? { ...p, image_url: updatedImages[0], image_urls: updatedImages } : p));
+        toast({ title: "Éxito", description: `${newUrls.length} imagen(es) subida(s)` });
+      }
+    } catch (error) {
+      console.error('Error uploading:', error);
+      toast({ title: "Error", description: "Error al subir imágenes", variant: "destructive" });
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleAdminImageRemove = async (index: number) => {
+    const property = imageDialog.property;
+    if (!property) return;
+
+    const currentImages = getPropertyImages(property);
+    const urlToRemove = currentImages[index];
+
+    // Delete from storage
+    try {
+      const url = new URL(urlToRemove);
+      const pathParts = url.pathname.split('/billboard-images/');
+      if (pathParts.length > 1) {
+        const filePath = decodeURIComponent(pathParts[1]);
+        await supabase.storage.from('billboard-images').remove([filePath]);
+      }
+    } catch (err) {
+      console.error('Error removing from storage:', err);
+    }
+
+    const updatedImages = currentImages.filter((_, i) => i !== index);
+    const { error } = await supabase
+      .from('billboards')
+      .update({ 
+        image_url: updatedImages[0] || null, 
+        image_urls: updatedImages.length > 0 ? updatedImages : null 
+      })
+      .eq('id', property.id);
+
+    if (error) {
+      toast({ title: "Error", description: "No se pudo eliminar la imagen", variant: "destructive" });
+      return;
+    }
+
+    const updatedProperty = { ...property, image_url: updatedImages[0] || null, image_urls: updatedImages.length > 0 ? updatedImages : null };
+    setImageDialog({ open: true, property: updatedProperty });
+    setProperties(prev => prev.map(p => p.id === property.id ? { ...p, image_url: updatedImages[0] || null, image_urls: updatedImages.length > 0 ? updatedImages : null } : p));
+    toast({ title: "Imagen eliminada" });
   };
 
   const formatCurrency = (value: number) => {
@@ -269,16 +386,25 @@ const PropertyManagement = () => {
                   filteredProperties.map((property) => {
                     const active = isActive(property);
                     const isToggling = processing === property.id;
+                    const imageCount = getPropertyImages(property).length;
                     return (
                       <TableRow key={property.id} className={!active ? 'opacity-60' : ''}>
                         <TableCell>
-                          <div className="w-16 h-12 rounded-md overflow-hidden bg-muted">
+                          <div 
+                            className="w-16 h-12 rounded-md overflow-hidden bg-muted cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all relative"
+                            onClick={() => setImageDialog({ open: true, property })}
+                          >
                             {property.image_url ? (
                               <img src={property.image_url} alt={property.title} className="w-full h-full object-cover" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <MapPin className="h-4 w-4 text-muted-foreground" />
                               </div>
+                            )}
+                            {imageCount > 0 && (
+                              <span className="absolute bottom-0 right-0 bg-black/70 text-white text-[10px] px-1 rounded-tl">
+                                {imageCount}
+                              </span>
                             )}
                           </div>
                         </TableCell>
@@ -322,6 +448,9 @@ const PropertyManagement = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => setImageDialog({ open: true, property })} title="Gestionar imágenes">
+                              <ImageIcon className="h-4 w-4" />
+                            </Button>
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => navigate(`/billboard/${property.id}`)}>
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -342,6 +471,73 @@ const PropertyManagement = () => {
           </div>
         )}
       </CardContent>
+
+      {/* Image Management Dialog */}
+      <Dialog open={imageDialog.open} onOpenChange={(open) => !open && setImageDialog({ open: false, property: null })}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ImageIcon className="h-5 w-5" />
+              Imágenes — {imageDialog.property?.title}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {imageDialog.property && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-2">
+                {getPropertyImages(imageDialog.property).map((url, index) => (
+                  <div key={url} className="relative aspect-video rounded-lg overflow-hidden border border-border group">
+                    <img src={url} alt={`Imagen ${index + 1}`} className="w-full h-full object-cover" />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleAdminImageRemove(index)}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                    {index === 0 && (
+                      <span className="absolute bottom-1 left-1 text-xs bg-primary text-primary-foreground px-1.5 py-0.5 rounded font-medium">
+                        Principal
+                      </span>
+                    )}
+                  </div>
+                ))}
+
+                {getPropertyImages(imageDialog.property).length < 6 && (
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors"
+                  >
+                    {isUploadingImage ? (
+                      <Loader2 className="h-6 w-6 text-primary animate-spin" />
+                    ) : (
+                      <>
+                        <Plus className="h-6 w-6 text-muted-foreground mb-1" />
+                        <p className="text-muted-foreground text-xs">Agregar</p>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-muted-foreground text-xs">
+                {getPropertyImages(imageDialog.property).length}/6 imágenes · JPG, PNG, WebP (máx 5MB c/u)
+              </p>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleAdminImageUpload}
+                className="hidden"
+                multiple
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <AlertDialog open={deleteDialog.open} onOpenChange={(open) => !open && setDeleteDialog({ open: false, property: null })}>
