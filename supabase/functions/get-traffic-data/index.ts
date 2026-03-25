@@ -261,14 +261,19 @@ serve(async (req) => {
     // Get billboard info
     const { data: billboard, error: billboardError } = await supabase
       .from('billboards')
-      .select('last_traffic_update, daily_impressions, city, points_of_interest')
+      .select('last_traffic_update, daily_impressions, city, address, title, points_of_interest')
       .eq('id', billboard_id)
       .single();
 
     if (billboardError) console.error('[Traffic] Error fetching billboard:', billboardError);
 
     const billboardCity = city || billboard?.city || '';
+    const billboardAddress = `${billboard?.title || ''} ${billboard?.address || ''}`;
     const hasNearbyPOIs = billboard?.points_of_interest?.length > 0;
+    const corridorFloor = getCorridorFloor(billboardAddress, billboardCity);
+    if (corridorFloor > 0) {
+      console.log(`[Traffic] Corridor floor detected: ${corridorFloor} for "${billboardAddress}" in ${billboardCity}`);
+    }
 
     // Check cache
     const lastUpdate = billboard?.last_traffic_update ? new Date(billboard.last_traffic_update) : null;
