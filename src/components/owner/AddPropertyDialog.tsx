@@ -173,6 +173,9 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   }, [open]);
 
   useEffect(() => {
+    // Always reset step to 1 when dialog opens
+    setStep(1);
+    
     if (billboard) {
       setTitle(billboard.title);
       setDescription(billboard.description || '');
@@ -187,7 +190,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       setBillboardType(billboard.billboard_type || 'espectacular');
       setIsIlluminated(billboard.illumination === 'iluminado');
       // Load images - prioritize image_urls array, fallback to image_url
-      const existingImages = (billboard as any).image_urls || [];
+      const existingImages = billboard.image_urls || [];
       if (existingImages.length > 0) {
         setImageUrls(existingImages);
       } else if (billboard.image_url) {
@@ -196,11 +199,11 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
         setImageUrls([]);
       }
       // Load existing POIs
-      const existingPois = (billboard as any).points_of_interest || [];
+      const existingPois = billboard.points_of_interest || [];
       setPointsOfInterest(existingPois);
       // Load booking constraints - leave empty if not set (will use defaults on save)
-      setMinCampaignDays((billboard as any).min_campaign_days ? ((billboard as any).min_campaign_days).toString() : '');
-      setMinAdvanceBookingDays((billboard as any).min_advance_booking_days ? ((billboard as any).min_advance_booking_days).toString() : '');
+      setMinCampaignDays(billboard.min_campaign_days ? billboard.min_campaign_days.toString() : '');
+      setMinAdvanceBookingDays(billboard.min_advance_booking_days ? billboard.min_advance_booking_days.toString() : '');
     } else {
       resetForm();
     }
