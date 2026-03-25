@@ -600,7 +600,21 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
     }
   };
 
-  const handleRemoveImage = (index: number) => {
+  const handleRemoveImage = async (index: number) => {
+    const urlToRemove = imageUrls[index];
+    
+    // Try to delete from storage
+    try {
+      const url = new URL(urlToRemove);
+      const pathParts = url.pathname.split('/billboard-images/');
+      if (pathParts.length > 1) {
+        const filePath = decodeURIComponent(pathParts[1]);
+        await supabase.storage.from('billboard-images').remove([filePath]);
+      }
+    } catch (error) {
+      console.error('Error removing image from storage:', error);
+    }
+    
     setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
 
