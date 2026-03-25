@@ -358,7 +358,7 @@ serve(async (req) => {
             continue;
           }
 
-          const calc = estimateDailyImpressions(currentSpeed, freeFlowSpeed, confidence);
+          const calc = estimateDailyImpressions(currentSpeed, freeFlowSpeed, confidence, corridorFloor);
 
           console.log(`[Traffic] Calculated: ${calc.estimated_daily_traffic} (ratio=${(currentSpeed / Math.max(freeFlowSpeed, 1)).toFixed(3)}, road=${calc.road_type})`);
 
