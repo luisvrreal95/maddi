@@ -54,10 +54,63 @@ function getCalibrationMultiplier(): number {
  * This is an *estimation*, NOT a real vehicle count. It approximates
  * potential daily impressions for advertising planning purposes.
  */
+// ---------------------------------------------------------------------------
+// Corridor-based impression floors
+// ---------------------------------------------------------------------------
+// Premium corridors in key cities should never report below certain thresholds
+// regardless of what TomTom speed data says, because TomTom measures speed
+// NOT vehicle count. A slow urban street with constant flow has high volume.
+
+interface CorridorFloor {
+  keywords: string[];
+  minImpressions: number;
+}
+
+const CORRIDOR_FLOORS: Record<string, CorridorFloor[]> = {
+  mexicali: [
+    { keywords: ['justo sierra'], minImpressions: 18000 },
+    { keywords: ['lazaro cardenas', 'lázaro cárdenas', 'lazaro cárdenas'], minImpressions: 22000 },
+    { keywords: ['lopez mateos', 'lópez mateos'], minImpressions: 20000 },
+    { keywords: ['cetys', 'calzada cetys'], minImpressions: 20000 },
+    { keywords: ['benito juarez', 'benito juárez', 'centro civico', 'centro cívico'], minImpressions: 18000 },
+    { keywords: ['independencia'], minImpressions: 18000 },
+    { keywords: ['anahuac', 'anáhuac'], minImpressions: 16000 },
+    { keywords: ['venustiano carranza', 'carranza'], minImpressions: 16000 },
+    { keywords: ['rio nuevo', 'río nuevo'], minImpressions: 15000 },
+    { keywords: ['cuauhtemoc', 'cuauhtémoc'], minImpressions: 14000 },
+  ],
+  tijuana: [
+    { keywords: ['zona rio', 'zona río'], minImpressions: 25000 },
+    { keywords: ['agua caliente'], minImpressions: 22000 },
+    { keywords: ['via rapida', 'vía rápida'], minImpressions: 20000 },
+    { keywords: ['otay'], minImpressions: 16000 },
+  ],
+};
+
+function getCorridorFloor(address: string, city: string): number {
+  const cityLower = city.toLowerCase();
+  const addrLower = address.toLowerCase();
+  const addrNorm = addrLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  for (const [cityKey, corridors] of Object.entries(CORRIDOR_FLOORS)) {
+    if (!cityLower.includes(cityKey)) continue;
+    for (const corridor of corridors) {
+      for (const kw of corridor.keywords) {
+        const kwNorm = kw.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (addrNorm.includes(kwNorm) || addrLower.includes(kw)) {
+          return corridor.minImpressions;
+        }
+      }
+    }
+  }
+  return 0;
+}
+
 export function estimateDailyImpressions(
   currentSpeed: number,
   freeFlowSpeed: number,
   confidence: number,
+  corridorFloor: number = 0,
 ): {
   estimated_daily_traffic: number;
   road_type: string;
@@ -68,7 +121,6 @@ export function estimateDailyImpressions(
   const calibration = getCalibrationMultiplier();
 
   // --- 1. Base vehicles per hour from freeFlowSpeed (continuous interpolation) ---
-  // Anchors: 0 km/h → 300, 30 → 500, 50 → 900, 70 → 1600, 100 → 2500, 130+ → 3200
   const anchors: [number, number][] = [
     [0, 300],
     [30, 500],
@@ -84,7 +136,6 @@ export function estimateDailyImpressions(
   if (clampedFreeFlow >= anchors[anchors.length - 1][0]) {
     baseVPH = anchors[anchors.length - 1][1];
   } else {
-    // Find the two anchors to interpolate between
     let lower = anchors[0];
     let upper = anchors[anchors.length - 1];
     for (let i = 0; i < anchors.length - 1; i++) {
@@ -98,25 +149,21 @@ export function estimateDailyImpressions(
     baseVPH = lower[1] + t * (upper[1] - lower[1]);
   }
 
-  // --- 2. Congestion multiplier from speed ratio (continuous) ---
-  // ratio = currentSpeed / freeFlowSpeed;  lower ratio = more congestion = more impressions
-  const safeFreeFlow = Math.max(freeFlowSpeed, 1); // avoid div/0
+  // --- 2. Congestion multiplier from speed ratio ---
+  const safeFreeFlow = Math.max(freeFlowSpeed, 1);
   let ratio = currentSpeed / safeFreeFlow;
-  ratio = Math.max(0.2, Math.min(1.2, ratio)); // clamp to [0.2, 1.2]
-
-  // Linear mapping: ratio 0.2 → multiplier 1.6, ratio 1.0 → multiplier 1.0
-  // Beyond 1.0, slight decline (very light traffic = slightly fewer vehicles)
-  // Formula: multiplier = 1.75 - 0.75 * ratio  (at 0.2 → 1.6, at 1.0 → 1.0, at 1.2 → 0.85)
+  ratio = Math.max(0.2, Math.min(1.2, ratio));
   const congestionMultiplier = 1.75 - 0.75 * ratio;
 
-  // --- 3. Confidence scaling (floor at 0.4 to prevent near-zero estimates) ---
+  // --- 3. Confidence scaling ---
   const effectiveConfidence = Math.max(confidence, 0.4);
 
-  // --- 4. Final estimate ---
+  // --- 4. Final estimate with corridor floor ---
   let dailyImpressions = baseVPH * activeHours * congestionMultiplier * effectiveConfidence * calibration;
+  dailyImpressions = Math.max(dailyImpressions, corridorFloor);
   dailyImpressions = Math.max(0, Math.round(dailyImpressions));
 
-  // --- Road type label (for metadata only) ---
+  // --- Road type label ---
   let road_type: string;
   let peak_hours: string;
   if (freeFlowSpeed > 100) {
