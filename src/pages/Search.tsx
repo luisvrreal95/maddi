@@ -53,6 +53,14 @@ interface MapProperty {
   totalReviews?: number;
 }
 
+function getPeakHours(illumination: string | null | undefined): string {
+  const il = (illumination || '').toLowerCase();
+  if (il === 'ninguna' || il === 'sin_iluminacion' || il === 'no_iluminado') return '6am-6pm';
+  if (il === 'digital' || il === 'led') return '6am-10pm';
+  if (il.includes('lampara') || il.includes('iluminado')) return '7am-9pm';
+  return 'N/A';
+}
+
 // Transform billboard to property format for existing components
 const transformBillboardToProperty = (billboard: Billboard, reviewStats?: { averageRating: number; totalReviews: number }): MapProperty => ({
   id: billboard.id,
@@ -62,7 +70,7 @@ const transformBillboardToProperty = (billboard: Billboard, reviewStats?: { aver
   viewsPerDay: billboard.daily_impressions ? `+${billboard.daily_impressions.toLocaleString()}` : 'N/A',
   pointsOfInterest: billboard.points_of_interest?.length ? `+${billboard.points_of_interest.length}` : 'N/A',
   pointsOfInterestArray: billboard.points_of_interest || null,
-  peakHours: '8am-8pm',
+  peakHours: getPeakHours(billboard.illumination),
   size: `${billboard.width_m}m x ${billboard.height_m}m`,
   status: billboard.illumination !== 'ninguna' ? 'Alto' : 'Medio',
   availability: 'Inmediata',
