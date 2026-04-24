@@ -2,8 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/hooks/useAuth";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { ReactNode } from "react";
+import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
 import SearchPage from "./pages/Search";
 import Auth from "./pages/Auth";
@@ -26,6 +28,46 @@ import ValorEspectacular from "./pages/ValorEspectacular";
 
 const queryClient = new QueryClient();
 
+const AuthSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
+
+const ProtectedRoute = ({
+  children,
+  requiredRole,
+}: {
+  children: ReactNode;
+  requiredRole?: 'owner' | 'business';
+}) => {
+  const { user, userRole, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) return <AuthSpinner />;
+
+  if (!user) {
+    return (
+      <Navigate
+        to={`/auth?redirect=${encodeURIComponent(location.pathname)}`}
+        replace
+      />
+    );
+  }
+
+  // Role is still being fetched after auth state change
+  if (requiredRole && userRole === null) return <AuthSpinner />;
+
+  if (requiredRole === 'owner' && userRole !== 'owner') {
+    return <Navigate to="/business" replace />;
+  }
+  if (requiredRole === 'business' && userRole !== 'business') {
+    return <Navigate to="/owner" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -34,24 +76,32 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <Routes>
+            {/* Public routes */}
             <Route path="/" element={<Index />} />
             <Route path="/search" element={<SearchPage />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/owner" element={<OwnerDashboard />} />
-            <Route path="/owner/add-property" element={<AddProperty />} />
-            <Route path="/business" element={<BusinessDashboard />} />
-            <Route path="/business-analytics" element={<BusinessAnalytics />} />
             <Route path="/billboard/:id" element={<BillboardDetail />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/favorites" element={<Favorites />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/reviews" element={<Reviews />} />
+            <Route path="/valor-espectacular" element={<ValorEspectacular />} />
+            <Route path="/profile/:userId" element={<PublicProfile />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/reset-password" element={<AdminResetPassword />} />
             <Route path="/admin/accept-invite" element={<AdminAcceptInvite />} />
-            <Route path="/profile/:userId" element={<PublicProfile />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/valor-espectacular" element={<ValorEspectacular />} />
+
+            {/* Auth-only routes */}
+            <Route path="/favorites" element={<ProtectedRoute><Favorites /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/reviews" element={<ProtectedRoute><Reviews /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+
+            {/* Owner-only routes */}
+            <Route path="/owner" element={<ProtectedRoute requiredRole="owner"><OwnerDashboard /></ProtectedRoute>} />
+            <Route path="/owner/add-property" element={<ProtectedRoute requiredRole="owner"><AddProperty /></ProtectedRoute>} />
+
+            {/* Business-only routes */}
+            <Route path="/business" element={<ProtectedRoute requiredRole="business"><BusinessDashboard /></ProtectedRoute>} />
+            <Route path="/business-analytics" element={<ProtectedRoute requiredRole="business"><BusinessAnalytics /></ProtectedRoute>} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
