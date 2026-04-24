@@ -42,7 +42,7 @@ const FeaturedListingsSection: React.FC = () => {
     geoReady && userCity ? { city: userCity } : undefined
   );
 
-  const featured = billboards.filter(b => b.is_available && !b.pause_reason).slice(0, 6);
+  const featured = billboards.filter(b => b.is_available && !b.pause_reason).slice(0, 3);
   const displayCity = userCity || (featured.length > 0 ? featured[0].city : 'Mexicali');
 
   if (isLoading || !geoReady) {
@@ -94,9 +94,9 @@ const FeaturedListingsSection: React.FC = () => {
                 className="group cursor-pointer bg-[hsl(0,0%,13%)] rounded-2xl overflow-hidden border border-white/5 hover:border-white/15 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl"
               >
                 <div className="relative h-48 bg-[hsl(0,0%,18%)] overflow-hidden">
-                  {b.image_url ? (
+                  {(b.image_urls?.[0] || b.image_url) ? (
                     <img
-                      src={b.image_url}
+                      src={b.image_urls?.[0] || b.image_url!}
                       alt={b.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       loading="lazy"

@@ -12,6 +12,7 @@ interface PropertyCardProps {
   price: string;
   features: Feature[];
   availability: string;
+  imageUrl?: string;
   onSelect?: () => void;
 }
 
@@ -21,6 +22,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   price,
   features,
   availability,
+  imageUrl,
   onSelect
 }) => {
   return (
@@ -28,6 +30,11 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       <div className="flex flex-col items-start gap-8 self-stretch relative">
         <div className="flex flex-col items-start gap-6 self-stretch relative">
           <header className="flex flex-col items-start gap-2 self-stretch relative">
+            {imageUrl && (
+              <div className="w-full h-48 rounded-xl overflow-hidden mb-2">
+                <img src={imageUrl} alt={title} className="w-full h-full object-cover" loading="lazy" />
+              </div>
+            )}
             <h3 className="self-stretch text-white text-4xl font-semibold relative max-sm:text-[28px]">
               {title}
             </h3>
