@@ -99,6 +99,15 @@ All colors MUST be HSL.
   }
 }
 
+/* Mapbox GL — ensure canvas fills its container.
+   Tailwind preflight resets canvas to height:auto, which collapses the map. */
+.mapboxgl-map,
+.mapboxgl-canvas-container,
+.mapboxgl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Mapbox popup custom styles */
 .custom-mapbox-popup {
   z-index: 50 !important;
