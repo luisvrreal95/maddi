@@ -1,5 +1,7 @@
 import React from 'react';
 import HeroSection from '@/components/HeroSection';
+import HowItWorksSection from '@/components/HowItWorksSection';
+import LiveStatsSection from '@/components/LiveStatsSection';
 import FeaturedListingsSection from '@/components/FeaturedListingsSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import OwnerCTASection from '@/components/OwnerCTASection';
@@ -13,6 +15,8 @@ const Index: React.FC = () => {
     <main className="flex flex-col items-stretch relative min-h-screen pb-20 md:pb-0">
       <PromoBanner />
       <HeroSection />
+      <HowItWorksSection />
+      <LiveStatsSection />
       <FeaturedListingsSection />
       <FeaturesSection />
       <OwnerCTASection />

@@ -25,6 +25,9 @@ import AdminAcceptInvite from "./pages/AdminAcceptInvite";
 import ResetPassword from "./pages/ResetPassword";
 import PublicProfile from "./pages/PublicProfile";
 import ValorEspectacular from "./pages/ValorEspectacular";
+import Terminos from "./pages/Terminos";
+import Privacidad from "./pages/Privacidad";
+import Contacto from "./pages/Contacto";
 
 const queryClient = new QueryClient();
 
@@ -82,6 +85,9 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/billboard/:id" element={<BillboardDetail />} />
             <Route path="/valor-espectacular" element={<ValorEspectacular />} />
+            <Route path="/terminos" element={<Terminos />} />
+            <Route path="/privacidad" element={<Privacidad />} />
+            <Route path="/contacto" element={<Contacto />} />
             <Route path="/profile/:userId" element={<PublicProfile />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/admin" element={<AdminDashboard />} />
