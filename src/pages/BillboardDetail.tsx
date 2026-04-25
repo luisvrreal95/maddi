@@ -178,7 +178,7 @@ const BillboardDetail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-36 lg:pb-0">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-md border-b border-border px-6 max-sm:px-4 py-3 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
