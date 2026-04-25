@@ -383,13 +383,32 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
       </div>
 
       {/* Detail Popup / Bottom Sheet - Optimized */}
-      <Sheet open={!!detailProperty} onOpenChange={(open) => !open && handleCloseDetail()}>
+      <Sheet open={!!selectedPropertyId} onOpenChange={(open) => !open && handleCloseDetail()}>
         <SheetContent 
           side="bottom" 
-          className="h-[70vh] rounded-t-3xl p-0 overflow-hidden"
+          className="rounded-t-3xl p-0 overflow-hidden h-auto max-h-[85vh] flex flex-col"
         >
-          {detailProperty && (
-            <div className="h-full flex flex-col">
+          {!detailProperty ? (
+            // Skeleton loader while content resolves
+            <div className="flex flex-col">
+              <div className="h-44 bg-muted animate-pulse" />
+              <div className="p-4 space-y-3">
+                <div className="h-5 w-3/4 bg-muted rounded animate-pulse" />
+                <div className="h-4 w-1/2 bg-muted rounded animate-pulse" />
+                <div className="h-7 w-1/3 bg-muted rounded animate-pulse" />
+                <div className="grid grid-cols-3 gap-2 pt-2">
+                  <div className="h-14 bg-muted rounded-lg animate-pulse" />
+                  <div className="h-14 bg-muted rounded-lg animate-pulse" />
+                  <div className="h-14 bg-muted rounded-lg animate-pulse" />
+                </div>
+                <div className="flex gap-3 pt-3">
+                  <div className="h-11 flex-1 bg-muted rounded animate-pulse" />
+                  <div className="h-11 flex-1 bg-muted rounded animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col min-h-0">
               {/* Image Carousel */}
               <div className="relative h-44 flex-shrink-0">
                 <ImageCarousel 
@@ -410,8 +429,8 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
                 </button>
               </div>
 
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Scrollable Content — grows with content, capped by sheet max-h */}
+              <div className="overflow-y-auto p-4 space-y-4">
                 <div>
                   <h3 className="text-lg font-bold text-foreground leading-tight">{detailProperty.name}</h3>
                   <p className="text-muted-foreground text-sm mt-0.5">{detailProperty.address}</p>
