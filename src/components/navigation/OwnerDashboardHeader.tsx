@@ -28,11 +28,16 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
   const navItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'propiedades', label: 'Mis espectaculares', icon: Building2 },
+    { id: 'reservas', label: 'Reservas', icon: CalendarCheck },
+    { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'calendario', label: 'Calendario', icon: Calendar },
-    { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
     { id: 'stats', label: 'Estadísticas', icon: BarChart3 },
   ];
+
+  // First 4 are visible on mobile, rest go inside "Más"
+  const mobilePrimary = navItems.slice(0, 4);
+  const mobileSecondary = navItems.slice(4);
 
   const handleTabClick = (tabId: string) => {
     if (tabId === 'mensajes') {
