@@ -209,6 +209,25 @@ const BillboardDetail: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="px-4 md:px-6 pt-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => navigate('/')} className="cursor-pointer">Inicio</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => navigate('/search')} className="cursor-pointer">Buscar</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="line-clamp-1">{billboard.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
         {/* Airbnb-style image gallery */}
         <div className="px-4 md:px-6 pt-4">
           <ImageGallery images={allImages} title={billboard.title} />
