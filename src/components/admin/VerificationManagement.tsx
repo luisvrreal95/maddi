@@ -56,48 +56,80 @@ interface VerificationRequest {
   verification_notes: string | null;
 }
 
+interface VerificationDetails {
+  ine_front_url: string | null;
+  ine_back_url: string | null;
+  rfc: string | null;
+  address_proof_url: string | null;
+  created_at: string | null;
+}
+
 const VerificationManagement = () => {
   const { user } = useAuth();
   const [requests, setRequests] = useState<VerificationRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("pending");
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
+  const [verificationDetails, setVerificationDetails] = useState<VerificationDetails | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [reviewNotes, setReviewNotes] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [loadingDocUrl, setLoadingDocUrl] = useState(false);
+  const [loadingDocUrl, setLoadingDocUrl] = useState<string | null>(null);
   const { toast } = useToast();
 
-  // Generate signed URL for viewing verification documents (private bucket)
+  // Try 'verifications' bucket first (new), fall back to 'verification-docs' (legacy)
   const getSignedUrl = async (filePath: string): Promise<string | null> => {
     try {
       const { data, error } = await supabase.storage
+        .from('verifications')
+        .createSignedUrl(filePath, 3600);
+      if (!error && data?.signedUrl) return data.signedUrl;
+
+      // Legacy bucket fallback
+      const { data: legacyData, error: legacyError } = await supabase.storage
         .from('verification-docs')
-        .createSignedUrl(filePath, 600); // 10 minutes expiration
-      
-      if (error) throw error;
-      return data.signedUrl;
+        .createSignedUrl(filePath, 3600);
+      if (!legacyError && legacyData?.signedUrl) return legacyData.signedUrl;
+
+      return null;
     } catch (error) {
       console.error('Error generating signed URL:', error);
       return null;
     }
   };
 
-  // Open verification document with signed URL
+  // Open a document in a new tab using a signed URL
   const handleViewDocument = async (docPath: string) => {
-    setLoadingDocUrl(true);
+    setLoadingDocUrl(docPath);
     try {
       const signedUrl = await getSignedUrl(docPath);
       if (signedUrl) {
         window.open(signedUrl, '_blank');
       } else {
-        toast({
-          title: "Error",
-          description: "No se pudo cargar el documento",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "No se pudo cargar el documento", variant: "destructive" });
       }
     } finally {
-      setLoadingDocUrl(false);
+      setLoadingDocUrl(null);
+    }
+  };
+
+  // Load full documents from verification_requests for the selected user
+  const fetchVerificationDetails = async (userId: string) => {
+    setLoadingDetails(true);
+    setVerificationDetails(null);
+    try {
+      const { data } = await (supabase as any)
+        .from('verification_requests')
+        .select('ine_front_url, ine_back_url, rfc, address_proof_url, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setVerificationDetails(data ?? null);
+    } catch (err) {
+      console.error('Error fetching verification details:', err);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
@@ -297,10 +329,12 @@ const VerificationManagement = () => {
                           <Button
                             size="sm"
                             variant="ghost"
-                            disabled={loadingDocUrl}
+                            disabled={loadingDocUrl === request.verification_document_url}
                             onClick={() => handleViewDocument(request.verification_document_url!)}
                           >
-                            <ExternalLink className="w-4 h-4" />
+                            {loadingDocUrl === request.verification_document_url
+                              ? <Loader2 className="w-4 h-4 animate-spin" />
+                              : <ExternalLink className="w-4 h-4" />}
                           </Button>
                         )}
                         <Button
@@ -309,6 +343,7 @@ const VerificationManagement = () => {
                           onClick={() => {
                             setSelectedRequest(request);
                             setReviewNotes(request.verification_notes || "");
+                            fetchVerificationDetails(request.user_id);
                           }}
                         >
                           <Eye className="w-4 h-4 mr-1" />
@@ -327,7 +362,7 @@ const VerificationManagement = () => {
       {/* Review Dialog */}
       <Dialog
         open={!!selectedRequest}
-        onOpenChange={(open) => !open && setSelectedRequest(null)}
+        onOpenChange={(open) => { if (!open) { setSelectedRequest(null); setVerificationDetails(null); } }}
       >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -339,6 +374,7 @@ const VerificationManagement = () => {
 
           {selectedRequest && (
             <div className="space-y-4">
+              {/* User info */}
               <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                 <Avatar className="w-12 h-12">
                   <AvatarImage src={selectedRequest.avatar_url || undefined} />
@@ -349,50 +385,107 @@ const VerificationManagement = () => {
                 <div>
                   <p className="font-semibold">{selectedRequest.full_name}</p>
                   {selectedRequest.company_name && (
-                    <p className="text-sm text-muted-foreground">
-                      {selectedRequest.company_name}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{selectedRequest.company_name}</p>
                   )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Tipo de Documento</p>
-                  <p className="font-medium">
-                    {selectedRequest.verification_document_type || "No especificado"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Fecha de Solicitud</p>
-                  <p className="font-medium">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {selectedRequest.verification_submitted_at
-                      ? format(
-                          new Date(selectedRequest.verification_submitted_at),
-                          "dd/MM/yyyy HH:mm",
-                          { locale: es }
-                        )
-                      : "-"}
+                      ? format(new Date(selectedRequest.verification_submitted_at), "dd/MM/yyyy HH:mm", { locale: es })
+                      : "Sin fecha"}
                   </p>
                 </div>
               </div>
 
-              {selectedRequest.verification_document_url && (
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={loadingDocUrl}
-                  onClick={() => handleViewDocument(selectedRequest.verification_document_url!)}
-                >
-                  {loadingDocUrl ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {/* Documents */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Documentos</p>
+
+                {loadingDetails ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Cargando documentos...
+                  </div>
+                ) : verificationDetails ? (
+                  <div className="space-y-2">
+                    {/* INE front */}
+                    {verificationDetails.ine_front_url && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        disabled={loadingDocUrl === verificationDetails.ine_front_url}
+                        onClick={() => handleViewDocument(verificationDetails.ine_front_url!)}
+                      >
+                        {loadingDocUrl === verificationDetails.ine_front_url
+                          ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          : <FileText className="w-4 h-4 mr-2" />}
+                        INE frente
+                        <ExternalLink className="w-3 h-3 ml-auto" />
+                      </Button>
+                    )}
+
+                    {/* INE back */}
+                    {verificationDetails.ine_back_url && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        disabled={loadingDocUrl === verificationDetails.ine_back_url}
+                        onClick={() => handleViewDocument(verificationDetails.ine_back_url!)}
+                      >
+                        {loadingDocUrl === verificationDetails.ine_back_url
+                          ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          : <FileText className="w-4 h-4 mr-2" />}
+                        INE reverso
+                        <ExternalLink className="w-3 h-3 ml-auto" />
+                      </Button>
+                    )}
+
+                    {/* Address proof */}
+                    {verificationDetails.address_proof_url && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-start"
+                        disabled={loadingDocUrl === verificationDetails.address_proof_url}
+                        onClick={() => handleViewDocument(verificationDetails.address_proof_url!)}
+                      >
+                        {loadingDocUrl === verificationDetails.address_proof_url
+                          ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          : <FileText className="w-4 h-4 mr-2" />}
+                        Comprobante de domicilio
+                        <ExternalLink className="w-3 h-3 ml-auto" />
+                      </Button>
+                    )}
+
+                    {/* RFC (text, no download needed) */}
+                    {verificationDetails.rfc && (
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-md border text-sm">
+                        <span className="text-muted-foreground">RFC:</span>
+                        <span className="font-mono font-medium">{verificationDetails.rfc}</span>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* Fallback to legacy single-doc from profiles */
+                  selectedRequest.verification_document_url ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full justify-start"
+                      disabled={loadingDocUrl === selectedRequest.verification_document_url}
+                      onClick={() => handleViewDocument(selectedRequest.verification_document_url!)}
+                    >
+                      {loadingDocUrl === selectedRequest.verification_document_url
+                        ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        : <FileText className="w-4 h-4 mr-2" />}
+                      {selectedRequest.verification_document_type?.toUpperCase() || "Documento"}
+                      <ExternalLink className="w-3 h-3 ml-auto" />
+                    </Button>
                   ) : (
-                    <FileText className="w-4 h-4 mr-2" />
-                  )}
-                  Ver Documento
-                  <ExternalLink className="w-4 h-4 ml-2" />
-                </Button>
-              )}
+                    <p className="text-sm text-muted-foreground">Sin documentos adjuntos</p>
+                  )
+                )}
+              </div>
 
               <div className="space-y-2">
                 <Label htmlFor="notes">Notas de Revisión</Label>
