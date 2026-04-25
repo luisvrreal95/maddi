@@ -28,6 +28,7 @@ import ValorEspectacular from "./pages/ValorEspectacular";
 import Terminos from "./pages/Terminos";
 import Privacidad from "./pages/Privacidad";
 import Contacto from "./pages/Contacto";
+import OnboardingModal from "./components/OnboardingModal";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <OnboardingModal />
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
