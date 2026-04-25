@@ -86,6 +86,13 @@ const BillboardDetail: React.FC = () => {
           return;
         }
         setBillboard(data);
+        // Fetch owner verification status
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('is_verified')
+          .eq('user_id', data.owner_id)
+          .maybeSingle();
+        if (ownerProfile?.is_verified) setOwnerVerified(true);
       } catch (error) {
         console.error('Error fetching billboard:', error);
         toast.error('Error al cargar el espectacular');
