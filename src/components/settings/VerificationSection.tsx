@@ -118,10 +118,14 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
   };
 
   const uploadFile = async (file: File, path: string): Promise<string> => {
+    console.log('[verification] uploading to bucket "verifications":', path);
     const { error } = await supabase.storage
       .from('verifications')
       .upload(path, file, { upsert: true });
-    if (error) throw error;
+    if (error) {
+      console.error('[verification] storage upload error:', error);
+      throw error;
+    }
     return path;
   };
 
@@ -133,14 +137,21 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
       const ts = Date.now();
       const ext = (f: File) => f.name.split('.').pop() ?? 'jpg';
 
+      // Step 1: upload files
+      console.log('[verification] step 1 — uploading INE front');
       const ineFrontPath = await uploadFile(ineFront, `${user.id}/ine-front-${ts}.${ext(ineFront)}`);
+
+      console.log('[verification] step 2 — uploading INE back');
       const ineBackPath = await uploadFile(ineBack, `${user.id}/ine-back-${ts}.${ext(ineBack)}`);
+
       let addressProofPath: string | null = null;
       if (addressProof) {
+        console.log('[verification] step 3 — uploading address proof');
         addressProofPath = await uploadFile(addressProof, `${user.id}/address-${ts}.${ext(addressProof)}`);
       }
 
-      // Insert into verification_requests
+      // Step 4: insert into verification_requests
+      console.log('[verification] step 4 — inserting into verification_requests');
       const { error: insertError } = await (supabase as any)
         .from('verification_requests')
         .insert({
@@ -151,10 +162,14 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
           address_proof_url: addressProofPath,
           status: 'pending',
         });
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('[verification] insert error:', insertError);
+        throw insertError;
+      }
 
-      // Keep profiles in sync so admin VerificationManagement still works
-      await supabase
+      // Step 5: sync profiles for admin backward compat (non-critical)
+      console.log('[verification] step 5 — syncing profiles');
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({
           verification_status: 'pending',
@@ -163,7 +178,11 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
           verification_document_type: 'ine',
         } as any)
         .eq('user_id', user.id);
+      if (profileError) {
+        console.warn('[verification] profiles sync error (non-critical):', profileError);
+      }
 
+      console.log('[verification] success');
       toast.success('Solicitud de verificación enviada');
       setIneFront(null);
       setIneBack(null);
@@ -171,9 +190,10 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
       setAddressProof(null);
       fetchStatus();
       onVerificationChange?.();
-    } catch (err) {
-      console.error('Error submitting verification:', err);
-      toast.error('Error al enviar la verificación');
+    } catch (err: any) {
+      const detail = err?.message ?? err?.error_description ?? JSON.stringify(err);
+      console.error('[verification] FAILED —', detail, err);
+      toast.error(`Error al enviar: ${detail}`);
     } finally {
       setIsSubmitting(false);
     }
