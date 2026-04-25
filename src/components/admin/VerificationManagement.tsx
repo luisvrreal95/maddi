@@ -160,51 +160,15 @@ const VerificationManagement = () => {
     }
   };
 
-  // Extract relative storage path from a full Supabase URL or return as-is
-  const extractStoragePath = (raw: string, bucket: string): string => {
-    // Handles: /object/public/verifications/... and /object/sign/verifications/...
-    const markers = [
-      `/object/public/${bucket}/`,
-      `/object/sign/${bucket}/`,
-      `/object/authenticated/${bucket}/`,
-    ];
-    for (const marker of markers) {
-      const idx = raw.indexOf(marker);
-      if (idx !== -1) return raw.slice(idx + marker.length).split('?')[0];
-    }
-    // Already a relative path
-    return raw;
-  };
-
-  // Generate a signed URL from the verifications bucket (1h expiry)
-  const signUrl = async (raw: string | null): Promise<string | null> => {
-    if (!raw) return null;
-    console.log('[verification admin] raw value from DB:', raw);
-    try {
-      const path = raw.startsWith('http') ? extractStoragePath(raw, 'verifications') : raw;
-      console.log('[verification admin] extracted path:', path);
-
-      const { data, error } = await supabase.storage
-        .from('verifications')
-        .createSignedUrl(path, 3600);
-      if (!error && data?.signedUrl) {
-        console.log('[verification admin] signed URL ok for:', path);
-        return data.signedUrl;
-      }
-      console.warn('[verification admin] verifications bucket error:', error, '— trying legacy bucket');
-
-      // Legacy bucket fallback
-      const legacyPath = raw.startsWith('http') ? extractStoragePath(raw, 'verification-docs') : raw;
-      const { data: ld, error: le } = await supabase.storage
-        .from('verification-docs')
-        .createSignedUrl(legacyPath, 3600);
-      if (!le && ld?.signedUrl) return ld.signedUrl;
-      console.error('[verification admin] both buckets failed for path:', path, le);
-      return null;
-    } catch (err) {
-      console.error('[verification admin] signUrl exception:', err);
-      return null;
-    }
+  // Generate a signed URL — path comes from DB as-is (e.g. "userId/ine-front-timestamp.jpeg")
+  const signUrl = async (path: string | null): Promise<string | null> => {
+    if (!path) return null;
+    console.log('[verification admin] createSignedUrl path:', path);
+    const { data, error } = await supabase.storage
+      .from('verifications')
+      .createSignedUrl(path, 3600);
+    if (error) console.error('[verification admin] createSignedUrl error:', error);
+    return data?.signedUrl ?? null;
   };
 
   // Load full documents from verification_requests and pre-generate all signed URLs
