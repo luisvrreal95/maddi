@@ -157,11 +157,11 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
       <DialogTrigger asChild>
         <Button variant="outline" className="gap-2 rounded-full px-4 border-border transition-all duration-200 hover:scale-[1.02]">
           <SlidersHorizontal className="w-4 h-4" />
-          <span>Filtros</span>
+          <span>Filtros{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}</span>
           {activeFiltersCount > 0 && (
-            <Badge variant="default" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs animate-scale-in">
+            <span className="ml-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#9BFF43] text-[#121212] text-xs font-bold animate-scale-in">
               {activeFiltersCount}
-            </Badge>
+            </span>
           )}
         </Button>
       </DialogTrigger>
