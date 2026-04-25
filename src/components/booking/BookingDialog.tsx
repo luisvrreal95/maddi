@@ -401,7 +401,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#2A2A2A] border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-muted border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
         {bookingSuccess ? (
           <>
             <DialogHeader>
@@ -420,10 +420,10 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* ... keep existing code (form content from billboard info through submit buttons) */}
-              <div className="bg-[#1A1A1A] rounded-xl p-4 mb-4">
+              <div className="bg-card rounded-xl p-4 mb-4">
                 <p className="text-white/60 text-sm">Espectacular</p>
                 <p className="text-white font-bold">{billboard.title}</p>
-                <p className="text-[#9BFF43] font-bold mt-1">
+                <p className="text-primary font-bold mt-1">
                   ${billboard.price_per_month.toLocaleString()}/mes
                 </p>
               </div>
@@ -454,7 +454,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               <div>
                 <Label className="mb-2 block">Selecciona rango de fechas</Label>
                 <p className="text-white/50 text-xs mb-2">Haz clic en una fecha para establecer el inicio, luego en otra para el fin.</p>
-                <div className="bg-[#1A1A1A] rounded-xl p-2 border border-white/10">
+                <div className="bg-card rounded-xl p-2 border border-white/10">
                   <Calendar
                     mode="range"
                     selected={dateRange}
@@ -500,7 +500,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                   id="message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  className="bg-[#1A1A1A] border-white/10 mt-1"
+                  className="bg-card border-white/10 mt-1"
                   placeholder="Cuéntale al propietario sobre tu marca, qué quieres anunciar y cualquier detalle importante..."
                   rows={4}
                   maxLength={1000}
@@ -516,7 +516,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <Label className="text-sm flex items-center gap-1.5">
-                    <ImageIcon className="w-3.5 h-3.5 text-[#9BFF43]" />
+                    <ImageIcon className="w-3.5 h-3.5 text-primary" />
                     Sube tu diseño
                   </Label>
                   <span className="text-xs text-white/40">Opcional · Máx 5</span>
@@ -527,7 +527,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     {designPreviews.map((item, index) => {
                       const fileName = decodeURIComponent(item.path.split('/').pop() || `imagen-${index + 1}.png`).replace(/^\d+-[a-z0-9]+\./, '');
                       return (
-                        <div key={item.path} className="flex items-center gap-2 bg-[#1A1A1A] rounded-lg px-3 py-2 border border-white/10">
+                        <div key={item.path} className="flex items-center gap-2 bg-card rounded-lg px-3 py-2 border border-white/10">
                           <img src={item.url} alt={fileName} className="w-8 h-8 rounded object-cover flex-shrink-0" />
                           <span className="text-white text-xs truncate flex-1">{fileName}</span>
                           <button
@@ -548,7 +548,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isUploadingImage}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-white/20 rounded-lg hover:border-[#9BFF43]/50 text-white/60 hover:text-white transition-colors"
+                    className="inline-flex items-center gap-2 px-3 py-1.5 text-xs border border-dashed border-white/20 rounded-lg hover:border-primary/50 text-white/60 hover:text-white transition-colors"
                   >
                     {isUploadingImage ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -568,7 +568,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 />
               </div>
 
-              <div className="bg-[#9BFF43]/10 rounded-xl p-4">
+              <div className="bg-primary/10 rounded-xl p-4">
                 <div className="space-y-1 text-sm text-white/70 mb-2">
                   <div className="flex justify-between">
                     <span>Duración</span>
@@ -581,7 +581,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 </div>
                 <div className="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/10">
                   <span>Total estimado</span>
-                  <span className="text-[#9BFF43]">${totalPrice.toLocaleString()} MXN</span>
+                  <span className="text-primary">${totalPrice.toLocaleString()} MXN</span>
                 </div>
               </div>
 
@@ -597,7 +597,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 <Button
                   type="submit"
                   disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate || isUploadingImage}
-                  className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
+                  className="flex-1 bg-primary text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
                 >
                   {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
                 </Button>

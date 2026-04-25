@@ -200,19 +200,19 @@ const Auth: React.FC = () => {
   // Show verification message after signup
   if (showVerificationMessage) {
     return (
-      <div className="min-h-screen bg-[#1A1A1A] flex items-center justify-center p-8">
+      <div className="min-h-screen bg-card flex items-center justify-center p-8">
         <div className="max-w-md w-full text-center">
-          <div className="w-20 h-20 bg-[#9BFF43]/20 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="w-10 h-10 text-[#9BFF43]" />
+          <div className="w-20 h-20 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Mail className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-4">¡Revisa tu correo!</h1>
           <p className="text-white/60 text-lg mb-6">
             Hemos enviado un enlace de verificación a:
           </p>
-          <p className="text-[#9BFF43] font-semibold text-xl mb-8">{registeredEmail}</p>
-          <div className="bg-[#2A2A2A] rounded-xl p-6 border border-white/10 mb-6">
+          <p className="text-primary font-semibold text-xl mb-8">{registeredEmail}</p>
+          <div className="bg-muted rounded-xl p-6 border border-white/10 mb-6">
             <div className="flex items-start gap-3 text-left">
-              <CheckCircle className="w-5 h-5 text-[#9BFF43] mt-0.5 flex-shrink-0" />
+              <CheckCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
               <div>
                 <p className="text-white font-medium mb-1">Haz clic en el enlace del correo</p>
                 <p className="text-white/50 text-sm">
@@ -228,7 +228,7 @@ const Auth: React.FC = () => {
                 setShowVerificationMessage(false);
                 setMode('signup');
               }}
-              className="text-[#9BFF43] hover:underline"
+              className="text-primary hover:underline"
             >
               intenta de nuevo
             </button>
@@ -238,7 +238,7 @@ const Auth: React.FC = () => {
               setShowVerificationMessage(false);
               setMode('login');
             }}
-            className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A] px-8"
+            className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] px-8"
           >
             Ir a iniciar sesión
           </Button>
@@ -248,10 +248,10 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A] flex">
+    <div className="min-h-screen bg-card flex">
       {/* Left Side - Form */}
       <div className="w-full lg:w-1/2 flex flex-col p-8 max-sm:p-5 lg:p-12">
-        <Link to="/" className="flex items-center gap-3 text-white hover:text-[#9BFF43] transition-colors mb-8 max-sm:mb-5 group">
+        <Link to="/" className="flex items-center gap-3 text-white hover:text-primary transition-colors mb-8 max-sm:mb-5 group">
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <img src="/favicon.svg" alt="Maddi" className="h-10 max-sm:h-8" />
         </Link>
@@ -259,7 +259,7 @@ const Auth: React.FC = () => {
         <div className="flex-1 flex flex-col justify-center max-w-md mx-auto w-full">
           {/* Header with icon */}
           <div className="mb-8 max-sm:mb-5">
-            <div className="w-16 h-16 max-sm:w-12 max-sm:h-12 bg-[#9BFF43] rounded-2xl flex items-center justify-center mb-6 max-sm:mb-4">
+            <div className="w-16 h-16 max-sm:w-12 max-sm:h-12 bg-primary rounded-2xl flex items-center justify-center mb-6 max-sm:mb-4">
               {mode === 'login' ? (
                 <svg className="w-8 h-8 text-[#1A1A1A]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
@@ -294,15 +294,15 @@ const Auth: React.FC = () => {
                       onClick={() => setSelectedType('owner')}
                       className={`p-5 rounded-2xl border-2 transition-all duration-200 ${
                         selectedType === 'owner'
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10 shadow-lg shadow-[#9BFF43]/20'
+                          ? 'border-primary bg-primary/10 shadow-lg shadow-[#9BFF43]/20'
                           : 'border-white/10 hover:border-white/20 bg-white/5'
                       }`}
                     >
                       <Building2 className={`w-7 h-7 mx-auto mb-3 ${
-                        selectedType === 'owner' ? 'text-[#9BFF43]' : 'text-white/50'
+                        selectedType === 'owner' ? 'text-primary' : 'text-white/50'
                       }`} />
                       <p className={`font-semibold ${
-                        selectedType === 'owner' ? 'text-[#9BFF43]' : 'text-white'
+                        selectedType === 'owner' ? 'text-primary' : 'text-white'
                       }`}>Propietario</p>
                       <p className="text-xs text-white/40 mt-1">Tengo espectaculares</p>
                     </button>
@@ -312,15 +312,15 @@ const Auth: React.FC = () => {
                         onClick={() => setSelectedType('business')}
                         className={`p-5 rounded-2xl border-2 transition-all duration-200 ${
                           selectedType === 'business'
-                            ? 'border-[#9BFF43] bg-[#9BFF43]/10 shadow-lg shadow-[#9BFF43]/20'
+                            ? 'border-primary bg-primary/10 shadow-lg shadow-[#9BFF43]/20'
                             : 'border-white/10 hover:border-white/20 bg-white/5'
                         }`}
                       >
                         <Store className={`w-7 h-7 mx-auto mb-3 ${
-                          selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white/50'
+                          selectedType === 'business' ? 'text-primary' : 'text-white/50'
                         }`} />
                         <p className={`font-semibold ${
-                          selectedType === 'business' ? 'text-[#9BFF43]' : 'text-white'
+                          selectedType === 'business' ? 'text-primary' : 'text-white'
                         }`}>Negocio</p>
                         <p className="text-xs text-white/40 mt-1">Quiero anunciarme</p>
                       </button>
@@ -337,7 +337,7 @@ const Auth: React.FC = () => {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Juan Pérez"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                    className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
                   />
                   {errors.fullName && <p className="text-red-400 text-sm">{errors.fullName}</p>}
                 </div>
@@ -354,7 +354,7 @@ const Auth: React.FC = () => {
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Mi Empresa S.A. de C.V."
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
                     />
                   </div>
                 )}
@@ -369,7 +369,7 @@ const Auth: React.FC = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="tu@email.com"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
               />
               {errors.email && <p className="text-red-400 text-sm">{errors.email}</p>}
             </div>
@@ -383,7 +383,7 @@ const Auth: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl pr-12 focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl pr-12 focus:border-primary focus:ring-primary/20"
                 />
                 <button
                   type="button"
@@ -399,7 +399,7 @@ const Auth: React.FC = () => {
                   type="button"
                   onClick={handleForgotPassword}
                   disabled={isSendingReset}
-                  className="text-white/50 hover:text-[#9BFF43] text-sm transition-colors mt-1 disabled:opacity-50"
+                  className="text-white/50 hover:text-primary text-sm transition-colors mt-1 disabled:opacity-50"
                 >
                   {isSendingReset ? 'Enviando...' : '¿Olvidaste tu contraseña?'}
                 </button>
@@ -417,7 +417,7 @@ const Auth: React.FC = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl pr-12 focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                      className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl pr-12 focus:border-primary focus:ring-primary/20"
                     />
                     <button
                       type="button"
@@ -437,7 +437,7 @@ const Auth: React.FC = () => {
                       id="isAnonymous"
                       checked={isAnonymous}
                       onChange={(e) => setIsAnonymous(e.target.checked)}
-                      className="w-5 h-5 rounded border-white/20 bg-white/5 text-[#9BFF43] focus:ring-[#9BFF43]/20"
+                      className="w-5 h-5 rounded border-white/20 bg-white/5 text-primary focus:ring-primary/20"
                     />
                     <div>
                       <Label htmlFor="isAnonymous" className="text-white font-medium cursor-pointer">Mantener perfil anónimo</Label>
@@ -451,7 +451,7 @@ const Auth: React.FC = () => {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A] font-semibold h-12 rounded-xl text-base transition-all duration-200 hover:shadow-lg hover:shadow-[#9BFF43]/30"
+              className="w-full bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] font-semibold h-12 rounded-xl text-base transition-all duration-200 hover:shadow-lg hover:shadow-[#9BFF43]/30"
             >
               {isLoading 
                 ? 'Procesando...' 
@@ -467,7 +467,7 @@ const Auth: React.FC = () => {
               <div className="w-full border-t border-white/10"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-[#1A1A1A] text-white/40">O continúa con</span>
+              <span className="px-4 bg-card text-white/40">O continúa con</span>
             </div>
           </div>
 
@@ -507,7 +507,7 @@ const Auth: React.FC = () => {
                 setMode(mode === 'login' ? 'signup' : 'login');
                 setErrors({});
               }}
-              className="text-[#9BFF43] hover:underline ml-2 font-medium"
+              className="text-primary hover:underline ml-2 font-medium"
             >
               {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
             </button>
@@ -534,31 +534,31 @@ const Auth: React.FC = () => {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-6 mt-12">
             <div className="text-center">
-              <p className="text-3xl font-bold text-[#9BFF43]">500+</p>
+              <p className="text-3xl font-bold text-primary">500+</p>
               <p className="text-white/40 text-sm mt-1">Espectaculares</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-[#9BFF43]">1M+</p>
+              <p className="text-3xl font-bold text-primary">1M+</p>
               <p className="text-white/40 text-sm mt-1">Impresiones/día</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-[#9BFF43]">32</p>
+              <p className="text-3xl font-bold text-primary">32</p>
               <p className="text-white/40 text-sm mt-1">Estados</p>
             </div>
           </div>
         </div>
         
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#9BFF43]/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#9BFF43]/5 rounded-full blur-[100px]" />
-        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-[#9BFF43] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/3 right-1/4 w-2 h-2 bg-[#9BFF43]/60 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
-        <div className="absolute top-1/2 right-1/3 w-4 h-4 bg-[#9BFF43]/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-primary/5 rounded-full blur-[100px]" />
+        <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-primary rounded-full animate-pulse" />
+        <div className="absolute bottom-1/3 right-1/4 w-2 h-2 bg-primary/60 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute top-1/2 right-1/3 w-4 h-4 bg-primary/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       {/* Role Selection Modal for OAuth users */}
       <Dialog open={showRoleModal} onOpenChange={() => {}}>
-        <DialogContent className="bg-[#2A2A2A] border-white/10 text-white sm:max-w-md">
+        <DialogContent className="bg-muted border-white/10 text-white sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-center">
               ¡Bienvenido a Maddi!
@@ -573,15 +573,15 @@ const Auth: React.FC = () => {
               onClick={() => setSelectedRoleForModal('owner')}
               className={`p-4 rounded-xl border-2 transition-all ${
                 selectedRoleForModal === 'owner'
-                  ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                  ? 'border-primary bg-primary/10'
                   : 'border-white/10 hover:border-white/30'
               }`}
             >
               <Building2 className={`w-8 h-8 mx-auto mb-2 ${
-                selectedRoleForModal === 'owner' ? 'text-[#9BFF43]' : 'text-white/60'
+                selectedRoleForModal === 'owner' ? 'text-primary' : 'text-white/60'
               }`} />
               <p className={`font-medium ${
-                selectedRoleForModal === 'owner' ? 'text-[#9BFF43]' : 'text-white'
+                selectedRoleForModal === 'owner' ? 'text-primary' : 'text-white'
               }`}>Propietario</p>
               <p className="text-xs text-white/40 mt-1">Tengo espectaculares</p>
             </button>
@@ -590,15 +590,15 @@ const Auth: React.FC = () => {
               onClick={() => setSelectedRoleForModal('business')}
               className={`p-4 rounded-xl border-2 transition-all ${
                 selectedRoleForModal === 'business'
-                  ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                  ? 'border-primary bg-primary/10'
                   : 'border-white/10 hover:border-white/30'
               }`}
             >
               <Store className={`w-8 h-8 mx-auto mb-2 ${
-                selectedRoleForModal === 'business' ? 'text-[#9BFF43]' : 'text-white/60'
+                selectedRoleForModal === 'business' ? 'text-primary' : 'text-white/60'
               }`} />
               <p className={`font-medium ${
-                selectedRoleForModal === 'business' ? 'text-[#9BFF43]' : 'text-white'
+                selectedRoleForModal === 'business' ? 'text-primary' : 'text-white'
               }`}>Negocio</p>
               <p className="text-xs text-white/40 mt-1">Quiero anunciarme</p>
             </button>
@@ -606,7 +606,7 @@ const Auth: React.FC = () => {
           <Button
             onClick={handleRoleAssignment}
             disabled={isLoading || !selectedRoleForModal}
-            className="w-full bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] font-semibold py-6"
+            className="w-full bg-primary text-[#202020] hover:bg-[#8AE63A] font-semibold py-6"
           >
             {isLoading ? 'Configurando...' : 'Continuar'}
           </Button>

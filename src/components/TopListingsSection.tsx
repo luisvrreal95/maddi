@@ -80,7 +80,7 @@ const TopListingsSection: React.FC = () => {
   if (isLoading) {
     return (
       <section className="flex flex-col items-start self-stretch relative">
-        <div className="w-full bg-[#202020] pt-16 pb-24 px-16 max-md:px-8 max-sm:px-5">
+        <div className="w-full bg-card pt-16 pb-24 px-16 max-md:px-8 max-sm:px-5">
           <div className="flex flex-col items-center gap-4 mb-12">
             <Skeleton className="h-24 w-96 bg-white/10" />
             <Skeleton className="h-12 w-64 bg-white/10" />
@@ -98,7 +98,7 @@ const TopListingsSection: React.FC = () => {
   if (billboards.length === 0) {
     return (
       <section className="flex flex-col items-start self-stretch relative">
-        <div className="w-full bg-[#202020] pt-16 pb-24 px-16 max-md:px-8 max-sm:px-5 text-center">
+        <div className="w-full bg-card pt-16 pb-24 px-16 max-md:px-8 max-sm:px-5 text-center">
           <p className="text-white/40 text-lg">No hay espectaculares disponibles en este momento.</p>
         </div>
       </section>
@@ -107,7 +107,7 @@ const TopListingsSection: React.FC = () => {
 
   return (
     <section className="flex flex-col items-start self-stretch relative">
-      <div className="w-full bg-[#202020] pt-16 pb-24 px-16 max-md:px-8 max-sm:px-5 relative">
+      <div className="w-full bg-card pt-16 pb-24 px-16 max-md:px-8 max-sm:px-5 relative">
         <div className="blur-[100px] w-[400px] h-[600px] absolute bg-[rgba(255,255,255,0.08)] left-16 top-1/2 -translate-y-1/2 pointer-events-none" />
         <div className="blur-[100px] w-[400px] h-[600px] absolute bg-[rgba(255,255,255,0.08)] left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 pointer-events-none" />
         <div className="blur-[100px] w-[400px] h-[600px] absolute bg-[rgba(255,255,255,0.08)] right-16 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -118,7 +118,7 @@ const TopListingsSection: React.FC = () => {
               Top listings
             </h2>
             {displayCity && (
-              <h3 className="self-stretch text-[#9BFF43] text-center text-5xl font-bold leading-[48px] relative max-md:text-4xl max-sm:text-2xl">
+              <h3 className="self-stretch text-primary text-center text-5xl font-bold leading-[48px] relative max-md:text-4xl max-sm:text-2xl">
                 {displayCity}
               </h3>
             )}

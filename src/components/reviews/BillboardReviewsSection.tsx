@@ -25,7 +25,7 @@ const BillboardReviewsSection: React.FC<BillboardReviewsSectionProps> = ({ billb
       {[1, 2, 3, 4, 5].map((star) => (
         <Star
           key={star}
-          className={`w-4 h-4 ${star <= rating ? 'fill-[#9BFF43] text-[#9BFF43]' : 'text-muted-foreground'}`}
+          className={`w-4 h-4 ${star <= rating ? 'fill-[#9BFF43] text-primary' : 'text-muted-foreground'}`}
         />
       ))}
     </div>
@@ -38,7 +38,7 @@ const BillboardReviewsSection: React.FC<BillboardReviewsSectionProps> = ({ billb
         {stats.totalReviews > 0 && (
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
-              <Star className="w-5 h-5 fill-[#9BFF43] text-[#9BFF43]" />
+              <Star className="w-5 h-5 fill-[#9BFF43] text-primary" />
               <span className="text-foreground font-bold">{stats.averageRating.toFixed(1)}</span>
             </div>
             <span className="text-muted-foreground text-sm">

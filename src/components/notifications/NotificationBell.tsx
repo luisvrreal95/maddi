@@ -36,7 +36,7 @@ const NotificationBell: React.FC = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'booking_request':
-        return <Calendar className="w-4 h-4 text-[#9BFF43]" />;
+        return <Calendar className="w-4 h-4 text-primary" />;
       case 'booking_approved':
         return <Check className="w-4 h-4 text-green-500" />;
       case 'booking_rejected':
@@ -89,14 +89,14 @@ const NotificationBell: React.FC = () => {
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-[#9BFF43] text-[#202020] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-primary text-[#202020] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-80 p-0 bg-[#1A1A1A] border-white/10"
+        className="w-80 p-0 bg-card border-white/10"
         align="end"
         sideOffset={8}
       >
@@ -107,7 +107,7 @@ const NotificationBell: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={markAllAsRead}
-              className="text-[#9BFF43] hover:text-[#9BFF43]/80 hover:bg-white/5 h-auto py-1 px-2 text-xs"
+              className="text-primary hover:text-primary/80 hover:bg-white/5 h-auto py-1 px-2 text-xs"
             >
               <CheckCheck className="w-3 h-3 mr-1" />
               Marcar todas
@@ -129,7 +129,7 @@ const NotificationBell: React.FC = () => {
                   <div
                     className={cn(
                       "flex gap-3 px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer",
-                      !notification.is_read && "bg-[#9BFF43]/5"
+                      !notification.is_read && "bg-primary/5"
                     )}
                     onClick={() => handleNotificationClick(notification)}
                   >
@@ -155,7 +155,7 @@ const NotificationBell: React.FC = () => {
                     </div>
                     {!notification.is_read && (
                       <div className="flex-shrink-0">
-                        <div className="w-2 h-2 bg-[#9BFF43] rounded-full" />
+                        <div className="w-2 h-2 bg-primary rounded-full" />
                       </div>
                     )}
                   </div>

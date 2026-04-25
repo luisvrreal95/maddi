@@ -155,17 +155,17 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
   const isNaturalLanguageQuery = /quiero|busco|cerca|necesito|muestra|encuentra/i.test(searchQuery);
 
   const getTypeIcon = (type: string, suggestion?: SearchResult) => {
-    if (type === 'POI') return <Store className="w-5 h-5 text-[#9BFF43]" />;
+    if (type === 'POI') return <Store className="w-5 h-5 text-primary" />;
     if (type === 'Geography') {
       const name = suggestion?.displayName || suggestion?.name || '';
       const municipality = suggestion?.municipality || '';
       if (municipality && name.toLowerCase().includes(municipality.toLowerCase())) {
-        return <MapPin className="w-5 h-5 text-[#9BFF43]" />;
+        return <MapPin className="w-5 h-5 text-primary" />;
       }
-      return <Building2 className="w-5 h-5 text-[#9BFF43]" />;
+      return <Building2 className="w-5 h-5 text-primary" />;
     }
-    if (type === 'Street') return <Building2 className="w-5 h-5 text-[#9BFF43]" />;
-    return <MapPin className="w-5 h-5 text-[#9BFF43]" />;
+    if (type === 'Street') return <Building2 className="w-5 h-5 text-primary" />;
+    return <MapPin className="w-5 h-5 text-primary" />;
   };
 
   const getTypeLabel = (type: string, suggestion?: SearchResult) => {
@@ -207,7 +207,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
             </label>
             <div className="relative w-full flex items-center gap-2">
               {isNaturalLanguageQuery ? (
-                <Sparkles className="w-5 h-5 text-[#9BFF43] flex-shrink-0" />
+                <Sparkles className="w-5 h-5 text-primary flex-shrink-0" />
               ) : (
                 <MapPin className="w-5 h-5 text-white/50 flex-shrink-0" />
               )}
@@ -233,7 +233,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
             aria-label="Buscar"
           >
             {isNaturalLanguageQuery ? (
-              <Sparkles className="w-5 h-5 text-[#9BFF43]" />
+              <Sparkles className="w-5 h-5 text-primary" />
             ) : (
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <g clipPath="url(#clip0_search)">
@@ -256,11 +256,11 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
         {showSuggestions && suggestions.length > 0 && (
           <div
             ref={dropdownRef}
-            className="absolute top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-[9999]"
+            className="absolute top-full left-0 right-0 mt-2 bg-muted border border-white/10 rounded-2xl overflow-hidden shadow-2xl z-[9999]"
             style={{ maxHeight: '400px', overflowY: 'auto' }}
           >
             {userLocation && (
-              <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40 bg-[#2A2A2A]">
+              <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40 bg-muted">
                 <Navigation className="w-3 h-3" />
                 <span>Mostrando resultados cerca de ti</span>
               </div>
@@ -270,7 +270,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
                 key={suggestion.id}
                 type="button"
                 onClick={() => handleSelectSuggestion(suggestion)}
-                className="w-full px-5 py-4 flex items-start gap-3 text-left hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0 bg-[#2A2A2A]"
+                className="w-full px-5 py-4 flex items-start gap-3 text-left hover:bg-white/10 transition-colors border-b border-white/5 last:border-b-0 bg-muted"
               >
                 {getTypeIcon(suggestion.type, suggestion)}
                 <div className="flex-1 min-w-0">
@@ -293,7 +293,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
 
       {/* AI search hint */}
       {isNaturalLanguageQuery && (
-        <div className="flex items-center gap-2 text-[#9BFF43] text-sm">
+        <div className="flex items-center gap-2 text-primary text-sm">
           <Sparkles className="w-4 h-4" />
           <span>Búsqueda con IA activada</span>
         </div>

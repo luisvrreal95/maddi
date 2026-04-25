@@ -38,8 +38,8 @@ const FileField = ({ label, required, file, onChange, disabled }: FileFieldProps
       <div
         onClick={() => !disabled && ref.current?.click()}
         className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden
-          ${disabled ? 'opacity-50 cursor-not-allowed border-white/10' : 'border-white/20 hover:border-[#9BFF43]/50 hover:bg-[#9BFF43]/5'}
-          ${file ? 'border-[#9BFF43]/40 bg-[#9BFF43]/5' : ''}
+          ${disabled ? 'opacity-50 cursor-not-allowed border-white/10' : 'border-white/20 hover:border-primary/50 hover:bg-primary/5'}
+          ${file ? 'border-primary/40 bg-primary/5' : ''}
         `}
         style={{ minHeight: '96px' }}
       >
@@ -47,7 +47,7 @@ const FileField = ({ label, required, file, onChange, disabled }: FileFieldProps
           <img src={preview} alt={label} className="w-full h-24 object-cover rounded-xl" />
         ) : file ? (
           <div className="flex flex-col items-center gap-1 py-4">
-            <FileText className="w-6 h-6 text-[#9BFF43]" />
+            <FileText className="w-6 h-6 text-primary" />
             <span className="text-xs text-white/60 text-center px-2 truncate max-w-full">{file.name}</span>
           </div>
         ) : (
@@ -202,7 +202,7 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="w-6 h-6 animate-spin text-[#9BFF43]" />
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
       </div>
     );
   }
@@ -251,8 +251,8 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
         </div>
       )}
 
-      <div className="flex items-start gap-3 p-4 rounded-xl bg-[#1A1A1A] border border-white/10">
-        <AlertCircle className="w-5 h-5 text-[#9BFF43] shrink-0 mt-0.5" />
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-card border border-white/10">
+        <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
         <p className="text-white/50 text-sm">
           Los propietarios verificados generan más confianza y reciben más solicitudes. Tu información está protegida y no se compartirá públicamente.
         </p>
@@ -283,7 +283,7 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
           onChange={(e) => setRfc(e.target.value.toUpperCase())}
           placeholder="XAXX010101000"
           maxLength={13}
-          className="bg-[#1A1A1A] border-white/10 text-white uppercase"
+          className="bg-card border-white/10 text-white uppercase"
           disabled={isSubmitting}
         />
       </div>
@@ -298,7 +298,7 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
       <Button
         onClick={handleSubmit}
         disabled={isSubmitting || !ineFront || !ineBack}
-        className="w-full bg-[#9BFF43] text-black hover:bg-[#9BFF43]/90 disabled:opacity-50"
+        className="w-full bg-primary text-black hover:bg-primary/90 disabled:opacity-50"
       >
         {isSubmitting ? (
           <>

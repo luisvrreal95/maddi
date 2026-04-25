@@ -195,14 +195,14 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
   if (!result && !isLoading) {
     return (
       <Card className="bg-[#1E1E1E] border-white/10 p-8 text-center">
-        <Sparkles className="w-12 h-12 mx-auto text-[#9BFF43]/50 mb-4" />
+        <Sparkles className="w-12 h-12 mx-auto text-primary/50 mb-4" />
         <h3 className="text-white font-semibold mb-2">Análisis de Ubicación con IA</h3>
         <p className="text-white/60 text-sm mb-6">
           Descubre qué comercios hay alrededor de "{billboard.title}" y recibe recomendaciones personalizadas
         </p>
         <Button
           onClick={fetchAnalysis}
-          className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+          className="bg-primary hover:bg-[#8AE63A] text-background font-medium"
         >
           <Sparkles className="w-4 h-4 mr-2" />
           Analizar Ubicación
@@ -214,7 +214,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
   if (isLoading) {
     return (
       <Card className="bg-[#1E1E1E] border-white/10 p-8 text-center">
-        <Loader2 className="w-12 h-12 mx-auto text-[#9BFF43] mb-4 animate-spin" />
+        <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
         <h3 className="text-white font-semibold mb-2">Analizando ubicación...</h3>
         <p className="text-white/60 text-sm">
           Buscando comercios cercanos y generando recomendaciones con IA
@@ -228,9 +228,9 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
       {/* Header with refresh */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <MapPin className="w-5 h-5 text-[#9BFF43]" />
+          <MapPin className="w-5 h-5 text-primary" />
           <h3 className="text-white font-semibold">Comercios Cercanos</h3>
-          <Badge variant="secondary" className="bg-[#9BFF43]/20 text-[#9BFF43]">
+          <Badge variant="secondary" className="bg-primary/20 text-primary">
             {result?.totalPOIs || 0} encontrados
           </Badge>
         </div>
@@ -260,7 +260,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
                 className="w-full p-4 flex items-center justify-between hover:bg-white/5 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-[#9BFF43]">
+                  <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-primary">
                     {categoryIcons[category.name] || <Store className="w-4 h-4" />}
                   </div>
                   <span className="text-white font-medium">{category.name}</span>
@@ -305,9 +305,9 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
 
       {/* AI Analysis */}
       {result?.aiAnalysis && (
-        <Card className="bg-gradient-to-br from-[#9BFF43]/10 to-transparent border-[#9BFF43]/30 p-6">
+        <Card className="bg-gradient-to-br from-[#9BFF43]/10 to-transparent border-primary/30 p-6">
           <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="w-5 h-5 text-[#9BFF43]" />
+            <Sparkles className="w-5 h-5 text-primary" />
             <h3 className="text-white font-semibold">Análisis con IA</h3>
           </div>
           <div className="text-white/80 text-sm leading-relaxed whitespace-pre-line">
@@ -321,7 +321,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
               variant="ghost"
               size="sm"
               onClick={() => setShowFullAnalysis(!showFullAnalysis)}
-              className="mt-4 text-[#9BFF43] hover:text-[#9BFF43]/80 hover:bg-[#9BFF43]/10"
+              className="mt-4 text-primary hover:text-primary/80 hover:bg-primary/10"
             >
               {showFullAnalysis ? 'Ver menos' : 'Ver análisis completo'}
             </Button>

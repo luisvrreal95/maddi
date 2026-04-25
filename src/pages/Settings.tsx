@@ -221,16 +221,16 @@ const Settings: React.FC = () => {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-[#202020] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#9BFF43]" />
+      <div className="min-h-screen bg-card flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#202020]">
+    <div className="min-h-screen bg-card">
       {/* Header */}
-      <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4">
+      <header className="bg-card border-b border-white/10 px-6 py-4">
         <div className="flex items-center justify-between max-w-4xl mx-auto">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-1 flex-shrink-0">
@@ -257,7 +257,7 @@ const Settings: React.FC = () => {
                   <Menu className="w-5 h-5" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-[#2A2A2A] border-white/10">
+              <DropdownMenuContent align="end" className="w-48 bg-muted border-white/10">
                 <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
                   <Link to="/" className="flex items-center gap-2">
                     Inicio
@@ -281,26 +281,26 @@ const Settings: React.FC = () => {
       <main className="p-6 max-w-2xl mx-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-[#9BFF43]" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
           <Tabs defaultValue="profile" className="w-full">
-            <TabsList className={`grid w-full ${userRole === 'owner' ? 'grid-cols-4' : 'grid-cols-3'} bg-[#2A2A2A] mb-6`}>
-              <TabsTrigger value="profile" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
+            <TabsList className={`grid w-full ${userRole === 'owner' ? 'grid-cols-4' : 'grid-cols-3'} bg-muted mb-6`}>
+              <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
                 <User className="w-4 h-4 mr-2" />
                 Perfil
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
+              <TabsTrigger value="notifications" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
                 <Bell className="w-4 h-4 mr-2" />
                 Notificaciones
               </TabsTrigger>
               {userRole === 'owner' && (
-                <TabsTrigger value="verification" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
+                <TabsTrigger value="verification" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
                   <BadgeCheck className="w-4 h-4 mr-2" />
                   Verificación
                 </TabsTrigger>
               )}
-              <TabsTrigger value="security" className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-[#202020]">
+              <TabsTrigger value="security" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
                 <Shield className="w-4 h-4 mr-2" />
                 Seguridad
               </TabsTrigger>
@@ -308,7 +308,7 @@ const Settings: React.FC = () => {
 
             {/* Profile Tab */}
             <TabsContent value="profile">
-              <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+              <div className="bg-muted rounded-2xl p-6 border border-white/10">
                 <h2 className="text-white text-lg font-bold mb-6">Información Personal</h2>
                 
                 {/* Avatar */}
@@ -316,11 +316,11 @@ const Settings: React.FC = () => {
                   <div className="relative">
                     <Avatar className="w-24 h-24">
                       <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-[#9BFF43] text-[#202020] text-2xl font-bold">
+                      <AvatarFallback className="bg-primary text-[#202020] text-2xl font-bold">
                         {fullName.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <label className="absolute bottom-0 right-0 w-8 h-8 bg-[#9BFF43] rounded-full flex items-center justify-center cursor-pointer hover:bg-[#8AE63A] transition-colors">
+                    <label className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-[#8AE63A] transition-colors">
                       {isUploadingAvatar ? (
                         <Loader2 className="w-4 h-4 animate-spin text-[#202020]" />
                       ) : (
@@ -338,7 +338,7 @@ const Settings: React.FC = () => {
                   <div>
                     <p className="text-white font-semibold">{fullName || 'Sin nombre'}</p>
                     <p className="text-white/50 text-sm">{user.email}</p>
-                    <p className="text-[#9BFF43] text-xs mt-1">
+                    <p className="text-primary text-xs mt-1">
                       {userRole === 'owner' ? 'Propietario' : userRole === 'business' ? 'Negocio' : 'Usuario'}
                     </p>
                   </div>
@@ -353,7 +353,7 @@ const Settings: React.FC = () => {
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="Tu nombre completo"
-                      className="mt-1 bg-[#1A1A1A] border-white/10 text-white"
+                      className="mt-1 bg-card border-white/10 text-white"
                     />
                   </div>
 
@@ -364,7 +364,7 @@ const Settings: React.FC = () => {
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="+52 55 1234 5678"
-                      className="mt-1 bg-[#1A1A1A] border-white/10 text-white"
+                      className="mt-1 bg-card border-white/10 text-white"
                     />
                   </div>
 
@@ -375,7 +375,7 @@ const Settings: React.FC = () => {
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       placeholder="Nombre de tu empresa"
-                      className="mt-1 bg-[#1A1A1A] border-white/10 text-white"
+                      className="mt-1 bg-card border-white/10 text-white"
                     />
                   </div>
 
@@ -384,13 +384,13 @@ const Settings: React.FC = () => {
                     <Input
                       value={user.email || ''}
                       disabled
-                      className="mt-1 bg-[#1A1A1A] border-white/10 text-white/50"
+                      className="mt-1 bg-card border-white/10 text-white/50"
                     />
                     <p className="text-white/30 text-xs mt-1">El correo no se puede cambiar</p>
                   </div>
 
                   {userRole === 'owner' && (
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-[#1A1A1A] border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-white/10">
                       <div>
                         <Label htmlFor="isAnonymous" className="text-white font-medium cursor-pointer">Perfil Anónimo</Label>
                         <p className="text-white/40 text-xs mt-1">Tu información no será visible para otros usuarios en tus espectaculares</p>
@@ -399,7 +399,7 @@ const Settings: React.FC = () => {
                         id="isAnonymous"
                         checked={isAnonymous}
                         onCheckedChange={setIsAnonymous}
-                        className="data-[state=checked]:bg-[#9BFF43]"
+                        className="data-[state=checked]:bg-primary"
                       />
                     </div>
                   )}
@@ -407,7 +407,7 @@ const Settings: React.FC = () => {
                   <Button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="w-full bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] mt-4"
+                    className="w-full bg-primary text-[#202020] hover:bg-[#8AE63A] mt-4"
                   >
                     {isSaving ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -422,7 +422,7 @@ const Settings: React.FC = () => {
 
             {/* Notifications Tab */}
             <TabsContent value="notifications">
-              <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+              <div className="bg-muted rounded-2xl p-6 border border-white/10">
                 <h2 className="text-white text-lg font-bold mb-6">Preferencias de Notificación</h2>
                 
                 <div className="space-y-6">
@@ -434,7 +434,7 @@ const Settings: React.FC = () => {
                     <Switch
                       checked={pushNotifications}
                       onCheckedChange={setPushNotifications}
-                      className="data-[state=checked]:bg-[#9BFF43]"
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
 
@@ -446,14 +446,14 @@ const Settings: React.FC = () => {
                     <Switch
                       checked={emailNotifications}
                       onCheckedChange={setEmailNotifications}
-                      className="data-[state=checked]:bg-[#9BFF43]"
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
 
                   <Button
                     onClick={handleSaveNotifications}
                     disabled={isSaving}
-                    className="w-full bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] mt-4"
+                    className="w-full bg-primary text-[#202020] hover:bg-[#8AE63A] mt-4"
                   >
                     {isSaving ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -469,7 +469,7 @@ const Settings: React.FC = () => {
             {/* Verification Tab - Only for owners */}
             {userRole === 'owner' && (
               <TabsContent value="verification">
-                <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+                <div className="bg-muted rounded-2xl p-6 border border-white/10">
                   <h2 className="text-white text-lg font-bold mb-6">Verificación de Identidad</h2>
                   <VerificationSection onVerificationChange={fetchProfile} />
                 </div>
@@ -478,7 +478,7 @@ const Settings: React.FC = () => {
 
             {/* Security Tab */}
             <TabsContent value="security">
-              <div className="bg-[#2A2A2A] rounded-2xl p-6 border border-white/10">
+              <div className="bg-muted rounded-2xl p-6 border border-white/10">
                 <h2 className="text-white text-lg font-bold mb-6">Seguridad</h2>
                 
                 <div className="space-y-6">

@@ -82,15 +82,15 @@ const QuickStats: React.FC<QuickStatsProps> = ({ billboards, userId }) => {
       value: totalImpressions > 0 ? `~${(totalImpressions / 1000).toFixed(0)}K` : 'Sin datos',
       subValue: totalImpressions > 0 ? `~${(monthlyImpressions / 1000000).toFixed(1)}M/mes` : null,
       icon: Eye,
-      color: 'text-[#9BFF43]',
-      bgColor: 'bg-[#9BFF43]/10',
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
       tooltip: 'Impresiones diarias estimadas basadas en datos de tráfico de TomTom. Las impresiones mensuales se calculan multiplicando por 30 días.',
     },
     {
       label: 'Ganancias Totales',
       value: `$${totalEarnings.toLocaleString()}`,
       subValue: earningsChange !== 0 ? (
-        <span className={`flex items-center gap-1 ${earningsChange >= 0 ? 'text-[#9BFF43]' : 'text-red-400'}`}>
+        <span className={`flex items-center gap-1 ${earningsChange >= 0 ? 'text-primary' : 'text-red-400'}`}>
           {earningsChange >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
           {Math.abs(earningsChange).toFixed(1)}% vs mes anterior
         </span>
@@ -140,7 +140,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ billboards, userId }) => {
                       <Info className="w-4 h-4" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="max-w-xs bg-[#2A2A2A] border-white/10 text-white">
+                  <TooltipContent side="top" className="max-w-xs bg-muted border-white/10 text-white">
                     <p className="text-sm">{stat.tooltip}</p>
                   </TooltipContent>
                 </Tooltip>

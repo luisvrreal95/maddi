@@ -20,7 +20,7 @@ const getTrafficLevel = (views: number): { level: string; color: string; bgColor
     return { 
       level: 'medio-alto', 
       color: '#9BFF43', // lime
-      bgColor: 'bg-[#9BFF43]',
+      bgColor: 'bg-primary',
       glowColor: 'rgba(155, 255, 67, 0.5)'
     };
   } else if (views >= 10000) {

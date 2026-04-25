@@ -17,8 +17,8 @@ const PropertyMarker: React.FC<PropertyMarkerProps> = ({ viewsPerDay, isSelected
       <div
         className={`relative flex flex-col items-center justify-center rounded-full transition-all duration-300 ${
           isSelected
-            ? 'w-20 h-20 bg-[#9BFF43] shadow-[0_0_30px_rgba(155,255,67,0.5)]'
-            : 'w-16 h-16 bg-[#2A2A2A] border-2 border-[#9BFF43]/50 hover:border-[#9BFF43]'
+            ? 'w-20 h-20 bg-primary shadow-[0_0_30px_rgba(155,255,67,0.5)]'
+            : 'w-16 h-16 bg-muted border-2 border-primary/50 hover:border-primary'
         }`}
       >
         <span className={`text-xs font-bold ${isSelected ? 'text-[#202020]' : 'text-white'}`}>

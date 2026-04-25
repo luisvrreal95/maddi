@@ -16,7 +16,7 @@ const Footer: React.FC = () => {
   ];
 
   return (
-    <footer className="w-full bg-[#181818] py-16 px-16 max-md:py-12 max-md:px-8 max-sm:py-10 max-sm:px-4 pb-28 md:pb-16">
+    <footer className="w-full bg-card py-16 px-16 max-md:py-12 max-md:px-8 max-sm:py-10 max-sm:px-4 pb-28 md:pb-16">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 max-sm:gap-6 mb-12">
           {/* Logo */}
@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
                 aria-label={social.label}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center text-white/70 hover:bg-[#9BFF43] hover:text-[#202020] transition-all duration-300"
+                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-white/70 hover:bg-primary hover:text-[#202020] transition-all duration-300"
               >
                 <social.icon className="w-5 h-5" />
               </a>
@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
               <a
                 key={link.label}
                 href={link.href}
-                className="text-white/70 text-sm hover:text-[#9BFF43] transition-colors duration-300"
+                className="text-white/70 text-sm hover:text-primary transition-colors duration-300"
               >
                 {link.label}
               </a>

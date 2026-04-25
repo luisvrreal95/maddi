@@ -621,9 +621,9 @@ const AddProperty: React.FC = () => {
   const progress = (step / 5) * 100;
 
   return (
-    <div className="min-h-screen bg-[#121212] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="bg-[#1A1A1A] border-b border-white/10 px-6 py-4 flex-shrink-0">
+      <header className="bg-card border-b border-white/10 px-6 py-4 flex-shrink-0">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <button 
             onClick={() => navigate('/owner?tab=propiedades')}
@@ -643,8 +643,8 @@ const AddProperty: React.FC = () => {
 
       {/* Quick info block */}
       <div className="max-w-xl mx-auto px-6 pt-6 pb-0">
-        <div className="flex items-center gap-3 bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl px-5 py-3">
-          <CheckCircle className="w-5 h-5 text-[#9BFF43] flex-shrink-0" />
+        <div className="flex items-center gap-3 bg-primary/10 border border-primary/20 rounded-xl px-5 py-3">
+          <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
           <div>
             <p className="text-white font-medium text-sm">Paso {step} de 5 — Publica tu ubicación</p>
             <p className="text-white/40 text-xs">Te tomará menos de 3 minutos</p>
@@ -680,7 +680,7 @@ const AddProperty: React.FC = () => {
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="h-14 text-lg bg-[#2A2A2A] border-white/20 text-white placeholder:text-white/40 focus:border-[#9BFF43]"
+                    className="h-14 text-lg bg-muted border-white/20 text-white placeholder:text-white/40 focus:border-primary"
                     placeholder="Ej: Plaza Cataviña - Vista Principal"
                   />
                 </div>
@@ -693,7 +693,7 @@ const AddProperty: React.FC = () => {
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="h-14 text-lg pl-8 bg-[#2A2A2A] border-white/20 text-white placeholder:text-white/40 focus:border-[#9BFF43]"
+                      className="h-14 text-lg pl-8 bg-muted border-white/20 text-white placeholder:text-white/40 focus:border-primary"
                       placeholder="10,000"
                     />
                   </div>
@@ -730,7 +730,7 @@ const AddProperty: React.FC = () => {
                 {/* Address with autocomplete */}
                 <div className="relative">
                   <div className="relative">
-                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9BFF43]" />
+                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
                     <Input
                       ref={addressInputRef}
                       value={address}
@@ -743,7 +743,7 @@ const AddProperty: React.FC = () => {
                           setShowAddressSuggestions(true);
                         }
                       }}
-                      className="h-14 text-lg pl-12 bg-[#2A2A2A] border-white/20 text-white placeholder:text-white/40 focus:border-[#9BFF43]"
+                      className="h-14 text-lg pl-12 bg-muted border-white/20 text-white placeholder:text-white/40 focus:border-primary"
                       placeholder="Busca una plaza, negocio o dirección..."
                     />
                     {isLoadingSuggestions && (
@@ -752,7 +752,7 @@ const AddProperty: React.FC = () => {
                   </div>
                   
                   {showAddressSuggestions && addressSuggestions.length > 0 && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                    <div className="absolute z-50 top-full left-0 right-0 mt-2 bg-muted border border-white/10 rounded-xl overflow-hidden shadow-2xl">
                       {addressSuggestions.map((suggestion) => (
                         <button
                           key={suggestion.id}
@@ -760,7 +760,7 @@ const AddProperty: React.FC = () => {
                           onClick={() => handleSelectAddress(suggestion)}
                           className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white/5 transition-colors"
                         >
-                          <MapPin className="w-4 h-4 mt-0.5 text-[#9BFF43] flex-shrink-0" />
+                          <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-white truncate">{suggestion.text}</p>
                             <p className="text-sm text-white/50 truncate">{suggestion.place_name}</p>
@@ -780,7 +780,7 @@ const AddProperty: React.FC = () => {
                     <Input
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      className="bg-[#2A2A2A] border-white/20 text-white"
+                      className="bg-muted border-white/20 text-white"
                       placeholder="Mexicali"
                     />
                   </div>
@@ -789,7 +789,7 @@ const AddProperty: React.FC = () => {
                     <Input
                       value={state}
                       onChange={(e) => setState(e.target.value)}
-                      className="bg-[#2A2A2A] border-white/20 text-white"
+                      className="bg-muted border-white/20 text-white"
                       placeholder="B.C."
                     />
                   </div>
@@ -848,7 +848,7 @@ const AddProperty: React.FC = () => {
                       <X className="h-4 w-4" />
                     </Button>
                     {index === 0 && (
-                      <span className="absolute bottom-2 left-2 text-xs bg-[#9BFF43] text-[#121212] px-2 py-1 rounded font-medium">
+                      <span className="absolute bottom-2 left-2 text-xs bg-primary text-background px-2 py-1 rounded font-medium">
                         Foto principal
                       </span>
                     )}
@@ -858,11 +858,11 @@ const AddProperty: React.FC = () => {
                 {imageUrls.length < 6 && (
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-[#9BFF43]/50 hover:bg-[#9BFF43]/5 transition-all bg-[#2A2A2A]"
+                    className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-xl cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all bg-muted"
                   >
                     {isUploadingImage ? (
                       <>
-                        <Loader2 className="h-8 w-8 text-[#9BFF43] animate-spin mb-2" />
+                        <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
                         <p className="text-white/60 text-sm">Subiendo...</p>
                       </>
                     ) : (
@@ -916,10 +916,10 @@ const AddProperty: React.FC = () => {
                 <div>
                   <Label className="text-white/80 mb-2 block">Tipo de espacio</Label>
                   <Select value={billboardType} onValueChange={setBillboardType}>
-                    <SelectTrigger className="h-14 bg-[#2A2A2A] border-white/20 text-white">
+                    <SelectTrigger className="h-14 bg-muted border-white/20 text-white">
                       <SelectValue placeholder="Selecciona tipo" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#2A2A2A] border-white/10">
+                    <SelectContent className="bg-muted border-white/10">
                       <SelectItem value="espectacular">Espectacular</SelectItem>
                       <SelectItem value="pantalla_digital">Pantalla Digital</SelectItem>
                       <SelectItem value="mural">Mural</SelectItem>
@@ -942,7 +942,7 @@ const AddProperty: React.FC = () => {
                         onClick={() => setIsDigital(true)}
                         className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                           isDigital
-                            ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                            ? 'border-primary bg-primary/10 text-white'
                             : 'border-white/20 hover:border-white/30 text-white/70'
                         }`}
                       >
@@ -953,7 +953,7 @@ const AddProperty: React.FC = () => {
                         onClick={() => setIsDigital(false)}
                         className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                           !isDigital
-                            ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                            ? 'border-primary bg-primary/10 text-white'
                             : 'border-white/20 hover:border-white/30 text-white/70'
                         }`}
                       >
@@ -975,7 +975,7 @@ const AddProperty: React.FC = () => {
                         value={height}
                         onChange={(e) => setHeight(e.target.value)}
                         placeholder="Alto"
-                        className="h-14 bg-[#2A2A2A] border-white/20 text-white placeholder:text-white/40"
+                        className="h-14 bg-muted border-white/20 text-white placeholder:text-white/40"
                       />
                     </div>
                     <div>
@@ -983,7 +983,7 @@ const AddProperty: React.FC = () => {
                         value={width}
                         onChange={(e) => setWidth(e.target.value)}
                         placeholder="Ancho"
-                        className="h-14 bg-[#2A2A2A] border-white/20 text-white placeholder:text-white/40"
+                        className="h-14 bg-muted border-white/20 text-white placeholder:text-white/40"
                       />
                     </div>
                   </div>
@@ -998,14 +998,14 @@ const AddProperty: React.FC = () => {
                       onClick={() => setIsIlluminated(true)}
                       className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                         isIlluminated
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                          ? 'border-primary bg-primary/10 text-white'
                           : 'border-white/20 hover:border-white/30 text-white/70'
                       }`}
                     >
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
+                        isIlluminated ? 'border-primary' : 'border-white/40'
                       }`}>
-                        {isIlluminated && <div className="w-2.5 h-2.5 rounded-full bg-[#9BFF43]" />}
+                        {isIlluminated && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
                       </div>
                       Iluminado
                     </button>
@@ -1014,14 +1014,14 @@ const AddProperty: React.FC = () => {
                       onClick={() => setIsIlluminated(false)}
                       className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                         !isIlluminated
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                          ? 'border-primary bg-primary/10 text-white'
                           : 'border-white/20 hover:border-white/30 text-white/70'
                       }`}
                     >
                       <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        !isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
+                        !isIlluminated ? 'border-primary' : 'border-white/40'
                       }`}>
-                        {!isIlluminated && <div className="w-2.5 h-2.5 rounded-full bg-[#9BFF43]" />}
+                        {!isIlluminated && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
                       </div>
                       No iluminado
                     </button>
@@ -1032,21 +1032,21 @@ const AddProperty: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <Label className="text-white/80">Puntos de Interés cercanos</Label>
-                    {isLoadingPOIs && <Loader2 className="w-4 h-4 text-[#9BFF43] animate-spin" />}
+                    {isLoadingPOIs && <Loader2 className="w-4 h-4 text-primary animate-spin" />}
                   </div>
                   
-                  <div className="bg-[#9BFF43]/5 border border-[#9BFF43]/20 rounded-xl p-3 mb-3">
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 mb-3">
                     <div className="flex items-start gap-2">
-                      <Info className="w-4 h-4 text-[#9BFF43] mt-0.5 flex-shrink-0" />
+                      <Info className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
                       <p className="text-sm text-white/70">
-                        Los puntos de interés se <span className="text-[#9BFF43] font-medium">detectan automáticamente</span> según la ubicación. 
+                        Los puntos de interés se <span className="text-primary font-medium">detectan automáticamente</span> según la ubicación. 
                         Puedes agregar más o quitar los que no apliquen.
                       </p>
                     </div>
                   </div>
                   
                   {detectedPOIs.length > 0 && (
-                    <p className="text-xs text-[#9BFF43] mb-2">
+                    <p className="text-xs text-primary mb-2">
                       ✓ Se detectaron {detectedPOIs.length} tipos de lugares cercanos
                     </p>
                   )}
@@ -1055,18 +1055,18 @@ const AddProperty: React.FC = () => {
                     {POINTS_OF_INTEREST.map((point) => {
                       const isDetected = detectedPOIs.includes(point);
                       return (
-                        <div key={point} className={`flex items-center gap-2 p-2 rounded-lg ${isDetected ? 'bg-[#9BFF43]/10' : ''}`}>
+                        <div key={point} className={`flex items-center gap-2 p-2 rounded-lg ${isDetected ? 'bg-primary/10' : ''}`}>
                           <Checkbox
                             id={point}
                             checked={pointsOfInterest.includes(point)}
                             onCheckedChange={(checked) => 
                               handlePointOfInterestChange(point, checked as boolean)
                             }
-                            className="border-white/30 data-[state=checked]:bg-[#9BFF43] data-[state=checked]:border-[#9BFF43]"
+                            className="border-white/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                           />
                           <label htmlFor={point} className="text-sm cursor-pointer text-white/80">
                             {point}
-                            {isDetected && <span className="text-[#9BFF43] text-xs ml-1">(detectado)</span>}
+                            {isDetected && <span className="text-primary text-xs ml-1">(detectado)</span>}
                           </label>
                         </div>
                       );
@@ -1079,7 +1079,7 @@ const AddProperty: React.FC = () => {
                       value={customPOI}
                       onChange={(e) => setCustomPOI(e.target.value)}
                       placeholder="Agregar otro..."
-                      className="flex-1 bg-[#2A2A2A] border-white/20 text-white text-sm"
+                      className="flex-1 bg-muted border-white/20 text-white text-sm"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customPOI.trim()) {
                           e.preventDefault();
@@ -1100,7 +1100,7 @@ const AddProperty: React.FC = () => {
                           setCustomPOI('');
                         }
                       }}
-                      className="bg-transparent border-[#9BFF43]/50 text-[#9BFF43] hover:bg-[#9BFF43]/10"
+                      className="bg-transparent border-primary/50 text-primary hover:bg-primary/10"
                     >
                       Agregar
                     </Button>
@@ -1141,7 +1141,7 @@ const AddProperty: React.FC = () => {
                       onClick={() => setAvailability('immediate')}
                       className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                         availability === 'immediate'
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                          ? 'border-primary bg-primary/10 text-white'
                           : 'border-white/20 hover:border-white/30 text-white/70'
                       }`}
                     >
@@ -1154,7 +1154,7 @@ const AddProperty: React.FC = () => {
                           onClick={() => setAvailability('scheduled')}
                           className={`flex items-center justify-center gap-2 p-4 rounded-xl border transition-all ${
                             availability === 'scheduled'
-                              ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                              ? 'border-primary bg-primary/10 text-white'
                               : 'border-white/20 hover:border-white/30 text-white/70'
                           }`}
                         >
@@ -1165,14 +1165,14 @@ const AddProperty: React.FC = () => {
                         </button>
                       </PopoverTrigger>
                       {availability === 'scheduled' && (
-                        <PopoverContent className="w-auto p-0 bg-[#2A2A2A] border-white/10" align="center">
+                        <PopoverContent className="w-auto p-0 bg-muted border-white/10" align="center">
                           <Calendar
                             mode="single"
                             selected={availableFrom}
                             onSelect={setAvailableFrom}
                             locale={es}
                             initialFocus
-                            className="bg-[#2A2A2A]"
+                            className="bg-muted"
                           />
                         </PopoverContent>
                       )}
@@ -1183,8 +1183,8 @@ const AddProperty: React.FC = () => {
                 {/* Min Campaign Days */}
                 <div className="bg-[#1E1E1E] rounded-xl p-6 border border-white/10">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-[#9BFF43]/10 flex items-center justify-center flex-shrink-0">
-                      <CalendarIcon className="w-6 h-6 text-[#9BFF43]" />
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <CalendarIcon className="w-6 h-6 text-primary" />
                     </div>
                     <div className="flex-1">
                       <Label className="text-white font-medium mb-1 block">Duración mínima de campaña</Label>
@@ -1196,7 +1196,7 @@ const AddProperty: React.FC = () => {
                           type="number"
                           value={minCampaignDays}
                           onChange={(e) => setMinCampaignDays(e.target.value)}
-                          className="w-24 h-12 text-center text-lg bg-[#2A2A2A] border-white/20 text-white"
+                          className="w-24 h-12 text-center text-lg bg-muted border-white/20 text-white"
                           min="1"
                         />
                         <span className="text-white/60">días</span>
@@ -1221,7 +1221,7 @@ const AddProperty: React.FC = () => {
                           type="number"
                           value={minAdvanceBookingDays}
                           onChange={(e) => setMinAdvanceBookingDays(e.target.value)}
-                          className="w-24 h-12 text-center text-lg bg-[#2A2A2A] border-white/20 text-white"
+                          className="w-24 h-12 text-center text-lg bg-muted border-white/20 text-white"
                           min="1"
                         />
                         <span className="text-white/60">días antes</span>
@@ -1256,15 +1256,15 @@ const AddProperty: React.FC = () => {
                             }}
                             className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
                               ownershipType === option.value
-                                ? 'border-[#9BFF43] bg-[#9BFF43]/10 text-white'
+                                ? 'border-primary bg-primary/10 text-white'
                                 : 'border-white/20 hover:border-white/30 text-white/70'
                             }`}
                           >
                             <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                              ownershipType === option.value ? 'border-[#9BFF43]' : 'border-white/40'
+                              ownershipType === option.value ? 'border-primary' : 'border-white/40'
                             }`}>
                               {ownershipType === option.value && (
-                                <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
+                                <div className="w-2 h-2 rounded-full bg-primary" />
                               )}
                             </div>
                             {option.label}
@@ -1298,7 +1298,7 @@ const AddProperty: React.FC = () => {
       </div>
 
       {/* Footer Navigation */}
-      <footer className="bg-[#1A1A1A] border-t border-white/10 px-6 py-4 flex-shrink-0">
+      <footer className="bg-card border-t border-white/10 px-6 py-4 flex-shrink-0">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Button
             variant="ghost"
@@ -1313,7 +1313,7 @@ const AddProperty: React.FC = () => {
           {step < 5 ? (
             <Button
               onClick={goToNextStep}
-              className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium px-8"
+              className="bg-primary hover:bg-[#8AE63A] text-background font-medium px-8"
             >
               Siguiente
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -1322,7 +1322,7 @@ const AddProperty: React.FC = () => {
             <Button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium px-8"
+              className="bg-primary hover:bg-[#8AE63A] text-background font-medium px-8"
             >
               {isLoading ? (
                 <>

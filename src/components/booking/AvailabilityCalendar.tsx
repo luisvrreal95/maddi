@@ -144,7 +144,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
   };
 
   return (
-    <div className={cn("bg-[#2A2A2A] rounded-2xl p-4", className)}>
+    <div className={cn("bg-muted rounded-2xl p-4", className)}>
       <h3 className="text-white font-bold mb-1">Disponibilidad</h3>
       <p className="text-white/50 text-xs mb-3">Haz clic en una fecha de inicio y luego en una de fin para seleccionar un rango.</p>
       
@@ -160,7 +160,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
       />
 
       {selectedRange?.from && selectedRange?.to && (
-        <div className="mt-3 p-2 bg-[#1A1A1A] rounded-lg text-sm">
+        <div className="mt-3 p-2 bg-card rounded-lg text-sm">
           <span className="text-white/60">Rango: </span>
           <span className="text-white font-medium">{format(selectedRange.from, 'd MMM yyyy', { locale: es })}</span>
           <span className="text-white/60"> — </span>
@@ -171,7 +171,7 @@ const AvailabilityCalendar: React.FC<AvailabilityCalendarProps> = ({
       {/* Legend */}
       <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-white/10">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-[#9BFF43]" />
+          <div className="w-3 h-3 rounded-full bg-primary" />
           <span className="text-white/60 text-sm">Disponible</span>
         </div>
         {!isDigital && (

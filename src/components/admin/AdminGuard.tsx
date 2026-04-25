@@ -142,11 +142,11 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
   if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
-        <div className="bg-[#1A1A1A] rounded-2xl p-8 max-w-md w-full border border-white/10">
+        <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-[#9BFF43]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ShieldX className="w-8 h-8 text-[#9BFF43]" />
+            <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ShieldX className="w-8 h-8 text-primary" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Panel de Administración</h1>
             <p className="text-white/60 text-sm">
@@ -166,7 +166,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@maddi.com"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
                 disabled={isLoggingIn}
               />
             </div>
@@ -182,7 +182,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20 pr-12"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
                   disabled={isLoggingIn}
                 />
                 <button
@@ -198,7 +198,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
             <Button
               type="submit"
               disabled={isLoggingIn}
-              className="w-full bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+              className="w-full bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
             >
               {isLoggingIn ? (
                 <>
@@ -214,7 +214,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
               type="button"
               onClick={handlePasswordReset}
               disabled={isSendingReset || isLoggingIn}
-              className="w-full text-center text-white/50 hover:text-[#9BFF43] text-sm transition-colors mt-2 disabled:opacity-50"
+              className="w-full text-center text-white/50 hover:text-primary text-sm transition-colors mt-2 disabled:opacity-50"
             >
               {isSendingReset ? "Enviando..." : "¿Olvidaste tu contraseña?"}
             </button>

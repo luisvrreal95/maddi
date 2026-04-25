@@ -80,7 +80,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
   const congestionLevel = trafficData?.congestionLevel || Math.min(100, Math.round((viewsNumber / 50000) * 100));
 
   return (
-    <div className="bg-[#1A1A1A] rounded-2xl overflow-hidden shadow-2xl w-[380px] border border-white/10">
+    <div className="bg-card rounded-2xl overflow-hidden shadow-2xl w-[380px] border border-white/10">
       {/* Compact Header */}
       <div className="relative h-32 bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A]">
         {property.imageUrl ? (
@@ -91,8 +91,8 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="w-12 h-12 bg-[#9BFF43]/20 rounded-full flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-[#9BFF43]" />
+            <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center">
+              <MapPin className="w-6 h-6 text-primary" />
             </div>
           </div>
         )}
@@ -122,22 +122,22 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
       {/* Key Metrics Grid */}
       <div className="p-4">
         <div className="grid grid-cols-4 gap-2 mb-4">
-          <div className="bg-[#2A2A2A] rounded-xl p-2.5 text-center">
-            <Eye className="w-4 h-4 text-[#9BFF43] mx-auto mb-1" />
+          <div className="bg-muted rounded-xl p-2.5 text-center">
+            <Eye className="w-4 h-4 text-primary mx-auto mb-1" />
             <p className="text-white font-bold text-sm">{property.viewsPerDay}</p>
             <p className="text-white/50 text-[9px]">Vistas/Día</p>
           </div>
-          <div className="bg-[#2A2A2A] rounded-xl p-2.5 text-center">
+          <div className="bg-muted rounded-xl p-2.5 text-center">
             <Car className="w-4 h-4 text-blue-400 mx-auto mb-1" />
             <p className="text-white font-bold text-sm">{formatViews(estimatedFlow)}</p>
             <p className="text-white/50 text-[9px]">Flujo/Hora</p>
           </div>
-          <div className="bg-[#2A2A2A] rounded-xl p-2.5 text-center">
+          <div className="bg-muted rounded-xl p-2.5 text-center">
             <Clock className="w-4 h-4 text-amber-400 mx-auto mb-1" />
             <p className="text-white font-bold text-sm">{property.peakHours.split('-')[0]}</p>
             <p className="text-white/50 text-[9px]">Hora Pico</p>
           </div>
-          <div className="bg-[#2A2A2A] rounded-xl p-2.5 text-center">
+          <div className="bg-muted rounded-xl p-2.5 text-center">
             <Building2 className="w-4 h-4 text-purple-400 mx-auto mb-1" />
             <p className="text-white font-bold text-sm">{property.pointsOfInterest}</p>
             <p className="text-white/50 text-[9px]">POIs</p>
@@ -150,7 +150,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
             <span className="text-white/60 text-xs">Nivel de tráfico</span>
             <span className="text-white text-xs font-medium">{congestionLevel}%</span>
           </div>
-          <div className="h-2 bg-[#2A2A2A] rounded-full overflow-hidden">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div 
               className="h-full rounded-full transition-all duration-500"
               style={{ 
@@ -167,12 +167,12 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
             <p className="text-white/60 text-xs mb-2">POIs cercanos:</p>
             <div className="flex flex-wrap gap-1">
               {nearbyPOIs.slice(0, 4).map((poi, idx) => (
-                <span key={idx} className="px-2 py-0.5 bg-[#2A2A2A] text-white/70 text-[10px] rounded-full">
+                <span key={idx} className="px-2 py-0.5 bg-muted text-white/70 text-[10px] rounded-full">
                   {poi.name} ({poi.distance}m)
                 </span>
               ))}
               {nearbyPOIs.length > 4 && (
-                <span className="px-2 py-0.5 bg-[#2A2A2A] text-[#9BFF43] text-[10px] rounded-full">
+                <span className="px-2 py-0.5 bg-muted text-primary text-[10px] rounded-full">
                   +{nearbyPOIs.length - 4} más
                 </span>
               )}
@@ -182,18 +182,18 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
 
         {/* INEGI Zone Profile */}
         {isLoadingInegi && (
-          <div className="mb-4 p-3 bg-[#2A2A2A] rounded-xl">
+          <div className="mb-4 p-3 bg-muted rounded-xl">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-[#9BFF43] border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
               <span className="text-white/60 text-xs">Analizando zona...</span>
             </div>
           </div>
         )}
         
         {inegiData && !isLoadingInegi && (
-          <div className="mb-4 p-3 bg-[#2A2A2A] rounded-xl">
+          <div className="mb-4 p-3 bg-muted rounded-xl">
             <div className="flex items-center gap-2 mb-2">
-              <Wallet className="w-4 h-4 text-[#9BFF43]" />
+              <Wallet className="w-4 h-4 text-primary" />
               <span className="text-white text-xs font-medium">Perfil de Zona</span>
             </div>
             
@@ -211,7 +211,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
                   {SOCIOECONOMIC_LABELS[inegiData.socioeconomicLevel]}
                 </span>
               </div>
-              <div className="h-1.5 bg-[#1A1A1A] rounded-full overflow-hidden">
+              <div className="h-1.5 bg-card rounded-full overflow-hidden">
                 <div 
                   className="h-full rounded-full transition-all duration-500"
                   style={{ 
@@ -235,12 +235,12 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
         )}
 
         {/* Price */}
-        <div className="bg-[#2A2A2A] rounded-xl py-2.5 px-4 flex items-center justify-between mb-4">
+        <div className="bg-muted rounded-xl py-2.5 px-4 flex items-center justify-between mb-4">
           <div>
             <span className="text-white text-xl font-bold">{property.price}</span>
             <span className="text-white/50 text-sm">/mes</span>
           </div>
-          <div className="flex items-center gap-1 text-[#9BFF43]">
+          <div className="flex items-center gap-1 text-primary">
             <TrendingUp className="w-4 h-4" />
             <span className="text-xs font-medium">Alto ROI</span>
           </div>
@@ -253,7 +253,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
             className={`p-2.5 rounded-xl transition-colors ${
               isInCompare 
                 ? 'bg-blue-500 text-white' 
-                : 'bg-[#2A2A2A] text-white/70 hover:text-white hover:bg-[#3A3A3A]'
+                : 'bg-muted text-white/70 hover:text-white hover:bg-[#3A3A3A]'
             }`}
             title={isInCompare ? 'En comparador' : 'Agregar a comparar'}
           >
@@ -261,14 +261,14 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
           </button>
           <button
             onClick={onViewDetails}
-            className="flex-1 py-2.5 rounded-xl bg-[#2A2A2A] text-white font-medium text-sm hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 rounded-xl bg-muted text-white font-medium text-sm hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
           >
             Ver Detalles
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={onReserve}
-            className="flex-1 py-2.5 rounded-xl bg-[#9BFF43] text-[#1A1A1A] font-bold text-sm hover:bg-[#8AE63A] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-primary text-[#1A1A1A] font-bold text-sm hover:bg-[#8AE63A] transition-colors"
           >
             Reservar
           </button>

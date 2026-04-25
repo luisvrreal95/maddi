@@ -79,7 +79,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
   peakHoursDetail
 }) => {
   return (
-    <article className="flex flex-col w-full bg-[#1A1A1A] rounded-3xl overflow-hidden h-full">
+    <article className="flex flex-col w-full bg-card rounded-3xl overflow-hidden h-full">
       {/* Top Section - Dark */}
       <div className="p-6 pb-5">
         {/* Testimonial Quote */}
@@ -102,7 +102,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         
         {/* Location */}
         <div className="mt-4">
-          <p className="text-[#9BFF43] font-bold text-lg">Mexicali</p>
+          <p className="text-primary font-bold text-lg">Mexicali</p>
           <p className="text-white/60 text-sm leading-relaxed">{address}</p>
         </div>
         
@@ -126,7 +126,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
         </div>
         
         {/* Price Box */}
-        <div className="flex justify-center items-center py-4 mt-5 rounded-xl bg-[#2A2A2A]">
+        <div className="flex justify-center items-center py-4 mt-5 rounded-xl bg-muted">
           <span className="text-white/80 text-2xl font-bold">{price}</span>
           <span className="text-white/50 text-base ml-1">/mes</span>
         </div>
@@ -152,7 +152,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
       
       {/* CTA Button */}
       <div className="px-6 pb-6 pt-2">
-        <button className="w-full py-4 rounded-full bg-[#9BFF43] text-[#1A1A1A] font-bold text-base hover:bg-[#8AE63A] transition-colors">
+        <button className="w-full py-4 rounded-full bg-primary text-[#1A1A1A] font-bold text-base hover:bg-[#8AE63A] transition-colors">
           Ver Más
         </button>
       </div>

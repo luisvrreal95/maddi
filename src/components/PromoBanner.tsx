@@ -25,13 +25,13 @@ const PromoBanner: React.FC = () => {
           href="https://maddi.com.mx/auth?role=owner"
           className="flex items-center gap-2 md:gap-3 text-center"
         >
-          <span className="bg-[#9BFF43] text-black text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
+          <span className="bg-primary text-black text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
             Nuevo
           </span>
           <span className="text-white/80 text-xs md:text-sm">
             Lanzamiento 2026 — Comisión 0% en etapa inicial para Propietarios Fundadores
           </span>
-          <span className="text-[#9BFF43] font-medium text-xs md:text-sm whitespace-nowrap">
+          <span className="text-primary font-medium text-xs md:text-sm whitespace-nowrap">
             Conocer más →
           </span>
         </a>

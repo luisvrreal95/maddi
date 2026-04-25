@@ -126,9 +126,9 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50 backdrop-blur-sm">
-      <div className="h-full w-full max-w-lg bg-[#1A1A1A] overflow-y-auto animate-in slide-in-from-right duration-300">
+      <div className="h-full w-full max-w-lg bg-card overflow-y-auto animate-in slide-in-from-right duration-300">
         {/* Header */}
-        <div className="sticky top-0 z-10 bg-[#1A1A1A] border-b border-white/10 p-4">
+        <div className="sticky top-0 z-10 bg-card border-b border-white/10 p-4">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-white font-bold text-lg">{property.name}</h2>
@@ -149,28 +149,28 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
         <div className="p-4 space-y-6">
           {/* Summary Metrics */}
           <div className="grid grid-cols-2 gap-3">
-            <div className="bg-[#2A2A2A] rounded-xl p-4">
+            <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Eye className="w-5 h-5 text-[#9BFF43]" />
+                <Eye className="w-5 h-5 text-primary" />
                 <span className="text-white/60 text-sm">Impresiones Mensuales</span>
               </div>
               <p className="text-white text-2xl font-bold">{formatNumber(monthlyImpressions)}</p>
             </div>
-            <div className="bg-[#2A2A2A] rounded-xl p-4">
+            <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-5 h-5 text-blue-400" />
                 <span className="text-white/60 text-sm">CPM Estimado</span>
               </div>
               <p className="text-white text-2xl font-bold">${cpm}</p>
             </div>
-            <div className="bg-[#2A2A2A] rounded-xl p-4">
+            <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Zap className="w-5 h-5 text-amber-400" />
                 <span className="text-white/60 text-sm">Hora Pico</span>
               </div>
               <p className="text-white text-2xl font-bold">{peakHour.hour}</p>
             </div>
-            <div className="bg-[#2A2A2A] rounded-xl p-4">
+            <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Car className="w-5 h-5 text-purple-400" />
                 <span className="text-white/60 text-sm">Flujo Promedio/Hora</span>
@@ -180,9 +180,9 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
           </div>
 
           {/* Hourly Traffic Chart */}
-          <div className="bg-[#2A2A2A] rounded-xl p-4">
+          <div className="bg-muted rounded-xl p-4">
             <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-[#9BFF43]" />
+              <TrendingUp className="w-5 h-5 text-primary" />
               Tráfico por Hora
             </h3>
             <div className="h-48">
@@ -238,14 +238,14 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
                 <span>Hora pico</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded-full bg-[#9BFF43]" />
+                <div className="w-3 h-3 rounded-full bg-primary" />
                 <span>Tráfico normal</span>
               </div>
             </div>
           </div>
 
           {/* Area Context */}
-          <div className="bg-[#2A2A2A] rounded-xl p-4">
+          <div className="bg-muted rounded-xl p-4">
             <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
               <MapPin className="w-5 h-5 text-blue-400" />
               Contexto del Área
@@ -277,7 +277,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
           </div>
 
           {/* Decision Metrics */}
-          <div className="bg-gradient-to-br from-[#9BFF43]/20 to-transparent rounded-xl p-4 border border-[#9BFF43]/30">
+          <div className="bg-gradient-to-br from-[#9BFF43]/20 to-transparent rounded-xl p-4 border border-primary/30">
             <h3 className="text-white font-semibold mb-3">Métricas para tu Decisión</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
@@ -296,7 +296,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
           </div>
 
           {/* Price & CTA */}
-          <div className="sticky bottom-0 bg-[#1A1A1A] border-t border-white/10 p-4 -mx-4 -mb-4">
+          <div className="sticky bottom-0 bg-card border-t border-white/10 p-4 -mx-4 -mb-4">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <span className="text-white/60 text-sm">Precio mensual</span>
@@ -304,12 +304,12 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
               </div>
               <div className="text-right">
                 <span className="text-white/60 text-sm">Disponibilidad</span>
-                <p className="text-[#9BFF43] font-medium">{property.availability}</p>
+                <p className="text-primary font-medium">{property.availability}</p>
               </div>
             </div>
             <button
               onClick={onReserve}
-              className="w-full py-3 rounded-xl bg-[#9BFF43] text-[#1A1A1A] font-bold hover:bg-[#8AE63A] transition-colors"
+              className="w-full py-3 rounded-xl bg-primary text-[#1A1A1A] font-bold hover:bg-[#8AE63A] transition-colors"
             >
               Reservar Ahora
             </button>

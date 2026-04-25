@@ -10,7 +10,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 );
 
 const Terminos: React.FC = () => (
-  <main className="min-h-screen bg-[#121212] flex flex-col">
+  <main className="min-h-screen bg-background flex flex-col">
     <Header />
     <article className="flex-1 max-w-4xl mx-auto px-6 py-16 text-white w-full">
       <header className="mb-12 border-b border-white/10 pb-8">
@@ -62,7 +62,7 @@ const Terminos: React.FC = () => (
 
       <Section title="5. Comisiones de la Plataforma">
         <p>
-          Maddi cobra una comisión equivalente al <strong className="text-[#9BFF43]">15%</strong> sobre el monto
+          Maddi cobra una comisión equivalente al <strong className="text-primary">15%</strong> sobre el monto
           total de cada transacción aprobada, descontada del pago al Propietario. Los precios mostrados al
           Anunciante incluyen dicha comisión, salvo indicación contraria.
         </p>

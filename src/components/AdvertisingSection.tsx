@@ -82,7 +82,7 @@ const AdvertisingSection: React.FC = () => {
             disabled={!canScrollLeft}
             className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
               canScrollLeft 
-                ? 'border-[#202020] hover:bg-[#202020] hover:text-white cursor-pointer text-[#202020]' 
+                ? 'border-[#202020] hover:bg-card hover:text-white cursor-pointer text-[#202020]' 
                 : 'border-[#202020]/30 text-[#202020]/30 cursor-not-allowed'
             }`}
             aria-label="Scroll left"
@@ -95,7 +95,7 @@ const AdvertisingSection: React.FC = () => {
             disabled={!canScrollRight}
             className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
               canScrollRight 
-                ? 'border-[#202020] hover:bg-[#202020] hover:text-white cursor-pointer text-[#202020]' 
+                ? 'border-[#202020] hover:bg-card hover:text-white cursor-pointer text-[#202020]' 
                 : 'border-[#202020]/30 text-[#202020]/30 cursor-not-allowed'
             }`}
             aria-label="Scroll right"

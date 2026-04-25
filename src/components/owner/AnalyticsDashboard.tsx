@@ -222,8 +222,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
               onClick={() => setTimePeriod('7d')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 timePeriod === '7d'
-                  ? 'bg-[#9BFF43] text-[#121212] shadow-lg shadow-[#9BFF43]/20'
-                  : 'bg-[#2A2A2A] text-white/70 hover:text-white hover:bg-white/10'
+                  ? 'bg-primary text-background shadow-lg shadow-[#9BFF43]/20'
+                  : 'bg-muted text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
               Últimos 7 días
@@ -232,8 +232,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
               onClick={() => setTimePeriod('30d')}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 timePeriod === '30d'
-                  ? 'bg-[#9BFF43] text-[#121212] shadow-lg shadow-[#9BFF43]/20'
-                  : 'bg-[#2A2A2A] text-white/70 hover:text-white hover:bg-white/10'
+                  ? 'bg-primary text-background shadow-lg shadow-[#9BFF43]/20'
+                  : 'bg-muted text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
               Últimos 30 días
@@ -253,7 +253,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                     <TooltipTrigger>
                       <Info className="w-3.5 h-3.5 text-white/30" />
                     </TooltipTrigger>
-                    <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                    <TooltipContent className="bg-muted border-white/10 max-w-xs">
                       <p className="text-sm">Personas que solicitaron información en este periodo.</p>
                     </TooltipContent>
                   </UITooltip>
@@ -281,7 +281,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                     <TooltipTrigger>
                       <Info className="w-3.5 h-3.5 text-white/30" />
                     </TooltipTrigger>
-                    <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                    <TooltipContent className="bg-muted border-white/10 max-w-xs">
                       <p className="text-sm">Estimación basada en ubicación y tráfico. No es un dato exacto.</p>
                     </TooltipContent>
                   </UITooltip>
@@ -302,7 +302,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
           </Card>
 
           {/* 3. Ingresos del periodo */}
-          <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-[#9BFF43]/20 p-6">
+          <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-primary/20 p-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -311,21 +311,21 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                     <TooltipTrigger>
                       <Info className="w-3.5 h-3.5 text-white/30" />
                     </TooltipTrigger>
-                    <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                    <TooltipContent className="bg-muted border-white/10 max-w-xs">
                       <p className="text-sm">Ingresos generados en el periodo seleccionado.</p>
                     </TooltipContent>
                   </UITooltip>
                 </div>
                 <p className="text-3xl font-bold text-white">${totalEarnings.toLocaleString()}</p>
                 {earningsChange !== 0 && (
-                  <div className={`flex items-center gap-1 text-sm mt-1 ${earningsChange >= 0 ? 'text-[#9BFF43]' : 'text-red-400'}`}>
+                  <div className={`flex items-center gap-1 text-sm mt-1 ${earningsChange >= 0 ? 'text-primary' : 'text-red-400'}`}>
                     {earningsChange >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
                     {earningsChange >= 0 ? 'Sube' : 'Baja'} {Math.abs(earningsChange).toFixed(0)}% vs periodo anterior
                   </div>
                 )}
               </div>
-              <div className="w-12 h-12 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-[#9BFF43]" />
+              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-primary" />
               </div>
             </div>
           </Card>
@@ -341,7 +341,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                       <TooltipTrigger>
                         <Info className="w-3.5 h-3.5 text-white/30" />
                       </TooltipTrigger>
-                      <TooltipContent className="bg-[#2A2A2A] border-white/10 max-w-xs">
+                      <TooltipContent className="bg-muted border-white/10 max-w-xs">
                         <p className="text-sm">El espacio con mayor número de vistas en este periodo.</p>
                       </TooltipContent>
                     </UITooltip>
@@ -489,7 +489,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                       <tr key={billboard.id} className="border-b border-white/5 hover:bg-white/5">
                         <td className="py-4 px-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] overflow-hidden flex-shrink-0">
+                            <div className="w-10 h-10 rounded-lg bg-muted overflow-hidden flex-shrink-0">
                               {billboard.image_url ? (
                                 <img src={billboard.image_url} alt={billboard.title} className="w-full h-full object-cover" />
                               ) : (
@@ -504,7 +504,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                         <td className="py-4 px-4 text-white/60">{billboard.city}, {billboard.state}</td>
                         <td className="py-4 px-4 text-right text-white">${billboard.price_per_month.toLocaleString()}</td>
                         <td className="py-4 px-4 text-right text-white">{contactCount}</td>
-                        <td className="py-4 px-4 text-right text-[#9BFF43] font-medium">${revenue.toLocaleString()}</td>
+                        <td className="py-4 px-4 text-right text-primary font-medium">${revenue.toLocaleString()}</td>
                       </tr>
                     );
                   })}

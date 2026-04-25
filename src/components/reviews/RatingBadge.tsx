@@ -15,7 +15,7 @@ const RatingBadge: React.FC<RatingBadgeProps> = ({ averageRating, totalReviews, 
 
   return (
     <div className="flex items-center gap-1">
-      <Star className={`${iconSize} fill-[#9BFF43] text-[#9BFF43]`} />
+      <Star className={`${iconSize} fill-[#9BFF43] text-primary`} />
       <span className={`text-foreground font-medium ${textSize}`}>
         {averageRating.toFixed(1)}
       </span>

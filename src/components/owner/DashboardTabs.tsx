@@ -15,7 +15,7 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({ activeTab, onTabChange })
   ];
 
   return (
-    <nav className="flex items-center gap-1 bg-[#2A2A2A] rounded-full p-1 w-fit mx-auto mb-8">
+    <nav className="flex items-center gap-1 bg-muted rounded-full p-1 w-fit mx-auto mb-8">
       {navItems.map((item) => {
         const Icon = item.icon;
         const isActive = activeTab === item.id;
@@ -25,7 +25,7 @@ const DashboardTabs: React.FC<DashboardTabsProps> = ({ activeTab, onTabChange })
             onClick={() => onTabChange(item.id)}
             className={`flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
               isActive
-                ? 'bg-[#9BFF43] text-[#121212]'
+                ? 'bg-primary text-background'
                 : 'text-white/70 hover:text-white hover:bg-white/5'
             }`}
           >

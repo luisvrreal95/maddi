@@ -727,12 +727,12 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-2xl p-0 gap-0 overflow-hidden h-[90vh] flex flex-col">
+      <DialogContent className="bg-card border-white/10 text-white max-w-2xl p-0 gap-0 overflow-hidden h-[90vh] flex flex-col">
         {/* Header with Step Indicator */}
         <div className="flex items-center justify-between p-6 pb-4 border-b border-white/10 flex-shrink-0">
           <div className="flex items-center gap-3">
             {step === 2 && (
-              <button onClick={handleBack} className="text-white hover:text-[#9BFF43] transition-colors">
+              <button onClick={handleBack} className="text-white hover:text-primary transition-colors">
                 <ArrowLeft className="w-5 h-5" />
               </button>
             )}
@@ -757,7 +757,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
             {/* Contexto inicial solo para nuevas propiedades */}
             {!billboard && (
               <div className="px-6 pt-4 flex-shrink-0">
-                <div className="bg-[#9BFF43]/10 border border-[#9BFF43]/20 rounded-xl p-4">
+                <div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
                   <p className="text-white/80 text-sm">
                     ✨ Completa estos pasos para publicar tu espectacular y comenzar a recibir contactos de anunciantes.
                   </p>
@@ -773,7 +773,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    className="mt-1 bg-muted border-white/10 text-white placeholder:text-white/40"
                     placeholder="Plaza Cataviña"
                   />
                 </div>
@@ -783,7 +783,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                     type="number"
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
-                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    className="mt-1 bg-muted border-white/10 text-white placeholder:text-white/40"
                     placeholder="10000"
                   />
                 </div>
@@ -801,7 +801,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                     if (e.target.value.length <= 800) setDescription(e.target.value);
                   }}
                   rows={3}
-                  className="mt-1 w-full rounded-md bg-[#2A2A2A] border border-white/10 text-white placeholder:text-white/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#9BFF43]/30 resize-none"
+                  className="mt-1 w-full rounded-md bg-muted border border-white/10 text-white placeholder:text-white/40 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
                   placeholder="Describe tu espectacular: ubicación estratégica, visibilidad, tráfico..."
                 />
               </div>
@@ -810,7 +810,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               <div className="relative">
                 <Label className="text-sm text-white/60">Dirección</Label>
                 <div className="relative mt-1">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9BFF43]" />
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                   <Input
                     ref={addressInputRef}
                     value={address}
@@ -823,7 +823,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                         setShowAddressSuggestions(true);
                       }
                     }}
-                    className="pl-10 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    className="pl-10 bg-muted border-white/10 text-white placeholder:text-white/40"
                     placeholder="Escribe la dirección del espectacular..."
                   />
                   {isLoadingSuggestions && (
@@ -833,7 +833,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 
                 {/* Suggestions dropdown */}
                 {showAddressSuggestions && addressSuggestions.length > 0 && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl">
+                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-muted border border-white/10 rounded-xl overflow-hidden shadow-xl">
                     {addressSuggestions.map((suggestion) => (
                       <button
                         key={suggestion.id}
@@ -841,7 +841,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                         onClick={() => handleSelectAddress(suggestion)}
                         className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-white/5 transition-colors"
                       >
-                        <MapPin className="w-4 h-4 mt-0.5 text-[#9BFF43] flex-shrink-0" />
+                        <MapPin className="w-4 h-4 mt-0.5 text-primary flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="font-medium text-white truncate">{suggestion.text}</p>
                           <p className="text-sm text-white/50 truncate">{suggestion.place_name}</p>
@@ -880,12 +880,12 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                       setShowCitySuggestions(filtered.length > 0);
                     }}
                     onBlur={() => setTimeout(() => setShowCitySuggestions(false), 150)}
-                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    className="mt-1 bg-muted border-white/10 text-white placeholder:text-white/40"
                     placeholder="Mexicali"
                     autoComplete="off"
                   />
                   {showCitySuggestions && citySuggestions.length > 0 && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl max-h-40 overflow-y-auto">
+                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-muted border border-white/10 rounded-xl overflow-hidden shadow-xl max-h-40 overflow-y-auto">
                       {citySuggestions.map((c) => (
                         <button
                           key={c}
@@ -908,16 +908,16 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   <Input
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="mt-1 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                    className="mt-1 bg-muted border-white/10 text-white placeholder:text-white/40"
                     placeholder="B.C."
                   />
                 </div>
               </div>
 
               {/* Map - Featured Section */}
-              <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
+              <div className="bg-muted rounded-xl p-4 border border-white/10">
                 <div className="flex items-center gap-2 mb-2">
-                  <MapPin className="w-5 h-5 text-[#9BFF43]" />
+                  <MapPin className="w-5 h-5 text-primary" />
                   <Label className="text-base font-medium text-white">Selecciona la ubicación exacta</Label>
                 </div>
                 <p className="text-sm text-white/60 mb-3">
@@ -959,7 +959,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                         <X className="h-3 w-3" />
                       </Button>
                       {index === 0 && (
-                        <span className="absolute bottom-1 left-1 text-xs bg-[#9BFF43] text-[#121212] px-1.5 py-0.5 rounded font-medium">
+                        <span className="absolute bottom-1 left-1 text-xs bg-primary text-background px-1.5 py-0.5 rounded font-medium">
                           Principal
                         </span>
                       )}
@@ -969,11 +969,11 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   {imageUrls.length < 6 && (
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#2A2A2A]"
+                      className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-muted"
                     >
                       {isUploadingImage ? (
                         <>
-                          <Loader2 className="h-6 w-6 text-[#9BFF43] animate-spin mb-1" />
+                          <Loader2 className="h-6 w-6 text-primary animate-spin mb-1" />
                           <p className="text-white/60 text-xs">Subiendo...</p>
                         </>
                       ) : (
@@ -993,7 +993,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                     <button
                       type="button"
                       onClick={handleContinue}
-                      className="text-xs text-[#9BFF43] hover:text-[#8AE63A] transition-colors"
+                      className="text-xs text-primary hover:text-[#8AE63A] transition-colors"
                     >
                       Omitir por ahora →
                     </button>
@@ -1012,7 +1012,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
             </div>
 
             {/* Fixed Footer Buttons - Step 1 */}
-            <div className="flex gap-3 px-6 py-4 border-t border-white/10 bg-[#1A1A1A] flex-shrink-0">
+            <div className="flex gap-3 px-6 py-4 border-t border-white/10 bg-card flex-shrink-0">
               <Button
                 variant="outline"
                 onClick={() => onOpenChange(false)}
@@ -1022,7 +1022,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
               </Button>
               <Button
                 onClick={handleContinue}
-                className="flex-1 bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+                className="flex-1 bg-primary hover:bg-[#8AE63A] text-background font-medium"
               >
                 Siguiente →
               </Button>
@@ -1040,14 +1040,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
             <div className="flex-1 overflow-y-auto px-6">
               <div className="space-y-4 py-4">
                 {/* Property Preview Card */}
-                <div className="bg-[#2A2A2A] rounded-xl p-4 flex items-start justify-between">
+                <div className="bg-muted rounded-xl p-4 flex items-start justify-between">
                   <div>
                     <h3 className="font-bold text-lg text-white">{title}</h3>
                     <p className="text-white/50 text-sm">
                       {address}
                     </p>
                   </div>
-                  <div className="bg-[#9BFF43] text-[#121212] rounded-lg px-3 py-2 text-right">
+                  <div className="bg-primary text-background rounded-lg px-3 py-2 text-right">
                     <span className="font-bold">${parseInt(price || '0').toLocaleString()}</span>
                     <span className="text-sm opacity-70"> /mes</span>
                   </div>
@@ -1056,13 +1056,13 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 {/* Puntos de Interés - Automated Section */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <MapPin className="w-4 h-4 text-[#9BFF43]" />
+                    <MapPin className="w-4 h-4 text-primary" />
                     <Label className="text-sm font-medium text-white">Puntos de Interés</Label>
                   </div>
-                  <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
+                  <div className="bg-muted rounded-xl p-4 border border-white/10">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
-                        <Sparkles className="w-5 h-5 text-[#9BFF43]" />
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-white font-medium">Cálculo automático</p>
@@ -1079,14 +1079,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Eye className="w-4 h-4 text-[#9BFF43]" />
+                      <Eye className="w-4 h-4 text-primary" />
                       <Label className="text-sm font-medium text-white">Tipo de espacio</Label>
                     </div>
                     <Select value={billboardType} onValueChange={setBillboardType}>
-                      <SelectTrigger className="bg-[#2A2A2A] border-white/10 text-white">
+                      <SelectTrigger className="bg-muted border-white/10 text-white">
                         <SelectValue placeholder="Selecciona tipo" />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#2A2A2A] border-white/10">
+                      <SelectContent className="bg-muted border-white/10">
                         <SelectItem value="espectacular">Espectacular</SelectItem>
                         <SelectItem value="pantalla_digital">Pantalla Digital</SelectItem>
                         <SelectItem value="mural">Mural</SelectItem>
@@ -1100,7 +1100,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   </div>
                   <div>
                     <div className="flex items-center gap-2 mb-2">
-                      <Clock className="w-4 h-4 text-[#9BFF43]" />
+                      <Clock className="w-4 h-4 text-primary" />
                       <Label className="text-sm font-medium text-white">Tamaño (metros)</Label>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
@@ -1108,13 +1108,13 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                         value={height}
                         onChange={(e) => setHeight(e.target.value)}
                         placeholder="Alto"
-                        className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                        className="bg-muted border-white/10 text-white placeholder:text-white/40"
                       />
                       <Input
                         value={width}
                         onChange={(e) => setWidth(e.target.value)}
                         placeholder="Ancho"
-                        className="bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/40"
+                        className="bg-muted border-white/10 text-white placeholder:text-white/40"
                       />
                     </div>
                   </div>
@@ -1123,7 +1123,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 {/* Iluminación */}
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <Eye className="w-4 h-4 text-[#9BFF43]" />
+                    <Eye className="w-4 h-4 text-primary" />
                     <Label className="text-sm font-medium text-white">Iluminación</Label>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -1132,14 +1132,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                       onClick={() => setIsIlluminated(true)}
                       className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
                         isIlluminated
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                          ? 'border-primary bg-primary/10'
                           : 'border-white/10 hover:border-white/20'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
+                        isIlluminated ? 'border-primary' : 'border-white/40'
                       }`}>
-                        {isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
+                        {isIlluminated && <div className="w-2 h-2 rounded-full bg-primary" />}
                       </div>
                       <span className="text-sm text-white">Iluminado</span>
                     </button>
@@ -1148,14 +1148,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                       onClick={() => setIsIlluminated(false)}
                       className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
                         !isIlluminated
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                          ? 'border-primary bg-primary/10'
                           : 'border-white/10 hover:border-white/20'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        !isIlluminated ? 'border-[#9BFF43]' : 'border-white/40'
+                        !isIlluminated ? 'border-primary' : 'border-white/40'
                       }`}>
-                        {!isIlluminated && <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />}
+                        {!isIlluminated && <div className="w-2 h-2 rounded-full bg-primary" />}
                       </div>
                       <span className="text-sm text-white">No iluminado</span>
                     </button>
@@ -1165,7 +1165,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 {/* Disponibilidad */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <CalendarIcon className="w-4 h-4 text-[#9BFF43]" />
+                    <CalendarIcon className="w-4 h-4 text-primary" />
                     <Label className="text-sm font-medium text-white">Disponibilidad</Label>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
@@ -1174,15 +1174,15 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                       onClick={() => setAvailability('immediate')}
                       className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
                         availability === 'immediate'
-                          ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                          ? 'border-primary bg-primary/10'
                           : 'border-white/10 hover:border-white/20'
                       }`}
                     >
                       <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                        availability === 'immediate' ? 'border-[#9BFF43]' : 'border-white/40'
+                        availability === 'immediate' ? 'border-primary' : 'border-white/40'
                       }`}>
                         {availability === 'immediate' && (
-                          <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
+                          <div className="w-2 h-2 rounded-full bg-primary" />
                         )}
                       </div>
                       <span className="text-sm text-white">Inmediata</span>
@@ -1195,15 +1195,15 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                           onClick={() => setAvailability('scheduled')}
                           className={`flex items-center gap-2 p-3 rounded-xl border transition-all text-left ${
                             availability === 'scheduled'
-                              ? 'border-[#9BFF43] bg-[#9BFF43]/10'
+                              ? 'border-primary bg-primary/10'
                               : 'border-white/10 hover:border-white/20'
                           }`}
                         >
                           <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                            availability === 'scheduled' ? 'border-[#9BFF43]' : 'border-white/40'
+                            availability === 'scheduled' ? 'border-primary' : 'border-white/40'
                           }`}>
                             {availability === 'scheduled' && (
-                              <div className="w-2 h-2 rounded-full bg-[#9BFF43]" />
+                              <div className="w-2 h-2 rounded-full bg-primary" />
                             )}
                           </div>
                           <span className="text-sm text-white">
@@ -1215,14 +1215,14 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                         </button>
                       </PopoverTrigger>
                       {availability === 'scheduled' && (
-                        <PopoverContent className="w-auto p-0 bg-[#2A2A2A] border-white/10" align="start">
+                        <PopoverContent className="w-auto p-0 bg-muted border-white/10" align="start">
                           <Calendar
                             mode="single"
                             selected={availableFrom}
                             onSelect={setAvailableFrom}
                             locale={es}
                             initialFocus
-                            className="bg-[#2A2A2A]"
+                            className="bg-muted"
                           />
                         </PopoverContent>
                       )}
@@ -1233,7 +1233,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 {/* Booking Constraints - Optional */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
-                    <Clock className="w-4 h-4 text-[#9BFF43]" />
+                    <Clock className="w-4 h-4 text-primary" />
                     <Label className="text-sm font-medium text-white">Requisitos de reserva</Label>
                     <span className="text-xs text-white/40 bg-white/5 px-2 py-0.5 rounded-full">Opcional</span>
                   </div>
@@ -1248,7 +1248,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                           type="number"
                           value={minCampaignDays}
                           onChange={(e) => setMinCampaignDays(e.target.value)}
-                          className="bg-[#2A2A2A] border-white/10 text-white"
+                          className="bg-muted border-white/10 text-white"
                           placeholder="0"
                           min="0"
                         />
@@ -1263,7 +1263,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                           type="number"
                           value={minAdvanceBookingDays}
                           onChange={(e) => setMinAdvanceBookingDays(e.target.value)}
-                          className="bg-[#2A2A2A] border-white/10 text-white"
+                          className="bg-muted border-white/10 text-white"
                           placeholder="7"
                           min="0"
                         />
@@ -1280,7 +1280,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                 </div>
 
                 {/* Info Box */}
-                <div className="bg-[#2A2A2A] rounded-xl p-4 border border-white/10">
+                <div className="bg-muted rounded-xl p-4 border border-white/10">
                   <div className="flex items-center gap-4 text-white/60 text-sm mb-2">
                     <div className="flex items-center gap-2">
                       <Eye className="w-4 h-4" />
@@ -1308,7 +1308,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
                   <Button
                     onClick={handleSubmit}
                     disabled={isLoading}
-                    className="flex-1 bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+                    className="flex-1 bg-primary hover:bg-[#8AE63A] text-background font-medium"
                   >
                     {isLoading ? 'Guardando...' : 'Guardar Propiedad'}
                   </Button>

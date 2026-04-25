@@ -42,7 +42,7 @@ const AddToFolderDialog: React.FC<AddToFolderDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#1A1A1A] border-white/10 text-white max-w-md">
+      <DialogContent className="bg-card border-white/10 text-white max-w-md">
         <DialogHeader>
           <DialogTitle className="text-white">Guardar en carpeta</DialogTitle>
         </DialogHeader>
@@ -56,13 +56,13 @@ const AddToFolderDialog: React.FC<AddToFolderDialogProps> = ({
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleCreateFolder()}
-                className="bg-[#2A2A2A] border-white/10 text-white"
+                className="bg-muted border-white/10 text-white"
                 autoFocus
               />
               <Button
                 onClick={handleCreateFolder}
                 disabled={!newFolderName.trim()}
-                className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]"
+                className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]"
               >
                 Crear
               </Button>
@@ -96,13 +96,13 @@ const AddToFolderDialog: React.FC<AddToFolderDialogProps> = ({
                 onClick={() => handleSelectFolder(null)}
                 className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
                   !currentFolderId
-                    ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30'
+                    ? 'bg-primary/10 border border-primary/30'
                     : 'hover:bg-white/5 border border-transparent'
                 }`}
               >
                 <Folder className="w-5 h-5 text-white/50" />
                 <span className="flex-1 text-left text-white/70">Sin carpeta</span>
-                {!currentFolderId && <Check className="w-4 h-4 text-[#9BFF43]" />}
+                {!currentFolderId && <Check className="w-4 h-4 text-primary" />}
               </button>
 
               {folders.map((folder) => (
@@ -111,14 +111,14 @@ const AddToFolderDialog: React.FC<AddToFolderDialogProps> = ({
                   onClick={() => handleSelectFolder(folder.id)}
                   className={`w-full flex items-center gap-3 p-3 rounded-lg transition-colors ${
                     currentFolderId === folder.id
-                      ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30'
+                      ? 'bg-primary/10 border border-primary/30'
                       : 'hover:bg-white/5 border border-transparent'
                   }`}
                 >
-                  <Folder className="w-5 h-5 text-[#9BFF43]" />
+                  <Folder className="w-5 h-5 text-primary" />
                   <span className="flex-1 text-left text-white">{folder.name}</span>
                   {currentFolderId === folder.id && (
-                    <Check className="w-4 h-4 text-[#9BFF43]" />
+                    <Check className="w-4 h-4 text-primary" />
                   )}
                 </button>
               ))}

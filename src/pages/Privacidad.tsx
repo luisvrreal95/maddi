@@ -10,7 +10,7 @@ const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title
 );
 
 const Privacidad: React.FC = () => (
-  <main className="min-h-screen bg-[#121212] flex flex-col">
+  <main className="min-h-screen bg-background flex flex-col">
     <Header />
     <article className="flex-1 max-w-4xl mx-auto px-6 py-16 text-white w-full">
       <header className="mb-12 border-b border-white/10 pb-8">
@@ -25,7 +25,7 @@ const Privacidad: React.FC = () => (
           Posesión de los Particulares (LFPDPPP), su Reglamento y demás normatividad aplicable.
         </p>
         <p>Para cualquier asunto relacionado con privacidad puede contactarnos en{' '}
-          <a href="mailto:privacidad@maddi.com.mx" className="text-[#9BFF43] hover:underline">privacidad@maddi.com.mx</a>.
+          <a href="mailto:privacidad@maddi.com.mx" className="text-primary hover:underline">privacidad@maddi.com.mx</a>.
         </p>
       </Section>
 
@@ -73,7 +73,7 @@ const Privacidad: React.FC = () => (
           Usted tiene derecho a <strong className="text-white">Acceder, Rectificar, Cancelar u Oponerse</strong>{' '}
           al tratamiento de sus datos personales (Derechos ARCO), así como a revocar el consentimiento otorgado.
           Para ejercerlos envíe una solicitud a{' '}
-          <a href="mailto:privacidad@maddi.com.mx" className="text-[#9BFF43] hover:underline">privacidad@maddi.com.mx</a>{' '}
+          <a href="mailto:privacidad@maddi.com.mx" className="text-primary hover:underline">privacidad@maddi.com.mx</a>{' '}
           incluyendo:
         </p>
         <ul className="list-disc pl-5 space-y-1">
@@ -103,7 +103,7 @@ const Privacidad: React.FC = () => (
       <Section title="8. Cambios al aviso de privacidad">
         <p>
           Cualquier modificación a este aviso será publicada en{' '}
-          <a href="https://maddi.com.mx/privacidad" className="text-[#9BFF43] hover:underline">maddi.com.mx/privacidad</a>{' '}
+          <a href="https://maddi.com.mx/privacidad" className="text-primary hover:underline">maddi.com.mx/privacidad</a>{' '}
           y notificada por correo electrónico cuando el cambio sea sustancial.
         </p>
       </Section>

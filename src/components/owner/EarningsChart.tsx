@@ -28,9 +28,9 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ totalEarnings = 35000 }) 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-[#2A2A2A] border border-white/10 rounded-lg shadow-lg px-3 py-2">
+        <div className="bg-muted border border-white/10 rounded-lg shadow-lg px-3 py-2">
           <p className="text-sm font-medium text-white">{label}</p>
-          <p className="text-sm text-[#9BFF43] font-bold">${payload[0].value.toLocaleString()}</p>
+          <p className="text-sm text-primary font-bold">${payload[0].value.toLocaleString()}</p>
         </div>
       );
     }
@@ -41,11 +41,11 @@ const EarningsChart: React.FC<EarningsChartProps> = ({ totalEarnings = 35000 }) 
     <div className="bg-white rounded-2xl p-6">
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h2 className="text-3xl font-bold text-[#121212]">${totalEarnings.toLocaleString()}</h2>
-          <p className="text-[#121212]/60">Ganancias</p>
+          <h2 className="text-3xl font-bold text-background">${totalEarnings.toLocaleString()}</h2>
+          <p className="text-background/60">Ganancias</p>
         </div>
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="w-32 bg-[#F5F5F5] border-0 text-[#121212]">
+          <SelectTrigger className="w-32 bg-[#F5F5F5] border-0 text-background">
             <SelectValue />
           </SelectTrigger>
           <SelectContent className="bg-white border-[#E5E5E5]">

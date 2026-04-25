@@ -243,15 +243,15 @@ const DesignTemplates: React.FC = () => {
   const displayedTemplates = activeTab === 'mine' ? templates : publicTemplates;
 
   return (
-    <div className="min-h-screen bg-[#121212]">
+    <div className="min-h-screen bg-background">
       <BusinessHeader />
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Page header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#9BFF43]/20 flex items-center justify-center">
-              <Layout className="w-6 h-6 text-[#9BFF43]" />
+            <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Layout className="w-6 h-6 text-primary" />
             </div>
             <div>
               <h1 className="text-white text-2xl md:text-3xl font-bold">Plantillas de Diseño</h1>
@@ -261,12 +261,12 @@ const DesignTemplates: React.FC = () => {
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-[#9BFF43] text-black hover:bg-[#8ae639] font-medium">
+              <Button className="bg-primary text-black hover:bg-[#8ae639] font-medium">
                 <Plus className="w-4 h-4 mr-2" />
                 Nueva Plantilla
               </Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#1a1a1a] border-white/10 max-w-lg max-h-[90vh] overflow-y-auto">
+            <DialogContent className="bg-card border-white/10 max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-white text-xl">Crear Nueva Plantilla</DialogTitle>
               </DialogHeader>
@@ -294,11 +294,11 @@ const DesignTemplates: React.FC = () => {
                   ) : (
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#0a0a0a]"
+                      className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-[#0a0a0a]"
                     >
                       {isUploading ? (
                         <>
-                          <Loader2 className="h-10 w-10 text-[#9BFF43] animate-spin mb-2" />
+                          <Loader2 className="h-10 w-10 text-primary animate-spin mb-2" />
                           <p className="text-white/60 text-sm">Subiendo...</p>
                         </>
                       ) : (
@@ -355,7 +355,7 @@ const DesignTemplates: React.FC = () => {
                       <SelectTrigger className="bg-[#0a0a0a] border-white/10 text-white mt-1">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1a1a] border-white/10">
+                      <SelectContent className="bg-card border-white/10">
                         {CATEGORIES.map(cat => (
                           <SelectItem key={cat.value} value={cat.value} className="text-white hover:bg-white/10">
                             {cat.label}
@@ -373,7 +373,7 @@ const DesignTemplates: React.FC = () => {
                       <SelectTrigger className="bg-[#0a0a0a] border-white/10 text-white mt-1">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#1a1a1a] border-white/10">
+                      <SelectContent className="bg-card border-white/10">
                         {BILLBOARD_SIZES.map(size => (
                           <SelectItem key={size.value} value={size.value} className="text-white hover:bg-white/10">
                             {size.label}
@@ -415,7 +415,7 @@ const DesignTemplates: React.FC = () => {
                     id="is_public"
                     checked={newTemplate.is_public}
                     onChange={(e) => setNewTemplate(prev => ({ ...prev, is_public: e.target.checked }))}
-                    className="w-4 h-4 rounded border-white/20 bg-[#0a0a0a] text-[#9BFF43] focus:ring-[#9BFF43]"
+                    className="w-4 h-4 rounded border-white/20 bg-[#0a0a0a] text-primary focus:ring-primary"
                   />
                   <div>
                     <Label htmlFor="is_public" className="text-white text-sm cursor-pointer">Hacer pública</Label>
@@ -425,7 +425,7 @@ const DesignTemplates: React.FC = () => {
 
                 <Button 
                   onClick={handleCreate} 
-                  className="w-full bg-[#9BFF43] text-black hover:bg-[#8ae639] font-medium"
+                  className="w-full bg-primary text-black hover:bg-[#8ae639] font-medium"
                   disabled={!newTemplate.image_url || !newTemplate.name}
                 >
                   Crear Plantilla
@@ -437,16 +437,16 @@ const DesignTemplates: React.FC = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'mine' | 'public')} className="mb-6">
-          <TabsList className="bg-[#1a1a1a] border border-white/10">
+          <TabsList className="bg-card border border-white/10">
             <TabsTrigger 
               value="mine" 
-              className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-black"
+              className="data-[state=active]:bg-primary data-[state=active]:text-black"
             >
               Mis Plantillas ({templates.length})
             </TabsTrigger>
             <TabsTrigger 
               value="public"
-              className="data-[state=active]:bg-[#9BFF43] data-[state=active]:text-black"
+              className="data-[state=active]:bg-primary data-[state=active]:text-black"
             >
               Plantillas Públicas ({publicTemplates.length})
             </TabsTrigger>
@@ -457,12 +457,12 @@ const DesignTemplates: React.FC = () => {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="animate-pulse bg-[#1a1a1a] rounded-xl h-64"></div>
+              <div key={i} className="animate-pulse bg-card rounded-xl h-64"></div>
             ))}
           </div>
         ) : displayedTemplates.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 rounded-full bg-[#1a1a1a] flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 rounded-full bg-card flex items-center justify-center mx-auto mb-4">
               <Layout className="w-10 h-10 text-white/20" />
             </div>
             <h2 className="text-white text-xl font-semibold mb-2">
@@ -476,7 +476,7 @@ const DesignTemplates: React.FC = () => {
             {activeTab === 'mine' && (
               <Button 
                 onClick={() => setDialogOpen(true)}
-                className="bg-[#9BFF43] text-black hover:bg-[#8ae639]"
+                className="bg-primary text-black hover:bg-[#8ae639]"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Crear mi primera plantilla
@@ -486,7 +486,7 @@ const DesignTemplates: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {displayedTemplates.map(template => (
-              <Card key={template.id} className="bg-[#1a1a1a] border-white/10 overflow-hidden group">
+              <Card key={template.id} className="bg-card border-white/10 overflow-hidden group">
                 <div className="relative aspect-video">
                   <img
                     src={template.image_url}
@@ -521,7 +521,7 @@ const DesignTemplates: React.FC = () => {
                     )}
                   </div>
                   <div className="absolute top-2 left-2">
-                    <span className="bg-[#9BFF43]/20 text-[#9BFF43] px-2 py-1 rounded text-xs font-medium">
+                    <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs font-medium">
                       {CATEGORIES.find(c => c.value === template.category)?.label}
                     </span>
                   </div>
@@ -545,7 +545,7 @@ const DesignTemplates: React.FC = () => {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewTemplate} onOpenChange={() => setPreviewTemplate(null)}>
-        <DialogContent className="max-w-4xl bg-[#1a1a1a] border-white/10">
+        <DialogContent className="max-w-4xl bg-card border-white/10">
           <DialogHeader>
             <DialogTitle className="text-white text-xl">{previewTemplate?.name}</DialogTitle>
           </DialogHeader>
@@ -562,7 +562,7 @@ const DesignTemplates: React.FC = () => {
                 <p className="text-white/60">{previewTemplate.description}</p>
               )}
               <div className="flex items-center gap-2 text-white/40 text-sm">
-                <span className="bg-[#9BFF43]/20 text-[#9BFF43] px-2 py-1 rounded text-xs">
+                <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
                   {CATEGORIES.find(c => c.value === previewTemplate.category)?.label}
                 </span>
                 <span>{previewTemplate.width_px} x {previewTemplate.height_px}px</span>
@@ -570,7 +570,7 @@ const DesignTemplates: React.FC = () => {
               <div className="flex gap-3">
                 <Button
                   onClick={() => window.open(previewTemplate.image_url, '_blank')}
-                  className="bg-[#9BFF43] text-black hover:bg-[#8ae639]"
+                  className="bg-primary text-black hover:bg-[#8ae639]"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Descargar
