@@ -76,7 +76,7 @@ const OnboardingModal: React.FC = () => {
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) handleClose(); }}>
-      <DialogContent className="sm:max-w-lg bg-[#1a1a1a] border-white/10 text-white">
+      <DialogContent className="sm:max-w-lg bg-card border-white/10 text-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             ¡Bienvenido a Maddi{fullName ? `, ${fullName}` : ''}! 🎉
@@ -97,7 +97,7 @@ const OnboardingModal: React.FC = () => {
               <div className="text-3xl">{s.icon}</div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-[#9BFF43]">PASO {i + 1}</span>
+                  <span className="text-xs font-semibold text-primary">PASO {i + 1}</span>
                 </div>
                 <p className="font-medium text-white">{s.title}</p>
                 {s.description && (
@@ -127,7 +127,7 @@ const OnboardingModal: React.FC = () => {
             {secondaryLabel}
           </Button>
           <Button
-            className="flex-1 bg-[#9BFF43] text-black hover:bg-[#8AE83C] font-semibold"
+            className="flex-1 bg-primary text-black hover:bg-[#8AE83C] font-semibold"
             onClick={() => go(primaryPath)}
           >
             {primaryLabel}

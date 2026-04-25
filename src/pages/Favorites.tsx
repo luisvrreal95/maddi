@@ -90,18 +90,18 @@ const Favorites: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#1A1A1A]">
+    <div className="min-h-screen bg-card">
       <BusinessHeader />
 
       <main className="max-w-6xl mx-auto p-6">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <Heart className="w-8 h-8 text-[#9BFF43]" />
+            <Heart className="w-8 h-8 text-primary" />
             <h1 className="text-white text-3xl font-bold">Mis Favoritos</h1>
           </div>
           <Button
             onClick={() => setIsCreatingFolder(true)}
-            className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]"
+            className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
           >
             <FolderPlus className="w-4 h-4 mr-2" />
             Nueva Carpeta
@@ -116,13 +116,13 @@ const Favorites: React.FC = () => {
               onClick={() => setSelectedFolder(null)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                 selectedFolder === null
-                  ? 'bg-[#9BFF43] text-[#1A1A1A]'
-                  : 'bg-[#2A2A2A] text-white/70 hover:bg-[#3A3A3A]'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
               }`}
             >
               <Heart className="w-4 h-4" />
               <span>Todos</span>
-              <span className={`text-xs ${selectedFolder === null ? 'text-[#1A1A1A]/60' : 'text-white/40'}`}>
+              <span className={`text-xs ${selectedFolder === null ? 'text-primary-foreground/60' : 'text-white/40'}`}>
                 ({favorites.length})
               </span>
             </button>
@@ -132,13 +132,13 @@ const Favorites: React.FC = () => {
               onClick={() => setSelectedFolder('none')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                 selectedFolder === 'none'
-                  ? 'bg-[#9BFF43] text-[#1A1A1A]'
-                  : 'bg-[#2A2A2A] text-white/70 hover:bg-[#3A3A3A]'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
               }`}
             >
               <Folder className="w-4 h-4" />
               <span>Sin carpeta</span>
-              <span className={`text-xs ${selectedFolder === 'none' ? 'text-[#1A1A1A]/60' : 'text-white/40'}`}>
+              <span className={`text-xs ${selectedFolder === 'none' ? 'text-primary-foreground/60' : 'text-white/40'}`}>
                 ({getUnfolderedCount()})
               </span>
             </button>
@@ -150,13 +150,13 @@ const Favorites: React.FC = () => {
                   onClick={() => setSelectedFolder(folder.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                     selectedFolder === folder.id
-                      ? 'bg-[#9BFF43] text-[#1A1A1A]'
-                      : 'bg-[#2A2A2A] text-white/70 hover:bg-[#3A3A3A]'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
                   }`}
                 >
                   <Folder className="w-4 h-4" />
                   <span>{folder.name}</span>
-                  <span className={`text-xs ${selectedFolder === folder.id ? 'text-[#1A1A1A]/60' : 'text-white/40'}`}>
+                  <span className={`text-xs ${selectedFolder === folder.id ? 'text-primary-foreground/60' : 'text-white/40'}`}>
                     ({getFolderCount(folder.id)})
                   </span>
                 </button>
@@ -166,7 +166,7 @@ const Favorites: React.FC = () => {
                       <MoreVertical className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="bg-[#2A2A2A] border-white/10">
+                  <DropdownMenuContent align="end" className="bg-muted border-white/10">
                     <DropdownMenuItem
                       onClick={() => {
                         setRenamingFolder(folder.id);
@@ -195,7 +195,7 @@ const Favorites: React.FC = () => {
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map(i => (
-              <div key={i} className="animate-pulse bg-[#2A2A2A] rounded-xl h-64"></div>
+              <div key={i} className="animate-pulse bg-muted rounded-xl h-64"></div>
             ))}
           </div>
         ) : filteredBillboards.length === 0 ? (
@@ -208,7 +208,7 @@ const Favorites: React.FC = () => {
               Explora espectaculares y guarda tus favoritos para verlos aquí.
             </p>
             <Link to="/search">
-              <Button className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]">
+              <Button className="bg-primary text-primary-foreground hover:bg-[#8AE63A]">
                 Explorar espectaculares
               </Button>
             </Link>
@@ -216,7 +216,7 @@ const Favorites: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredBillboards.map(billboard => (
-              <Card key={billboard.id} className="bg-[#2A2A2A] border-white/5 overflow-hidden group">
+              <Card key={billboard.id} className="bg-muted border-white/5 overflow-hidden group">
                 <Link to={`/billboard/${billboard.id}`}>
                   <div className="relative h-48">
                     {billboard.image_url ? (
@@ -233,7 +233,7 @@ const Favorites: React.FC = () => {
                     <div className="absolute top-3 right-3">
                       <span className={`px-2 py-1 rounded-full text-xs ${
                         billboard.is_available 
-                          ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
+                          ? 'bg-primary/20 text-primary' 
                           : 'bg-red-500/20 text-red-400'
                       }`}>
                         {billboard.is_available ? 'Disponible' : 'Ocupado'}
@@ -243,7 +243,7 @@ const Favorites: React.FC = () => {
                 </Link>
                 <CardContent className="p-4">
                   <Link to={`/billboard/${billboard.id}`}>
-                    <h3 className="text-white font-semibold mb-1 group-hover:text-[#9BFF43] transition-colors">
+                    <h3 className="text-white font-semibold mb-1 group-hover:text-primary transition-colors">
                       {billboard.title}
                     </h3>
                   </Link>
@@ -252,7 +252,7 @@ const Favorites: React.FC = () => {
                     {billboard.city}, {billboard.state}
                   </p>
                   <div className="flex items-center justify-between">
-                    <p className="text-[#9BFF43] font-bold">
+                    <p className="text-primary font-bold">
                       ${billboard.price_per_month.toLocaleString()}/mes
                     </p>
                     <Button
@@ -273,7 +273,7 @@ const Favorites: React.FC = () => {
 
       {/* Create Folder Dialog */}
       <Dialog open={isCreatingFolder} onOpenChange={setIsCreatingFolder}>
-        <DialogContent className="bg-[#1A1A1A] border-white/10 text-white">
+        <DialogContent className="bg-card border-white/10 text-white">
           <DialogHeader>
             <DialogTitle>Crear nueva carpeta</DialogTitle>
           </DialogHeader>
@@ -283,13 +283,13 @@ const Favorites: React.FC = () => {
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleCreateFolder()}
-              className="bg-[#2A2A2A] border-white/10 text-white"
+              className="bg-muted border-white/10 text-white"
               autoFocus
             />
             <Button
               onClick={handleCreateFolder}
               disabled={!newFolderName.trim()}
-              className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]"
+              className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
             >
               Crear
             </Button>
@@ -299,7 +299,7 @@ const Favorites: React.FC = () => {
 
       {/* Rename Folder Dialog */}
       <Dialog open={!!renamingFolder} onOpenChange={() => setRenamingFolder(null)}>
-        <DialogContent className="bg-[#1A1A1A] border-white/10 text-white">
+        <DialogContent className="bg-card border-white/10 text-white">
           <DialogHeader>
             <DialogTitle>Renombrar carpeta</DialogTitle>
           </DialogHeader>
@@ -309,13 +309,13 @@ const Favorites: React.FC = () => {
               value={renameValue}
               onChange={(e) => setRenameValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleRenameFolder()}
-              className="bg-[#2A2A2A] border-white/10 text-white"
+              className="bg-muted border-white/10 text-white"
               autoFocus
             />
             <Button
               onClick={handleRenameFolder}
               disabled={!renameValue.trim()}
-              className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]"
+              className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
             >
               Guardar
             </Button>

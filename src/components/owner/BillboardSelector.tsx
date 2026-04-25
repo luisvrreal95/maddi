@@ -71,7 +71,7 @@ const BillboardSelector: React.FC<BillboardSelectorProps> = ({
             )}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent className="bg-[#2A2A2A] border-white/10">
+        <SelectContent className="bg-muted border-white/10">
           {billboards.map((billboard) => (
             <SelectItem 
               key={billboard.id} 
@@ -92,7 +92,7 @@ const BillboardSelector: React.FC<BillboardSelectorProps> = ({
                     <MapPin className="w-3 h-3" />
                     <span>{billboard.city}</span>
                     <span className="mx-1">•</span>
-                    <span className="text-[#9BFF43]">${billboard.price_per_month.toLocaleString()}/mes</span>
+                    <span className="text-primary">${billboard.price_per_month.toLocaleString()}/mes</span>
                   </div>
                 </div>
               </div>

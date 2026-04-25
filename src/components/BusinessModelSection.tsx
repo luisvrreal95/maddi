@@ -59,7 +59,7 @@ const BusinessModelSection: React.FC = () => {
   );
 
   return (
-    <section className="flex flex-col items-start gap-16 self-stretch relative bg-[#202020] pt-0 pb-[100px] px-16 max-md:gap-12 max-md:pt-0 max-md:pb-20 max-md:px-8 max-sm:gap-8 max-sm:pt-0 max-sm:pb-[60px] max-sm:px-5">
+    <section className="flex flex-col items-start gap-16 self-stretch relative bg-card pt-0 pb-[100px] px-16 max-md:gap-12 max-md:pt-0 max-md:pb-20 max-md:px-8 max-sm:gap-8 max-sm:pt-0 max-sm:pb-[60px] max-sm:px-5">
       <div className="blur-[75px] w-full max-w-[1152px] h-[404px] absolute bg-[rgba(196,196,196,0.20)] left-16 bottom-[100px] pointer-events-none" />
       
       <header className="flex flex-col items-center gap-10 self-stretch relative rounded-[8px_8px_0_0]">

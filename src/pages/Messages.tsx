@@ -350,7 +350,7 @@ const Messages: React.FC = () => {
   const renderMessages = () => (
     <div className="space-y-4">
       {showBillboardContext && selectedConversation?.billboard && messages.length === 0 && (
-        <div className="bg-[#2A2A2A] border border-white/10 rounded-xl p-4 mb-4">
+        <div className="bg-muted border border-white/10 rounded-xl p-4 mb-4">
           <p className="text-white/50 text-xs mb-2">Conversación sobre:</p>
           <Link 
             to={`/billboard/${selectedConversation.billboard_id}`}
@@ -372,7 +372,7 @@ const Messages: React.FC = () => {
                 </p>
               )}
               {selectedConversation.billboard.price_per_month && (
-                <p className="text-[#9BFF43] font-bold mt-1 flex items-center gap-1">
+                <p className="text-primary font-bold mt-1 flex items-center gap-1">
                   <DollarSign className="w-3 h-3" />
                   ${selectedConversation.billboard.price_per_month.toLocaleString()}/mes
                 </p>
@@ -402,13 +402,13 @@ const Messages: React.FC = () => {
           <React.Fragment key={msg.id}>
             {showDateSeparator && (
               <div className="flex items-center justify-center my-4">
-                <span className="text-white/40 text-xs bg-[#1A1A1A] px-3 py-1 rounded-full border border-white/10">{msgDate}</span>
+                <span className="text-white/40 text-xs bg-card px-3 py-1 rounded-full border border-white/10">{msgDate}</span>
               </div>
             )}
             
             {isSystemBooking && bookingMeta ? (
               <div className="flex justify-center my-3">
-                <div className="bg-[#2A2A2A] border border-white/10 rounded-xl px-4 py-3 max-w-[85%] text-center">
+                <div className="bg-muted border border-white/10 rounded-xl px-4 py-3 max-w-[85%] text-center">
                   <p className="text-white/70 text-sm">
                     {userRole === 'owner' 
                       ? <>Has recibido una nueva solicitud para <strong className="text-white">{bookingMeta.billboardTitle}</strong> del {bookingMeta.startDate} al {bookingMeta.endDate}.</>
@@ -417,7 +417,7 @@ const Messages: React.FC = () => {
                   </p>
                   <Link
                     to={userRole === 'owner' ? `/owner?tab=reservas&booking=${bookingMeta.bookingId}` : `/business?booking=${bookingMeta.bookingId}`}
-                    className="inline-flex items-center gap-1 text-[#9BFF43] text-sm font-medium mt-1.5 hover:underline"
+                    className="inline-flex items-center gap-1 text-primary text-sm font-medium mt-1.5 hover:underline"
                   >
                     Ver solicitud
                     <ExternalLink className="w-3 h-3" />
@@ -426,7 +426,7 @@ const Messages: React.FC = () => {
               </div>
             ) : (
               <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMyMessage ? 'bg-[#9BFF43] text-[#141414] rounded-br-md' : 'bg-[#2A2A2A] text-white rounded-bl-md'}`}>
+                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMyMessage ? 'bg-primary text-[#141414] rounded-br-md' : 'bg-muted text-white rounded-bl-md'}`}>
                   <p>{msg.content}</p>
                   <div className={`flex items-center gap-1 justify-end mt-1 ${isMyMessage ? 'text-[#141414]/60' : 'text-white/40'}`}>
                     <span className="text-xs">
@@ -448,7 +448,7 @@ const Messages: React.FC = () => {
 
   const deleteDialog = (
     <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      <AlertDialogContent className="bg-[#2A2A2A] border-white/10">
+      <AlertDialogContent className="bg-muted border-white/10">
         <AlertDialogHeader>
           <AlertDialogTitle className="text-white">¿Eliminar conversación?</AlertDialogTitle>
           <AlertDialogDescription className="text-white/60">
@@ -468,7 +468,7 @@ const Messages: React.FC = () => {
     // Mobile: full-screen chat when conversation selected
     if (selectedConversation) {
       return (
-        <div className="h-screen bg-[#1A1A1A] flex flex-col">
+        <div className="h-screen bg-card flex flex-col">
           <div className="p-3 border-b border-white/5 bg-[#141414] flex items-center gap-3 flex-shrink-0">
             <button
               onClick={() => { setSelectedConversation(null); setMessages([]); }}
@@ -479,7 +479,7 @@ const Messages: React.FC = () => {
             {selectedConversation.billboard?.image_url ? (
               <img src={selectedConversation.billboard.image_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
             ) : (
-              <div className="w-9 h-9 rounded-lg bg-[#2A2A2A] flex items-center justify-center">
+              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
                 <MessageSquare className="w-4 h-4 text-white/40" />
               </div>
             )}
@@ -500,9 +500,9 @@ const Messages: React.FC = () => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Escribe un mensaje..."
-                className="bg-[#1A1A1A] border-white/10 text-white placeholder:text-white/30 text-sm"
+                className="bg-card border-white/10 text-white placeholder:text-white/30 text-sm"
               />
-              <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-[#9BFF43] text-[#141414] hover:bg-[#8AE63A] px-3">
+              <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-[#141414] hover:bg-[#8AE63A] px-3">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
@@ -514,12 +514,12 @@ const Messages: React.FC = () => {
 
     // Mobile: conversation list
     return (
-      <div className="h-screen bg-[#1A1A1A] flex flex-col">
+      <div className="h-screen bg-card flex flex-col">
         {userRole === 'owner' ? <OwnerDashboardHeader /> : <BusinessHeader />}
         
         <div className="p-4 border-b border-white/5 flex-shrink-0">
           <h2 className="text-white font-semibold flex items-center gap-2 mb-3">
-            <MessageSquare className="w-5 h-5 text-[#9BFF43]" />
+            <MessageSquare className="w-5 h-5 text-primary" />
             Mensajes
           </h2>
           <div className="relative">
@@ -557,15 +557,15 @@ const Messages: React.FC = () => {
                     onClick={() => setSelectedConversation(conv)}
                     className="w-full p-3 rounded-xl text-left hover:bg-white/5 active:bg-white/10 transition-colors flex items-start gap-3"
                   >
-                    <div className="relative w-12 h-12 rounded-full bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
+                    <div className="relative w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                       {conv.billboard?.image_url ? (
                         <img src={conv.billboard.image_url} alt="" className="w-12 h-12 rounded-full object-cover" />
                       ) : (
                         <User className="w-5 h-5 text-white/40" />
                       )}
                       {conv.is_pinned && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#9BFF43] flex items-center justify-center">
-                          <Pin className="w-2.5 h-2.5 text-[#1A1A1A]" />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                          <Pin className="w-2.5 h-2.5 text-primary-foreground" />
                         </div>
                       )}
                     </div>
@@ -581,7 +581,7 @@ const Messages: React.FC = () => {
                             </span>
                           )}
                           {hasUnread && (
-                            <span className="min-w-[18px] h-[18px] rounded-full bg-[#9BFF43] text-[#1A1A1A] text-[10px] font-bold flex items-center justify-center px-1">
+                            <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
                               {conv.unread_count || 1}
                             </span>
                           )}
@@ -592,7 +592,7 @@ const Messages: React.FC = () => {
                         <div className="flex items-center gap-1 mt-0.5">
                           {isMyLastMessage && (
                             conv.last_message.is_read 
-                              ? <CheckCheck className="w-3 h-3 text-[#9BFF43] flex-shrink-0" />
+                              ? <CheckCheck className="w-3 h-3 text-primary flex-shrink-0" />
                               : <Check className="w-3 h-3 text-white/40 flex-shrink-0" />
                           )}
                           <p className={`text-xs truncate ${hasUnread && !isMyLastMessage ? 'font-semibold text-white/80' : 'text-white/50'}`}>
@@ -616,7 +616,7 @@ const Messages: React.FC = () => {
 
   // ==================== DESKTOP LAYOUT (unchanged) ====================
   return (
-    <div className="min-h-screen bg-[#1A1A1A] flex flex-col">
+    <div className="min-h-screen bg-card flex flex-col">
       {userRole === 'owner' ? <OwnerDashboardHeader /> : <BusinessHeader />}
 
       <div className="flex-1 flex overflow-hidden">
@@ -624,7 +624,7 @@ const Messages: React.FC = () => {
         <div className="w-80 border-r border-white/5 bg-[#141414] flex flex-col">
           <div className="p-4 border-b border-white/5">
             <h2 className="text-white font-semibold flex items-center gap-2 mb-4">
-              <MessageSquare className="w-5 h-5 text-[#9BFF43]" />
+              <MessageSquare className="w-5 h-5 text-primary" />
               Mensajes
             </h2>
             <div className="relative">
@@ -633,7 +633,7 @@ const Messages: React.FC = () => {
                 placeholder="Buscar conversaciones..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-[#1A1A1A] border-white/10 text-white placeholder:text-white/30"
+                className="pl-10 bg-card border-white/10 text-white placeholder:text-white/30"
               />
             </div>
           </div>
@@ -659,7 +659,7 @@ const Messages: React.FC = () => {
                       key={conv.id}
                       className={`relative group rounded-lg transition-all duration-200 ${
                         selectedConversation?.id === conv.id 
-                          ? 'bg-[#9BFF43]/10 border border-[#9BFF43]/30' 
+                          ? 'bg-primary/10 border border-primary/30' 
                           : 'hover:bg-white/5 border border-transparent'
                       }`}
                     >
@@ -668,11 +668,11 @@ const Messages: React.FC = () => {
                         className="w-full p-3 text-left"
                       >
                         <div className="flex items-start gap-3">
-                          <div className="relative w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
+                          <div className="relative w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                             <User className="w-5 h-5 text-white/40" />
                             {conv.is_pinned && (
-                              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#9BFF43] flex items-center justify-center">
-                                <Pin className="w-2.5 h-2.5 text-[#1A1A1A]" />
+                              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                                <Pin className="w-2.5 h-2.5 text-primary-foreground" />
                               </div>
                             )}
                           </div>
@@ -682,13 +682,13 @@ const Messages: React.FC = () => {
                                 hasUnread 
                                   ? 'font-bold text-white' 
                                   : selectedConversation?.id === conv.id 
-                                    ? 'font-medium text-[#9BFF43]' 
+                                    ? 'font-medium text-primary' 
                                     : 'font-medium text-white'
                               }`}>
                                 {conv.other_user?.full_name}
                               </p>
                               {hasUnread && (
-                                <span className="min-w-[18px] h-[18px] rounded-full bg-[#9BFF43] text-[#1A1A1A] text-[10px] font-bold flex items-center justify-center px-1 ml-1">
+                                <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1 ml-1">
                                   {conv.unread_count || 1}
                                 </span>
                               )}
@@ -700,7 +700,7 @@ const Messages: React.FC = () => {
                               <div className="flex items-center gap-1 mt-1">
                                 {isMyLastMessage && (
                                   conv.last_message.is_read 
-                                    ? <CheckCheck className="w-3 h-3 text-[#9BFF43] flex-shrink-0" />
+                                    ? <CheckCheck className="w-3 h-3 text-primary flex-shrink-0" />
                                     : <Check className="w-3 h-3 text-white/40 flex-shrink-0" />
                                 )}
                                 <p className={`text-xs truncate ${
@@ -724,7 +724,7 @@ const Messages: React.FC = () => {
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-[#2A2A2A] border-white/10">
+                          <DropdownMenuContent align="end" className="bg-muted border-white/10">
                             <DropdownMenuItem 
                               onClick={(e) => { e.stopPropagation(); togglePinConversation(conv.id); }}
                               className="text-white hover:bg-white/10 gap-2"
@@ -758,7 +758,7 @@ const Messages: React.FC = () => {
         </div>
 
         {/* Messages Area */}
-        <div className="flex-1 flex flex-col bg-[#1A1A1A]">
+        <div className="flex-1 flex flex-col bg-card">
           {selectedConversation ? (
             <>
               <div className="p-4 border-b border-white/5 bg-[#141414]">
@@ -766,7 +766,7 @@ const Messages: React.FC = () => {
                   {selectedConversation.billboard?.image_url ? (
                     <img src={selectedConversation.billboard.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-[#2A2A2A] flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
                       <MessageSquare className="w-5 h-5 text-white/40" />
                     </div>
                   )}
@@ -791,16 +791,16 @@ const Messages: React.FC = () => {
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Escribe un mensaje..."
-                    className="bg-[#1A1A1A] border-white/10 text-white placeholder:text-white/30"
+                    className="bg-card border-white/10 text-white placeholder:text-white/30"
                   />
-                  <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-[#9BFF43] text-[#141414] hover:bg-[#8AE63A]">
+                  <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-[#141414] hover:bg-[#8AE63A]">
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-[#1A1A1A]">
+            <div className="flex-1 flex items-center justify-center bg-card">
               <div className="text-center">
                 <MessageSquare className="w-16 h-16 text-white/20 mx-auto mb-4" />
                 <p className="text-white/40">Selecciona una conversación para ver los mensajes</p>

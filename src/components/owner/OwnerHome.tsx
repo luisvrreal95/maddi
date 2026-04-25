@@ -199,7 +199,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
     if (isAfter(startDate, now)) {
       return <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">Próxima</Badge>;
     }
-    return <Badge className="bg-[#9BFF43]/20 text-[#9BFF43] border-[#9BFF43]/30">Activo</Badge>;
+    return <Badge className="bg-primary/20 text-primary border-primary/30">Activo</Badge>;
   };
 
   if (isLoading) {
@@ -295,7 +295,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                 className="bg-[#1E1E1E] rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-[#252525] transition-colors"
                 onClick={() => navigate('/owner?tab=reservas')}
               >
-                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-[#2A2A2A]">
+                <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
                   <img
                     src={booking.billboard?.image_url || '/placeholder.svg'}
                     alt={booking.billboard?.title}
@@ -308,7 +308,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                     {booking.profile?.company_name || booking.profile?.full_name || 'Anunciante'}
                   </p>
                 </div>
-                <span className="text-[#9BFF43] text-sm font-semibold flex-shrink-0">
+                <span className="text-primary text-sm font-semibold flex-shrink-0">
                   ${Number(booking.total_price).toLocaleString()}
                 </span>
               </div>
@@ -321,8 +321,8 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-[#9BFF43]/10 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#9BFF43]" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
             </div>
             <div>
               <p className="text-white/50 text-xs sm:text-sm">Ocupación</p>
@@ -371,7 +371,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
               size="sm"
               onClick={() => setFilter(f.id as FilterType)}
               className={`whitespace-nowrap flex-shrink-0 ${filter === f.id 
-                ? 'bg-white text-[#121212]' 
+                ? 'bg-white text-background' 
                 : 'border-white/20 text-white/70 hover:text-white hover:bg-white/10'
               }`}
             >
@@ -386,10 +386,10 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         </div>
         
         <Select value={selectedBillboardId} onValueChange={setSelectedBillboardId}>
-          <SelectTrigger className="w-full sm:w-[200px] bg-[#2A2A2A] border-white/10 text-white">
+          <SelectTrigger className="w-full sm:w-[200px] bg-muted border-white/10 text-white">
             <SelectValue placeholder="Filtrar por propiedad" />
           </SelectTrigger>
-          <SelectContent className="bg-[#2A2A2A] border-white/10">
+          <SelectContent className="bg-muted border-white/10">
             <SelectItem value="all" className="text-white">Todas las propiedades</SelectItem>
             {billboards.map((b) => (
               <SelectItem key={b.id} value={b.id} className="text-white">
@@ -459,7 +459,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-6 px-2 text-[#9BFF43] hover:text-[#9BFF43] hover:bg-[#9BFF43]/10"
+                          className="h-6 px-2 text-primary hover:text-primary hover:bg-primary/10"
                           onClick={async (e) => {
                             e.stopPropagation();
                             const { data: existingConv } = await supabase
@@ -485,7 +485,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                   </div>
                   
                   <div className="text-right flex-shrink-0">
-                    <p className="text-[#9BFF43] font-bold">
+                    <p className="text-primary font-bold">
                       ${Number(booking.total_price).toLocaleString()}
                     </p>
                     <p className="text-white/40 text-sm">MXN</p>

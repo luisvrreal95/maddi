@@ -8,7 +8,7 @@ const RatingSection: React.FC = () => {
   );
 
   return (
-    <section className="flex h-[147px] flex-col items-center gap-8 self-stretch relative bg-[#202020] px-16 max-md:px-8 max-sm:px-5 max-sm:h-auto max-sm:py-8">
+    <section className="flex h-[147px] flex-col items-center gap-8 self-stretch relative bg-card px-16 max-md:px-8 max-sm:px-5 max-sm:h-auto max-sm:py-8">
       <div className="flex flex-col items-center gap-4 self-stretch relative">
         <div className="flex justify-center items-center gap-3 self-stretch relative" role="img" aria-label="5 star rating">
           {[...Array(5)].map((_, index) => (

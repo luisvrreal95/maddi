@@ -27,12 +27,12 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
   const isPausedByOwner = !billboard.is_available && billboard.pause_reason === 'owner';
   return (
     <div 
-      className="bg-[#1E1E1E] rounded-xl border border-white/10 p-4 cursor-pointer hover:border-[#9BFF43]/30 hover:shadow-[0_0_20px_rgba(155,255,67,0.05)] transition-all"
+      className="bg-[#1E1E1E] rounded-xl border border-white/10 p-4 cursor-pointer hover:border-primary/30 hover:shadow-[0_0_20px_rgba(155,255,67,0.05)] transition-all"
       onClick={onClick}
     >
       <div className="flex items-center gap-4">
         {/* Image */}
-        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-[#2A2A2A] relative">
+        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-muted relative">
           {billboard.image_url ? (
             <>
               <img src={billboard.image_url} alt={billboard.title} className="w-full h-full object-cover" />
@@ -54,11 +54,11 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
                 : isPausedByOwner
                   ? 'bg-yellow-500/20 text-yellow-400'
                   : billboard.is_available 
-                    ? 'bg-[#9BFF43]/20 text-[#9BFF43]' 
+                    ? 'bg-primary/20 text-primary' 
                     : 'bg-orange-500/20 text-orange-400'
             }`}>
               <span className={`w-1.5 h-1.5 rounded-full ${
-                billboard.pause_reason === 'admin' ? 'bg-orange-400' : isPausedByOwner ? 'bg-yellow-400' : billboard.is_available ? 'bg-[#9BFF43]' : 'bg-orange-400'
+                billboard.pause_reason === 'admin' ? 'bg-orange-400' : isPausedByOwner ? 'bg-yellow-400' : billboard.is_available ? 'bg-primary' : 'bg-orange-400'
               }`}></span>
               {billboard.pause_reason === 'admin' ? 'Pausada por Maddi' : isPausedByOwner ? 'Pausada por ti' : billboard.is_available ? 'Disponible' : 'Ocupado'}
             </span>
@@ -83,7 +83,7 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
         {/* Price */}
         <div className="text-right flex-shrink-0">
           <div className="flex items-baseline gap-1">
-            <span className="text-xl font-bold text-[#9BFF43]">
+            <span className="text-xl font-bold text-primary">
               ${billboard.price_per_month.toLocaleString()}
             </span>
             <span className="text-white/50 text-sm">/mes</span>
@@ -98,7 +98,7 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-[#2A2A2A] border-white/10">
+            <DropdownMenuContent align="end" className="bg-muted border-white/10">
               {onEdit && (
                 <DropdownMenuItem 
                   onClick={(e) => { e.stopPropagation(); onEdit(); }}

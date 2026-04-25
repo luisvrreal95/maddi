@@ -120,7 +120,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   }, [billboard.id]);
 
   return (
-    <div className={`bg-[#1E1E1E] rounded-2xl border ${isPausedByAdmin ? 'border-orange-500/30' : 'border-[#9BFF43]/30'} p-5 relative hover:border-[#9BFF43]/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all h-full flex flex-col`}>
+    <div className={`bg-[#1E1E1E] rounded-2xl border ${isPausedByAdmin ? 'border-orange-500/30' : 'border-primary/30'} p-5 relative hover:border-primary/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all h-full flex flex-col`}>
       {/* Admin pause banner */}
       {isPausedByAdmin && (
         <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 mb-4 flex items-center justify-between">
@@ -153,7 +153,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
             <img src={billboard.image_url} alt={billboard.title} className="w-full h-full object-cover" />
           </>
         ) : (
-          <div className="w-full h-full bg-[#2A2A2A] flex items-center justify-center">
+          <div className="w-full h-full bg-muted flex items-center justify-center">
             <div className="text-center">
               <MapPin className="w-8 h-8 text-white/20 mx-auto mb-2" />
               <span className="text-white/30 text-sm">Sin imagen</span>
@@ -166,14 +166,14 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
       <div className="absolute top-4 right-4 flex gap-2">
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(); }}
-          className="text-white/60 hover:text-[#9BFF43] transition-colors bg-[#2A2A2A] p-2 rounded-lg"
+          className="text-white/60 hover:text-primary transition-colors bg-muted p-2 rounded-lg"
         >
           <Pencil className="w-4 h-4" />
         </button>
         {onPause && billboard.pause_reason !== 'admin' && (
           <button
             onClick={(e) => { e.stopPropagation(); onPause(); }}
-            className="text-white/60 hover:text-orange-400 transition-colors bg-[#2A2A2A] p-2 rounded-lg"
+            className="text-white/60 hover:text-orange-400 transition-colors bg-muted p-2 rounded-lg"
             title={isPausedByOwner ? 'Reactivar' : 'Pausar'}
           >
             {isPausedByOwner ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
@@ -181,7 +181,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
         )}
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
-          className="text-white/60 hover:text-red-500 transition-colors bg-[#2A2A2A] p-2 rounded-lg"
+          className="text-white/60 hover:text-red-500 transition-colors bg-muted p-2 rounded-lg"
         >
           <Trash2 className="w-4 h-4" />
         </button>
@@ -196,7 +196,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
       </div>
 
       {/* Price Bar with Impression Change */}
-      <div className="bg-[#2A2A2A] rounded-lg px-4 py-3 mb-5 flex items-center justify-between">
+      <div className="bg-muted rounded-lg px-4 py-3 mb-5 flex items-center justify-between">
         <div className="flex items-baseline gap-1">
           <span className="text-2xl font-bold text-white">
             ${billboard.price_per_month.toLocaleString()}
@@ -205,8 +205,8 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
         </div>
         {impressionChange !== null && (
           <div className="flex items-center gap-1">
-            <Eye className="w-4 h-4 text-[#9BFF43]" />
-            <span className={`text-sm font-medium ${impressionChange >= 0 ? 'text-[#9BFF43]' : 'text-red-400'}`}>
+            <Eye className="w-4 h-4 text-primary" />
+            <span className={`text-sm font-medium ${impressionChange >= 0 ? 'text-primary' : 'text-red-400'}`}>
               {impressionChange >= 0 ? '+' : ''}{impressionChange.toFixed(2)}%
             </span>
           </div>
@@ -217,7 +217,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
       <div className="space-y-3">
         {/* Puntos de Interés */}
         <div className="flex items-start gap-3">
-          <MapPin className="w-5 h-5 text-[#9BFF43] mt-0.5" />
+          <MapPin className="w-5 h-5 text-primary mt-0.5" />
           <div className="flex-1">
             <p className="font-medium text-white text-sm">Lugares cercanos</p>
             {isLoadingPOIs ? (
@@ -233,7 +233,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
 
         {/* Vistas por día */}
         <div className="flex items-start gap-3">
-          <Eye className="w-5 h-5 text-[#9BFF43] mt-0.5" />
+          <Eye className="w-5 h-5 text-primary mt-0.5" />
           <div>
             <p className="font-medium text-white text-sm">Vistas por día</p>
             <p className="text-white/50 text-sm">{dailyViews > 0 ? `+${dailyViews.toLocaleString()}` : 'Sin datos'}</p>
@@ -242,7 +242,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
 
         {/* Horas Pico */}
         <div className="flex items-start gap-3">
-          <Clock className="w-5 h-5 text-[#9BFF43] mt-0.5" />
+          <Clock className="w-5 h-5 text-primary mt-0.5" />
           <div>
             <p className="font-medium text-white text-sm">Horas Pico</p>
             <p className="text-white/50 text-sm">{peakHours}</p>
@@ -251,7 +251,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
 
         {/* Status */}
         <div className="flex items-start gap-3">
-          <CheckCircle2 className={`w-5 h-5 mt-0.5 ${isPausedByAdmin ? 'text-orange-400' : 'text-[#9BFF43]'}`} />
+          <CheckCircle2 className={`w-5 h-5 mt-0.5 ${isPausedByAdmin ? 'text-orange-400' : 'text-primary'}`} />
           <div>
             <p className="font-medium text-white text-sm">Status</p>
             <p className={`text-sm ${isPausedByAdmin ? 'text-orange-400' : 'text-white/50'}`}>{status}</p>
@@ -260,7 +260,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
 
         {/* Tamaño */}
         <div className="flex items-start gap-3">
-          <Maximize className="w-5 h-5 text-[#9BFF43] mt-0.5" />
+          <Maximize className="w-5 h-5 text-primary mt-0.5" />
           <div>
             <p className="font-medium text-white text-sm">Tamaño</p>
             <p className="text-white/50 text-sm">{size}</p>

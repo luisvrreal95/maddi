@@ -50,20 +50,20 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
             onClick={() => handleNavigate('/auth')}
             className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
           >
-            <User className="w-4 h-4 mr-3 text-[#9BFF43]" />
+            <User className="w-4 h-4 mr-3 text-primary" />
             <span>Ingresar</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={() => handleNavigate('/auth')}
             className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
           >
-            <UserPlus className="w-4 h-4 mr-3 text-[#9BFF43]" />
+            <UserPlus className="w-4 h-4 mr-3 text-primary" />
             <span>Registrarme</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-border" />
           <DropdownMenuItem 
             onClick={() => handleNavigate('/auth?role=owner')}
-            className="cursor-pointer text-[#9BFF43] hover:bg-[#9BFF43]/10 focus:bg-[#9BFF43]/10"
+            className="cursor-pointer text-primary hover:bg-primary/10 focus:bg-primary/10"
           >
             <Building2 className="w-4 h-4 mr-3" />
             <span className="font-medium">Anuncia tu espacio</span>
@@ -92,8 +92,8 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
         {/* User Info */}
         <DropdownMenuLabel className="text-muted-foreground font-normal">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
-              <User className="w-5 h-5 text-[#9BFF43]" />
+            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+              <User className="w-5 h-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-foreground font-medium text-sm">
@@ -112,7 +112,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
         {userRole === 'business' && (
           <DropdownMenuItem 
             onClick={() => handleNavigate('/search')}
-            className="cursor-pointer text-[#9BFF43] hover:bg-[#9BFF43]/10 focus:bg-[#9BFF43]/10"
+            className="cursor-pointer text-primary hover:bg-primary/10 focus:bg-primary/10"
           >
             <Search className="w-4 h-4 mr-3" />
             <span className="font-medium">Buscar Espacios</span>
@@ -123,7 +123,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
         {userRole === 'owner' && (
           <DropdownMenuItem 
             onClick={() => handleNavigate('/owner')}
-            className="cursor-pointer text-[#9BFF43] hover:bg-[#9BFF43]/10 focus:bg-[#9BFF43]/10"
+            className="cursor-pointer text-primary hover:bg-primary/10 focus:bg-primary/10"
           >
             <LayoutDashboard className="w-4 h-4 mr-3" />
             <span className="font-medium">Mi Panel de Propietario</span>
@@ -135,14 +135,14 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
               onClick={() => handleNavigate('/business')}
               className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
             >
-              <Calendar className="w-4 h-4 mr-3 text-[#9BFF43]" />
+              <Calendar className="w-4 h-4 mr-3 text-primary" />
               <span>Mis Reservas</span>
             </DropdownMenuItem>
             <DropdownMenuItem 
               onClick={() => handleNavigate('/favorites')}
               className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
             >
-              <Heart className="w-4 h-4 mr-3 text-[#9BFF43]" />
+              <Heart className="w-4 h-4 mr-3 text-primary" />
               <span>Favoritos</span>
             </DropdownMenuItem>
           </>
@@ -155,7 +155,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           onClick={() => handleNavigate('/messages')}
           className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
         >
-          <MessageSquare className="w-4 h-4 mr-3 text-[#9BFF43]" />
+          <MessageSquare className="w-4 h-4 mr-3 text-primary" />
           <span>Mensajes</span>
           <div className="ml-auto">
             <MessageBadge />
@@ -167,7 +167,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
             onClick={() => handleNavigate('/reviews')}
             className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
           >
-            <Star className="w-4 h-4 mr-3 text-[#9BFF43]" />
+            <Star className="w-4 h-4 mr-3 text-primary" />
             <span>Mis Reseñas</span>
           </DropdownMenuItem>
         )}
@@ -176,7 +176,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           onClick={() => handleNavigate('/business-analytics')}
           className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
         >
-          <BarChart3 className="w-4 h-4 mr-3 text-[#9BFF43]" />
+          <BarChart3 className="w-4 h-4 mr-3 text-primary" />
           <span>Analytics</span>
         </DropdownMenuItem>
 
@@ -184,7 +184,7 @@ const UserMenu: React.FC<UserMenuProps> = ({ className }) => {
           onClick={() => handleNavigate('/settings')}
           className="cursor-pointer text-foreground hover:bg-muted focus:bg-muted"
         >
-          <Settings className="w-4 h-4 mr-3 text-[#9BFF43]" />
+          <Settings className="w-4 h-4 mr-3 text-primary" />
           <span>Configuración</span>
         </DropdownMenuItem>
 

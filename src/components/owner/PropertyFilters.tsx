@@ -36,15 +36,15 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
           placeholder="Buscar propiedades..."
           value={searchQuery}
           onChange={(e) => onSearchChange?.(e.target.value)}
-          className="pl-10 bg-[#2A2A2A] border-white/10 text-white placeholder:text-white/30"
+          className="pl-10 bg-muted border-white/10 text-white placeholder:text-white/30"
         />
       </div>
 
       <Select value={selectedCity} onValueChange={onCityChange}>
-        <SelectTrigger className="w-[180px] bg-[#2A2A2A] border-white/10 text-white">
+        <SelectTrigger className="w-[180px] bg-muted border-white/10 text-white">
           <SelectValue placeholder="Todas las ciudades" />
         </SelectTrigger>
-        <SelectContent className="bg-[#2A2A2A] border-white/10">
+        <SelectContent className="bg-muted border-white/10">
           <SelectItem value="all" className="text-white">Todas las ciudades</SelectItem>
           {cities.map((city) => (
             <SelectItem key={city} value={city} className="text-white">
@@ -55,10 +55,10 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
       </Select>
 
       <Select value={selectedStatus} onValueChange={onStatusChange}>
-        <SelectTrigger className="w-[180px] bg-[#2A2A2A] border-white/10 text-white">
+        <SelectTrigger className="w-[180px] bg-muted border-white/10 text-white">
           <SelectValue placeholder="Todos los estados" />
         </SelectTrigger>
-        <SelectContent className="bg-[#2A2A2A] border-white/10">
+        <SelectContent className="bg-muted border-white/10">
           <SelectItem value="all" className="text-white">Todos los estados</SelectItem>
           <SelectItem value="available" className="text-white">Disponibles</SelectItem>
           <SelectItem value="unavailable" className="text-white">No disponibles</SelectItem>

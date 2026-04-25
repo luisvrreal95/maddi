@@ -619,7 +619,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
         const popup = new mapboxgl.Popup({ offset: 25, className: 'poi-popup' })
           .setHTML(`
-            <div class="p-2 text-sm bg-[#2A2A2A] text-white rounded">
+            <div class="p-2 text-sm bg-muted text-white rounded">
               <strong>${poi.name}</strong>
               ${poi.distance ? `<p class="text-white/60 text-xs">${Math.round(poi.distance)}m de distancia</p>` : ''}
             </div>
@@ -671,7 +671,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
         const popup = new mapboxgl.Popup({ offset: 25, className: 'incident-popup' })
           .setHTML(`
-            <div class="p-2 text-sm bg-[#2A2A2A] text-white rounded max-w-xs">
+            <div class="p-2 text-sm bg-muted text-white rounded max-w-xs">
               <strong class="text-amber-400">⚠️ Incidente</strong>
               <p class="text-white/80 mt-1">${incident.description}</p>
               ${incident.delay ? `<p class="text-red-400 text-xs mt-1">Retraso: ${incident.delay} min</p>` : ''}
@@ -737,7 +737,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
       {/* Flow Data Display */}
       {flowData && layers.flow && (
-        <div className="absolute top-4 left-4 z-10 bg-[#2A2A2A]/95 backdrop-blur-sm rounded-lg border border-white/10 p-3">
+        <div className="absolute top-4 left-4 z-10 bg-muted/95 backdrop-blur-sm rounded-lg border border-white/10 p-3">
           <h5 className="text-white/70 text-xs font-medium mb-2">Flujo vehicular actual</h5>
           <div className="flex items-center gap-4">
             <div>
@@ -746,7 +746,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
             </div>
             <div className="h-10 w-px bg-white/10" />
             <div>
-              <p className="text-lg font-medium text-[#9BFF43]">{flowData.freeFlowSpeed}<span className="text-xs text-white/50"> km/h</span></p>
+              <p className="text-lg font-medium text-primary">{flowData.freeFlowSpeed}<span className="text-xs text-white/50"> km/h</span></p>
               <p className="text-xs text-white/50">Flujo libre</p>
             </div>
           </div>

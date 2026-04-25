@@ -164,8 +164,8 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
             </div>
             {/* Rating Badge — prominent */}
             {property.totalReviews && property.totalReviews > 0 ? (
-              <div className="inline-flex items-center gap-1.5 mt-2 bg-[#9BFF43]/10 px-2.5 py-1 rounded-full">
-                <Star className="w-4 h-4 fill-[#9BFF43] text-[#9BFF43]" />
+              <div className="inline-flex items-center gap-1.5 mt-2 bg-primary/10 px-2.5 py-1 rounded-full">
+                <Star className="w-4 h-4 fill-[#9BFF43] text-primary" />
                 <span className="text-foreground font-bold text-sm">
                   {property.averageRating?.toFixed(1)}
                 </span>
@@ -174,7 +174,7 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
                 </span>
               </div>
             ) : (
-              <span className="inline-flex items-center mt-2 px-2.5 py-1 rounded-full bg-[#9BFF43] text-[#121212] text-xs font-bold">
+              <span className="inline-flex items-center mt-2 px-2.5 py-1 rounded-full bg-primary text-background text-xs font-bold">
                 Nuevo
               </span>
             )}

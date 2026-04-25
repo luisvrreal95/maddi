@@ -91,7 +91,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-[#1A1A1A] rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
+      <div className="bg-card rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <div>
@@ -112,7 +112,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
             {propertiesWithMetrics.map((property, idx) => (
               <div 
                 key={property.id} 
-                className="bg-[#2A2A2A] rounded-xl overflow-hidden border-2"
+                className="bg-muted rounded-xl overflow-hidden border-2"
                 style={{ borderColor: COLORS[idx % COLORS.length] }}
               >
                 {/* Image */}
@@ -146,28 +146,28 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                   <div className="space-y-2 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-white/60">Vistas/día</span>
-                      <span className={`font-bold ${property.viewsNum === maxViews ? 'text-[#9BFF43]' : 'text-white'}`}>
+                      <span className={`font-bold ${property.viewsNum === maxViews ? 'text-primary' : 'text-white'}`}>
                         {property.viewsPerDay}
                         {property.viewsNum === maxViews && <Check className="inline w-3 h-3 ml-1" />}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-white/60">Precio</span>
-                      <span className={`font-bold ${property.priceNum === minPrice ? 'text-[#9BFF43]' : 'text-white'}`}>
+                      <span className={`font-bold ${property.priceNum === minPrice ? 'text-primary' : 'text-white'}`}>
                         {property.price}
                         {property.priceNum === minPrice && <Check className="inline w-3 h-3 ml-1" />}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-white/60">CPM</span>
-                      <span className={`font-bold ${property.valueScore === maxValue ? 'text-[#9BFF43]' : 'text-white'}`}>
+                      <span className={`font-bold ${property.valueScore === maxValue ? 'text-primary' : 'text-white'}`}>
                         ${property.cpm.toFixed(2)}
                         {property.valueScore === maxValue && <Check className="inline w-3 h-3 ml-1" />}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-white/60">POIs</span>
-                      <span className={`font-bold ${property.poisNum === maxPOIs ? 'text-[#9BFF43]' : 'text-white'}`}>
+                      <span className={`font-bold ${property.poisNum === maxPOIs ? 'text-primary' : 'text-white'}`}>
                         {property.pointsOfInterest}
                         {property.poisNum === maxPOIs && <Check className="inline w-3 h-3 ml-1" />}
                       </span>
@@ -176,7 +176,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
 
                   <button
                     onClick={() => onReserve(property)}
-                    className="w-full mt-3 py-2 rounded-lg bg-[#9BFF43] text-[#1A1A1A] font-bold text-xs hover:bg-[#8AE63A] transition-colors"
+                    className="w-full mt-3 py-2 rounded-lg bg-primary text-primary-foreground font-bold text-xs hover:bg-[#8AE63A] transition-colors"
                   >
                     Reservar
                   </button>
@@ -188,9 +188,9 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
           {/* Comparison Charts */}
           <div className="grid grid-cols-2 gap-4">
             {/* Views Comparison */}
-            <div className="bg-[#2A2A2A] rounded-xl p-4">
+            <div className="bg-muted rounded-xl p-4">
               <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <Eye className="w-4 h-4 text-[#9BFF43]" />
+                <Eye className="w-4 h-4 text-primary" />
                 Visibilidad (Vistas/Día)
               </h4>
               <div className="h-40">
@@ -213,7 +213,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
             </div>
 
             {/* Price Comparison */}
-            <div className="bg-[#2A2A2A] rounded-xl p-4">
+            <div className="bg-muted rounded-xl p-4">
               <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
                 <DollarSign className="w-4 h-4 text-blue-400" />
                 Precio Mensual
@@ -239,7 +239,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
           </div>
 
           {/* Comparison Table */}
-          <div className="bg-[#2A2A2A] rounded-xl p-4 mt-4 overflow-x-auto">
+          <div className="bg-muted rounded-xl p-4 mt-4 overflow-x-auto">
             <h4 className="text-white font-semibold mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-amber-400" />
               Comparación Detallada
@@ -267,7 +267,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                 <tr className="border-b border-white/5">
                   <td className="py-2 pr-4 text-white/70">CPM (Costo por Mil)</td>
                   {propertiesWithMetrics.map(p => (
-                    <td key={p.id} className={`text-center py-2 px-2 font-medium ${p.valueScore === maxValue ? 'text-[#9BFF43]' : ''}`}>
+                    <td key={p.id} className={`text-center py-2 px-2 font-medium ${p.valueScore === maxValue ? 'text-primary' : ''}`}>
                       ${p.cpm.toFixed(2)}
                     </td>
                   ))}
@@ -316,14 +316,14 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                   <td className="py-2 pr-4 text-white/70">Iluminación</td>
                   {propertiesWithMetrics.map(p => (
                     <td key={p.id} className="text-center py-2 px-2 font-medium">
-                      {p.status === 'Alto' ? <Check className="inline w-4 h-4 text-[#9BFF43]" /> : <Minus className="inline w-4 h-4 text-white/30" />}
+                      {p.status === 'Alto' ? <Check className="inline w-4 h-4 text-primary" /> : <Minus className="inline w-4 h-4 text-white/30" />}
                     </td>
                   ))}
                 </tr>
                 <tr>
                   <td className="py-2 pr-4 text-white/70">Disponibilidad</td>
                   {propertiesWithMetrics.map(p => (
-                    <td key={p.id} className="text-center py-2 px-2 font-medium text-[#9BFF43]">{p.availability}</td>
+                    <td key={p.id} className="text-center py-2 px-2 font-medium text-primary">{p.availability}</td>
                   ))}
                 </tr>
               </tbody>
@@ -332,13 +332,13 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
 
           {/* Best Value Recommendation */}
           {propertiesWithMetrics.length > 1 && (
-            <div className="bg-gradient-to-r from-[#9BFF43]/20 to-blue-500/20 rounded-xl p-4 mt-4 border border-[#9BFF43]/30">
+            <div className="bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-xl p-4 mt-4 border border-primary/30">
               <div className="flex items-center gap-3">
-                <Zap className="w-8 h-8 text-[#9BFF43]" />
+                <Zap className="w-8 h-8 text-primary" />
                 <div>
                   <h4 className="text-white font-bold">Mejor Valor</h4>
                   <p className="text-white/70 text-sm">
-                    <span className="text-[#9BFF43] font-semibold">
+                    <span className="text-primary font-semibold">
                       {propertiesWithMetrics.find(p => p.valueScore === maxValue)?.name}
                     </span>
                     {' '}tiene el mejor CPM (${propertiesWithMetrics.find(p => p.valueScore === maxValue)?.cpm.toFixed(2)}) 

@@ -52,7 +52,7 @@ const LiveStatsSection: React.FC = () => {
 
   const Stat = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center text-center">
-      <span className="text-[#9BFF43] text-5xl md:text-6xl font-bold tabular-nums">
+      <span className="text-primary text-5xl md:text-6xl font-bold tabular-nums">
         {value}
       </span>
       <span className="text-white/60 text-sm md:text-base mt-2 uppercase tracking-wider">
@@ -62,7 +62,7 @@ const LiveStatsSection: React.FC = () => {
   );
 
   return (
-    <section ref={sectionRef} className="bg-[#121212] py-20 max-md:py-14 px-6 max-sm:px-4 border-y border-white/5">
+    <section ref={sectionRef} className="bg-background py-20 max-md:py-14 px-6 max-sm:px-4 border-y border-white/5">
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center justify-around gap-8 max-sm:gap-4 max-sm:flex-wrap">
           <Stat value={bbValue} label="Espectaculares" />

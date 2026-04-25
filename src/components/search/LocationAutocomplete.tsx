@@ -318,7 +318,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
-        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#9BFF43]" />
+        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
         <input
           ref={inputRef}
           type="text"
@@ -335,7 +335,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
             // Delay to allow click on dropdown items
             setTimeout(() => setIsFocused(false), 200);
           }}
-          className="w-full pl-12 pr-12 py-3 bg-[#2A2A2A] border border-white/10 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-[#9BFF43]/50"
+          className="w-full pl-12 pr-12 py-3 bg-muted border border-white/10 rounded-full text-white placeholder-white/50 focus:outline-none focus:border-primary/50"
           placeholder={placeholder || 'Busca una plaza o negocio (ej. Costco, Plaza Centenario)'}
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -351,7 +351,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
                   handleSelect(suggestions[0]);
                 }
               }}
-              className="w-10 h-10 bg-[#9BFF43] rounded-full flex items-center justify-center hover:bg-[#8AE63A] transition-colors"
+              className="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-[#8AE63A] transition-colors"
             >
               <Search className="w-5 h-5 text-[#202020]" />
             </button>
@@ -363,7 +363,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       {isOpen && isFocused && (
         <div
           ref={dropdownRef}
-          className="absolute top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
+          className="absolute top-full left-0 right-0 mt-2 bg-muted border border-white/10 rounded-xl overflow-hidden shadow-xl z-50"
         >
           {suggestions.length === 0 ? (
             <div className="px-4 py-6 text-center text-white/50 text-sm">
@@ -388,17 +388,17 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
                     onClick={() => handleSelect(suggestion)}
                     className={`w-full px-4 py-3 flex items-start gap-3 text-left transition-colors ${
                       index === selectedIndex
-                        ? 'bg-[#9BFF43]/20'
+                        ? 'bg-primary/20'
                         : 'hover:bg-white/5'
                     }`}
                   >
-                    <div className={`mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-[#9BFF43]' : 'text-white/40'}`}>
+                    <div className={`mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-white/40'}`}>
                       {getFeatureIcon(suggestion.feature_type, suggestion.poi_category)}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p
                         className={`font-medium truncate ${
-                          index === selectedIndex ? 'text-[#9BFF43]' : 'text-white'
+                          index === selectedIndex ? 'text-primary' : 'text-white'
                         }`}
                       >
                         {suggestion.name}

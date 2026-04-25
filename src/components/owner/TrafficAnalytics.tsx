@@ -241,7 +241,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {dataSource === 'live' ? (
-              <Badge className="bg-[#9BFF43]/20 text-[#9BFF43] border-[#9BFF43]/30">
+              <Badge className="bg-primary/20 text-primary border-primary/30">
                 <Wifi className="w-3 h-3 mr-1" />
                 Datos en vivo
               </Badge>
@@ -273,8 +273,8 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <Card className="bg-[#1E1E1E] border-white/10 p-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#9BFF43]/20 flex items-center justify-center">
-                <Eye className="w-5 h-5 text-[#9BFF43]" />
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Eye className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <div className="flex items-center gap-1">
@@ -283,7 +283,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
                     <TooltipTrigger>
                       <Info className="w-3 h-3 text-white/30" />
                     </TooltipTrigger>
-                    <TooltipContent className="bg-[#2A2A2A] border-white/10 text-white max-w-xs">
+                    <TooltipContent className="bg-muted border-white/10 text-white max-w-xs">
                       <p className="text-sm">Número estimado de vehículos que pasan diariamente frente al espectacular, multiplicado por factor de visibilidad.</p>
                     </TooltipContent>
                   </UITooltip>
@@ -305,7 +305,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
                     <TooltipTrigger>
                       <Info className="w-3 h-3 text-white/30" />
                     </TooltipTrigger>
-                    <TooltipContent className="bg-[#2A2A2A] border-white/10 text-white max-w-xs">
+                    <TooltipContent className="bg-muted border-white/10 text-white max-w-xs">
                       <p className="text-sm">Impresiones diarias multiplicadas por 30 días. Valor estimado mensual.</p>
                     </TooltipContent>
                   </UITooltip>
@@ -346,12 +346,12 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
           <Card className="bg-[#1E1E1E] border-white/10 p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-[#9BFF43]" />
+                <TrendingUp className="w-5 h-5 text-primary" />
                 <h3 className="text-white font-semibold">Tráfico por Hora</h3>
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <div className="flex items-center gap-1">
-                  <div className="w-3 h-3 rounded bg-[#9BFF43]" />
+                  <div className="w-3 h-3 rounded bg-primary" />
                   <span className="text-white/60">Hora pico</span>
                 </div>
                 <div className="flex items-center gap-1">

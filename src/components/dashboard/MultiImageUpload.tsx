@@ -131,7 +131,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
               <X className="h-3 w-3" />
             </Button>
             {index === 0 && (
-              <span className="absolute bottom-1 left-1 text-xs bg-[#9BFF43] text-[#121212] px-1.5 py-0.5 rounded font-medium">
+              <span className="absolute bottom-1 left-1 text-xs bg-primary text-background px-1.5 py-0.5 rounded font-medium">
                 Principal
               </span>
             )}
@@ -142,11 +142,11 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
         {value.length < maxImages && (
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#1A1A1A]"
+            className="aspect-video flex flex-col items-center justify-center border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-card"
           >
             {isUploading ? (
               <>
-                <Loader2 className="h-6 w-6 text-[#9BFF43] animate-spin mb-1" />
+                <Loader2 className="h-6 w-6 text-primary animate-spin mb-1" />
                 <p className="text-white/60 text-xs">Subiendo...</p>
               </>
             ) : (

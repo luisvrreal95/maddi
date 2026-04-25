@@ -42,13 +42,13 @@ const FilterDropdown: React.FC<FilterProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200 ${
           selectedValues.length > 0
-            ? 'bg-[#9BFF43] border-[#9BFF43] text-[#202020]'
+            ? 'bg-primary border-primary text-[#202020]'
             : 'bg-transparent border-white/20 text-white hover:border-white/40'
         }`}
       >
         <span className="text-sm font-medium">{label}</span>
         {selectedValues.length > 0 && (
-          <span className="text-xs bg-[#202020] text-white px-1.5 py-0.5 rounded-full">
+          <span className="text-xs bg-card text-white px-1.5 py-0.5 rounded-full">
             {selectedValues.length}
           </span>
         )}
@@ -61,21 +61,21 @@ const FilterDropdown: React.FC<FilterProps> = ({
             className="fixed inset-0 z-40" 
             onClick={() => setIsOpen(false)} 
           />
-          <div className="absolute top-full left-0 mt-2 bg-[#2A2A2A] rounded-xl border border-white/10 shadow-xl z-50 min-w-[200px] overflow-hidden">
+          <div className="absolute top-full left-0 mt-2 bg-muted rounded-xl border border-white/10 shadow-xl z-50 min-w-[200px] overflow-hidden">
             {options.map((option) => (
               <button
                 key={option.value}
                 onClick={() => handleSelect(option.value)}
                 className={`w-full px-4 py-3 text-left text-sm transition-colors ${
                   selectedValues.includes(option.value)
-                    ? 'bg-[#9BFF43]/20 text-[#9BFF43]'
+                    ? 'bg-primary/20 text-primary'
                     : 'text-white hover:bg-white/5'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <div className={`w-4 h-4 rounded border ${
                     selectedValues.includes(option.value)
-                      ? 'bg-[#9BFF43] border-[#9BFF43]'
+                      ? 'bg-primary border-primary'
                       : 'border-white/30'
                   }`}>
                     {selectedValues.includes(option.value) && (

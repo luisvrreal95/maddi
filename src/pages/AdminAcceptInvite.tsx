@@ -135,7 +135,7 @@ const AdminAcceptInvite = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#9BFF43]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -143,7 +143,7 @@ const AdminAcceptInvite = () => {
   if (error || !invitation) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
-        <div className="bg-[#1A1A1A] rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
+        <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <ShieldX className="w-8 h-8 text-red-400" />
           </div>
@@ -153,7 +153,7 @@ const AdminAcceptInvite = () => {
           </p>
           <Button
             onClick={() => navigate("/")}
-            className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]"
+            className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
           >
             Ir al inicio
           </Button>
@@ -166,15 +166,15 @@ const AdminAcceptInvite = () => {
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
-      <div className="bg-[#1A1A1A] rounded-2xl p-8 max-w-md w-full border border-white/10">
+      <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-[#9BFF43]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShieldCheck className="w-8 h-8 text-[#9BFF43]" />
+          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <ShieldCheck className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Aceptar invitación</h1>
           <p className="text-white/60 text-sm">
-            Has sido invitado como <span className="text-[#9BFF43] font-semibold">{roleLabel}</span>
+            Has sido invitado como <span className="text-primary font-semibold">{roleLabel}</span>
           </p>
           <p className="text-white/40 text-xs mt-2">{invitation.email}</p>
         </div>
@@ -191,7 +191,7 @@ const AdminAcceptInvite = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Tu nombre"
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
               disabled={isSubmitting}
               autoComplete="name"
             />
@@ -208,7 +208,7 @@ const AdminAcceptInvite = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20 pr-12"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
                 disabled={isSubmitting}
                 autoComplete="new-password"
               />
@@ -232,7 +232,7 @@ const AdminAcceptInvite = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repite tu contraseña"
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
               disabled={isSubmitting}
               autoComplete="new-password"
             />
@@ -241,7 +241,7 @@ const AdminAcceptInvite = () => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+            className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
           >
             {isSubmitting ? (
               <>

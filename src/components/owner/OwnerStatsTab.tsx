@@ -154,15 +154,15 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
     <div className="space-y-8">
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-[#9BFF43]/20 p-6">
+        <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-primary/20 p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-white/60 text-sm mb-1">Ingresos totales</p>
               <p className="text-3xl font-bold text-white">${totalPaid.toLocaleString()}</p>
               <p className="text-xs text-white/40 mt-1">acumulado pagado</p>
             </div>
-            <div className="w-12 h-12 rounded-full bg-[#9BFF43]/20 flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-[#9BFF43]" />
+            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-primary" />
             </div>
           </div>
         </Card>
@@ -240,10 +240,10 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
 
       {/* Top billboard */}
       {topBillboard && (
-        <Card className="bg-gradient-to-r from-[#9BFF43]/10 to-transparent border-[#9BFF43]/20 p-6">
+        <Card className="bg-gradient-to-r from-[#9BFF43]/10 to-transparent border-primary/20 p-6">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-[#9BFF43]/20 flex items-center justify-center flex-shrink-0">
-              <Trophy className="w-7 h-7 text-[#9BFF43]" />
+            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Trophy className="w-7 h-7 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-white/60 text-sm">Top espectacular</p>

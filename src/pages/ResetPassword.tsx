@@ -107,14 +107,14 @@ const ResetPassword = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
-        <div className="bg-[#1A1A1A] rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
+        <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <KeyRound className="w-8 h-8 text-red-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Enlace inválido</h1>
           <p className="text-white/60 text-sm mb-6">{error}</p>
           <Link to="/auth">
-            <Button className="bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A]">
+            <Button className="bg-primary text-primary-foreground hover:bg-[#8AE63A]">
               Ir a iniciar sesión
             </Button>
           </Link>
@@ -126,9 +126,9 @@ const ResetPassword = () => {
   if (success) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
-        <div className="bg-[#1A1A1A] rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
-          <div className="w-16 h-16 bg-[#9BFF43]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle className="w-8 h-8 text-[#9BFF43]" />
+        <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
+          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">¡Contraseña actualizada!</h1>
           <p className="text-white/60 text-sm mb-6">
@@ -142,21 +142,21 @@ const ResetPassword = () => {
   if (!sessionReady) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#9BFF43]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
-      <div className="bg-[#1A1A1A] rounded-2xl p-8 max-w-md w-full border border-white/10">
+      <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10">
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-6">
             <img src="/favicon.svg" alt="Maddi" className="h-10 mx-auto" />
           </Link>
-          <div className="w-16 h-16 bg-[#9BFF43]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <KeyRound className="w-8 h-8 text-[#9BFF43]" />
+          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <KeyRound className="w-8 h-8 text-primary" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Nueva contraseña</h1>
           <p className="text-white/60 text-sm">
@@ -177,7 +177,7 @@ const ResetPassword = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20 pr-12"
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
                 disabled={isUpdating}
                 autoComplete="new-password"
               />
@@ -201,7 +201,7 @@ const ResetPassword = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repite tu contraseña"
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-[#9BFF43] focus:ring-[#9BFF43]/20"
+              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
               disabled={isUpdating}
               autoComplete="new-password"
             />
@@ -213,7 +213,7 @@ const ResetPassword = () => {
           <Button
             type="submit"
             disabled={isUpdating || !newPassword || !confirmPassword || newPassword !== confirmPassword}
-            className="w-full bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+            className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
           >
             {isUpdating ? (
               <>
@@ -227,7 +227,7 @@ const ResetPassword = () => {
         </form>
 
         <div className="text-center mt-6">
-          <Link to="/auth" className="text-white/50 hover:text-[#9BFF43] text-sm transition-colors inline-flex items-center gap-1">
+          <Link to="/auth" className="text-white/50 hover:text-primary text-sm transition-colors inline-flex items-center gap-1">
             <ArrowLeft className="w-4 h-4" />
             Volver al inicio de sesión
           </Link>

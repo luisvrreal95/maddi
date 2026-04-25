@@ -108,11 +108,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, userId }) =>
       ) : (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-[#9BFF43]/50 transition-colors bg-[#1A1A1A]"
+          className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-card"
         >
           {isUploading ? (
             <>
-              <Loader2 className="h-8 w-8 text-[#9BFF43] animate-spin mb-2" />
+              <Loader2 className="h-8 w-8 text-primary animate-spin mb-2" />
               <p className="text-white/60 text-sm">Subiendo...</p>
             </>
           ) : (

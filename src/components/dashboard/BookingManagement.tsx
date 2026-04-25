@@ -369,8 +369,8 @@ const BookingManagement: React.FC = () => {
             </div>
 
             {/* Requester info */}
-            <div className="flex items-center gap-3 bg-[#1A1A1A] rounded-xl p-4">
-              <div className="w-10 h-10 rounded-full bg-[#2A2A2A] flex items-center justify-center">
+            <div className="flex items-center gap-3 bg-card rounded-xl p-4">
+              <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
                 <User className="w-5 h-5 text-white/40" />
               </div>
               <div>
@@ -381,24 +381,24 @@ const BookingManagement: React.FC = () => {
 
             {/* Dates & pricing */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-card rounded-xl p-4">
                 <p className="text-white/50 text-xs mb-1">Check-in</p>
                 <p className="text-white font-medium text-sm">{format(new Date(selectedBooking.start_date), "d 'de' MMMM, yyyy", { locale: es })}</p>
               </div>
-              <div className="bg-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-card rounded-xl p-4">
                 <p className="text-white/50 text-xs mb-1">Check-out</p>
                 <p className="text-white font-medium text-sm">{format(new Date(selectedBooking.end_date), "d 'de' MMMM, yyyy", { locale: es })}</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between bg-[#1A1A1A] rounded-xl p-4">
+            <div className="flex items-center justify-between bg-card rounded-xl p-4">
               <div>
                 <p className="text-white/50 text-xs">Duración</p>
                 <p className="text-white font-medium">{days} días <span className="text-white/40">({months} meses)</span></p>
               </div>
               <div className="text-right">
                 <p className="text-white/50 text-xs">Total</p>
-                <p className="text-[#9BFF43] font-bold text-lg">${selectedBooking.total_price.toLocaleString()} MXN</p>
+                <p className="text-primary font-bold text-lg">${selectedBooking.total_price.toLocaleString()} MXN</p>
               </div>
             </div>
 
@@ -412,7 +412,7 @@ const BookingManagement: React.FC = () => {
               </div>
             )}
             {extraNotes && (
-              <div className="bg-[#1A1A1A] rounded-xl p-4">
+              <div className="bg-card rounded-xl p-4">
                 <p className="text-white/50 text-xs mb-1">Notas adicionales</p>
                 <p className="text-white text-sm">{extraNotes}</p>
               </div>
@@ -422,13 +422,13 @@ const BookingManagement: React.FC = () => {
             {images.length > 0 && (
               <div className="space-y-3">
                 <p className="text-white/50 text-xs font-medium uppercase tracking-wide flex items-center gap-1.5">
-                  <ImageIcon className="w-3.5 h-3.5 text-[#9BFF43]" />
+                  <ImageIcon className="w-3.5 h-3.5 text-primary" />
                   Diseño del anuncio ({images.length})
                 </p>
                 <div className="grid grid-cols-2 gap-2">
                   {images.map((url, i) => (
                     <button key={i} onClick={() => setImageViewerUrl(url)} className="block group">
-                      <img src={url} alt={`Diseño ${i + 1}`} className="w-full aspect-[4/3] object-cover rounded-xl border border-white/10 group-hover:border-[#9BFF43]/50 transition-all" />
+                      <img src={url} alt={`Diseño ${i + 1}`} className="w-full aspect-[4/3] object-cover rounded-xl border border-white/10 group-hover:border-primary/50 transition-all" />
                     </button>
                   ))}
                 </div>
@@ -451,7 +451,7 @@ const BookingManagement: React.FC = () => {
 
             {selectedBooking.status === 'pending' && (
               <div className="flex gap-2 pt-2 border-t border-white/5">
-                <Button onClick={() => handleApproveClick(selectedBooking)} className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A] font-semibold">
+                <Button onClick={() => handleApproveClick(selectedBooking)} className="flex-1 bg-primary text-[#202020] hover:bg-[#8AE63A] font-semibold">
                   <Check className="w-4 h-4 mr-2" /> Aprobar
                 </Button>
                 <Button onClick={() => handleRejectClick(selectedBooking)} variant="outline" className="flex-1 border-red-500/30 text-red-400 hover:bg-red-500/10">
@@ -474,7 +474,7 @@ const BookingManagement: React.FC = () => {
 
         {/* Image Viewer */}
         <Dialog open={!!imageViewerUrl} onOpenChange={() => setImageViewerUrl(null)}>
-          <DialogContent className="bg-[#1A1A1A] border-white/10 max-w-3xl p-2">
+          <DialogContent className="bg-card border-white/10 max-w-3xl p-2">
             {imageViewerUrl && <img src={imageViewerUrl} alt="Diseño" className="w-full rounded-lg" />}
           </DialogContent>
         </Dialog>
@@ -485,7 +485,7 @@ const BookingManagement: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-16">
-        <div className="w-8 h-8 border-2 border-[#9BFF43] border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-white/50 text-sm">Cargando reservas...</p>
       </div>
     );
@@ -512,7 +512,7 @@ const BookingManagement: React.FC = () => {
   return (
     <div className="space-y-5">
       {/* Tabs */}
-      <div className="flex gap-1 bg-[#1A1A1A] rounded-xl p-1">
+      <div className="flex gap-1 bg-card rounded-xl p-1">
         {tabs.map(tab => (
           <button
             key={tab.id}
@@ -526,7 +526,7 @@ const BookingManagement: React.FC = () => {
             {tab.label}
             {tab.count > 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                activeTab === tab.id ? 'bg-[#9BFF43] text-[#1A1A1A]' : 'bg-white/10 text-white/50'
+                activeTab === tab.id ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white/50'
               }`}>
                 {tab.count}
               </span>
@@ -559,7 +559,7 @@ const BookingManagement: React.FC = () => {
                   {booking.billboard?.image_url ? (
                     <img src={booking.billboard.image_url} alt="" className="w-14 h-14 md:w-20 md:h-20 rounded-xl object-cover flex-shrink-0" />
                   ) : (
-                    <div className="w-14 h-14 md:w-20 md:h-20 rounded-xl bg-[#2A2A2A] flex items-center justify-center flex-shrink-0">
+                    <div className="w-14 h-14 md:w-20 md:h-20 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-5 h-5 md:w-6 md:h-6 text-white/20" />
                     </div>
                   )}
@@ -580,7 +580,7 @@ const BookingManagement: React.FC = () => {
                         <StatusIcon className="w-3 h-3" />
                         {statusConfig.label}
                       </div>
-                      <p className="text-[#9BFF43] font-semibold text-sm">${booking.total_price.toLocaleString()}</p>
+                      <p className="text-primary font-semibold text-sm">${booking.total_price.toLocaleString()}</p>
                     </div>
 
                     {message && (
@@ -642,7 +642,7 @@ const BookingManagement: React.FC = () => {
               {overlapWarning ? 'Cerrar' : 'Cancelar'}
             </AlertDialogCancel>
             {!overlapWarning && (
-              <AlertDialogAction onClick={approveBooking} disabled={processing} className="bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A]">
+              <AlertDialogAction onClick={approveBooking} disabled={processing} className="bg-primary text-[#202020] hover:bg-[#8AE63A]">
                 {processing ? 'Aprobando...' : 'Aprobar campaña'}
               </AlertDialogAction>
             )}
@@ -659,7 +659,7 @@ const BookingManagement: React.FC = () => {
               El negocio será notificado. Puedes agregar un motivo opcional.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motivo del rechazo (opcional)..." className="bg-[#2A2A2A] border-white/10 text-white" rows={3} />
+          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motivo del rechazo (opcional)..." className="bg-muted border-white/10 text-white" rows={3} />
           <AlertDialogFooter>
             <AlertDialogCancel disabled={processing} className="border-white/20 text-white hover:bg-white/10">Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={rejectBooking} disabled={processing} className="bg-red-500 hover:bg-red-600">

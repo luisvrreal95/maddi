@@ -13,9 +13,9 @@ interface RoleCardProps {
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ icon, role, steps }) => (
-  <div className="flex-1 bg-[hsl(0,0%,10%)] border border-white/10 rounded-2xl p-8 max-sm:p-6 hover:border-[#9BFF43]/30 transition-colors">
+  <div className="flex-1 bg-[hsl(0,0%,10%)] border border-white/10 rounded-2xl p-8 max-sm:p-6 hover:border-primary/30 transition-colors">
     <div className="flex items-center gap-3 mb-8">
-      <div className="w-12 h-12 rounded-xl bg-[#9BFF43]/10 flex items-center justify-center text-[#9BFF43]">
+      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
         {icon}
       </div>
       <h3 className="text-white text-2xl font-bold">{role}</h3>
@@ -23,7 +23,7 @@ const RoleCard: React.FC<RoleCardProps> = ({ icon, role, steps }) => (
     <div className="flex flex-col gap-6">
       {steps.map((step, idx) => (
         <div key={idx} className="flex gap-4">
-          <span className="text-[#9BFF43] text-3xl font-bold leading-none w-10 flex-shrink-0">
+          <span className="text-primary text-3xl font-bold leading-none w-10 flex-shrink-0">
             {String(idx + 1).padStart(2, '0')}
           </span>
           <div>
@@ -38,11 +38,11 @@ const RoleCard: React.FC<RoleCardProps> = ({ icon, role, steps }) => (
 
 const HowItWorksSection: React.FC = () => {
   return (
-    <section className="bg-[#121212] py-24 max-md:py-16 px-6 max-sm:px-4">
+    <section className="bg-background py-24 max-md:py-16 px-6 max-sm:px-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14 max-sm:mb-10">
           <h2 className="text-white text-4xl md:text-5xl font-bold mb-3 max-sm:text-3xl">
-            ¿Cómo funciona <span className="text-[#9BFF43]">Maddi</span>?
+            ¿Cómo funciona <span className="text-primary">Maddi</span>?
           </h2>
           <p className="text-white/50 text-lg max-sm:text-sm">
             Un proceso simple para propietarios y anunciantes

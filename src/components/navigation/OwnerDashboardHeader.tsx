@@ -52,7 +52,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
   };
 
   return (
-    <header className="bg-[#1A1A1A] px-4 md:px-8 py-4 border-b border-white/10">
+    <header className="bg-card px-4 md:px-8 py-4 border-b border-white/10">
       <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Logo */}
         <Link to="/owner?tab=inicio" className="flex items-center gap-1 flex-shrink-0">
@@ -78,7 +78,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 relative",
                   isActive
-                    ? "bg-white text-[#121212]"
+                    ? "bg-white text-background"
                     : "text-white/70 hover:text-white hover:bg-white/10"
                 )}
               >
@@ -103,7 +103,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
                 <Menu className="w-5 h-5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
+            <DropdownMenuContent align="end" className="w-56 bg-muted border-white/10">
               <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
                 <Link to="/settings" className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />
@@ -135,7 +135,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
               className={cn(
                 "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 relative",
                 isActive
-                  ? "bg-white text-[#121212]"
+                  ? "bg-white text-background"
                   : "text-white/70 hover:text-white bg-white/5"
               )}
             >
@@ -155,7 +155,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
               className={cn(
                 "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
                 mobileSecondary.some(i => i.id === currentTab)
-                  ? "bg-white text-[#121212]"
+                  ? "bg-white text-background"
                   : "text-white/70 bg-white/5 hover:text-white"
               )}
             >
@@ -163,7 +163,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
               Más
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52 bg-[#2A2A2A] border-white/10">
+          <DropdownMenuContent align="end" className="w-52 bg-muted border-white/10">
             {mobileSecondary.map((item) => {
               const Icon = item.icon;
               return (

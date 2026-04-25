@@ -38,7 +38,7 @@ import {
   ExternalLink,
   Eye
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -122,8 +122,6 @@ const VerificationManagement = () => {
   const [reviewNotes, setReviewNotes] = useState("");
   const [processing, setProcessing] = useState(false);
   const [loadingDocUrl, setLoadingDocUrl] = useState<string | null>(null);
-  const { toast } = useToast();
-
   // Try 'verifications' bucket first (new), fall back to 'verification-docs' (legacy)
   const getSignedUrl = async (filePath: string): Promise<string | null> => {
     try {
@@ -153,7 +151,7 @@ const VerificationManagement = () => {
       if (signedUrl) {
         window.open(signedUrl, '_blank');
       } else {
-        toast({ title: "Error", description: "No se pudo cargar el documento", variant: "destructive" });
+        toast.error("Error", { description: "No se pudo cargar el documento" });
       }
     } finally {
       setLoadingDocUrl(null);
@@ -231,11 +229,7 @@ const VerificationManagement = () => {
       setRequests((data as VerificationRequest[]) || []);
     } catch (error) {
       console.error("Error fetching verification requests:", error);
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar las solicitudes",
-        variant: "destructive",
-      });
+      toast.error("Error", { description: "No se pudieron cargar las solicitudes" });
     } finally {
       setLoading(false);
     }
@@ -263,21 +257,14 @@ const VerificationManagement = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Éxito",
-        description: `Verificación ${status === "approved" ? "aprobada" : "rechazada"}`,
-      });
+      toast.success("Éxito", { description: `Verificación ${status === "approved" ? "aprobada" : "rechazada"}` });
 
       setSelectedRequest(null);
       setReviewNotes("");
       fetchRequests();
     } catch (error) {
       console.error("Error updating verification:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo actualizar la verificación",
-        variant: "destructive",
-      });
+      toast.error("Error", { description: "No se pudo actualizar la verificación" });
     } finally {
       setProcessing(false);
     }

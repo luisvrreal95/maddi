@@ -146,7 +146,7 @@ const BusinessAnalytics: React.FC = () => {
       <main className="p-4 md:p-6 max-w-6xl mx-auto pb-24 md:pb-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-[#9BFF43]" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : approvedBookings.length === 0 ? (
           <div className="text-center py-20">
@@ -157,7 +157,7 @@ const BusinessAnalytics: React.FC = () => {
             <p className="text-white/50 mb-8 max-w-sm mx-auto">
               Necesitas campañas aprobadas para ver tus analytics. ¡Busca espacios publicitarios y comienza!
             </p>
-            <Link to="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-[#9BFF43] text-[#111] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors">
+            <Link to="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-[#111] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors">
               <MapPin className="w-5 h-5" /> Explorar espacios
             </Link>
           </div>
@@ -189,7 +189,7 @@ const BusinessAnalytics: React.FC = () => {
                 { label: 'Costo/impresión', value: `$${costPerImpression.toFixed(4)}`, sub: 'MXN por vehículo', icon: TrendingUp, accent: '#FF9B43' },
                 { label: 'Días activos', value: totalDays.toString(), sub: 'de publicidad', icon: Calendar, accent: '#FF4393' },
               ].map((kpi, i) => (
-                <div key={i} className="bg-[#1A1A1A] rounded-xl md:rounded-2xl p-3 md:p-5 border border-white/5 hover:border-white/10 transition-colors">
+                <div key={i} className="bg-card rounded-xl md:rounded-2xl p-3 md:p-5 border border-white/5 hover:border-white/10 transition-colors">
                   <div className="flex items-center gap-1.5 md:gap-2 mb-2 md:mb-3">
                     <div className="w-6 h-6 md:w-8 md:h-8 rounded-md md:rounded-lg flex items-center justify-center" style={{ backgroundColor: `${kpi.accent}15` }}>
                       <kpi.icon className="w-3 h-3 md:w-4 md:h-4" style={{ color: kpi.accent }} />
@@ -205,7 +205,7 @@ const BusinessAnalytics: React.FC = () => {
             {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
               {/* Performance Chart */}
-              <div className="lg:col-span-3 bg-[#1A1A1A] rounded-2xl p-5 border border-white/5">
+              <div className="lg:col-span-3 bg-card rounded-2xl p-5 border border-white/5">
                 <h3 className="text-white font-semibold mb-1">Tráfico por espectacular</h3>
                 <p className="text-white/40 text-xs mb-5">Estimado de vehículos durante cada campaña</p>
                 <div className="h-[280px] -mx-2 overflow-hidden">
@@ -223,7 +223,7 @@ const BusinessAnalytics: React.FC = () => {
               </div>
 
               {/* City Distribution */}
-              <div className="lg:col-span-2 bg-[#1A1A1A] rounded-2xl p-5 border border-white/5">
+              <div className="lg:col-span-2 bg-card rounded-2xl p-5 border border-white/5">
                 <h3 className="text-white font-semibold mb-1">Inversión por ciudad</h3>
                 <p className="text-white/40 text-xs mb-5">Distribución de gasto publicitario</p>
                 {cityChartData.length > 0 ? (
@@ -254,7 +254,7 @@ const BusinessAnalytics: React.FC = () => {
             </div>
 
             {/* Campaigns List */}
-            <div className="bg-[#1A1A1A] rounded-2xl border border-white/5 overflow-hidden">
+            <div className="bg-card rounded-2xl border border-white/5 overflow-hidden">
               <div className="p-5 border-b border-white/5">
                 <h3 className="text-white font-semibold">Tus campañas</h3>
                 <p className="text-white/40 text-xs mt-0.5">Detalle de cada espacio contratado</p>
@@ -321,7 +321,7 @@ const BusinessAnalytics: React.FC = () => {
                       {/* Mobile: show price + countdown */}
                       <div className="flex md:hidden items-center">
                         {hasStarted ? (
-                          <p className="text-[#9BFF43] text-sm font-semibold">${booking.total_price.toLocaleString()}</p>
+                          <p className="text-primary text-sm font-semibold">${booking.total_price.toLocaleString()}</p>
                         ) : (
                           <div className="text-right">
                             <p className="text-white/60 text-sm font-semibold">${booking.total_price.toLocaleString()}</p>

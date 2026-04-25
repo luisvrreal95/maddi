@@ -26,7 +26,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   onSelect
 }) => {
   return (
-    <article className="flex flex-1 min-w-0 flex-col items-center gap-9 self-stretch relative bg-[#202020] p-8 rounded-[23px] border-[1.5px] border-solid border-[rgba(255,255,255,0.30)] hover:border-white hover:bg-[#252525] transition-all duration-300 cursor-pointer max-md:w-full max-sm:gap-6 max-sm:p-6">
+    <article className="flex flex-1 min-w-0 flex-col items-center gap-9 self-stretch relative bg-card p-8 rounded-[23px] border-[1.5px] border-solid border-[rgba(255,255,255,0.30)] hover:border-white hover:bg-[#252525] transition-all duration-300 cursor-pointer max-md:w-full max-sm:gap-6 max-sm:p-6">
       <div className="flex flex-col items-start gap-8 self-stretch relative">
         <div className="flex flex-col items-start gap-6 self-stretch relative">
           <header className="flex flex-col items-start gap-2 self-stretch relative">
@@ -91,9 +91,9 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
       
       <button 
         onClick={onSelect}
-        className="flex justify-center items-center gap-2.5 self-stretch border backdrop-blur-[30px] relative px-[19px] py-4 rounded-[30px] border-solid border-[#9BFF43] hover:bg-[#9BFF43]/10 transition-colors"
+        className="flex justify-center items-center gap-2.5 self-stretch border backdrop-blur-[30px] relative px-[19px] py-4 rounded-[30px] border-solid border-primary hover:bg-primary/10 transition-colors"
       >
-        <span className="text-[#9BFF43] text-center text-base font-semibold capitalize">
+        <span className="text-primary text-center text-base font-semibold capitalize">
           ¡Lo Quiero!
         </span>
       </button>

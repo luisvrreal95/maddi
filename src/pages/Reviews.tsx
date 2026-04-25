@@ -223,7 +223,7 @@ const ReviewsPage: React.FC = () => {
             className={`${onRatingChange ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
           >
             <Star
-              className={`${sizeClass} ${star <= rating ? 'fill-[#9BFF43] text-[#9BFF43]' : 'text-white/30'}`}
+              className={`${sizeClass} ${star <= rating ? 'fill-[#9BFF43] text-primary' : 'text-white/30'}`}
             />
           </button>
         ))}

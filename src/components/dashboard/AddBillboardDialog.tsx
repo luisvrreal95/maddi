@@ -180,7 +180,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#2A2A2A] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-muted border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
             {billboard ? 'Editar Espectacular' : 'Agregar Espectacular'}
@@ -189,7 +189,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Image Upload - Prominent at top */}
-          <div className="border-2 border-dashed border-white/20 rounded-xl p-4 bg-[#1A1A1A]/50">
+          <div className="border-2 border-dashed border-white/20 rounded-xl p-4 bg-card/50">
             <Label className="text-lg font-medium mb-3 block">📸 Imagen del Espectacular</Label>
             <ImageUpload
               value={formData.image_url}
@@ -206,7 +206,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 id="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
                 placeholder="Plaza Juárez Premium"
               />
               {errors.title && <p className="text-red-400 text-sm mt-1">{errors.title}</p>}
@@ -218,7 +218,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 id="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
                 placeholder="Descripción del espectacular..."
                 rows={2}
               />
@@ -233,7 +233,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 id="address"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
                 placeholder="Blvd. Benito Juárez 2151"
               />
               {errors.address && <p className="text-red-400 text-sm mt-1">{errors.address}</p>}
@@ -245,7 +245,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 id="city"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
                 placeholder="Mexicali"
               />
               {errors.city && <p className="text-red-400 text-sm mt-1">{errors.city}</p>}
@@ -257,7 +257,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 id="state"
                 value={formData.state}
                 onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
                 placeholder="Baja California"
               />
               {errors.state && <p className="text-red-400 text-sm mt-1">{errors.state}</p>}
@@ -271,7 +271,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 step="0.0001"
                 value={formData.latitude}
                 onChange={(e) => setFormData({ ...formData, latitude: parseFloat(e.target.value) || 0 })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
               />
             </div>
 
@@ -283,7 +283,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 step="0.0001"
                 value={formData.longitude}
                 onChange={(e) => setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
               />
             </div>
           </div>
@@ -298,7 +298,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 step="0.5"
                 value={formData.width_m}
                 onChange={(e) => setFormData({ ...formData, width_m: parseFloat(e.target.value) || 0 })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
               />
             </div>
 
@@ -310,7 +310,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 step="0.5"
                 value={formData.height_m}
                 onChange={(e) => setFormData({ ...formData, height_m: parseFloat(e.target.value) || 0 })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
               />
             </div>
 
@@ -320,10 +320,10 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 value={formData.billboard_type}
                 onValueChange={(value) => setFormData({ ...formData, billboard_type: value })}
               >
-                <SelectTrigger className="bg-[#1A1A1A] border-white/10">
+                <SelectTrigger className="bg-card border-white/10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#2A2A2A] border-white/10">
+                <SelectContent className="bg-muted border-white/10">
                   <SelectItem value="espectacular">Espectacular</SelectItem>
                   <SelectItem value="muro">Muro</SelectItem>
                   <SelectItem value="pantalla_led">Pantalla LED</SelectItem>
@@ -338,10 +338,10 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 value={formData.illumination}
                 onValueChange={(value) => setFormData({ ...formData, illumination: value })}
               >
-                <SelectTrigger className="bg-[#1A1A1A] border-white/10">
+                <SelectTrigger className="bg-card border-white/10">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-[#2A2A2A] border-white/10">
+                <SelectContent className="bg-muted border-white/10">
                   <SelectItem value="ninguna">Sin iluminación</SelectItem>
                   <SelectItem value="iluminado">Iluminado</SelectItem>
                   <SelectItem value="led">LED</SelectItem>
@@ -358,7 +358,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 max="4"
                 value={formData.faces}
                 onChange={(e) => setFormData({ ...formData, faces: parseInt(e.target.value) || 1 })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
               />
             </div>
 
@@ -369,7 +369,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                 type="number"
                 value={formData.daily_impressions}
                 onChange={(e) => setFormData({ ...formData, daily_impressions: parseInt(e.target.value) || 0 })}
-                className="bg-[#1A1A1A] border-white/10"
+                className="bg-card border-white/10"
                 placeholder="25000"
               />
             </div>
@@ -383,7 +383,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
               type="number"
               value={formData.price_per_month}
               onChange={(e) => setFormData({ ...formData, price_per_month: parseFloat(e.target.value) || 0 })}
-              className="bg-[#1A1A1A] border-white/10"
+              className="bg-card border-white/10"
             />
             {errors.price_per_month && <p className="text-red-400 text-sm mt-1">{errors.price_per_month}</p>}
           </div>
@@ -400,7 +400,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                   min="0"
                   value={formData.min_campaign_days}
                   onChange={(e) => setFormData({ ...formData, min_campaign_days: parseInt(e.target.value) || 0 })}
-                  className="bg-[#1A1A1A] border-white/10"
+                  className="bg-card border-white/10"
                 />
                 <p className="text-white/40 text-xs mt-1">0 = sin mínimo</p>
               </div>
@@ -412,7 +412,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                   min="0"
                   value={formData.min_advance_booking_days}
                   onChange={(e) => setFormData({ ...formData, min_advance_booking_days: parseInt(e.target.value) || 0 })}
-                  className="bg-[#1A1A1A] border-white/10"
+                  className="bg-card border-white/10"
                 />
                 <p className="text-white/40 text-xs mt-1">Recomendado: 7 días</p>
               </div>
@@ -475,7 +475,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-[#9BFF43] text-[#202020] hover:bg-[#8AE63A]"
+              className="flex-1 bg-primary text-[#202020] hover:bg-[#8AE63A]"
             >
               {isLoading ? 'Guardando...' : billboard ? 'Actualizar' : 'Agregar'}
             </Button>

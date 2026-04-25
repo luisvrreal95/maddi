@@ -39,7 +39,7 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton =
   };
 
   return (
-    <header className="bg-[#1A1A1A] border-b border-white/10 px-4 md:px-8 py-4">
+    <header className="bg-card border-b border-white/10 px-4 md:px-8 py-4">
       <div className="flex items-center justify-between w-full max-w-7xl mx-auto">
         {/* Left - Logo */}
         <Link to="/" className="flex items-center gap-1 flex-shrink-0">
@@ -65,7 +65,7 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton =
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 relative",
                   active
-                    ? "bg-white text-[#121212]"
+                    ? "bg-white text-background"
                     : "text-white/70 hover:text-white hover:bg-white/10"
                 )}
               >
@@ -91,7 +91,7 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton =
                 <Menu className="w-5 h-5" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
+            <DropdownMenuContent align="end" className="w-56 bg-muted border-white/10">
               {/* Mobile Navigation */}
               <div className="md:hidden">
                 {navItems.map((item) => {

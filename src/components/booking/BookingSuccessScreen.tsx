@@ -23,13 +23,13 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
       {/* Animated checkmark */}
       <div className="relative mb-6">
         {/* Glow ring */}
-        <div className="absolute inset-0 rounded-full bg-[#9BFF43]/20 animate-ping" style={{ animationDuration: '1.5s', animationIterationCount: '1' }} />
+        <div className="absolute inset-0 rounded-full bg-primary/20 animate-ping" style={{ animationDuration: '1.5s', animationIterationCount: '1' }} />
         <div
-          className="relative w-20 h-20 rounded-full bg-[#9BFF43] flex items-center justify-center"
+          className="relative w-20 h-20 rounded-full bg-primary flex items-center justify-center"
           style={{ animation: 'successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}
         >
           <svg
-            className="w-10 h-10 text-[#1A1A1A]"
+            className="w-10 h-10 text-primary-foreground"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -52,7 +52,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
         {[...Array(6)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-2 h-2 rounded-full bg-[#9BFF43]"
+            className="absolute w-2 h-2 rounded-full bg-primary"
             style={{
               top: '50%',
               left: '50%',
@@ -72,7 +72,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
       </h2>
 
       <div
-        className="flex items-center gap-1.5 text-[#9BFF43] text-sm font-medium mb-5"
+        className="flex items-center gap-1.5 text-primary text-sm font-medium mb-5"
         style={{ animation: 'fadeSlideUp 0.4s ease-out 0.5s both' }}
       >
         <Sparkles className="w-4 h-4" />
@@ -81,7 +81,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
 
       {/* Summary card */}
       <div
-        className="w-full bg-[#1A1A1A] rounded-xl p-4 mb-5 border border-white/10 text-left"
+        className="w-full bg-card rounded-xl p-4 mb-5 border border-white/10 text-left"
         style={{ animation: 'fadeSlideUp 0.4s ease-out 0.6s both' }}
       >
         <p className="text-white font-semibold text-sm mb-3">{data.billboardTitle}</p>
@@ -91,7 +91,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
         </div>
         <div className="flex justify-between items-center pt-2 border-t border-white/10">
           <span className="text-white/50 text-xs">Total estimado</span>
-          <span className="text-[#9BFF43] font-bold text-sm">${data.totalPrice.toLocaleString()} MXN</span>
+          <span className="text-primary font-bold text-sm">${data.totalPrice.toLocaleString()} MXN</span>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
       >
         <Button
           onClick={() => { onClose(); navigate('/business'); }}
-          className="w-full bg-[#9BFF43] text-[#1A1A1A] hover:bg-[#8AE63A] font-semibold"
+          className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] font-semibold"
         >
           Ver mis campañas
           <ArrowRight className="w-4 h-4 ml-1" />

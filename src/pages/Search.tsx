@@ -772,7 +772,7 @@ const SearchPage: React.FC = () => {
         <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom-4 duration-300">
           <button
             onClick={() => setShowComparison(true)}
-            className="flex items-center gap-2 px-6 py-3 bg-[#9BFF43] text-[#121212] rounded-full font-bold shadow-2xl hover:bg-[#9BFF43]/90 hover:scale-105 transition-all"
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-background rounded-full font-bold shadow-2xl hover:bg-primary/90 hover:scale-105 transition-all"
           >
             <BarChart2 className="w-5 h-5" />
             Comparar ({compareIds.length})

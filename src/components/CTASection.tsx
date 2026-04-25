@@ -5,7 +5,7 @@ const CTASection: React.FC = () => {
     <section className="relative bg-white py-16 px-8 md:px-16 lg:px-24">
       {/* Centered Card */}
       <div className="relative z-10 max-w-5xl mx-auto">
-        <div className="bg-[#1A1A1A] rounded-3xl py-16 px-8 md:px-16 text-center relative overflow-hidden">
+        <div className="bg-card rounded-3xl py-16 px-8 md:px-16 text-center relative overflow-hidden">
           {/* Decorative Maddi Logo Background */}
           <div className="absolute inset-0 flex items-center justify-start opacity-[0.03] pointer-events-none overflow-hidden">
             <svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg" className="-ml-20">
@@ -23,7 +23,7 @@ const CTASection: React.FC = () => {
             Tu marca a un solo Descubre cómo con Maddi
           </p>
           
-          <button className="px-12 py-4 bg-[#9BFF43] text-[#1A1A1A] font-bold text-lg rounded-full hover:bg-[#8AE63A] transition-colors duration-300 max-sm:px-8 max-sm:py-3 max-sm:text-base">
+          <button className="px-12 py-4 bg-primary text-primary-foreground font-bold text-lg rounded-full hover:bg-[#8AE63A] transition-colors duration-300 max-sm:px-8 max-sm:py-3 max-sm:text-base">
             Unirme a Maddi
           </button>
         </div>

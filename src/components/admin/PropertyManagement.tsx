@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Eye, Trash2, Loader2, MapPin, ExternalLink, AlertTriangle, ImageIcon, Plus, X } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { useNavigate, Link } from "react-router-dom";
 
 interface Property {
@@ -51,7 +51,6 @@ const PropertyManagement = () => {
   const [imageDialog, setImageDialog] = useState<{ open: boolean; property: Property | null }>({ open: false, property: null });
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const fetchProperties = async () => {
@@ -87,7 +86,7 @@ const PropertyManagement = () => {
       setProperties(propertiesWithDetails);
     } catch (error) {
       console.error('Error fetching properties:', error);
-      toast({ title: "Error", description: "No se pudieron cargar las propiedades", variant: "destructive" });
+      toast.error("Error", { description: "No se pudieron cargar las propiedades" });
     } finally {
       setLoading(false);
     }
@@ -137,7 +136,7 @@ const PropertyManagement = () => {
         });
 
         await sendEmailToOwner(property, 'property_paused');
-        toast({ title: "Propiedad pausada", description: "Se notificó al propietario." });
+        toast.success("Propiedad pausada", { description: "Se notificó al propietario." });
       } else {
         const { error } = await supabase
           .from('billboards')
@@ -154,13 +153,13 @@ const PropertyManagement = () => {
         });
 
         await sendEmailToOwner(property, 'property_reactivated');
-        toast({ title: "Propiedad reactivada", description: "Ahora es visible para todos." });
+        toast.success("Propiedad reactivada", { description: "Ahora es visible para todos." });
       }
       
       fetchProperties();
     } catch (error) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo cambiar el estado", variant: "destructive" });
+      toast.error("Error", { description: "No se pudo cambiar el estado" });
     } finally {
       setProcessing(null);
     }
@@ -197,11 +196,11 @@ const PropertyManagement = () => {
       const { error } = await supabase.from('billboards').delete().eq('id', property.id);
       if (error) throw error;
 
-      toast({ title: "Éxito", description: `"${property.title}" eliminada permanentemente` });
+      toast.success("Éxito", { description: `"${property.title}" eliminada permanentemente` });
       fetchProperties();
     } catch (error) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo eliminar la propiedad. Verifica si tiene datos relacionados.", variant: "destructive" });
+      toast.error("Error", { description: "No se pudo eliminar la propiedad. Verifica si tiene datos relacionados." });
     } finally {
       setProcessing(null);
       setDeleteDialog({ open: false, property: null });
@@ -223,7 +222,7 @@ const PropertyManagement = () => {
     const currentImages = getPropertyImages(property);
     const remainingSlots = 6 - currentImages.length;
     if (remainingSlots <= 0) {
-      toast({ title: "Límite", description: "Máximo 6 imágenes permitidas", variant: "destructive" });
+      toast.error("Límite", { description: "Máximo 6 imágenes permitidas" });
       return;
     }
 
@@ -234,11 +233,11 @@ const PropertyManagement = () => {
     try {
       for (const file of filesToUpload) {
         if (!file.type.startsWith('image/')) {
-          toast({ title: "Error", description: `${file.name}: Solo se permiten imágenes`, variant: "destructive" });
+          toast.error("Error", { description: `${file.name}: Solo se permiten imágenes` });
           continue;
         }
         if (file.size > 5 * 1024 * 1024) {
-          toast({ title: "Error", description: `${file.name}: Máximo 5MB`, variant: "destructive" });
+          toast.error("Error", { description: `${file.name}: Máximo 5MB` });
           continue;
         }
 
@@ -274,11 +273,11 @@ const PropertyManagement = () => {
         const updatedProperty = { ...property, image_url: updatedImages[0], image_urls: updatedImages };
         setImageDialog({ open: true, property: updatedProperty });
         setProperties(prev => prev.map(p => p.id === property.id ? { ...p, image_url: updatedImages[0], image_urls: updatedImages } : p));
-        toast({ title: "Éxito", description: `${newUrls.length} imagen(es) subida(s)` });
+        toast.success("Éxito", { description: `${newUrls.length} imagen(es) subida(s)` });
       }
     } catch (error) {
       console.error('Error uploading:', error);
-      toast({ title: "Error", description: "Error al subir imágenes", variant: "destructive" });
+      toast.error("Error", { description: "Error al subir imágenes" });
     } finally {
       setIsUploadingImage(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -314,14 +313,14 @@ const PropertyManagement = () => {
       .eq('id', property.id);
 
     if (error) {
-      toast({ title: "Error", description: "No se pudo eliminar la imagen", variant: "destructive" });
+      toast.error("Error", { description: "No se pudo eliminar la imagen" });
       return;
     }
 
     const updatedProperty = { ...property, image_url: updatedImages[0] || null, image_urls: updatedImages.length > 0 ? updatedImages : null };
     setImageDialog({ open: true, property: updatedProperty });
     setProperties(prev => prev.map(p => p.id === property.id ? { ...p, image_url: updatedImages[0] || null, image_urls: updatedImages.length > 0 ? updatedImages : null } : p));
-    toast({ title: "Imagen eliminada" });
+    toast.success("Imagen eliminada");
   };
 
   const formatCurrency = (value: number) => {

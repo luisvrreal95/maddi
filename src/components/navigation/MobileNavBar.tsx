@@ -26,7 +26,7 @@ const MobileNavBar: React.FC = () => {
 
       return (
         <nav 
-          className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#1A1A1A] border-t border-white/10 block md:hidden"
+          className="fixed bottom-0 left-0 right-0 z-[9999] bg-card border-t border-white/10 block md:hidden"
           style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         >
           <div className="flex items-center justify-around h-16 px-4">
@@ -36,7 +36,7 @@ const MobileNavBar: React.FC = () => {
                 to={item.href}
                 className={cn(
                   "flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors",
-                  item.active ? "text-[#9BFF43]" : "text-white/50 hover:text-white/80"
+                  item.active ? "text-primary" : "text-white/50 hover:text-white/80"
                 )}
               >
                 <item.icon className={cn("w-5 h-5", item.active && "scale-110")} />
@@ -64,7 +64,7 @@ const MobileNavBar: React.FC = () => {
 
     return (
       <nav 
-        className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#1A1A1A] border-t border-white/10 block md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-[9999] bg-card border-t border-white/10 block md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16 px-1">
@@ -74,7 +74,7 @@ const MobileNavBar: React.FC = () => {
               to={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors",
-                item.active ? "text-[#9BFF43]" : "text-white/50 hover:text-white/80"
+                item.active ? "text-primary" : "text-white/50 hover:text-white/80"
               )}
             >
               <item.icon className={cn("w-5 h-5", item.active && "scale-110")} />
@@ -101,7 +101,7 @@ const MobileNavBar: React.FC = () => {
 
     return (
       <nav 
-        className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#1A1A1A] border-t border-white/10 block md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-[9999] bg-card border-t border-white/10 block md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       >
         <div className="flex items-center justify-around h-16 px-1">
@@ -111,7 +111,7 @@ const MobileNavBar: React.FC = () => {
               to={item.href}
               className={cn(
                 "flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors relative",
-                item.active ? "text-[#9BFF43]" : "text-white/50 hover:text-white/80"
+                item.active ? "text-primary" : "text-white/50 hover:text-white/80"
               )}
             >
               <div className="relative">
@@ -139,7 +139,7 @@ const MobileNavBar: React.FC = () => {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-[9999] bg-[#1A1A1A] border-t border-white/10 block md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-[9999] bg-card border-t border-white/10 block md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-center justify-around h-16 px-4">
@@ -149,7 +149,7 @@ const MobileNavBar: React.FC = () => {
             to={item.href}
             className={cn(
               "flex flex-col items-center justify-center gap-1 flex-1 py-2 transition-colors",
-              item.active ? "text-[#9BFF43]" : "text-white/50 hover:text-white/80"
+              item.active ? "text-primary" : "text-white/50 hover:text-white/80"
             )}
           >
             <item.icon className={cn("w-5 h-5", item.active && "scale-110")} />

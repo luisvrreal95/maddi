@@ -159,7 +159,7 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
           <SlidersHorizontal className="w-4 h-4" />
           <span>Filtros{activeFiltersCount > 0 ? ` (${activeFiltersCount})` : ''}</span>
           {activeFiltersCount > 0 && (
-            <span className="ml-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-[#9BFF43] text-[#121212] text-xs font-bold animate-scale-in">
+            <span className="ml-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-primary text-background text-xs font-bold animate-scale-in">
               {activeFiltersCount}
             </span>
           )}

@@ -275,14 +275,14 @@ const OwnerDashboard: React.FC = () => {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-[#121212] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-white">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#121212] flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <OwnerDashboardHeader activeTab={activeTab} onTabChange={handleTabChange} />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-4 md:px-6 md:py-8 pb-24 md:pb-8">
@@ -294,7 +294,7 @@ const OwnerDashboard: React.FC = () => {
               </h1>
               <Button
                 onClick={() => navigate('/owner/add-property')}
-                className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 w-full sm:w-auto justify-center"
+                className="bg-primary hover:bg-[#8AE63A] text-background font-medium flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" />
                 Agregar espectacular
@@ -310,11 +310,11 @@ const OwnerDashboard: React.FC = () => {
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">Mis Espectaculares</h1>
               <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
                 {/* View Toggle */}
-                <div className="flex items-center bg-[#2A2A2A] rounded-lg p-1">
+                <div className="flex items-center bg-muted rounded-lg p-1">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-2 rounded-md transition-colors ${
-                      viewMode === 'grid' ? 'bg-[#9BFF43] text-[#121212]' : 'text-white/60 hover:text-white'
+                      viewMode === 'grid' ? 'bg-primary text-background' : 'text-white/60 hover:text-white'
                     }`}
                   >
                     <LayoutGrid className="w-4 h-4" />
@@ -322,7 +322,7 @@ const OwnerDashboard: React.FC = () => {
                   <button
                     onClick={() => setViewMode('list')}
                     className={`p-2 rounded-md transition-colors ${
-                      viewMode === 'list' ? 'bg-[#9BFF43] text-[#121212]' : 'text-white/60 hover:text-white'
+                      viewMode === 'list' ? 'bg-primary text-background' : 'text-white/60 hover:text-white'
                     }`}
                   >
                     <List className="w-4 h-4" />
@@ -333,7 +333,7 @@ const OwnerDashboard: React.FC = () => {
                   subtitle={`${billboards.length} propiedades en Maddi`}
                   shareUrl={`/profile/${user?.id}`}
                 />
-                <Button onClick={() => navigate('/owner/add-property')} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
+                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-[#8AE63A] text-background font-medium flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Agregar espectacular</span>
                   <span className="sm:hidden">Agregar</span>
@@ -359,7 +359,7 @@ const OwnerDashboard: React.FC = () => {
               <div className="text-center py-16">
                 <h2 className="text-white text-2xl font-bold mb-2">Sin espectaculares</h2>
                 <p className="text-white/60 mb-6">Agrega tu primer espectacular para comenzar a recibir contactos</p>
-                <Button onClick={() => navigate('/owner/add-property')} className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium flex items-center gap-2 mx-auto">
+                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-[#8AE63A] text-background font-medium flex items-center gap-2 mx-auto">
                   <Plus className="w-4 h-4" />
                   Agregar espectacular
                 </Button>
@@ -445,14 +445,14 @@ const OwnerDashboard: React.FC = () => {
                 }} />
                 
                 {/* CTA to Statistics */}
-                <div className="bg-gradient-to-r from-[#9BFF43]/10 to-transparent border border-[#9BFF43]/20 rounded-xl p-6 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-[#9BFF43]/10 to-transparent border border-primary/20 rounded-xl p-6 flex items-center justify-between">
                   <div>
                     <h3 className="text-white font-semibold text-lg">¿Quieres ver resultados reales?</h3>
                     <p className="text-white/60 text-sm mt-1">Revisa ingresos, contactos y reservas de este espectacular</p>
                   </div>
                   <Button
                     onClick={() => handleTabChange('stats')}
-                    className="bg-[#9BFF43] hover:bg-[#8AE63A] text-[#121212] font-medium"
+                    className="bg-primary hover:bg-[#8AE63A] text-background font-medium"
                   >
                     Ver rendimiento e ingresos
                   </Button>
@@ -486,7 +486,7 @@ const OwnerDashboard: React.FC = () => {
         )}
       </main>
 
-      <footer className="bg-[#1A1A1A] py-4 border-t border-white/10">
+      <footer className="bg-card py-4 border-t border-white/10">
         <p className="text-center text-white/40 text-sm">© 2025 Maddi.</p>
       </footer>
 
@@ -501,7 +501,7 @@ const OwnerDashboard: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-[#2A2A2A] border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700 text-white">Eliminar permanentemente</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -522,7 +522,7 @@ const OwnerDashboard: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-[#2A2A2A] border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPause} className="bg-orange-600 hover:bg-orange-700 text-white">
               {billboardToPause && !billboardToPause.is_available && billboardToPause.pause_reason === 'owner' ? 'Reactivar' : 'Pausar'}
             </AlertDialogAction>
