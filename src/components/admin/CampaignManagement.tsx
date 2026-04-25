@@ -17,7 +17,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Eye, CheckCircle, XCircle, DollarSign, Loader2, Trash2, Ban, Calendar, MapPin, User, FileText, Image as ImageIcon } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { parseDesignPaths, resolveDesignImageUrls } from "@/lib/designImageUtils";
@@ -65,8 +65,6 @@ const CampaignManagement = () => {
   const [processing, setProcessing] = useState(false);
   const [detailDialog, setDetailDialog] = useState<{ open: boolean; campaign: Campaign | null }>({ open: false, campaign: null });
   const [designImages, setDesignImages] = useState<string[]>([]);
-  const { toast } = useToast();
-
   const fetchCampaigns = async () => {
     try {
       const { data: bookings, error } = await supabase
@@ -108,7 +106,7 @@ const CampaignManagement = () => {
       setCampaigns(campaignsWithDetails);
     } catch (error) {
       console.error('Error fetching campaigns:', error);
-      toast({ title: "Error", description: "No se pudieron cargar las campañas", variant: "destructive" });
+      toast.error("Error", { description: "No se pudieron cargar las campañas" });
     } finally {
       setLoading(false);
     }
@@ -158,11 +156,11 @@ const CampaignManagement = () => {
         delete: 'Campaña eliminada permanentemente',
         pay: 'Pago marcado como completado',
       };
-      toast({ title: "Éxito", description: labels[actionDialog.type] || 'Acción completada' });
+      toast.success("Éxito", { description: labels[actionDialog.type] || 'Acción completada' });
       fetchCampaigns();
     } catch (error) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo completar la acción", variant: "destructive" });
+      toast.error("Error", { description: "No se pudo completar la acción" });
     } finally {
       setProcessing(false);
       setActionDialog({ open: false, type: null, campaignId: null });

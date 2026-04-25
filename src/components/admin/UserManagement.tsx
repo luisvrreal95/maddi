@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Trash2, Loader2, Building2, Calendar, User, AlertTriangle, Eye, Mail, Phone, ShieldCheck, ShieldX, Clock, FileText } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -54,8 +54,6 @@ const UserManagement = () => {
   }>({ open: false, userId: null, userName: '' });
   const [detailDialog, setDetailDialog] = useState<{ open: boolean; user: UserData | null }>({ open: false, user: null });
   const [processing, setProcessing] = useState(false);
-  const { toast } = useToast();
-
   const fetchUsers = async () => {
     try {
       // Fetch auth user details (email + last_sign_in_at) via edge function
@@ -111,7 +109,7 @@ const UserManagement = () => {
       setBusinesses(usersWithDetails.filter(u => u.role === 'business'));
     } catch (error) {
       console.error('Error fetching users:', error);
-      toast({ title: "Error", description: "No se pudieron cargar los usuarios", variant: "destructive" });
+      toast.error("Error", { description: "No se pudieron cargar los usuarios" });
     } finally {
       setLoading(false);
     }
@@ -128,11 +126,11 @@ const UserManagement = () => {
         body: { target_user_id: deleteDialog.userId, admin_action: true }
       });
       if (error) throw error;
-      toast({ title: "Éxito", description: "Usuario y toda su información eliminados permanentemente" });
+      toast.success("Éxito", { description: "Usuario y toda su información eliminados permanentemente" });
       fetchUsers();
     } catch (error) {
       console.error('Error:', error);
-      toast({ title: "Error", description: "No se pudo eliminar el usuario", variant: "destructive" });
+      toast.error("Error", { description: "No se pudo eliminar el usuario" });
     } finally {
       setProcessing(false);
       setDeleteDialog({ open: false, userId: null, userName: '' });

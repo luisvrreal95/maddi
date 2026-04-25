@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { supabase } from '@/integrations/supabase/client';
 
 const contactSchema = z.object({
@@ -17,7 +17,6 @@ const contactSchema = z.object({
 });
 
 const Contacto: React.FC = () => {
-  const { toast } = useToast();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -42,17 +41,13 @@ const Contacto: React.FC = () => {
     setSubmitting(false);
 
     if (error) {
-      toast({
-        title: 'Error al enviar',
-        description: 'No pudimos enviar tu mensaje. Intenta de nuevo o escríbenos a hola@maddi.com.mx',
-        variant: 'destructive',
-      });
+      toast.error('Error al enviar', { description: 'No pudimos enviar tu mensaje. Intenta de nuevo o escríbenos a hola@maddi.com.mx' });
       return;
     }
 
     setSent(true);
     setForm({ name: '', email: '', message: '' });
-    toast({ title: '¡Mensaje enviado!', description: 'Te responderemos pronto.' });
+    toast.success('¡Mensaje enviado!', { description: 'Te responderemos pronto.' });
   };
 
   return (
