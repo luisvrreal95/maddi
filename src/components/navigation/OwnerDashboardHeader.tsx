@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut, MoreHorizontal, CalendarCheck } from 'lucide-react';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import {
@@ -28,11 +28,16 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
   const navItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'propiedades', label: 'Mis espectaculares', icon: Building2 },
+    { id: 'reservas', label: 'Reservas', icon: CalendarCheck },
+    { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'calendario', label: 'Calendario', icon: Calendar },
-    { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
     { id: 'stats', label: 'Estadísticas', icon: BarChart3 },
   ];
+
+  // First 4 are visible on mobile, rest go inside "Más"
+  const mobilePrimary = navItems.slice(0, 4);
+  const mobileSecondary = navItems.slice(4);
 
   const handleTabClick = (tabId: string) => {
     if (tabId === 'mensajes') {
@@ -99,24 +104,6 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-[#2A2A2A] border-white/10">
-              {/* Mobile Navigation */}
-              <div className="md:hidden">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <DropdownMenuItem
-                      key={item.id}
-                      onClick={() => handleTabClick(item.id)}
-                      className="text-white hover:bg-white/10 cursor-pointer"
-                    >
-                      <Icon className="w-4 h-4 mr-2" />
-                      {item.label}
-                    </DropdownMenuItem>
-                  );
-                })}
-                <DropdownMenuSeparator className="bg-white/10" />
-              </div>
-              
               <DropdownMenuItem asChild className="text-white hover:bg-white/10 cursor-pointer">
                 <Link to="/settings" className="flex items-center gap-2">
                   <Settings className="w-4 h-4" />
@@ -135,6 +122,64 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
           </DropdownMenu>
         </div>
       </div>
+
+      {/* Mobile Primary Nav (4 visible + Más) */}
+      <nav className="md:hidden flex items-center gap-1 mt-3 overflow-x-auto scrollbar-hide -mx-4 px-4">
+        {mobilePrimary.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleTabClick(item.id)}
+              className={cn(
+                "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 relative",
+                isActive
+                  ? "bg-white text-[#121212]"
+                  : "text-white/70 hover:text-white bg-white/5"
+              )}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              {item.label}
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="ml-0.5 min-w-[16px] h-[16px] rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center px-1">
+                  {item.badge > 99 ? '99+' : item.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className={cn(
+                "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
+                mobileSecondary.some(i => i.id === currentTab)
+                  ? "bg-white text-[#121212]"
+                  : "text-white/70 bg-white/5 hover:text-white"
+              )}
+            >
+              <MoreHorizontal className="w-3.5 h-3.5" />
+              Más
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-52 bg-[#2A2A2A] border-white/10">
+            {mobileSecondary.map((item) => {
+              const Icon = item.icon;
+              return (
+                <DropdownMenuItem
+                  key={item.id}
+                  onClick={() => handleTabClick(item.id)}
+                  className="text-white hover:bg-white/10 cursor-pointer"
+                >
+                  <Icon className="w-4 h-4 mr-2" />
+                  {item.label}
+                </DropdownMenuItem>
+              );
+            })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </nav>
     </header>
   );
 };
