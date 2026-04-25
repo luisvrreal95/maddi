@@ -10,6 +10,7 @@ import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
 import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
 import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
+import OwnerStatsTab from '@/components/owner/OwnerStatsTab';
 import BookingManagement from '@/components/dashboard/BookingManagement';
 import BillboardSelector from '@/components/owner/BillboardSelector';
 import TrafficAnalytics from '@/components/owner/TrafficAnalytics';
@@ -471,17 +472,9 @@ const OwnerDashboard: React.FC = () => {
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Estadísticas</h1>
               <p className="text-white/60 mb-1">Resultados e ingresos generados por tus espectaculares.</p>
-              <p className="text-white/40 text-sm">💰 Datos reales del periodo seleccionado.</p>
+              <p className="text-white/40 text-sm">💰 Datos reales basados en tus reservas y comisiones.</p>
             </div>
-            <AnalyticsDashboard 
-              billboards={billboards} 
-              userId={user?.id || ''} 
-              onViewDashboard={(billboard) => {
-                setSelectedBillboard(billboard);
-                handleTabChange('dashboard');
-                setSearchParams({ tab: 'dashboard', billboard: billboard.id });
-              }}
-            />
+            <OwnerStatsTab billboards={billboards} userId={user?.id || ''} />
           </>
         )}
 
