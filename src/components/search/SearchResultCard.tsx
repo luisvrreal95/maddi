@@ -162,18 +162,22 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
               <MapPin className="w-4 h-4 flex-shrink-0" />
               <span className="line-clamp-1">{property.address}</span>
             </div>
-            {/* Rating Badge */}
+            {/* Rating Badge — prominent */}
             {property.totalReviews && property.totalReviews > 0 ? (
-              <div className="flex items-center gap-1 mt-2">
-                <Star className="w-4 h-4 fill-primary text-primary" />
-                <span className="text-foreground font-medium text-sm">
+              <div className="inline-flex items-center gap-1.5 mt-2 bg-[#9BFF43]/10 px-2.5 py-1 rounded-full">
+                <Star className="w-4 h-4 fill-[#9BFF43] text-[#9BFF43]" />
+                <span className="text-foreground font-bold text-sm">
                   {property.averageRating?.toFixed(1)}
                 </span>
-                <span className="text-muted-foreground text-sm">
+                <span className="text-muted-foreground text-xs">
                   ({property.totalReviews} {property.totalReviews === 1 ? 'reseña' : 'reseñas'})
                 </span>
               </div>
-            ) : null}
+            ) : (
+              <span className="inline-flex items-center mt-2 px-2.5 py-1 rounded-full bg-[#9BFF43] text-[#121212] text-xs font-bold">
+                Nuevo
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2 flex-shrink-0">
             {allImages.length === 0 && <FavoriteHeartButton billboardId={property.id} />}
