@@ -526,7 +526,7 @@ const BookingManagement: React.FC = () => {
             {tab.label}
             {tab.count > 0 && (
               <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                activeTab === tab.id ? 'bg-primary text-[#1A1A1A]' : 'bg-white/10 text-white/50'
+                activeTab === tab.id ? 'bg-primary text-primary-foreground' : 'bg-white/10 text-white/50'
               }`}>
                 {tab.count}
               </span>

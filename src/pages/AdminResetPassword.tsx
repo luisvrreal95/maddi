@@ -109,7 +109,7 @@ const AdminResetPassword = () => {
           <p className="text-white/60 text-sm mb-6">{error}</p>
           <Button
             onClick={() => navigate("/admin")}
-            className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]"
+            className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
           >
             Volver al login
           </Button>
@@ -186,7 +186,7 @@ const AdminResetPassword = () => {
           <Button
             type="submit"
             disabled={isUpdating}
-            className="w-full bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+            className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
           >
             {isUpdating ? (
               <>

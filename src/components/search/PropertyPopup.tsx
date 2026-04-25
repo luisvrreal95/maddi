@@ -121,7 +121,7 @@ const PropertyPopup: React.FC<PropertyPopupProps> = ({ property, onClose, onRese
           </button>
           <button
             onClick={onReserve}
-            className="flex-1 py-3 rounded-full bg-primary text-[#1A1A1A] font-bold text-sm hover:bg-[#8AE63A] transition-colors"
+            className="flex-1 py-3 rounded-full bg-primary text-primary-foreground font-bold text-sm hover:bg-[#8AE63A] transition-colors"
           >
             Reservar
           </button>

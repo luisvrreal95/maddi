@@ -101,7 +101,7 @@ const Favorites: React.FC = () => {
           </div>
           <Button
             onClick={() => setIsCreatingFolder(true)}
-            className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]"
+            className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
           >
             <FolderPlus className="w-4 h-4 mr-2" />
             Nueva Carpeta
@@ -116,13 +116,13 @@ const Favorites: React.FC = () => {
               onClick={() => setSelectedFolder(null)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                 selectedFolder === null
-                  ? 'bg-primary text-[#1A1A1A]'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
               }`}
             >
               <Heart className="w-4 h-4" />
               <span>Todos</span>
-              <span className={`text-xs ${selectedFolder === null ? 'text-[#1A1A1A]/60' : 'text-white/40'}`}>
+              <span className={`text-xs ${selectedFolder === null ? 'text-primary-foreground/60' : 'text-white/40'}`}>
                 ({favorites.length})
               </span>
             </button>
@@ -132,13 +132,13 @@ const Favorites: React.FC = () => {
               onClick={() => setSelectedFolder('none')}
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                 selectedFolder === 'none'
-                  ? 'bg-primary text-[#1A1A1A]'
+                  ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
               }`}
             >
               <Folder className="w-4 h-4" />
               <span>Sin carpeta</span>
-              <span className={`text-xs ${selectedFolder === 'none' ? 'text-[#1A1A1A]/60' : 'text-white/40'}`}>
+              <span className={`text-xs ${selectedFolder === 'none' ? 'text-primary-foreground/60' : 'text-white/40'}`}>
                 ({getUnfolderedCount()})
               </span>
             </button>
@@ -150,13 +150,13 @@ const Favorites: React.FC = () => {
                   onClick={() => setSelectedFolder(folder.id)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                     selectedFolder === folder.id
-                      ? 'bg-primary text-[#1A1A1A]'
+                      ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
                   }`}
                 >
                   <Folder className="w-4 h-4" />
                   <span>{folder.name}</span>
-                  <span className={`text-xs ${selectedFolder === folder.id ? 'text-[#1A1A1A]/60' : 'text-white/40'}`}>
+                  <span className={`text-xs ${selectedFolder === folder.id ? 'text-primary-foreground/60' : 'text-white/40'}`}>
                     ({getFolderCount(folder.id)})
                   </span>
                 </button>
@@ -208,7 +208,7 @@ const Favorites: React.FC = () => {
               Explora espectaculares y guarda tus favoritos para verlos aquí.
             </p>
             <Link to="/search">
-              <Button className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]">
+              <Button className="bg-primary text-primary-foreground hover:bg-[#8AE63A]">
                 Explorar espectaculares
               </Button>
             </Link>
@@ -289,7 +289,7 @@ const Favorites: React.FC = () => {
             <Button
               onClick={handleCreateFolder}
               disabled={!newFolderName.trim()}
-              className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]"
+              className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
             >
               Crear
             </Button>
@@ -315,7 +315,7 @@ const Favorites: React.FC = () => {
             <Button
               onClick={handleRenameFolder}
               disabled={!renameValue.trim()}
-              className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]"
+              className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
             >
               Guardar
             </Button>

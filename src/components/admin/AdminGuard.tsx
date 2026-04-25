@@ -198,7 +198,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
             <Button
               type="submit"
               disabled={isLoggingIn}
-              className="w-full bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+              className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
             >
               {isLoggingIn ? (
                 <>

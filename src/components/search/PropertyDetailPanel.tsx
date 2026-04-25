@@ -277,7 +277,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
           </div>
 
           {/* Decision Metrics */}
-          <div className="bg-gradient-to-br from-[#9BFF43]/20 to-transparent rounded-xl p-4 border border-primary/30">
+          <div className="bg-gradient-to-br from-primary/20 to-transparent rounded-xl p-4 border border-primary/30">
             <h3 className="text-white font-semibold mb-3">Métricas para tu Decisión</h3>
             <div className="space-y-2 text-sm">
               <div className="flex items-center justify-between">
@@ -309,7 +309,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
             </div>
             <button
               onClick={onReserve}
-              className="w-full py-3 rounded-xl bg-primary text-[#1A1A1A] font-bold hover:bg-[#8AE63A] transition-colors"
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-[#8AE63A] transition-colors"
             >
               Reservar Ahora
             </button>

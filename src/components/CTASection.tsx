@@ -23,7 +23,7 @@ const CTASection: React.FC = () => {
             Tu marca a un solo Descubre cómo con Maddi
           </p>
           
-          <button className="px-12 py-4 bg-primary text-[#1A1A1A] font-bold text-lg rounded-full hover:bg-[#8AE63A] transition-colors duration-300 max-sm:px-8 max-sm:py-3 max-sm:text-base">
+          <button className="px-12 py-4 bg-primary text-primary-foreground font-bold text-lg rounded-full hover:bg-[#8AE63A] transition-colors duration-300 max-sm:px-8 max-sm:py-3 max-sm:text-base">
             Unirme a Maddi
           </button>
         </div>

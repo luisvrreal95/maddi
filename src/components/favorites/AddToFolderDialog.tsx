@@ -62,7 +62,7 @@ const AddToFolderDialog: React.FC<AddToFolderDialogProps> = ({
               <Button
                 onClick={handleCreateFolder}
                 disabled={!newFolderName.trim()}
-                className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]"
+                className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
               >
                 Crear
               </Button>

@@ -152,7 +152,7 @@ const TestimonialCard: React.FC<TestimonialCardProps> = ({
       
       {/* CTA Button */}
       <div className="px-6 pb-6 pt-2">
-        <button className="w-full py-4 rounded-full bg-primary text-[#1A1A1A] font-bold text-base hover:bg-[#8AE63A] transition-colors">
+        <button className="w-full py-4 rounded-full bg-primary text-primary-foreground font-bold text-base hover:bg-[#8AE63A] transition-colors">
           Ver Más
         </button>
       </div>

@@ -114,7 +114,7 @@ const ResetPassword = () => {
           <h1 className="text-2xl font-bold text-white mb-2">Enlace inválido</h1>
           <p className="text-white/60 text-sm mb-6">{error}</p>
           <Link to="/auth">
-            <Button className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]">
+            <Button className="bg-primary text-primary-foreground hover:bg-[#8AE63A]">
               Ir a iniciar sesión
             </Button>
           </Link>
@@ -213,7 +213,7 @@ const ResetPassword = () => {
           <Button
             type="submit"
             disabled={isUpdating || !newPassword || !confirmPassword || newPassword !== confirmPassword}
-            className="w-full bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+            className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
           >
             {isUpdating ? (
               <>

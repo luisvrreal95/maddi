@@ -565,7 +565,7 @@ const Messages: React.FC = () => {
                       )}
                       {conv.is_pinned && (
                         <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                          <Pin className="w-2.5 h-2.5 text-[#1A1A1A]" />
+                          <Pin className="w-2.5 h-2.5 text-primary-foreground" />
                         </div>
                       )}
                     </div>
@@ -581,7 +581,7 @@ const Messages: React.FC = () => {
                             </span>
                           )}
                           {hasUnread && (
-                            <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-[#1A1A1A] text-[10px] font-bold flex items-center justify-center px-1">
+                            <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
                               {conv.unread_count || 1}
                             </span>
                           )}
@@ -672,7 +672,7 @@ const Messages: React.FC = () => {
                             <User className="w-5 h-5 text-white/40" />
                             {conv.is_pinned && (
                               <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                                <Pin className="w-2.5 h-2.5 text-[#1A1A1A]" />
+                                <Pin className="w-2.5 h-2.5 text-primary-foreground" />
                               </div>
                             )}
                           </div>
@@ -688,7 +688,7 @@ const Messages: React.FC = () => {
                                 {conv.other_user?.full_name}
                               </p>
                               {hasUnread && (
-                                <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-[#1A1A1A] text-[10px] font-bold flex items-center justify-center px-1 ml-1">
+                                <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1 ml-1">
                                   {conv.unread_count || 1}
                                 </span>
                               )}

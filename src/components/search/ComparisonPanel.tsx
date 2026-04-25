@@ -176,7 +176,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
 
                   <button
                     onClick={() => onReserve(property)}
-                    className="w-full mt-3 py-2 rounded-lg bg-primary text-[#1A1A1A] font-bold text-xs hover:bg-[#8AE63A] transition-colors"
+                    className="w-full mt-3 py-2 rounded-lg bg-primary text-primary-foreground font-bold text-xs hover:bg-[#8AE63A] transition-colors"
                   >
                     Reservar
                   </button>
@@ -332,7 +332,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
 
           {/* Best Value Recommendation */}
           {propertiesWithMetrics.length > 1 && (
-            <div className="bg-gradient-to-r from-[#9BFF43]/20 to-blue-500/20 rounded-xl p-4 mt-4 border border-primary/30">
+            <div className="bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-xl p-4 mt-4 border border-primary/30">
               <div className="flex items-center gap-3">
                 <Zap className="w-8 h-8 text-primary" />
                 <div>

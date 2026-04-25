@@ -268,7 +268,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
           </button>
           <button
             onClick={onReserve}
-            className="flex-1 py-2.5 rounded-xl bg-primary text-[#1A1A1A] font-bold text-sm hover:bg-[#8AE63A] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-[#8AE63A] transition-colors"
           >
             Reservar
           </button>

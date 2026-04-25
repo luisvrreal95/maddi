@@ -29,7 +29,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
           style={{ animation: 'successPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}
         >
           <svg
-            className="w-10 h-10 text-[#1A1A1A]"
+            className="w-10 h-10 text-primary-foreground"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -110,7 +110,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
       >
         <Button
           onClick={() => { onClose(); navigate('/business'); }}
-          className="w-full bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] font-semibold"
+          className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] font-semibold"
         >
           Ver mis campañas
           <ArrowRight className="w-4 h-4 ml-1" />

@@ -153,7 +153,7 @@ const AdminAcceptInvite = () => {
           </p>
           <Button
             onClick={() => navigate("/")}
-            className="bg-primary text-[#1A1A1A] hover:bg-[#8AE63A]"
+            className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
           >
             Ir al inicio
           </Button>
@@ -241,7 +241,7 @@ const AdminAcceptInvite = () => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-primary text-[#1A1A1A] hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+            className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
           >
             {isSubmitting ? (
               <>
