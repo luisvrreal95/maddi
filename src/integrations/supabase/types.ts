@@ -1129,6 +1129,45 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          address_proof_url: string | null
+          created_at: string | null
+          id: string
+          ine_back_url: string
+          ine_front_url: string
+          rejection_reason: string | null
+          rfc: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          address_proof_url?: string | null
+          created_at?: string | null
+          id?: string
+          ine_back_url: string
+          ine_front_url: string
+          rejection_reason?: string | null
+          rfc?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          address_proof_url?: string | null
+          created_at?: string | null
+          id?: string
+          ine_back_url?: string
+          ine_front_url?: string
+          rejection_reason?: string | null
+          rfc?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
