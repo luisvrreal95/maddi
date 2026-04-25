@@ -93,7 +93,16 @@ const SearchPage: React.FC = () => {
   const listRef = useRef<HTMLDivElement>(null);
   
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>('split');
+  const [viewMode, setViewMode] = useState<'split' | 'list' | 'map'>(() => {
+    if (typeof window === 'undefined') return 'split';
+    const saved = localStorage.getItem('maddi_search_view_mode');
+    return saved === 'list' || saved === 'map' || saved === 'split' ? saved : 'split';
+  });
+
+  // Persist view mode preference
+  useEffect(() => {
+    localStorage.setItem('maddi_search_view_mode', viewMode);
+  }, [viewMode]);
   const [searchQuery, setSearchQuery] = useState(location);
   const [confirmedLocation, setConfirmedLocation] = useState(location);
   // Initialize selectedLocationData from URL lat/lng params (e.g., from homepage hero search)
@@ -750,21 +759,28 @@ const SearchPage: React.FC = () => {
         </div>
       </main>
 
-      {compareIds.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 animate-in slide-in-from-bottom-4 duration-300">
+      {compareIds.length >= 2 && (
+        <div className="fixed bottom-6 right-6 z-40 animate-in slide-in-from-bottom-4 duration-300">
           <button
             onClick={() => setShowComparison(true)}
-            className="flex items-center gap-3 px-6 py-3 bg-primary text-primary-foreground rounded-full font-bold shadow-lg hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 bg-[#9BFF43] text-[#121212] rounded-full font-bold shadow-2xl hover:bg-[#9BFF43]/90 hover:scale-105 transition-all"
           >
             <BarChart2 className="w-5 h-5" />
-            Comparar {compareIds.length} espectacular{compareIds.length > 1 ? 'es' : ''}
+            Comparar ({compareIds.length})
           </button>
           <button
             onClick={() => setCompareIds([])}
             className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors"
+            aria-label="Limpiar comparación"
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+      )}
+
+      {compareIds.length === 1 && (
+        <div className="fixed bottom-6 right-6 z-40 px-4 py-2 bg-card border border-border rounded-full text-sm text-muted-foreground shadow-lg animate-in fade-in duration-300">
+          Selecciona 1 más para comparar
         </div>
       )}
 
