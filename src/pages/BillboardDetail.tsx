@@ -325,7 +325,7 @@ const BillboardDetail: React.FC = () => {
               )}
 
               {/* Mini Map */}
-              {mapboxToken && (
+              {mapboxToken && !mapError ? (
                 <div className="relative rounded-xl overflow-hidden border border-border group cursor-pointer"
                   onClick={() => {
                     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -339,12 +339,25 @@ const BillboardDetail: React.FC = () => {
                     src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9BFF43(${billboard.longitude},${billboard.latitude})/${billboard.longitude},${billboard.latitude},14,0/1200x200@2x?access_token=${mapboxToken}`}
                     alt="Ubicación"
                     className="w-full h-[200px] object-cover"
+                    onError={() => setMapError(true)}
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                     <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/60 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
                       <MapPin className="w-4 h-4" /> Abrir en mapas
                     </span>
                   </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-border bg-card p-8 flex flex-col items-center justify-center text-center gap-3">
+                  <MapPin className="w-10 h-10 text-muted-foreground" />
+                  <p className="text-foreground font-medium">Mapa no disponible</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(`https://maps.google.com/?q=${billboard.latitude},${billboard.longitude}`, '_blank')}
+                    className="gap-2"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Ver en Google Maps
+                  </Button>
                 </div>
               )}
 
