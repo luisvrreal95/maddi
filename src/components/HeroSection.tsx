@@ -268,6 +268,22 @@ const HeroSection: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Secondary CTAs */}
+        <div className="flex flex-wrap items-center justify-center gap-3 max-sm:gap-2">
+          <button
+            onClick={() => navigate('/search?location=Mexicali')}
+            className="bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-xl hover:bg-primary/90 transition-colors text-sm"
+          >
+            Explorar espectaculares en Mexicali
+          </button>
+          <button
+            onClick={() => navigate('/valor-espectacular')}
+            className="bg-transparent border border-white/20 text-white font-semibold px-6 py-3 rounded-xl hover:border-primary hover:text-primary transition-colors text-sm"
+          >
+            Valúa tu espectacular gratis
+          </button>
+        </div>
       </div>
     </section>
   );

@@ -10,11 +10,9 @@ const Footer: React.FC = () => {
   ];
 
   const navLinks = [
-    { label: 'Nuestros Servicios', href: '#' },
-    { label: 'Inicia sesión', href: '/auth' },
-    { label: 'Regístrate', href: '/auth' },
-    { label: 'Explora', href: '/search' },
-    { label: 'Términos & Condiciones', href: '#' }
+    { label: 'Términos de Uso', href: '/terminos' },
+    { label: 'Aviso de Privacidad', href: '/privacidad' },
+    { label: 'Contacto', href: '/contacto' }
   ];
 
   return (
@@ -63,7 +61,7 @@ const Footer: React.FC = () => {
         {/* Copyright */}
         <div className="text-center">
           <p className="text-white/40 text-sm">
-            © 2025 Maddi. Cada marca y espectacular es propiedad del dueño.
+            © 2026 Maddi. Todos los derechos reservados.
           </p>
         </div>
       </div>
