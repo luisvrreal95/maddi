@@ -5,9 +5,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, Layers, Eye } from 'lucide-react';
+import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, Layers, Eye, Star, BadgeCheck, ExternalLink } from 'lucide-react';
 import ImageGallery from '@/components/billboard/ImageGallery';
 import { toast } from 'sonner';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import { useReviews } from '@/hooks/useReviews';
 import BookingDialog from '@/components/booking/BookingDialog';
 import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
@@ -55,7 +64,10 @@ const BillboardDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
   const [mapboxToken, setMapboxToken] = useState('');
+  const [mapError, setMapError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [ownerVerified, setOwnerVerified] = useState(false);
+  const { stats: reviewStats } = useReviews(id);
 
   useEffect(() => {
     const fetchBillboard = async () => {
@@ -74,6 +86,13 @@ const BillboardDetail: React.FC = () => {
           return;
         }
         setBillboard(data);
+        // Fetch owner verification status
+        const { data: ownerProfile } = await supabase
+          .from('profiles')
+          .select('is_verified')
+          .eq('user_id', data.owner_id)
+          .maybeSingle();
+        if (ownerProfile?.is_verified) setOwnerVerified(true);
       } catch (error) {
         console.error('Error fetching billboard:', error);
         toast.error('Error al cargar el espectacular');
@@ -86,8 +105,10 @@ const BillboardDetail: React.FC = () => {
       try {
         const { data } = await supabase.functions.invoke('get-mapbox-token');
         if (data?.token) setMapboxToken(data.token);
+        else setMapError(true);
       } catch (error) {
         console.error('Error fetching Mapbox token:', error);
+        setMapError(true);
       }
     };
 
@@ -157,7 +178,7 @@ const BillboardDetail: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-36 lg:pb-0">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-md border-b border-border px-6 max-sm:px-4 py-3 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -188,6 +209,25 @@ const BillboardDetail: React.FC = () => {
       </header>
 
       <main className="max-w-7xl mx-auto">
+        {/* Breadcrumb */}
+        <div className="px-4 md:px-6 pt-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => navigate('/')} className="cursor-pointer">Inicio</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbLink onClick={() => navigate('/search')} className="cursor-pointer">Buscar</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="line-clamp-1">{billboard.title}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
         {/* Airbnb-style image gallery */}
         <div className="px-4 md:px-6 pt-4">
           <ImageGallery images={allImages} title={billboard.title} />
@@ -209,7 +249,28 @@ const BillboardDetail: React.FC = () => {
                     {billboard.is_available ? 'Disponible' : 'No disponible'}
                   </Badge>
                 </div>
-                <p className="text-muted-foreground mt-1 flex items-center gap-1.5">
+                {(reviewStats.totalReviews > 0 || ownerVerified) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                    {reviewStats.totalReviews > 0 ? (
+                      <span className="flex items-center gap-1 text-foreground font-medium">
+                        <Star className="w-4 h-4 fill-primary text-primary" />
+                        {reviewStats.averageRating.toFixed(1)}
+                        <span className="text-muted-foreground font-normal">· {reviewStats.totalReviews} reseña{reviewStats.totalReviews !== 1 ? 's' : ''}</span>
+                      </span>
+                    ) : (
+                      <Badge variant="outline" className="text-xs border-primary/30 text-primary">Nuevo</Badge>
+                    )}
+                    {ownerVerified && (
+                      <>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="flex items-center gap-1 text-primary font-medium">
+                          <BadgeCheck className="w-4 h-4" /> Verificado
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <p className="text-muted-foreground mt-2 flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   {billboard.address} · {billboard.city}, {billboard.state}
                 </p>
@@ -264,7 +325,7 @@ const BillboardDetail: React.FC = () => {
               )}
 
               {/* Mini Map */}
-              {mapboxToken && (
+              {mapboxToken && !mapError ? (
                 <div className="relative rounded-xl overflow-hidden border border-border group cursor-pointer"
                   onClick={() => {
                     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -278,12 +339,25 @@ const BillboardDetail: React.FC = () => {
                     src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9BFF43(${billboard.longitude},${billboard.latitude})/${billboard.longitude},${billboard.latitude},14,0/1200x200@2x?access_token=${mapboxToken}`}
                     alt="Ubicación"
                     className="w-full h-[200px] object-cover"
+                    onError={() => setMapError(true)}
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
                     <span className="opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium bg-black/60 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
                       <MapPin className="w-4 h-4" /> Abrir en mapas
                     </span>
                   </div>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-border bg-card p-8 flex flex-col items-center justify-center text-center gap-3">
+                  <MapPin className="w-10 h-10 text-muted-foreground" />
+                  <p className="text-foreground font-medium">Mapa no disponible</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => window.open(`https://maps.google.com/?q=${billboard.latitude},${billboard.longitude}`, '_blank')}
+                    className="gap-2"
+                  >
+                    <ExternalLink className="w-4 h-4" /> Ver en Google Maps
+                  </Button>
                 </div>
               )}
 
