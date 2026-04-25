@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut } from 'lucide-react';
+import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut, MoreHorizontal, CalendarCheck } from 'lucide-react';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import {
