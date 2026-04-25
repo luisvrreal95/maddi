@@ -4,10 +4,11 @@ import { Billboard } from '@/hooks/useBillboards';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar, Clock, TrendingUp, ChevronRight, MapPin, User, MessageSquare } from 'lucide-react';
+import { Calendar, Clock, TrendingUp, ChevronRight, MapPin, User, MessageSquare, AlertTriangle } from 'lucide-react';
 import { format, differenceInDays, isToday, isBefore, isAfter } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 interface Booking {
   id: string;
@@ -34,6 +35,7 @@ type FilterType = 'all' | 'today' | 'upcoming' | 'expiring' | 'pending' | 'cance
 
 const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
   const navigate = useNavigate();
+  const { unreadCount } = useUnreadMessages();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<FilterType>('all');
