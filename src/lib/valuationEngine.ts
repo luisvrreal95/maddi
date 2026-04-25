@@ -6,7 +6,7 @@
  *   impressions_monthly = traffic_daily * 30 * visibility_score
  *   value_traffic = (impressions_monthly / 1000) * cpm_base * format_mult * zone_mult
  *   value_final = max(value_traffic, zone_floor)
- *   range = [value_final * 0.90, value_final * 1.10]
+ *   range = [value_final * 0.75, value_final * 1.25]
  */
 
 // ── Zone classification ──────────────────────────────────────────────
@@ -26,13 +26,13 @@ export function getVisibilityScore(zone: ZoneCategory): number {
 
 export function getCPMBase(zone: ZoneCategory): number {
   const map: Record<ZoneCategory, number> = {
-    premium: 60,
-    comercial_fuerte: 50,
-    comercial: 45,
-    media: 35,
-    periferica: 30,
+    premium: 35,
+    comercial_fuerte: 28,
+    comercial: 22,
+    media: 16,
+    periferica: 12,
   };
-  return Math.max(map[zone] ?? 35, 30);
+  return Math.max(map[zone] ?? 16, 12);
 }
 
 export function getZoneMultiplier(zone: ZoneCategory): number {
@@ -133,6 +133,11 @@ const TIJUANA_CORRIDORS: CorridorEntry[] = [
   { keywords: ['agua caliente'], category: 'premium' },
   { keywords: ['via rapida', 'vía rápida'], category: 'comercial_fuerte' },
   { keywords: ['otay'], category: 'comercial' },
+  { keywords: ['revolucion', 'revolución', 'avenida revolucion'], category: 'premium' },
+  { keywords: ['playas de tijuana', 'playas'], category: 'comercial_fuerte' },
+  { keywords: ['paseo de los heroes', 'paseo de los héroes'], category: 'premium' },
+  { keywords: ['boulevard sanchez taboada', 'sanchez taboada'], category: 'comercial_fuerte' },
+  { keywords: ['garita', 'san ysidro'], category: 'comercial_fuerte' },
 ];
 
 const CITY_CORRIDORS: Record<string, CorridorEntry[]> = {
@@ -170,8 +175,9 @@ export function detectCorridor(zone: string, city: string): ZoneCategory | null 
 // ── Zone classification heuristic ────────────────────────────────────
 
 const PREMIUM_KEYWORDS = [
-  'zona dorada', 'zona río', 'polanco', 'santa fe', 'reforma',
-  'garza sada', 'valle oriente', 'zona hotelera', 'interlomas',
+  'zona río', 'zona hotelera',
+  'plaza cachanilla', 'garita', 'calexico', 'otay', 'playas',
+  'revolucion', 'revolución', 'paseo de los heroes', 'paseo de los héroes',
 ];
 
 const COMERCIAL_KEYWORDS = [
@@ -211,6 +217,7 @@ export interface ValuationInput {
   trafficDaily: number;
   structureType: StructureType;
   zoneCategory: ZoneCategory;
+  rentedStatus?: string;
 }
 
 export interface ValuationResult {
@@ -245,8 +252,17 @@ export function estimateSpectacularValue(input: ValuationInput): ValuationResult
     estimatedValue = Math.round(zoneFloor * formatMultiplier);
   }
 
-  const valueLow = Math.round(estimatedValue * 0.90 / 500) * 500;
-  const valueHigh = Math.round(estimatedValue * 1.10 / 500) * 500;
+  // Apply rental history factor
+  if (input.rentedStatus === 'Sí') {
+    estimatedValue = Math.round(estimatedValue * 1.08);
+  } else if (input.rentedStatus === 'A veces') {
+    estimatedValue = Math.round(estimatedValue * 1.03);
+  } else if (input.rentedStatus === 'No') {
+    estimatedValue = Math.round(estimatedValue * 0.97);
+  }
+
+  const valueLow = Math.round(estimatedValue * 0.75 / 500) * 500;
+  const valueHigh = Math.round(estimatedValue * 1.25 / 500) * 500;
 
   return {
     trafficDaily: input.trafficDaily,

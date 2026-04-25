@@ -84,6 +84,7 @@ const ValorEspectacular: React.FC = () => {
         trafficDaily,
         structureType: structureType as StructureType,
         zoneCategory,
+        rentedStatus: rented,
       });
       setResult(valuation);
 
