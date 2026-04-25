@@ -5,9 +5,18 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, Layers, Eye } from 'lucide-react';
+import { ArrowLeft, MapPin, Maximize2, Sun, Calendar, Layers, Eye, Star, BadgeCheck, ExternalLink } from 'lucide-react';
 import ImageGallery from '@/components/billboard/ImageGallery';
 import { toast } from 'sonner';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
+import { useReviews } from '@/hooks/useReviews';
 import BookingDialog from '@/components/booking/BookingDialog';
 import AvailabilityCalendar from '@/components/booking/AvailabilityCalendar';
 import FavoriteButton from '@/components/favorites/FavoriteButton';
