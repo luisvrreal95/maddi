@@ -13,12 +13,21 @@ const CACHE_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
 // Configurable constants (overridable via env vars)
 // ---------------------------------------------------------------------------
 
-/** Hours per day the billboard is "active" (visible). Default 16. */
-function getActiveHoursPerDay(): number {
+/** Hours per day the billboard is "active" (visible).
+ *  Priority: ACTIVE_HOURS_PER_DAY env var → illuminationType heuristic → 16 (default).
+ */
+function getActiveHoursPerDay(illuminationType?: string): number {
   const raw = Deno.env.get('ACTIVE_HOURS_PER_DAY');
   if (raw) {
     const parsed = Number(raw);
     if (!isNaN(parsed) && parsed >= 1 && parsed <= 24) return parsed;
+  }
+  if (illuminationType) {
+    const il = illuminationType.toLowerCase();
+    // Check no-illumination FIRST to avoid 'no_iluminado' matching 'iluminado'
+    if (il === 'ninguna' || il === 'sin_iluminacion' || il === 'no_iluminado') return 12;
+    if (il === 'digital' || il === 'led' || il === 'pantalla_digital') return 20;
+    if (il.includes('lampara') || il === 'iluminado' || il === 'fluorescente') return 18;
   }
   return 16;
 }
@@ -68,15 +77,20 @@ interface CorridorFloor {
 
 const CORRIDOR_FLOORS: Record<string, CorridorFloor[]> = {
   mexicali: [
+    // 'calzada justo sierra' must come before 'justo sierra' so the more specific entry wins
+    { keywords: ['calzada justo sierra'], minImpressions: 20000 },
     { keywords: ['justo sierra'], minImpressions: 18000 },
+    { keywords: ['blvd lazaro cardenas', 'cardenas'], minImpressions: 22000 },
     { keywords: ['lazaro cardenas', 'lázaro cárdenas', 'lazaro cárdenas'], minImpressions: 22000 },
     { keywords: ['lopez mateos', 'lópez mateos'], minImpressions: 20000 },
     { keywords: ['cetys', 'calzada cetys'], minImpressions: 20000 },
     { keywords: ['benito juarez', 'benito juárez', 'centro civico', 'centro cívico'], minImpressions: 18000 },
     { keywords: ['independencia'], minImpressions: 18000 },
+    { keywords: ['mariano arista', 'arista'], minImpressions: 16000 },
     { keywords: ['anahuac', 'anáhuac'], minImpressions: 16000 },
     { keywords: ['venustiano carranza', 'carranza'], minImpressions: 16000 },
     { keywords: ['rio nuevo', 'río nuevo'], minImpressions: 15000 },
+    { keywords: ['reforma'], minImpressions: 15000 },
     { keywords: ['cuauhtemoc', 'cuauhtémoc'], minImpressions: 14000 },
   ],
   tijuana: [
@@ -111,42 +125,31 @@ export function estimateDailyImpressions(
   freeFlowSpeed: number,
   confidence: number,
   corridorFloor: number = 0,
+  illuminationType?: string,
 ): {
   estimated_daily_traffic: number;
   road_type: string;
   peak_hours: string;
   confidence_level: string;
 } {
-  const activeHours = getActiveHoursPerDay();
+  const activeHours = getActiveHoursPerDay(illuminationType);
   const calibration = getCalibrationMultiplier();
 
-  // --- 1. Base vehicles per hour from freeFlowSpeed (continuous interpolation) ---
-  const anchors: [number, number][] = [
-    [0, 300],
-    [30, 500],
-    [50, 900],
-    [70, 1600],
-    [100, 2500],
-    [130, 3200],
-  ];
-
-  const clampedFreeFlow = Math.max(0, freeFlowSpeed);
+  // --- 1. Classify road type from freeFlowSpeed → fixed baseVPH per type ---
+  // Separates "what kind of road is this" from "how congested is it right now".
   let baseVPH: number;
-
-  if (clampedFreeFlow >= anchors[anchors.length - 1][0]) {
-    baseVPH = anchors[anchors.length - 1][1];
+  let road_type: string;
+  let peak_hours: string;
+  if (freeFlowSpeed > 90) {
+    road_type = 'autopista';      baseVPH = 2800; peak_hours = '7:00-9:00, 18:00-20:00';
+  } else if (freeFlowSpeed >= 60) {
+    road_type = 'avenida_principal'; baseVPH = 1800; peak_hours = '7:30-9:30, 17:30-19:30';
+  } else if (freeFlowSpeed >= 40) {
+    road_type = 'boulevard';      baseVPH = 1200; peak_hours = '8:00-10:00, 17:00-19:00';
+  } else if (freeFlowSpeed >= 25) {
+    road_type = 'calle_urbana';   baseVPH = 800;  peak_hours = '12:00-14:00, 18:00-20:00';
   } else {
-    let lower = anchors[0];
-    let upper = anchors[anchors.length - 1];
-    for (let i = 0; i < anchors.length - 1; i++) {
-      if (clampedFreeFlow >= anchors[i][0] && clampedFreeFlow < anchors[i + 1][0]) {
-        lower = anchors[i];
-        upper = anchors[i + 1];
-        break;
-      }
-    }
-    const t = (clampedFreeFlow - lower[0]) / (upper[0] - lower[0]);
-    baseVPH = lower[1] + t * (upper[1] - lower[1]);
+    road_type = 'zona_lenta';     baseVPH = 500;  peak_hours = '10:00-14:00';
   }
 
   // --- 2. Congestion multiplier from speed ratio ---
@@ -162,26 +165,6 @@ export function estimateDailyImpressions(
   let dailyImpressions = baseVPH * activeHours * congestionMultiplier * effectiveConfidence * calibration;
   dailyImpressions = Math.max(dailyImpressions, corridorFloor);
   dailyImpressions = Math.max(0, Math.round(dailyImpressions));
-
-  // --- Road type label ---
-  let road_type: string;
-  let peak_hours: string;
-  if (freeFlowSpeed > 100) {
-    road_type = 'autopista';
-    peak_hours = '7:00-9:00, 18:00-20:00';
-  } else if (freeFlowSpeed > 70) {
-    road_type = 'avenida_principal';
-    peak_hours = '7:30-9:30, 17:30-19:30';
-  } else if (freeFlowSpeed > 50) {
-    road_type = 'calle_secundaria';
-    peak_hours = '8:00-10:00, 17:00-19:00';
-  } else if (freeFlowSpeed > 30) {
-    road_type = 'calle_urbana';
-    peak_hours = '12:00-14:00, 18:00-20:00';
-  } else {
-    road_type = 'zona_lenta';
-    peak_hours = '10:00-14:00';
-  }
 
   const confidence_level = confidence >= 0.8 ? 'Alta' : confidence >= 0.5 ? 'Media' : 'Baja';
 
@@ -261,7 +244,7 @@ serve(async (req) => {
     // Get billboard info
     const { data: billboard, error: billboardError } = await supabase
       .from('billboards')
-      .select('last_traffic_update, daily_impressions, city, address, title, points_of_interest')
+      .select('last_traffic_update, daily_impressions, city, address, title, points_of_interest, illumination')
       .eq('id', billboard_id)
       .single();
 
@@ -358,7 +341,7 @@ serve(async (req) => {
             continue;
           }
 
-          const calc = estimateDailyImpressions(currentSpeed, freeFlowSpeed, confidence, corridorFloor);
+          const calc = estimateDailyImpressions(currentSpeed, freeFlowSpeed, confidence, corridorFloor, billboard?.illumination);
 
           console.log(`[Traffic] Calculated: ${calc.estimated_daily_traffic} (ratio=${(currentSpeed / Math.max(freeFlowSpeed, 1)).toFixed(3)}, road=${calc.road_type})`);
 
