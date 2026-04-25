@@ -105,8 +105,10 @@ const BillboardDetail: React.FC = () => {
       try {
         const { data } = await supabase.functions.invoke('get-mapbox-token');
         if (data?.token) setMapboxToken(data.token);
+        else setMapError(true);
       } catch (error) {
         console.error('Error fetching Mapbox token:', error);
+        setMapError(true);
       }
     };
 
