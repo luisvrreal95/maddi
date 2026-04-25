@@ -212,6 +212,63 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
 
   return (
     <div className="space-y-8">
+      {/* Prominent alert cards (urgent actions) */}
+      {(categorizedBookings.pending.length > 0 || unreadCount > 0 || categorizedBookings.expiring.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {categorizedBookings.pending.length > 0 && (
+            <button
+              onClick={() => navigate('/owner?tab=reservas')}
+              className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-3 hover:bg-red-500/15 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm">
+                  {categorizedBookings.pending.length} solicitud{categorizedBookings.pending.length === 1 ? '' : 'es'} por aprobar
+                </p>
+                <p className="text-white/60 text-xs">Acción urgente requerida</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+            </button>
+          )}
+          {unreadCount > 0 && (
+            <button
+              onClick={() => navigate('/messages?from=owner')}
+              className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center gap-3 hover:bg-amber-500/15 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <MessageSquare className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm">
+                  {unreadCount} mensaje{unreadCount === 1 ? '' : 's'} sin leer
+                </p>
+                <p className="text-white/60 text-xs">Responde a tus anunciantes</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+            </button>
+          )}
+          {categorizedBookings.expiring.length > 0 && (
+            <button
+              onClick={() => { setFilter('expiring'); }}
+              className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center gap-3 hover:bg-amber-500/15 transition-colors text-left"
+            >
+              <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-5 h-5 text-amber-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-white font-semibold text-sm">
+                  {categorizedBookings.expiring.length} reserva{categorizedBookings.expiring.length === 1 ? '' : 's'} por vencer
+                </p>
+                <p className="text-white/60 text-xs">Próximas a finalizar</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Consolidated Pending Requests Block */}
       {categorizedBookings.pending.length > 0 && (
         <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-2xl p-5">
