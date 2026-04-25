@@ -393,11 +393,16 @@ const SearchPage: React.FC = () => {
       filtered = filtered.filter(p => {
         const billboard = billboards.find(b => b.id === p.id);
         if (!billboard) return false;
-        if (filters.billboardType.includes('spectacular') && billboard.billboard_type === 'espectacular') return true;
-        if (filters.billboardType.includes('mural') && billboard.billboard_type === 'mural') return true;
-        if (filters.billboardType.includes('bridge') && billboard.billboard_type === 'puente') return true;
-        if (filters.billboardType.includes('digital') && billboard.billboard_type === 'digital') return true;
-        return false;
+        return filters.billboardType.includes(billboard.billboard_type);
+      });
+    }
+
+    // "Disponible" quick filter — only show billboards available right now
+    if (filters.availability?.includes('available')) {
+      filtered = filtered.filter(p => {
+        const billboard = billboards.find(b => b.id === p.id);
+        if (!billboard) return false;
+        return billboard.is_available && !billboard.pause_reason;
       });
     }
 
