@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface Step {
   icon: string;
   title: string;
-  action: string;
+  action?: string;
   to?: string;
   description?: string;
 }
