@@ -64,7 +64,10 @@ const BillboardDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
   const [mapboxToken, setMapboxToken] = useState('');
+  const [mapError, setMapError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [ownerVerified, setOwnerVerified] = useState(false);
+  const { stats: reviewStats } = useReviews(id);
 
   useEffect(() => {
     const fetchBillboard = async () => {
