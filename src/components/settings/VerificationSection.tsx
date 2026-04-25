@@ -1,193 +1,181 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
-  CheckCircle, 
-  Clock, 
-  XCircle, 
-  Upload, 
-  FileText, 
-  Loader2,
-  AlertCircle
-} from 'lucide-react';
+import { CheckCircle, Clock, XCircle, Upload, Loader2, AlertCircle, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface VerificationSectionProps {
   onVerificationChange?: () => void;
 }
 
-interface VerificationData {
+interface ProfileVerification {
   is_verified: boolean;
   verification_status: string | null;
-  verification_document_url: string | null;
-  verification_document_type: string | null;
-  verification_submitted_at: string | null;
   verification_notes: string | null;
 }
 
+interface FileFieldProps {
+  label: string;
+  required?: boolean;
+  file: File | null;
+  onChange: (file: File | null) => void;
+  disabled?: boolean;
+}
+
+const FileField = ({ label, required, file, onChange, disabled }: FileFieldProps) => {
+  const ref = useRef<HTMLInputElement>(null);
+  const preview = file && file.type.startsWith('image/') ? URL.createObjectURL(file) : null;
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-white/80">
+        {label}
+        {required && <span className="text-red-400 ml-1">*</span>}
+      </Label>
+      <div
+        onClick={() => !disabled && ref.current?.click()}
+        className={`relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed transition-colors cursor-pointer overflow-hidden
+          ${disabled ? 'opacity-50 cursor-not-allowed border-white/10' : 'border-white/20 hover:border-[#9BFF43]/50 hover:bg-[#9BFF43]/5'}
+          ${file ? 'border-[#9BFF43]/40 bg-[#9BFF43]/5' : ''}
+        `}
+        style={{ minHeight: '96px' }}
+      >
+        {preview ? (
+          <img src={preview} alt={label} className="w-full h-24 object-cover rounded-xl" />
+        ) : file ? (
+          <div className="flex flex-col items-center gap-1 py-4">
+            <FileText className="w-6 h-6 text-[#9BFF43]" />
+            <span className="text-xs text-white/60 text-center px-2 truncate max-w-full">{file.name}</span>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-1 py-4">
+            <Upload className="w-6 h-6 text-white/40" />
+            <span className="text-xs text-white/40">JPG, PNG o PDF (máx 10MB)</span>
+          </div>
+        )}
+      </div>
+      {file && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onChange(null); }}
+          className="text-xs text-white/40 hover:text-red-400 transition-colors"
+          disabled={disabled}
+        >
+          Quitar archivo
+        </button>
+      )}
+      <input
+        ref={ref}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,application/pdf"
+        className="hidden"
+        disabled={disabled}
+        onChange={(e) => {
+          const f = e.target.files?.[0] ?? null;
+          if (!f) return;
+          if (f.size > 10 * 1024 * 1024) { toast.error('El archivo no debe superar 10MB'); return; }
+          onChange(f);
+          e.target.value = '';
+        }}
+      />
+    </div>
+  );
+};
+
 const VerificationSection = ({ onVerificationChange }: VerificationSectionProps) => {
   const { user } = useAuth();
-  const [verification, setVerification] = useState<VerificationData | null>(null);
+  const [profile, setProfile] = useState<ProfileVerification | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [documentType, setDocumentType] = useState('ine');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form state
+  const [ineFront, setIneFront] = useState<File | null>(null);
+  const [ineBack, setIneBack] = useState<File | null>(null);
+  const [rfc, setRfc] = useState('');
+  const [addressProof, setAddressProof] = useState<File | null>(null);
 
   useEffect(() => {
-    if (user) {
-      fetchVerificationStatus();
-    }
+    if (user) fetchStatus();
   }, [user]);
 
-  const fetchVerificationStatus = async () => {
+  const fetchStatus = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('is_verified, verification_status, verification_document_url, verification_document_type, verification_submitted_at, verification_notes')
+        .select('is_verified, verification_status, verification_notes')
         .eq('user_id', user?.id)
         .single();
-
       if (error) throw error;
-      setVerification(data as VerificationData);
-    } catch (error) {
-      console.error('Error fetching verification status:', error);
+      setProfile(data as ProfileVerification);
+    } catch (err) {
+      console.error('Error fetching verification status:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // State for staged document before submission
-  const [stagedDocument, setStagedDocument] = useState<{
-    filePath: string;
-    type: string;
-    signedUrl: string;
-  } | null>(null);
-
-  // Generate signed URL for viewing verification documents (private bucket)
-  const getSignedUrl = async (filePath: string): Promise<string | null> => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('verification-docs')
-        .createSignedUrl(filePath, 600); // 10 minutes expiration
-      
-      if (error) throw error;
-      return data.signedUrl;
-    } catch (error) {
-      console.error('Error generating signed URL:', error);
-      return null;
-    }
+  const uploadFile = async (file: File, path: string): Promise<string> => {
+    const { error } = await supabase.storage
+      .from('verifications')
+      .upload(path, file, { upsert: true });
+    if (error) throw error;
+    return path;
   };
 
-  const handleDocumentSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
+  const handleSubmit = async () => {
+    if (!ineFront || !ineBack || !user) return;
 
-    // Validate file type - documents for verification
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
-      toast.error('Formato no válido. Usa JPG, PNG, WebP o PDF');
-      return;
-    }
-    // 10MB limit for verification documents
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('El archivo no debe superar 10MB');
-      return;
-    }
-
-    setIsUploading(true);
+    setIsSubmitting(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/verification-${Date.now()}.${fileExt}`;
+      const ts = Date.now();
+      const ext = (f: File) => f.name.split('.').pop() ?? 'jpg';
 
-      // Upload to PRIVATE verification-docs bucket
-      const { error: uploadError } = await supabase.storage
-        .from('verification-docs')
-        .upload(filePath, file, { upsert: true });
+      const ineFrontPath = await uploadFile(ineFront, `${user.id}/ine-front-${ts}.${ext(ineFront)}`);
+      const ineBackPath = await uploadFile(ineBack, `${user.id}/ine-back-${ts}.${ext(ineBack)}`);
+      let addressProofPath: string | null = null;
+      if (addressProof) {
+        addressProofPath = await uploadFile(addressProof, `${user.id}/address-${ts}.${ext(addressProof)}`);
+      }
 
-      if (uploadError) throw uploadError;
+      // Insert into verification_requests
+      const { error: insertError } = await (supabase as any)
+        .from('verification_requests')
+        .insert({
+          user_id: user.id,
+          ine_front_url: ineFrontPath,
+          ine_back_url: ineBackPath,
+          rfc: rfc.trim() || null,
+          address_proof_url: addressProofPath,
+          status: 'pending',
+        });
+      if (insertError) throw insertError;
 
-      // Generate signed URL for preview (10 min expiry)
-      const signedUrl = await getSignedUrl(filePath);
-      if (!signedUrl) throw new Error('Could not generate preview URL');
-
-      // Stage the document for confirmation
-      setStagedDocument({
-        filePath,
-        type: documentType,
-        signedUrl
-      });
-      
-      toast.success('Documento cargado. Confirma para enviar a verificación.');
-    } catch (error) {
-      console.error('Error uploading document:', error);
-      toast.error('Error al subir documento');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleSubmitVerification = async () => {
-    if (!stagedDocument || !user) return;
-
-    setIsUploading(true);
-    try {
-      // Store the file PATH (not URL) since it's a private bucket
-      const { error: updateError } = await supabase
+      // Keep profiles in sync so admin VerificationManagement still works
+      await supabase
         .from('profiles')
         .update({
-          verification_document_url: stagedDocument.filePath, // Store path, not URL
-          verification_document_type: stagedDocument.type,
           verification_status: 'pending',
           verification_submitted_at: new Date().toISOString(),
-        })
+          verification_document_url: ineFrontPath,
+          verification_document_type: 'ine',
+        } as any)
         .eq('user_id', user.id);
 
-      if (updateError) throw updateError;
-
       toast.success('Solicitud de verificación enviada');
-      setStagedDocument(null);
-      fetchVerificationStatus();
+      setIneFront(null);
+      setIneBack(null);
+      setRfc('');
+      setAddressProof(null);
+      fetchStatus();
       onVerificationChange?.();
-    } catch (error) {
-      console.error('Error submitting verification:', error);
-      toast.error('Error al enviar verificación');
+    } catch (err) {
+      console.error('Error submitting verification:', err);
+      toast.error('Error al enviar la verificación');
     } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleCancelVerification = async () => {
-    if (!stagedDocument || !user) return;
-
-    try {
-      // Delete uploaded file from PRIVATE verification-docs bucket
-      await supabase.storage.from('verification-docs').remove([stagedDocument.filePath]);
-      setStagedDocument(null);
-      toast.info('Documento eliminado');
-    } catch (error) {
-      console.error('Error canceling:', error);
-      setStagedDocument(null);
-    }
-  };
-
-  // Handle viewing existing verification document
-  const handleViewDocument = async () => {
-    if (!verification?.verification_document_url) return;
-    
-    const signedUrl = await getSignedUrl(verification.verification_document_url);
-    if (signedUrl) {
-      window.open(signedUrl, '_blank');
-    } else {
-      toast.error('No se pudo cargar el documento');
+      setIsSubmitting(false);
     }
   };
 
@@ -199,198 +187,114 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
     );
   }
 
-  const renderStatus = () => {
-    if (verification?.is_verified) {
-      return (
-        <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
-          <CheckCircle className="w-8 h-8 text-green-500" />
-          <div>
-            <p className="font-medium text-green-400">Identidad Verificada</p>
-            <p className="text-sm text-green-400/70">
-              Tu cuenta ha sido verificada exitosamente
-            </p>
-          </div>
-        </div>
-      );
-    }
+  const status = profile?.is_verified ? 'approved' : (profile?.verification_status ?? null);
 
-    switch (verification?.verification_status) {
-      case 'pending':
-        return (
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
-            <Clock className="w-8 h-8 text-amber-500" />
-            <div>
-              <p className="font-medium text-amber-400">Verificación en Proceso</p>
-              <p className="text-sm text-amber-400/70">
-                Estamos revisando tu documentación. Te notificaremos pronto.
-              </p>
-            </div>
-          </div>
-        );
-      case 'rejected':
-        return (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
-              <XCircle className="w-8 h-8 text-red-500" />
-              <div>
-                <p className="font-medium text-red-400">Verificación Rechazada</p>
-                <p className="text-sm text-red-400/70">
-                  {verification.verification_notes || 'Tu solicitud no fue aprobada. Puedes enviar nueva documentación.'}
-                </p>
-              </div>
-            </div>
-            {renderUploadForm()}
-          </div>
-        );
-      default:
-        return renderUploadForm();
-    }
-  };
-
-  const renderUploadForm = () => (
-    <div className="space-y-4">
-      <div className="p-4 rounded-xl bg-[#1A1A1A] border border-white/10">
-        <div className="flex items-start gap-3 mb-4">
-          <AlertCircle className="w-5 h-5 text-[#9BFF43] mt-0.5" />
-          <div>
-            <p className="text-white font-medium">¿Por qué verificar tu identidad?</p>
-            <p className="text-white/50 text-sm mt-1">
-              Los propietarios verificados generan más confianza y reciben más solicitudes de reserva.
-              Tu información está protegida y no se compartirá públicamente.
-            </p>
-          </div>
+  if (status === 'approved') {
+    return (
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/30">
+        <CheckCircle className="w-8 h-8 text-green-500 shrink-0" />
+        <div>
+          <p className="font-medium text-green-400">Identidad Verificada</p>
+          <p className="text-sm text-green-400/70">Tu cuenta ha sido verificada exitosamente.</p>
         </div>
       </div>
+    );
+  }
 
-      <div className="space-y-3">
-        <Label className="text-white">Tipo de Documento</Label>
-        <Select value={documentType} onValueChange={setDocumentType}>
-          <SelectTrigger className="bg-[#1A1A1A] border-white/10 text-white">
-            <SelectValue placeholder="Selecciona el tipo" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ine">INE / IFE</SelectItem>
-            <SelectItem value="passport">Pasaporte</SelectItem>
-            <SelectItem value="license">Licencia de Conducir</SelectItem>
-            <SelectItem value="rfc">Constancia de RFC</SelectItem>
-            <SelectItem value="acta_constitutiva">Acta Constitutiva (Empresas)</SelectItem>
-          </SelectContent>
-        </Select>
+  if (status === 'pending') {
+    return (
+      <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
+        <Clock className="w-8 h-8 text-amber-500 shrink-0" />
+        <div>
+          <p className="font-medium text-amber-400">En revisión</p>
+          <p className="text-sm text-amber-400/70">
+            Estamos revisando tu documentación. Recibirás una notificación cuando se complete la revisión.
+          </p>
+        </div>
       </div>
+    );
+  }
 
-      {!stagedDocument ? (
-        <div className="space-y-3">
-          <Label className="text-white">Subir Documento</Label>
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              onChange={handleDocumentSelect}
-              className="hidden"
-              id="verification-doc"
-              disabled={isUploading}
-            />
-            <label
-              htmlFor="verification-doc"
-              className={`flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
-                isUploading
-                  ? 'border-white/20 bg-white/5'
-                  : 'border-white/20 hover:border-[#9BFF43]/50 hover:bg-[#9BFF43]/5'
-              }`}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-8 h-8 text-[#9BFF43] animate-spin mb-2" />
-                  <span className="text-white/70">Subiendo documento...</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="w-8 h-8 text-white/50 mb-2" />
-                  <span className="text-white/70 text-center">
-                    Arrastra o haz clic para subir
-                  </span>
-                  <span className="text-white/40 text-xs mt-1">
-                    JPG, PNG, WebP o PDF (máx 10MB)
-                  </span>
-                </>
-              )}
-            </label>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-[#9BFF43]/10 border border-[#9BFF43]/30">
-            <FileText className="w-5 h-5 text-[#9BFF43]" />
-            <span className="text-white/70 text-sm flex-1">
-              Documento listo: {stagedDocument.type.toUpperCase()}
-            </span>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => window.open(stagedDocument.signedUrl, '_blank')}
-              className="text-[#9BFF43] hover:text-[#9BFF43]/80"
-            >
-              Ver
-            </Button>
-          </div>
-          
-          <div className="flex gap-3">
-            <Button
-              onClick={handleCancelVerification}
-              variant="outline"
-              className="flex-1 border-white/20 text-white hover:bg-white/10"
-              disabled={isUploading}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSubmitVerification}
-              className="flex-1 bg-[#9BFF43] text-black hover:bg-[#9BFF43]/90"
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Enviando...
-                </>
-              ) : (
-                'Verificar'
-              )}
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {verification?.verification_document_url && !stagedDocument && (
-        <div className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
-          <FileText className="w-5 h-5 text-[#9BFF43]" />
-          <span className="text-white/70 text-sm flex-1">
-            Documento cargado: {verification.verification_document_type?.toUpperCase()}
-          </span>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleViewDocument}
-            className="text-[#9BFF43] hover:text-[#9BFF43]/80"
-          >
-            Ver
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+  const isRejected = status === 'rejected';
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="text-white font-medium">Verificación de Identidad</h3>
+    <div className="space-y-5">
+      {isRejected && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+          <XCircle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium text-red-400">Verificación rechazada</p>
+            <p className="text-sm text-red-400/70 mt-0.5">
+              {profile?.verification_notes || 'Tu solicitud no fue aprobada. Por favor envía documentos actualizados.'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-start gap-3 p-4 rounded-xl bg-[#1A1A1A] border border-white/10">
+        <AlertCircle className="w-5 h-5 text-[#9BFF43] shrink-0 mt-0.5" />
+        <p className="text-white/50 text-sm">
+          Los propietarios verificados generan más confianza y reciben más solicitudes. Tu información está protegida y no se compartirá públicamente.
+        </p>
       </div>
-      
-      {/* Microcopy explicativo */}
-      <p className="text-white/60 text-sm -mt-2">
-        Esto nos ayuda a validar que eres propietario del espacio y generar confianza con los anunciantes.
-      </p>
-      {renderStatus()}
+
+      <div className="grid grid-cols-2 gap-4">
+        <FileField
+          label="INE frente"
+          required
+          file={ineFront}
+          onChange={setIneFront}
+          disabled={isSubmitting}
+        />
+        <FileField
+          label="INE reverso"
+          required
+          file={ineBack}
+          onChange={setIneBack}
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="rfc" className="text-white/80">RFC <span className="text-white/30 font-normal">(opcional)</span></Label>
+        <Input
+          id="rfc"
+          value={rfc}
+          onChange={(e) => setRfc(e.target.value.toUpperCase())}
+          placeholder="XAXX010101000"
+          maxLength={13}
+          className="bg-[#1A1A1A] border-white/10 text-white uppercase"
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <FileField
+        label="Comprobante de domicilio (opcional)"
+        file={addressProof}
+        onChange={setAddressProof}
+        disabled={isSubmitting}
+      />
+
+      <Button
+        onClick={handleSubmit}
+        disabled={isSubmitting || !ineFront || !ineBack}
+        className="w-full bg-[#9BFF43] text-black hover:bg-[#9BFF43]/90 disabled:opacity-50"
+      >
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Enviando...
+          </>
+        ) : (
+          'Enviar verificación'
+        )}
+      </Button>
+
+      {(!ineFront || !ineBack) && (
+        <p className="text-white/30 text-xs text-center">
+          INE frente e INE reverso son requeridos
+        </p>
+      )}
     </div>
   );
 };
