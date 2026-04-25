@@ -249,7 +249,28 @@ const BillboardDetail: React.FC = () => {
                     {billboard.is_available ? 'Disponible' : 'No disponible'}
                   </Badge>
                 </div>
-                <p className="text-muted-foreground mt-1 flex items-center gap-1.5">
+                {(reviewStats.totalReviews > 0 || ownerVerified) && (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+                    {reviewStats.totalReviews > 0 ? (
+                      <span className="flex items-center gap-1 text-foreground font-medium">
+                        <Star className="w-4 h-4 fill-primary text-primary" />
+                        {reviewStats.averageRating.toFixed(1)}
+                        <span className="text-muted-foreground font-normal">· {reviewStats.totalReviews} reseña{reviewStats.totalReviews !== 1 ? 's' : ''}</span>
+                      </span>
+                    ) : (
+                      <Badge variant="outline" className="text-xs border-primary/30 text-primary">Nuevo</Badge>
+                    )}
+                    {ownerVerified && (
+                      <>
+                        <span className="text-muted-foreground">·</span>
+                        <span className="flex items-center gap-1 text-primary font-medium">
+                          <BadgeCheck className="w-4 h-4" /> Verificado
+                        </span>
+                      </>
+                    )}
+                  </div>
+                )}
+                <p className="text-muted-foreground mt-2 flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
                   {billboard.address} · {billboard.city}, {billboard.state}
                 </p>
