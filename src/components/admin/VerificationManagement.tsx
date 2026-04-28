@@ -244,18 +244,37 @@ const VerificationManagement = () => {
 
     setProcessing(true);
     try {
+      const reviewedAt = new Date().toISOString();
+
+      // Primary update: profiles (source of truth read by VerificationSection)
       const { error } = await supabase
         .from("profiles")
         .update({
           verification_status: status,
           is_verified: status === "approved",
-          verification_reviewed_at: new Date().toISOString(),
+          verification_reviewed_at: reviewedAt,
           verification_reviewed_by: user.id,
           verification_notes: reviewNotes || null,
         })
         .eq("user_id", selectedRequest.user_id);
 
       if (error) throw error;
+
+      // Sync verification_requests.status so both tables stay consistent
+      const { error: syncError } = await (supabase as any)
+        .from("verification_requests")
+        .update({
+          status,
+          rejection_reason: status === "rejected" ? (reviewNotes || null) : null,
+          updated_at: reviewedAt,
+        })
+        .eq("user_id", selectedRequest.user_id)
+        .eq("status", "pending");
+
+      if (syncError) {
+        // Non-critical: profiles is already updated, log but don't fail
+        console.warn("[verification] Failed to sync verification_requests.status:", syncError);
+      }
 
       toast.success("Éxito", { description: `Verificación ${status === "approved" ? "aprobada" : "rechazada"}` });
 
