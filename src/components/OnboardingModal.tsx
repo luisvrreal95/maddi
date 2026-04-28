@@ -38,8 +38,21 @@ const OnboardingModal: React.FC = () => {
         localStorage.setItem(key, 'true');
         return;
       }
-      setFullName((profile.full_name || '').split(' ')[0] || '');
+      const firstName = (profile.full_name || '').split(' ')[0] || '';
+      setFullName(firstName);
+      // Mark shown before opening to prevent duplicate fires if effect re-runs
+      localStorage.setItem(key, 'true');
       setOpen(true);
+      // Fire-and-forget welcome email for brand-new accounts
+      supabase.functions.invoke('send-notification-email', {
+        body: {
+          email: '',
+          type: 'welcome',
+          recipientName: firstName || 'Usuario',
+          userId: user.id,
+          data: { role: userRole },
+        },
+      }).catch((err: unknown) => console.error('[welcome email]', err));
     };
     check();
   }, [user, userRole, isLoading]);

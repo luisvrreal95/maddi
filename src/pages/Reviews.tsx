@@ -174,6 +174,40 @@ const ReviewsPage: React.FC = () => {
       });
       if (error) throw error;
       toast.success('¡Reseña enviada con éxito!');
+
+      // Notify billboard owner — fire-and-forget
+      const capturedBooking = selectedBooking;
+      const capturedRating = newRating;
+      const capturedComment = newComment;
+      ;(async () => {
+        try {
+          const [{ data: billboard }, { data: reviewerProfile }] = await Promise.all([
+            supabase.from('billboards').select('owner_id').eq('id', capturedBooking.billboard_id).maybeSingle(),
+            supabase.from('profiles').select('full_name, company_name').eq('user_id', user.id).maybeSingle(),
+          ]);
+          if (!billboard?.owner_id) return;
+          const reviewerName = reviewerProfile?.company_name || reviewerProfile?.full_name || 'Anunciante';
+          await supabase.functions.invoke('send-notification-email', {
+            body: {
+              email: '',
+              type: 'review_received',
+              recipientName: '',
+              userId: billboard.owner_id,
+              entityId: capturedBooking.billboard_id,
+              data: {
+                reviewerName,
+                billboardTitle: capturedBooking.billboard.title,
+                billboardId: capturedBooking.billboard_id,
+                rating: capturedRating,
+                comment: capturedComment || '',
+              },
+            },
+          });
+        } catch (emailErr) {
+          console.error('[review_received email]', emailErr);
+        }
+      })();
+
       setSelectedBooking(null);
       setNewRating(5);
       setNewComment('');

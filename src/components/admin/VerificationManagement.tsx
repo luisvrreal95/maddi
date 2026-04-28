@@ -278,6 +278,20 @@ const VerificationManagement = () => {
 
       toast.success("Éxito", { description: `Verificación ${status === "approved" ? "aprobada" : "rechazada"}` });
 
+      // Notify owner — fire-and-forget
+      const notifData: Record<string, string | number | boolean> = {};
+      if (status === "rejected" && reviewNotes) notifData.reason = reviewNotes;
+      supabase.functions.invoke("send-notification-email", {
+        body: {
+          email: "",
+          type: status === "approved" ? "verification_approved" : "verification_rejected",
+          recipientName: selectedRequest.company_name || selectedRequest.full_name,
+          userId: selectedRequest.user_id,
+          entityId: selectedRequest.id,
+          data: notifData,
+        },
+      }).catch((err: unknown) => console.warn("[verification email]", err));
+
       setSelectedRequest(null);
       setReviewNotes("");
       fetchRequests();

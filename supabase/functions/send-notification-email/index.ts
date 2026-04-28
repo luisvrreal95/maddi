@@ -7,7 +7,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-type EmailType = 
+type EmailType =
   | 'booking_request'
   | 'booking_request_confirmation'
   | 'booking_confirmed'
@@ -21,7 +21,11 @@ type EmailType =
   | 'owner_activation'
   | 'support_contact'
   | 'valuation_result'
-  | 'valuation_admin_notification';
+  | 'valuation_admin_notification'
+  | 'campaign_started'
+  | 'campaign_started_owner'
+  | 'verification_approved'
+  | 'verification_rejected';
 
 interface NotificationEmailRequest {
   email: string;
@@ -289,6 +293,69 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
           </div>
         `,
         cta: null,
+        secondaryCta: null,
+      };
+
+    case 'campaign_started':
+      return {
+        subject: `🎉 ¡Tu campaña en "${data.billboardTitle}" inicia hoy!`,
+        heading: `¡Tu campaña arranca hoy, ${displayName}!`,
+        message: `Tu campaña en <strong>${data.billboardTitle}</strong> ha comenzado oficialmente. ¡Es momento de que tu marca brille!`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Espectacular:</strong> ${data.billboardTitle}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} — ${data.endDate}</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Coordina con el propietario la instalación de tu diseño si aún no lo has hecho.</p>
+        `,
+        cta: { text: 'Ver mi campaña', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
+        secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
+      };
+
+    case 'campaign_started_owner':
+      return {
+        subject: `📢 La campaña en "${data.billboardTitle}" inicia hoy`,
+        heading: `¡Hola ${displayName}!`,
+        message: `La campaña en tu espectacular <strong>${data.billboardTitle}</strong> ha iniciado hoy.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Espectacular:</strong> ${data.billboardTitle}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} — ${data.endDate}</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Tu espacio publicitario está activo. Asegúrate de que el diseño esté correctamente instalado.</p>
+        `,
+        cta: { text: 'Ver reservas activas', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
+        secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
+      };
+
+    case 'verification_approved':
+      return {
+        subject: `✅ ¡Tu identidad fue verificada en Maddi!`,
+        heading: `¡Felicidades, ${displayName}!`,
+        message: `Tu identidad ha sido <span style="color: #9BFF43;">verificada exitosamente</span>. Ya puedes recibir más reservas en Maddi.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.8);">Tu perfil ahora muestra el distintivo de propietario verificado. Esto genera mayor confianza entre los anunciantes y puede aumentar tus reservas.</p>
+          </div>
+        `,
+        cta: { text: 'Ver mi perfil', url: `${baseUrl}/owner` },
+        secondaryCta: null,
+      };
+
+    case 'verification_rejected':
+      return {
+        subject: `Tu solicitud de verificación no fue aprobada`,
+        heading: `Hola ${displayName}`,
+        message: `Tu solicitud de verificación de identidad no pudo ser aprobada en esta ocasión.`,
+        details: `
+          ${data.reason ? `
+          <div style="background: rgba(255, 100, 100, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.8);"><strong>Motivo:</strong> ${data.reason}</p>
+          </div>
+          ` : ''}
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Puedes volver a enviar tu solicitud desde la sección de Configuración asegurándote de que los documentos sean legibles y estén vigentes.</p>
+        `,
+        cta: { text: 'Volver a intentarlo', url: `${baseUrl}/settings#verificacion` },
         secondaryCta: null,
       };
 
