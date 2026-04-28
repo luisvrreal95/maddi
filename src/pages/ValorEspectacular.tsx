@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Calculator, CheckCircle2, Loader2, Info, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,6 +27,19 @@ import {
 const CITIES = ['Mexicali', 'Tijuana', 'Otra'];
 const RENTED_OPTIONS = ['Sí', 'No', 'A veces'];
 const TOTAL_STEPS = 5;
+
+const STORAGE_KEY = 'maddi_wizard_progress';
+
+interface WizardProgress {
+  step: number;
+  city: string;
+  zone: string;
+  structureType: StructureType | '';
+  rented: string;
+  name: string;
+  email: string;
+  phone: string;
+}
 
 const ZONE_LABELS: Record<ZoneCategory, string> = {
   premium: 'Premium',
@@ -76,7 +89,36 @@ const ValorEspectacular: React.FC = () => {
   const [result, setResult] = useState<ValuationResult | null>(null);
   const [detectedZone, setDetectedZone] = useState<ZoneCategory | null>(null);
 
+  // Restore saved progress on mount
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved: WizardProgress = JSON.parse(raw);
+        setStep(saved.step ?? 1);
+        setCity(saved.city ?? '');
+        setZone(saved.zone ?? '');
+        setStructureType(saved.structureType ?? '');
+        setRented(saved.rented ?? '');
+        setName(saved.name ?? '');
+        setEmail(saved.email ?? '');
+        setPhone(saved.phone ?? '');
+        setStarted(true);
+      }
+    } catch { /* ignore corrupt storage */ }
+  }, []);
+
+  // Save progress whenever form fields change (only while wizard is active)
+  useEffect(() => {
+    if (!started || showResult) return;
+    try {
+      const progress: WizardProgress = { step, city, zone, structureType, rented, name, email, phone };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+    } catch { /* ignore */ }
+  }, [started, showResult, step, city, zone, structureType, rented, name, email, phone]);
+
   const resetWizard = () => {
+    sessionStorage.removeItem(STORAGE_KEY);
     setStarted(true);
     setStep(1);
     setShowResult(false);
@@ -202,6 +244,7 @@ const ValorEspectacular: React.FC = () => {
       console.error('Error saving lead:', err);
     }
     setSaving(false);
+    sessionStorage.removeItem(STORAGE_KEY);
     setShowResult(true);
   };
 
