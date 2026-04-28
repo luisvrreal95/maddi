@@ -19,6 +19,7 @@ import { useBillboardReviewStats } from '@/hooks/useReviews';
 import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
+import { useMapboxToken } from '@/contexts/MapboxTokenContext';
 
 // INEGI data type for cards
 interface INEGICardData {
@@ -122,8 +123,7 @@ const SearchPage: React.FC = () => {
     }
     return null;
   });
-  const [mapboxToken, setMapboxToken] = useState<string>('');
-  const [isLoadingToken, setIsLoadingToken] = useState(true);
+  const { token: mapboxToken, isLoading: isLoadingToken } = useMapboxToken();
   
   // Restore filters from URL params
   const [filters, setFilters] = useState<Record<string, any>>(() => {
@@ -452,26 +452,6 @@ const SearchPage: React.FC = () => {
 
     return filtered;
   }, [allProperties, filters, billboards, inegiDataMap, dateFilter, unavailableBillboardIds]);
-
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const startTime = Date.now();
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        logAPIUsage({ api_name: 'mapbox', endpoint_type: 'token', source_screen: 'search', response_status: error ? 500 : 200, latency_ms: Date.now() - startTime });
-        if (error) throw error;
-        if (data?.token) {
-          setMapboxToken(data.token);
-        }
-      } catch (error) {
-        console.error('Error fetching Mapbox token:', error);
-      } finally {
-        setIsLoadingToken(false);
-      }
-    };
-
-    fetchToken();
-  }, []);
 
   const handleFiltersChange = (newFilters: Record<string, any>) => {
     if (newFilters.dateRange) {

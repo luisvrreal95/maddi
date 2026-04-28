@@ -20,6 +20,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { useMapboxToken } from '@/contexts/MapboxTokenContext';
 
 interface Billboard {
   id: string;
@@ -63,7 +64,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
   const { user } = useAuth();
   const [billboard, setBillboard] = useState<Billboard | null>(null);
   const [inegiData, setInegiData] = useState<INEGIData | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
+  const { token: mapboxToken } = useMapboxToken();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -115,8 +116,6 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
       
       if (inegiDataResult) setInegiData(inegiDataResult);
 
-      const { data: tokenData } = await supabase.functions.invoke('get-mapbox-token');
-      if (tokenData?.token) setMapboxToken(tokenData.token);
     };
 
     fetchData();

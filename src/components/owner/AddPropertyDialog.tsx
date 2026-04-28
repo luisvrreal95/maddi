@@ -16,6 +16,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { useMapboxToken } from '@/contexts/MapboxTokenContext';
 
 interface AddPropertyDialogProps {
   open: boolean;
@@ -52,7 +53,7 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const { token: mapboxToken } = useMapboxToken();
   
   // Map refs
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -146,17 +147,8 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
   const [minCampaignDays, setMinCampaignDays] = useState('');
   const [minAdvanceBookingDays, setMinAdvanceBookingDays] = useState('');
 
-  // Fetch Mapbox token and cities list
+  // Fetch cities list
   useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error) throw error;
-        setMapboxToken(data.token);
-      } catch (error) {
-        console.error('Error fetching mapbox token:', error);
-      }
-    };
     const fetchCities = async () => {
       try {
         const { data } = await supabase.from('billboards').select('city');
@@ -167,7 +159,6 @@ const AddPropertyDialog: React.FC<AddPropertyDialogProps> = ({
       } catch (e) { console.error(e); }
     };
     if (open) {
-      fetchToken();
       fetchCities();
     }
   }, [open]);

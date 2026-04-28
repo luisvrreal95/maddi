@@ -17,6 +17,7 @@ import { es } from 'date-fns/locale';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Progress } from '@/components/ui/progress';
+import { useMapboxToken } from '@/contexts/MapboxTokenContext';
 
 interface LocationSuggestion {
   id: string;
@@ -58,7 +59,7 @@ const AddProperty: React.FC = () => {
   }, [user, userRole, authLoading, navigate]);
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+  const { token: mapboxToken } = useMapboxToken();
   const [direction, setDirection] = useState<'next' | 'prev'>('next');
   
   // Map refs
@@ -129,19 +130,6 @@ const AddProperty: React.FC = () => {
     }
   }, []);
 
-  // Fetch Mapbox token
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error) throw error;
-        setMapboxToken(data.token);
-      } catch (error) {
-        console.error('Error fetching mapbox token:', error);
-      }
-    };
-    fetchToken();
-  }, []);
 
   // Initialize map on step 2
   useEffect(() => {

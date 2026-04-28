@@ -3,6 +3,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
+import { MapboxTokenProvider } from "@/contexts/MapboxTokenContext";
 import { ReactNode, lazy, Suspense } from "react";
 import LoadingState from "./components/ui/LoadingState";
 import OnboardingModal from "./components/OnboardingModal";
@@ -71,6 +72,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
+        <MapboxTokenProvider>
         <Sonner />
         <BrowserRouter>
           <OnboardingModal />
@@ -110,6 +112,7 @@ const App = () => (
             </Routes>
           </Suspense>
         </BrowserRouter>
+        </MapboxTokenProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

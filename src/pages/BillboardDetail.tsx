@@ -26,6 +26,7 @@ import BillboardAnalytics from '@/components/billboard/BillboardAnalytics';
 import ShareDialog from '@/components/share/ShareDialog';
 import OwnerSection from '@/components/billboard/OwnerSection';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
+import { useMapboxToken } from '@/contexts/MapboxTokenContext';
 
 interface Billboard {
   id: string;
@@ -63,7 +64,7 @@ const BillboardDetail: React.FC = () => {
   const [billboard, setBillboard] = useState<Billboard | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState('');
+  const { token: mapboxToken } = useMapboxToken();
   const [mapError, setMapError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [ownerVerified, setOwnerVerified] = useState(false);
@@ -101,19 +102,7 @@ const BillboardDetail: React.FC = () => {
       }
     };
 
-    const fetchToken = async () => {
-      try {
-        const { data } = await supabase.functions.invoke('get-mapbox-token');
-        if (data?.token) setMapboxToken(data.token);
-        else setMapError(true);
-      } catch (error) {
-        console.error('Error fetching Mapbox token:', error);
-        setMapError(true);
-      }
-    };
-
     fetchBillboard();
-    fetchToken();
   }, [id, navigate]);
 
   if (isLoading) {

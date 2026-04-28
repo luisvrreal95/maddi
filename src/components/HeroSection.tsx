@@ -36,15 +36,16 @@ const HeroSection: React.FC = () => {
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const geoRequestedRef = useRef(false);
 
-  useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => setUserLocation({ lat: 32.6245, lng: -115.4523 }) // Default Mexicali
-      );
-    }
-  }, []);
+  const requestGeolocation = () => {
+    if (geoRequestedRef.current || !navigator.geolocation) return;
+    geoRequestedRef.current = true;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      () => setUserLocation({ lat: 32.6245, lng: -115.4523 }) // Default Mexicali
+    );
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -179,7 +180,7 @@ const HeroSection: React.FC = () => {
                     type="text"
                     value={location}
                     onChange={(e) => { setLocation(e.target.value); setSelectedCoords(null); }}
-                    onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                    onFocus={() => { requestGeolocation(); if (suggestions.length > 0) setShowSuggestions(true); }}
                     placeholder="Plaza, colonia o dirección"
                     className="w-full bg-transparent text-white text-sm outline-none placeholder:text-white/25 mt-0.5"
                   />
