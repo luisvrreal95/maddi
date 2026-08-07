@@ -13,6 +13,7 @@ CREATE POLICY "Admin can manage all verifications"
 DROP POLICY IF EXISTS "Owners can upload own verification docs" ON storage.objects;
 DROP POLICY IF EXISTS "Owners can view own verification docs" ON storage.objects;
 DROP POLICY IF EXISTS "Owners can read own verification docs" ON storage.objects;
+DROP POLICY IF EXISTS "Owners can update own verification docs" ON storage.objects;
 DROP POLICY IF EXISTS "Admins can view all verification docs" ON storage.objects;
 DROP POLICY IF EXISTS "Admins can read all verification docs" ON storage.objects;
 

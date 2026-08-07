@@ -31,6 +31,7 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('verifications', 'verifications', false)
 ON CONFLICT (id) DO NOTHING;
 
+DROP POLICY IF EXISTS "Owners can upload own verification docs" ON storage.objects;
 CREATE POLICY "Owners can upload own verification docs"
   ON storage.objects FOR INSERT
   TO authenticated
@@ -39,6 +40,7 @@ CREATE POLICY "Owners can upload own verification docs"
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
+DROP POLICY IF EXISTS "Owners can view own verification docs" ON storage.objects;
 CREATE POLICY "Owners can view own verification docs"
   ON storage.objects FOR SELECT
   TO authenticated
@@ -47,6 +49,7 @@ CREATE POLICY "Owners can view own verification docs"
     AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
+DROP POLICY IF EXISTS "Admins can view all verification docs" ON storage.objects;
 CREATE POLICY "Admins can view all verification docs"
   ON storage.objects FOR SELECT
   TO authenticated
