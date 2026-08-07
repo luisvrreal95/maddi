@@ -14,8 +14,17 @@ serve(async (req) => {
     const { query, billboards } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
+    // AI search is paused (cost control). No key configured means the
+    // feature is intentionally off — degrade gracefully instead of failing,
+    // so callers can keep rendering unfiltered results.
     if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({
+          matchingIds: [],
+          explanation: "AI search temporarily unavailable",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const systemPrompt = `Eres un asistente experto que ayuda a encontrar espectaculares (billboards) publicitarios basándose en las preferencias del usuario.
