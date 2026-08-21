@@ -85,7 +85,7 @@ async function handlePreview(req: Request): Promise<Response> {
     return new Response(null, { headers: previewCorsHeaders })
   }
 
-  const hookSecret = Deno.env.get('SUPABASE_AUTH_HOOK_SECRET')
+  const hookSecret = Deno.env.get('AUTH_HOOK_SECRET')
   const authHeader = req.headers.get('Authorization')
 
   if (!hookSecret || authHeader !== `Bearer ${hookSecret}`) {
@@ -145,10 +145,10 @@ interface AuthHookPayload {
 
 // Webhook handler - verifies signature and sends email
 async function handleWebhook(req: Request): Promise<Response> {
-  const rawSecret = Deno.env.get('SUPABASE_AUTH_HOOK_SECRET')
+  const rawSecret = Deno.env.get('AUTH_HOOK_SECRET')
 
   if (!rawSecret) {
-    console.error('SUPABASE_AUTH_HOOK_SECRET not configured')
+    console.error('AUTH_HOOK_SECRET not configured')
     return new Response(
       JSON.stringify({ error: 'Server configuration error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
