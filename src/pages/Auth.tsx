@@ -62,7 +62,13 @@ const Auth: React.FC = () => {
       if (error) throw error;
       toast.success('Correo de recuperación enviado. Revisa tu bandeja de entrada.');
     } catch (err: any) {
-      console.error('Reset password error:', err);
+      console.error('Reset password error:', {
+        message: err?.message,
+        name: err?.name,
+        status: err?.status,
+        code: err?.code,
+        raw: err,
+      });
       toast.error(err?.message ?? 'Error al enviar correo de recuperación');
     } finally {
       setIsSendingReset(false);
