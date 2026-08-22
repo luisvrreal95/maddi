@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# One-off scripts that may hold pasted secrets (service_role keys, etc.)
+scripts/
+
+# Environment variables
+.env
