@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     try {
       // Clear localStorage manually to ensure session is removed
-      localStorage.removeItem('sb-szmflagbbuxcuuxpvnkt-auth-token');
+      localStorage.removeItem('sb-vzkzivropoohapysafya-auth-token');
       
       // Try to sign out from Supabase
       await supabase.auth.signOut({ scope: 'local' });
