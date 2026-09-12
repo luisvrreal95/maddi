@@ -33,13 +33,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .select('role')
       .eq('user_id', userId)
       .maybeSingle();
-    
+
     if (data?.role) {
       setUserRole(data.role as UserRole);
       setNeedsRoleSelection(false);
       return true;
     }
     return false;
+  };
+
+  // Replaces the removed on_auth_user_created / on_auth_user_created_role
+  // triggers: creates the profile/role rows if they're missing, using the
+  // same full_name/role that were passed as signup metadata.
+  const ensureProfileAndRole = async (authUser: User) => {
+    const fullName = (authUser.user_metadata?.full_name as string) ?? '';
+    const role = authUser.user_metadata?.role as UserRole;
+
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', authUser.id)
+      .maybeSingle();
+
+    if (!existingProfile) {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({ user_id: authUser.id, full_name: fullName });
+      if (profileError) console.error('Error creando profile:', profileError.message);
+    }
+
+    if (role) {
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', authUser.id)
+        .maybeSingle();
+
+      if (!existingRole) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({ user_id: authUser.id, role });
+        if (roleError) console.error('Error creando user_role:', roleError.message);
+      }
+    }
   };
 
   useEffect(() => {
@@ -53,9 +89,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setTimeout(async () => {
             const hasRole = await fetchUserRole(session.user.id);
-            // If OAuth user without role, show role selection
-            if (!hasRole && session.user.app_metadata?.provider !== 'email') {
-              setNeedsRoleSelection(true);
+            if (!hasRole) {
+              if (session.user.app_metadata?.provider === 'email') {
+                // Email/password signup: profile/role should already exist.
+                // Backfill them if they're missing (e.g. removed triggers,
+                // or the insert in signUp() failed because there was no
+                // session yet at that point).
+                await ensureProfileAndRole(session.user);
+                await fetchUserRole(session.user.id);
+              } else {
+                // OAuth user without role: show role selection
+                setNeedsRoleSelection(true);
+              }
             }
           }, 0);
         } else {
@@ -71,8 +116,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       if (session?.user) {
         const hasRole = await fetchUserRole(session.user.id);
-        if (!hasRole && session.user.app_metadata?.provider !== 'email') {
-          setNeedsRoleSelection(true);
+        if (!hasRole) {
+          if (session.user.app_metadata?.provider === 'email') {
+            await ensureProfileAndRole(session.user);
+            await fetchUserRole(session.user.id);
+          } else {
+            setNeedsRoleSelection(true);
+          }
         }
       }
       setIsLoading(false);
@@ -85,7 +135,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Redirect to home page after email verification
     const redirectUrl = `https://maddi.com.mx/`;
     
-    // Store role in user_metadata - a trigger will create the user_role record
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -93,13 +142,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
-          role: role, // This will be picked up by the trigger
+          role: role,
           company_name: companyName || null,
         },
       },
     });
 
     if (error) return { error };
+
+    // Best-effort: this will only succeed if signUp() also returned a
+    // session (email confirmation disabled). When confirmation is required
+    // there's no session yet and RLS blocks the insert here — in that case
+    // ensureProfileAndRole runs again on first sign-in once a session exists.
+    if (data.user) {
+      await ensureProfileAndRole(data.user);
+    }
 
     return { error: null };
   };
