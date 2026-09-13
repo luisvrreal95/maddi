@@ -100,8 +100,10 @@ All colors MUST be HSL.
 }
 
 /* Mapbox GL — ensure canvas fills its container.
-   Tailwind preflight resets canvas to height:auto, which collapses the map. */
-.mapboxgl-map,
+   Tailwind preflight resets canvas to height:auto, which collapses the map.
+   Note: .mapboxgl-map is the container div we pass in ourselves (mapbox-gl
+   adds this class to it directly) — it already has an explicit height via
+   Tailwind, so it must NOT be forced here or that height gets overridden. */
 .mapboxgl-canvas-container,
 .mapboxgl-canvas {
   width: 100% !important;
