@@ -733,7 +733,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
   return (
     <div className="relative w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className="w-full h-full" />
 
       {/* Flow Data Display */}
       {flowData && layers.flow && (
