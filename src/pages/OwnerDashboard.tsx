@@ -1,3 +1,4 @@
+import StripeSetupBanner from '@/components/owner/StripeSetupBanner';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -286,6 +287,10 @@ const OwnerDashboard: React.FC = () => {
       <OwnerDashboardHeader activeTab={activeTab} onTabChange={handleTabChange} />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-4 md:px-6 md:py-8 pb-24 md:pb-8">
+        {(activeTab === 'inicio' || activeTab === 'propiedades' || activeTab === 'reservas') && user && (
+          <StripeSetupBanner userId={user.id} hasProperties={billboards.length > 0} />
+        )}
+
         {activeTab === 'inicio' && (
           <>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 md:mb-8">

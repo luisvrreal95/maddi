@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, Users, MapPin, Clock, Check, X, ChevronRight, Ban, MoreVertical } from 'lucide-react';
+import { CreditCard, Calendar, Users, MapPin, Clock, Check, X, ChevronRight, Ban, MoreVertical } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
@@ -30,10 +30,11 @@ interface CampaignCardProps {
   };
   onSelect: (id: string) => void;
   isActive?: boolean;
+  paymentStatus?: 'pending' | 'paid' | 'failed' | 'refunded' | null;
   onCancel?: (id: string) => void;
 }
 
-const CampaignCard: React.FC<CampaignCardProps> = ({ booking, onSelect, isActive = false, onCancel }) => {
+const CampaignCard: React.FC<CampaignCardProps> = ({ booking, onSelect, isActive = false, paymentStatus, onCancel }) => {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const startDate = parseDateOnlyStart(booking.start_date);
@@ -160,6 +161,13 @@ const CampaignCard: React.FC<CampaignCardProps> = ({ booking, onSelect, isActive
                   {format(startDate, 'd MMM', { locale: es })} - {format(endDate, 'd MMM yyyy', { locale: es })}
                 </span>
               </div>
+
+              {booking.status === 'approved' && paymentStatus !== 'paid' && paymentStatus !== 'refunded' && !isPast && (
+                <Badge variant="outline" className="border-warning text-warning gap-1 mb-2">
+                  <CreditCard className="w-3 h-3" />
+                  Pago pendiente
+                </Badge>
+              )}
 
               {(isOngoing || isPast) && (
                 <div className="flex items-center gap-1 text-sm">

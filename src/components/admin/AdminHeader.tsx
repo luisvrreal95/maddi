@@ -9,12 +9,14 @@ import {
   Shield,
   Settings,
   BadgeCheck,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const baseTabs = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'campaigns', label: 'Campañas', icon: CreditCard },
+  { id: 'disputes', label: 'Disputas', icon: AlertTriangle },
   { id: 'properties', label: 'Propiedades', icon: Building2 },
   { id: 'users', label: 'Usuarios', icon: Users },
   { id: 'verifications', label: 'Verificaciones', icon: BadgeCheck },

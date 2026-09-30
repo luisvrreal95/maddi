@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
+import { authorizeBillboardRequest, corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 // Cache duration: 1 week in milliseconds
 const CACHE_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -213,9 +210,13 @@ function estimateTrafficFromLocation(city: string, hasNearbyPOIs: boolean = fals
 // Main handler
 // ---------------------------------------------------------------------------
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const denied = await gate(req, { name: 'get-traffic-data', ip: [120, 3600] });
+  if (denied) return denied;
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
@@ -230,7 +231,7 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-    const { billboard_id, latitude, longitude, force_refresh = false, city = '' } = await req.json();
+    let { billboard_id, latitude, longitude, force_refresh = false, city = '' } = await req.json();
 
     if (!billboard_id || !latitude || !longitude) {
       return new Response(
@@ -238,6 +239,12 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const access = await authorizeBillboardRequest(req, billboard_id);
+    if (!access.ok) return access.response;
+    latitude = access.lat;
+    longitude = access.lon;
+    force_refresh = force_refresh && access.canRefresh;
 
     console.log(`[Traffic] Request for billboard ${billboard_id} at ${latitude}, ${longitude}`);
 

@@ -582,6 +582,16 @@ const AddProperty: React.FC = () => {
       }
 
       toast.success('¡Espectacular publicado exitosamente!');
+      // Aviso temprano: sin cuenta de cobro no podrá aprobar reservas.
+      const { data: acct } = await supabase.from('stripe_accounts')
+        .select('charges_enabled, payouts_enabled').eq('user_id', user!.id).maybeSingle();
+      if (!acct?.charges_enabled || !acct?.payouts_enabled) {
+        toast('Último paso: conecta tu cuenta de cobro', {
+          description: 'La necesitas para aprobar reservas y recibir tus pagos. Toma unos 5 minutos.',
+          duration: 12000,
+          action: { label: 'Conectar', onClick: () => navigate('/settings?stripe=required') },
+        });
+      }
       navigate('/owner?tab=propiedades');
     } catch (error: any) {
       console.error('Error saving billboard:', error);

@@ -1,15 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const denied = await gate(req, { name: 'get-mapbox-token', ip: [120, 3600] });
+  if (denied) return denied;
 
   try {
     const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN');
@@ -24,8 +25,6 @@ serve(async (req) => {
         }
       );
     }
-
-    console.log('Successfully retrieved Mapbox token');
 
     return new Response(
       JSON.stringify({ token: mapboxToken }),

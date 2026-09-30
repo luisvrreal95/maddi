@@ -100,7 +100,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
         className="text-white/60 text-sm leading-relaxed mb-6 px-2"
         style={{ animation: 'fadeSlideUp 0.4s ease-out 0.7s both' }}
       >
-        El propietario revisará tu solicitud y se pondrá en contacto contigo para coordinar detalles y pago.
+        El propietario revisará tu solicitud. Cuando la apruebe, podrás pagar la campaña de forma segura desde tu panel.
       </p>
 
       {/* CTAs */}

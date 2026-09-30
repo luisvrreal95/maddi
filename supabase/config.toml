@@ -39,7 +39,21 @@ project_id = "vzkzivropoohapysafya"
     verify_jwt = false
   [functions.send-notification-email]
     verify_jwt = false
-  [functions.send-verification-email]
-    verify_jwt = false
   [functions.validate-admin-invite]
+    verify_jwt = false
+  [functions.stripe-webhook]
+    verify_jwt = false
+  [functions.stripe-connect]
+    verify_jwt = true
+  [functions.create-checkout-session]
+    verify_jwt = true
+  [functions.release-payouts]
+    verify_jwt = false
+  [functions.cancel-booking]
+    verify_jwt = true
+  [functions.resolve-dispute]
+    verify_jwt = true
+  [functions.booking-event]
+    verify_jwt = true
+  [functions.stripe-onboarding-reminder]
     verify_jwt = false

@@ -8,6 +8,7 @@ import PropertyManagement from "@/components/admin/PropertyManagement";
 import UserManagement from "@/components/admin/UserManagement";
 import EnhancedAPIAnalytics from "@/components/admin/EnhancedAPIAnalytics";
 import AdminSettings from "@/components/admin/AdminSettings";
+import DisputeManagement from "@/components/admin/DisputeManagement";
 import VerificationManagement from "@/components/admin/VerificationManagement";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -55,6 +56,8 @@ const AdminDashboard = () => {
         );
       case 'campaigns':
         return <CampaignManagement />;
+      case 'disputes':
+        return <DisputeManagement />;
       case 'properties':
         return <PropertyManagement />;
       case 'users':

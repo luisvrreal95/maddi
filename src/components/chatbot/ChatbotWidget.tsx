@@ -171,7 +171,7 @@ const ChatbotWidget: React.FC = () => {
     try {
       await supabase.functions.invoke('send-notification-email', {
         body: {
-          email: 'luis@maddi.com.mx',
+          email: '',
           type: 'support_contact',
           recipientName: 'Luis',
           data: {

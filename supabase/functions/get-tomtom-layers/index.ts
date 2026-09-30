@@ -1,11 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { badCoords, corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
 
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   
   
   // Handle CORS preflight requests
@@ -13,12 +11,16 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const denied = await gate(req, { name: 'get-tomtom-layers', ip: [300, 3600] });
+  if (denied) return denied;
+
   try {
     // Read body ONCE at the start - FIX for double req.json() bug
     const body = await req.json();
-    const { latitude, longitude, layer, radius = 1000, categories } = body;
+    const { latitude, longitude, layer, categories } = body;
+    const radius = Math.min(Math.max(Number(body.radius) || 1000, 100), 5000);
 
-    if (!latitude || !longitude) {
+    if (!latitude || !longitude || badCoords(latitude, longitude)) {
       return new Response(
         JSON.stringify({ error: 'latitude and longitude are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

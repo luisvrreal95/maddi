@@ -249,6 +249,45 @@ export type Database = {
           },
         ]
       }
+      booking_payouts: {
+        Row: {
+          booking_id: string
+          created_at: string
+          fee_cents: number
+          gross_cents: number
+          id: string
+          kind: string
+          last_error: string | null
+          net_cents: number
+          period_end: string | null
+          period_start: string | null
+          release_at: string | null
+          released_at: string | null
+          seq: number
+          status: string
+          stripe_transfer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          booking_id: string
+          fee_cents: number
+          gross_cents: number
+          net_cents: number
+          seq: number
+        }
+        Update: {
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payouts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           ad_design_url: string | null
@@ -262,6 +301,20 @@ export type Database = {
           status: string
           total_price: number
           updated_at: string
+          approved_at: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          dispute_reason: string | null
+          dispute_resolution: string | null
+          disputed_at: string | null
+          installation_confirmed_at: string | null
+          installation_confirmed_by: string | null
+          installation_deadline: string | null
+          installation_photos: string[]
+          installation_status: string
+          installation_submitted_at: string | null
+          payment_due_at: string | null
         }
         Insert: {
           ad_design_url?: string | null
@@ -275,6 +328,20 @@ export type Database = {
           status?: string
           total_price: number
           updated_at?: string
+          approved_at?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          dispute_reason?: string | null
+          dispute_resolution?: string | null
+          disputed_at?: string | null
+          installation_confirmed_at?: string | null
+          installation_confirmed_by?: string | null
+          installation_deadline?: string | null
+          installation_photos?: string[]
+          installation_status?: string
+          installation_submitted_at?: string | null
+          payment_due_at?: string | null
         }
         Update: {
           ad_design_url?: string | null
@@ -288,6 +355,20 @@ export type Database = {
           status?: string
           total_price?: number
           updated_at?: string
+          approved_at?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          dispute_reason?: string | null
+          dispute_resolution?: string | null
+          disputed_at?: string | null
+          installation_confirmed_at?: string | null
+          installation_confirmed_by?: string | null
+          installation_deadline?: string | null
+          installation_photos?: string[]
+          installation_status?: string
+          installation_submitted_at?: string | null
+          payment_due_at?: string | null
         }
         Relationships: [
           {
@@ -735,8 +816,14 @@ export type Database = {
           owner_payout: number
           payment_date: string | null
           payment_status: string | null
+          paid_at: string | null
+          refunded_at: string | null
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
           total_amount: number
           updated_at: string | null
+          stripe_charge_id: string | null
+          refunded_amount: number
         }
         Insert: {
           booking_id: string
@@ -747,8 +834,14 @@ export type Database = {
           owner_payout: number
           payment_date?: string | null
           payment_status?: string | null
+          paid_at?: string | null
+          refunded_at?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           total_amount: number
           updated_at?: string | null
+          stripe_charge_id?: string | null
+          refunded_amount?: number
         }
         Update: {
           booking_id?: string
@@ -759,8 +852,14 @@ export type Database = {
           owner_payout?: number
           payment_date?: string | null
           payment_status?: string | null
+          paid_at?: string | null
+          refunded_at?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           total_amount?: number
           updated_at?: string | null
+          stripe_charge_id?: string | null
+          refunded_amount?: number
         }
         Relationships: [
           {
@@ -1070,6 +1169,36 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_accounts: {
+        Row: {
+          charges_enabled: boolean
+          created_at: string
+          details_submitted: boolean
+          payouts_enabled: boolean
+          stripe_account_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          charges_enabled?: boolean
+          created_at?: string
+          details_submitted?: boolean
+          payouts_enabled?: boolean
+          stripe_account_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          charges_enabled?: boolean
+          created_at?: string
+          details_submitted?: boolean
+          payouts_enabled?: boolean
+          stripe_account_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1205,6 +1334,26 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      submit_installation_proof: {
+        Args: { _booking_id: string; _paths: string[] }
+        Returns: undefined
+      }
+      confirm_installation: {
+        Args: { _booking_id: string }
+        Returns: undefined
+      }
+      report_installation_issue: {
+        Args: { _booking_id: string; _reason: string }
+        Returns: undefined
+      }
+      is_booking_paid: {
+        Args: { _booking_id: string }
+        Returns: boolean
+      }
+      owner_can_receive_payments: {
+        Args: { _owner_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {

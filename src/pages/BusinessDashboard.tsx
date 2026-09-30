@@ -8,6 +8,7 @@ import BusinessHeader from '@/components/navigation/BusinessHeader';
 import EmptyCampaigns from '@/components/campaigns/EmptyCampaigns';
 import CampaignCard from '@/components/campaigns/CampaignCard';
 import CampaignDetail from '@/components/campaigns/CampaignDetail';
+import { getPaymentStatuses, PaymentStatus } from '@/lib/stripe';
 import { Button } from '@/components/ui/button';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
 
@@ -34,7 +35,8 @@ interface Booking {
 
 const BusinessDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [paymentStatuses, setPaymentStatuses] = useState<Record<string, PaymentStatus>>({});
   const { user, userRole, isLoading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -74,6 +76,23 @@ const BusinessDashboard: React.FC = () => {
     }
   }, [user]);
 
+  // Regreso desde Stripe Checkout. El webhook puede tardar unos segundos en marcar el pago.
+  useEffect(() => {
+    const result = searchParams.get('payment');
+    if (!result || !user) return;
+    if (result === 'success') {
+      toast.success('¡Gracias! Estamos confirmando tu pago.');
+      const timers = [2000, 6000, 15000].map(ms => setTimeout(() => fetchBookings(), ms));
+      setSearchParams(prev => { prev.delete('payment'); return prev; }, { replace: true });
+      return () => timers.forEach(clearTimeout);
+    }
+    if (result === 'cancelled') {
+      toast.info('El pago fue cancelado. Puedes intentarlo de nuevo cuando quieras.');
+      setSearchParams(prev => { prev.delete('payment'); return prev; }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   const fetchBookings = async () => {
     try {
       const { data: bookingsData, error } = await supabase
@@ -97,6 +116,7 @@ const BusinessDashboard: React.FC = () => {
       );
 
       setBookings(enrichedBookings);
+      setPaymentStatuses(await getPaymentStatuses(enrichedBookings.map(b => b.id)));
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast.error('Error al cargar reservas');
@@ -215,6 +235,7 @@ const BusinessDashboard: React.FC = () => {
         ) : selectedBooking ? (
           <CampaignDetail 
             booking={selectedBooking} 
+            paymentStatus={paymentStatuses[selectedBooking.id]}
             onBack={() => setSelectedBookingId(null)}
             onRefresh={fetchBookings}
           />
@@ -253,6 +274,7 @@ const BusinessDashboard: React.FC = () => {
                   <CampaignCard
                     key={booking.id}
                     booking={booking}
+                    paymentStatus={paymentStatuses[booking.id]}
                     onSelect={setSelectedBookingId}
                     isActive={categorized.active.some(a => a.id === booking.id)}
                     onCancel={booking.status === 'pending' ? handleCancelBooking : undefined}

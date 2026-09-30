@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { authorizeBillboardRequest, corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
 
 // 8 main categories for the overview (fixed 500m radius)
 const OVERVIEW_CATEGORIES = [
@@ -43,14 +40,18 @@ async function searchPOIs(lat: number, lon: number, categoryId: string, apiKey: 
 }
 
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const denied = await gate(req, { name: 'get-poi-overview', ip: [120, 3600] });
+  if (denied) return denied;
+
   try {
-    const { billboard_id, latitude, longitude, force_refresh = false } = await req.json();
+    let { billboard_id, latitude, longitude, force_refresh = false } = await req.json();
 
     if (!billboard_id || !latitude || !longitude) {
       return new Response(
@@ -58,6 +59,12 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const access = await authorizeBillboardRequest(req, billboard_id);
+    if (!access.ok) return access.response;
+    latitude = access.lat;
+    longitude = access.lon;
+    force_refresh = force_refresh && access.canRefresh;
 
     // Initialize Supabase client with service role
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
