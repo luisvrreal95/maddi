@@ -57,6 +57,27 @@ serve(async (req: Request): Promise<Response> => {
     }
 
     const userId = targetUserId;
+    // No se puede borrar una cuenta con dinero retenido o campañas vigentes: al borrar las reservas
+    // se perdería el rastro de los pagos de Stripe. Hay que cancelarlas (con reembolso) primero.
+    const today = new Date(Date.now() - 6 * 3_600_000).toISOString().slice(0, 10);
+    const { data: ownBillboards } = await supabase.from('billboards').select('id').eq('owner_id', userId);
+    const ownIds = (ownBillboards ?? []).map((b) => b.id);
+    const involved = `business_id.eq.${userId}${ownIds.length ? `,billboard_id.in.(${ownIds.join(',')})` : ''}`;
+    const { data: openBookings } = await supabase.from('bookings').select('id')
+      .eq('status', 'approved').or(involved);
+    const openIds = (openBookings ?? []).map((b) => b.id);
+    if (openIds.length) {
+      const { data: live } = await supabase.from('bookings').select('id').in('id', openIds).gte('end_date', today).limit(1);
+      const { data: held } = await supabase.from('booking_payouts').select('id')
+        .in('booking_id', openIds).eq('status', 'scheduled').limit(1);
+      if (live?.length || held?.length) {
+        return new Response(
+          JSON.stringify({ error: "La cuenta tiene campañas vigentes o pagos pendientes. Cancélalas o espera a que concluyan antes de eliminarla." }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
     console.log(`Starting account deletion for user: ${userId} (admin: ${isAdminAction})`);
 
     // Delete in order respecting FK constraints

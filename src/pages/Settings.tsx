@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import VerificationSection from '@/components/settings/VerificationSection';
+import { invoke } from '@/lib/stripe';
 import StripeConnectSection from '@/components/settings/StripeConnectSection';
 import {
   DropdownMenu,
@@ -544,11 +545,7 @@ const Settings: React.FC = () => {
                             return;
                           }
                           
-                          const { error } = await supabase.functions.invoke('delete-user-account', {
-                            headers: { Authorization: `Bearer ${session.access_token}` }
-                          });
-                          
-                          if (error) throw error;
+                          await invoke('delete-user-account', {});
                           
                           toast.success('Cuenta eliminada exitosamente');
                           await signOut();
