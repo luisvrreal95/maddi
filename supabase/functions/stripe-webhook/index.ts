@@ -62,16 +62,23 @@ async function notifyPaid(bookingId: string) {
 Deno.serve(async (req) => {
   if (req.method !== "POST") return new Response("Method not allowed", { status: 405 });
 
-  const secret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+  // Stripe da un secreto distinto para el endpoint de cuenta y el de cuentas conectadas.
+  const secrets = [Deno.env.get("STRIPE_WEBHOOK_SECRET"), Deno.env.get("STRIPE_CONNECT_WEBHOOK_SECRET")]
+    .filter((s): s is string => !!s);
   const signature = req.headers.get("stripe-signature");
-  if (!secret || !signature) return new Response("Missing signature", { status: 400 });
+  if (!secrets.length || !signature) return new Response("Missing signature", { status: 400 });
 
   const stripe = getStripe();
-  let event: Stripe.Event;
-  try {
-    event = await stripe.webhooks.constructEventAsync(await req.text(), signature, secret);
-  } catch (err) {
-    console.error("Firma de webhook inválida:", err);
+  const payload = await req.text();
+  let event: Stripe.Event | null = null;
+  for (const secret of secrets) {
+    try {
+      event = await stripe.webhooks.constructEventAsync(payload, signature, secret);
+      break;
+    } catch { /* prueba el siguiente secreto */ }
+  }
+  if (!event) {
+    console.error("Firma de webhook inválida");
     return new Response("Invalid signature", { status: 400 });
   }
 

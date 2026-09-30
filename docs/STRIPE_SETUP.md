@@ -15,7 +15,8 @@ El estado de pago **solo** lo cambia el webhook (o un admin manualmente desde el
 ## Secretos de Supabase (Edge Functions)
 ```
 supabase secrets set STRIPE_SECRET_KEY=sk_live_...
-supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
+supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...           # endpoint de tu cuenta
+supabase secrets set STRIPE_CONNECT_WEBHOOK_SECRET=whsec_...   # endpoint de cuentas conectadas
 supabase secrets set SITE_URL=https://maddi.com.mx      # opcional, es el default
 supabase secrets set ALLOWED_ORIGINS=https://preview.ejemplo.com   # opcional
 ```
@@ -36,8 +37,7 @@ supabase functions deploy stripe-connect create-checkout-session stripe-webhook 
 4. Métodos de pago (tarjeta, OXXO, SPEI) se configuran en Settings → Payment methods; el código usa
    métodos dinámicos y ya maneja los pagos asíncronos.
 
-> Nota: si Stripe da dos secretos distintos (cuenta vs. Connect), `stripe-webhook` hoy valida con uno solo
-> (`STRIPE_WEBHOOK_SECRET`). Usa un único endpoint con ambos tipos de eventos o amplía la función.
+> `stripe-webhook` acepta ambos secretos (`STRIPE_WEBHOOK_SECRET` y `STRIPE_CONNECT_WEBHOOK_SECRET`).
 
 ## Pruebas (modo test)
 - Tarjeta `4242 4242 4242 4242`. Onboarding de prueba: usar los datos de prueba de Stripe para Express.
