@@ -12,6 +12,7 @@ type EmailType =
   | 'booking_confirmed'
   | 'payment_received_business'
   | 'payment_received_owner'
+  | 'stripe_onboarding_reminder'
   | 'installation_proof_submitted'
   | 'installation_confirmed'
   | 'issue_reported'
@@ -238,6 +239,27 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
         cta: { text: 'Ver reserva', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
         secondaryCta: null,
       };
+
+    case 'stripe_onboarding_reminder': {
+      const pending = Number(data.pendingRequests || 0);
+      return {
+        subject: pending > 0
+          ? `Tienes ${pending} solicitud${pending > 1 ? 'es' : ''} esperando — conecta tu cuenta de cobro`
+          : 'Conecta tu cuenta de cobro para recibir pagos en Maddi',
+        heading: `Hola ${displayName}`,
+        message: pending > 0
+          ? `Tienes <strong>${pending} solicitud${pending > 1 ? 'es' : ''} de campaña pendiente${pending > 1 ? 's' : ''}</strong>, pero no podrás aprobarlas hasta conectar tu cuenta de cobro.`
+          : 'Ya publicaste tu espectacular. Para poder aprobar reservas y recibir tus pagos, falta conectar tu cuenta de cobro.',
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;">${data.started ? 'Ya iniciaste el registro: solo falta terminarlo.' : 'Toma unos 5 minutos y se hace una sola vez.'}</p>
+            <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.7); font-size: 14px;">Ten a la mano tu identificación, RFC y la CLABE donde quieres recibir tus pagos. Los registra directamente Stripe, nosotros no vemos tus datos bancarios.</p>
+          </div>
+        `,
+        cta: { text: 'Conectar mi cuenta de cobro', url: `${baseUrl}/settings?stripe=required` },
+        secondaryCta: null,
+      };
+    }
 
     case 'booking_rejected':
       return {

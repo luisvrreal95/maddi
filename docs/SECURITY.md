@@ -6,7 +6,7 @@ Utilidades comunes en `supabase/functions/_shared/http.ts` (CORS, auth, rate lim
 
 | Nivel | Funciones | Control |
 |---|---|---|
-| **Interna** (service role o `x-cron-secret`) | `release-payouts`, `campaign-lifecycle-notifications`, `owner-activation-reminder` | `CRON_SECRET`; se ejecutan con pg_cron |
+| **Interna** (service role o `x-cron-secret`) | `release-payouts`, `campaign-lifecycle-notifications`, `owner-activation-reminder`, `stripe-onboarding-reminder` | `CRON_SECRET`; se ejecutan con pg_cron |
 | **Usuario con sesión** | `stripe-connect`, `create-checkout-session`, `cancel-booking`, `booking-event`, `delete-user-account` | JWT + verificación de pertenencia |
 | **Admin** | `resolve-dispute`, `get-admin-user-details`, `send-admin-invite` (super admin) | JWT + `admin_users` |
 | **Pública con límite por IP** | `search-poi`, `get-mapbox-token`, `get-tomtom-*`, `get-traffic-estimate`, `analyze-nearby-poi`, `ai-search`, `get-traffic-data`, `get-poi-overview`, `analyze-inegi-data`, `validate-admin-invite`, `accept-admin-invite` | rate limit (tabla `rate_limits`), validación de entrada |

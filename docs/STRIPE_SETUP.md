@@ -40,6 +40,12 @@ supabase functions deploy stripe-connect create-checkout-session stripe-webhook 
   release-payouts cancel-booking resolve-dispute booking-event
 ```
 
+## Aviso y recordatorio de onboarding del propietario
+- Banner en el panel del propietario (inicio, propiedades, reservas) y aviso al publicar el primer espectacular.
+- `stripe-onboarding-reminder` (cron diario 09:00 CDMX): correo a propietarios con espectaculares que aún no pueden cobrar.
+  Recordatorios a las 24 h, +3 días y +6 días; si hay solicitudes pendientes que no podrían aprobar, aviso urgente cada 24 h
+  (máx. 5). Respeta la preferencia de correo del usuario. Se desactiva solo cuando la cuenta queda activa.
+
 ## Cron (una sola vez)
 La migración `20260501000002` programa `release-payouts` cada 15 min con pg_cron + pg_net. Necesita dos
 secretos en Vault (SQL editor):
