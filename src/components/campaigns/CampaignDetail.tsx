@@ -16,6 +16,9 @@ import { Link } from 'react-router-dom';
 import { parseDateOnlyStart, parseDateOnlyEnd, getTodayStart } from '@/lib/dateUtils';
 import { toast } from 'sonner';
 import { startCheckout, PaymentStatus } from '@/lib/stripe';
+import type { InstallationStatus } from '@/lib/bookingWorkflow';
+import AdvertiserInstallationSection from '@/components/booking/AdvertiserInstallationSection';
+import CancelBookingDialog from '@/components/booking/CancelBookingDialog';
 import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -56,6 +59,12 @@ interface CampaignDetailProps {
     status: string;
     ad_design_url?: string | null;
     notes?: string | null;
+    payment_due_at?: string | null;
+    installation_status?: InstallationStatus;
+    installation_photos?: string[];
+    installation_deadline?: string | null;
+    dispute_reason?: string | null;
+    dispute_resolution?: string | null;
   };
   onBack: () => void;
   paymentStatus?: PaymentStatus;
@@ -70,6 +79,7 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, paymentStatus,
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [paying, setPaying] = useState(false);
+  const [showCancelApproved, setShowCancelApproved] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -434,6 +444,11 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, paymentStatus,
                 Total a pagar: <span className="font-medium text-foreground">${Number(booking.total_price).toLocaleString('es-MX')} MXN</span>.
                 {paymentStatus === 'failed' && ' Tu intento anterior no se completó.'}
               </p>
+              {booking.payment_due_at && (
+                <p className="text-xs text-muted-foreground mb-3">
+                  Paga antes del {format(new Date(booking.payment_due_at), "d 'de' MMMM, HH:mm", { locale: es })}; después la reserva se cancela y las fechas se liberan.
+                </p>
+              )}
               <Button
                 disabled={paying}
                 onClick={async () => {
@@ -456,10 +471,44 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, paymentStatus,
       )}
 
       {booking.status === 'approved' && paymentStatus === 'paid' && (
-        <Card className="p-4 flex items-center gap-3 border-primary/40">
-          <CheckCircle className="w-5 h-5 text-primary" />
-          <span className="text-sm text-foreground">Pago confirmado</span>
-        </Card>
+        <>
+          <Card className="p-4 flex items-center gap-3 border-primary/40">
+            <CheckCircle className="w-5 h-5 text-primary" />
+            <span className="text-sm text-foreground">Pago confirmado y protegido por Maddi</span>
+          </Card>
+          <AdvertiserInstallationSection
+            booking={{
+              id: booking.id,
+              installation_status: booking.installation_status ?? 'pending',
+              installation_photos: booking.installation_photos ?? [],
+              installation_deadline: booking.installation_deadline ?? null,
+              dispute_reason: booking.dispute_reason ?? null,
+              dispute_resolution: booking.dispute_resolution ?? null,
+            }}
+            onChange={() => onRefresh?.()}
+          />
+        </>
+      )}
+
+      {booking.status === 'approved' && !isPast && (
+        <>
+          <Button
+            variant="outline"
+            onClick={() => setShowCancelApproved(true)}
+            className="w-full border-destructive/50 text-destructive hover:bg-destructive/10 gap-2"
+          >
+            <Ban className="w-4 h-4" />
+            Cancelar reserva
+          </Button>
+          <CancelBookingDialog
+            open={showCancelApproved}
+            onOpenChange={setShowCancelApproved}
+            booking={booking}
+            role="advertiser"
+            paid={paymentStatus === 'paid'}
+            onCancelled={() => { onBack(); onRefresh?.(); }}
+          />
+        </>
       )}
 
       {/* Cancel button for pending bookings */}

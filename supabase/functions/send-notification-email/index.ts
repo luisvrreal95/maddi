@@ -13,6 +13,14 @@ type EmailType =
   | 'booking_confirmed'
   | 'payment_received_business'
   | 'payment_received_owner'
+  | 'installation_proof_submitted'
+  | 'installation_confirmed'
+  | 'issue_reported'
+  | 'installation_overdue'
+  | 'payout_released'
+  | 'payment_expired'
+  | 'booking_refunded'
+  | 'dispute_resolved'
   | 'booking_rejected'
   | 'booking_cancelled'
   | 'new_message'
@@ -127,6 +135,109 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
         `,
         cta: { text: 'Ver reserva', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
         secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
+      };
+
+    case 'installation_proof_submitted':
+      return {
+        subject: `Confirma la instalación — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `El propietario subió evidencia de la instalación de tu campaña en <strong>${data.billboardTitle}</strong>.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Siguiente paso:</strong> Revisa las fotos y confirma, o reporta un problema. Si no respondes en 48 horas, la instalación se confirmará automáticamente.</p>
+          </div>
+        `,
+        cta: { text: 'Revisar evidencia', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'installation_confirmed':
+      return {
+        subject: `Instalación confirmada — ${data.billboardTitle}`,
+        heading: `¡Buenas noticias, ${displayName}!`,
+        message: `La instalación en <strong>${data.billboardTitle}</strong> fue confirmada${data.auto ? ' automáticamente (sin objeciones en 48 horas)' : ' por el anunciante'}.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Pago:</strong> Tu primer pago se libera a tu cuenta de Stripe a partir del inicio de la campaña (${data.startDate}).</p>
+          </div>
+        `,
+        cta: { text: 'Ver reserva', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'issue_reported':
+      return {
+        subject: `Problema reportado — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `El anunciante reportó un problema con la campaña en <strong>${data.billboardTitle}</strong>. Los pagos de esta reserva están en pausa mientras Maddi revisa el caso.`,
+        details: `
+          <div style="background: rgba(255, 200, 100, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Motivo:</strong> ${data.reason}</p>
+          </div>
+        `,
+        cta: { text: 'Ver reserva', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
+        secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
+      };
+
+    case 'installation_overdue':
+      return {
+        subject: `Falta evidencia de instalación — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `La campaña en <strong>${data.billboardTitle}</strong> ya inició y aún no subes la evidencia de instalación. Tu pago no se liberará hasta que la subas.`,
+        details: '',
+        cta: { text: 'Subir evidencia', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'payout_released':
+      return {
+        subject: `Te enviamos un pago — ${data.billboardTitle}`,
+        heading: `¡Pago en camino, ${displayName}!`,
+        message: `Liberamos un pago por la campaña en <strong>${data.billboardTitle}</strong> a tu cuenta de Stripe.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Monto (después de comisión):</strong> $${data.amount} MXN</p>
+          </div>
+        `,
+        cta: { text: 'Ver mis cobros', url: `${baseUrl}/settings?stripe=payouts` },
+        secondaryCta: null,
+      };
+
+    case 'payment_expired':
+      return {
+        subject: `Reserva cancelada por falta de pago — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `La reserva de <strong>${data.billboardTitle}</strong> (${data.startDate} — ${data.endDate}) se canceló porque no se pagó dentro de las 48 horas posteriores a la aprobación. Las fechas quedaron libres.`,
+        details: '',
+        cta: data.recipientRole === 'business'
+          ? { text: 'Buscar espectaculares', url: `${baseUrl}/search` }
+          : { text: 'Ver mis reservas', url: `${baseUrl}/owner?tab=reservas` },
+        secondaryCta: null,
+      };
+
+    case 'booking_refunded':
+      return {
+        subject: `Reembolso en camino — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `Procesamos un reembolso por tu campaña en <strong>${data.billboardTitle}</strong>.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Monto reembolsado:</strong> $${data.amount} MXN</p>
+            <p style="margin: 8px 0 0 0; color: rgba(255,255,255,0.6); font-size: 13px;">Puede tardar de 5 a 10 días hábiles en reflejarse en tu tarjeta.</p>
+          </div>
+        `,
+        cta: { text: 'Ver mis campañas', url: `${baseUrl}/business` },
+        secondaryCta: null,
+      };
+
+    case 'dispute_resolved':
+      return {
+        subject: `Disputa resuelta — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `Maddi resolvió el reporte de la campaña en <strong>${data.billboardTitle}</strong> ${data.outcome}.`,
+        details: '',
+        cta: { text: 'Ver reserva', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
       };
 
     case 'booking_rejected':

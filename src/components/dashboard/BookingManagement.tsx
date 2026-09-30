@@ -13,7 +13,10 @@ import { Link } from 'react-router-dom';
 import { differenceInDays, format, isAfter, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
-import { ownerCanReceivePayments } from '@/lib/stripe';
+import { ownerCanReceivePayments, getPaymentStatuses, PaymentStatus } from '@/lib/stripe';
+import OwnerInstallationSection from '@/components/booking/OwnerInstallationSection';
+import CancelBookingDialog from '@/components/booking/CancelBookingDialog';
+import type { InstallationStatus } from '@/lib/bookingWorkflow';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -33,6 +36,11 @@ interface Booking {
   notes: string | null;
   ad_design_url: string | null;
   created_at: string;
+  payment_due_at: string | null;
+  installation_status: InstallationStatus;
+  installation_photos: string[];
+  installation_deadline: string | null;
+  dispute_reason: string | null;
   billboard?: { title: string; address: string; city: string; image_url?: string | null; };
   profile?: { full_name: string; company_name: string | null; };
 }
@@ -53,6 +61,8 @@ const BookingManagement: React.FC = () => {
   const [resolvedImages, setResolvedImages] = useState<Record<string, string[]>>({});
   const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('pending');
+  const [paymentStatuses, setPaymentStatuses] = useState<Record<string, PaymentStatus>>({});
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -116,7 +126,11 @@ const BookingManagement: React.FC = () => {
           return { ...booking, billboard: billboard || undefined, profile: profile || undefined };
         })
       );
-      setBookings(enrichedBookings);
+      const typed = enrichedBookings as Booking[];
+      setBookings(typed);
+      setPaymentStatuses(await getPaymentStatuses(typed.filter(b => b.status === 'approved').map(b => b.id)));
+      // Mantiene el detalle abierto sincronizado con los datos recién cargados.
+      setSelectedBooking(prev => prev ? (typed.find(b => b.id === prev.id) ?? prev) : prev);
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast.error('Error al cargar reservas');
@@ -458,6 +472,28 @@ const BookingManagement: React.FC = () => {
               </Link>
             </div>
 
+            {selectedBooking.status === 'approved' && (
+              paymentStatuses[selectedBooking.id] === 'paid' ? (
+                user && <OwnerInstallationSection ownerId={user.id} booking={selectedBooking} onChange={fetchBookings} />
+              ) : (
+                <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
+                  <p className="text-amber-400 font-medium text-sm">Esperando el pago del anunciante</p>
+                  <p className="text-white/60 text-sm mt-1">
+                    {selectedBooking.payment_due_at
+                      ? `Tiene hasta el ${format(new Date(selectedBooking.payment_due_at), "d 'de' MMMM, HH:mm", { locale: es })} para pagar; si no, la reserva se cancela y las fechas se liberan.`
+                      : 'Te avisaremos cuando el pago se confirme.'}
+                  </p>
+                </div>
+              )
+            )}
+
+            {selectedBooking.status === 'approved' && isAfter(new Date(selectedBooking.end_date + 'T23:59:59'), now) && (
+              <Button variant="outline" onClick={() => setShowCancelDialog(true)}
+                className="w-full border-red-500/30 text-red-400 hover:bg-red-500/10">
+                <Ban className="w-4 h-4 mr-2" /> Cancelar reserva
+              </Button>
+            )}
+
             {selectedBooking.status === 'pending' && (
               <div className="flex gap-2 pt-2 border-t border-white/5">
                 <Button onClick={() => handleApproveClick(selectedBooking)} className="flex-1 bg-primary text-[#202020] hover:bg-[#8AE63A] font-semibold">
@@ -480,6 +516,15 @@ const BookingManagement: React.FC = () => {
             </p>
           </div>
         </div>
+
+        <CancelBookingDialog
+          open={showCancelDialog}
+          onOpenChange={setShowCancelDialog}
+          booking={selectedBooking}
+          role="owner"
+          paid={paymentStatuses[selectedBooking.id] === 'paid'}
+          onCancelled={() => { setSelectedBooking(null); fetchBookings(); }}
+        />
 
         {/* Image Viewer */}
         <Dialog open={!!imageViewerUrl} onOpenChange={() => setImageViewerUrl(null)}>

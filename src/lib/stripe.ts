@@ -9,7 +9,7 @@ export interface ConnectStatus {
 
 // supabase.functions.invoke oculta el mensaje del servidor en error.context;
 // lo extraemos para mostrar un motivo útil (ej. "El propietario aún no puede recibir pagos").
-async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> {
+export async function invoke<T>(fn: string, body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke(fn, { body });
   if (error) {
     let message = 'No se pudo completar la operación';

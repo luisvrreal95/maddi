@@ -1,10 +1,12 @@
 // Webhook de Stripe. Es la ÚNICA fuente de verdad del estado de pago.
+// Al confirmarse el cobro programa los pagos al propietario (booking_payouts).
 // Configurar en Stripe (endpoint de "Tu cuenta" y de "Cuentas conectadas"):
 //   checkout.session.completed, checkout.session.async_payment_succeeded,
 //   checkout.session.async_payment_failed, checkout.session.expired,
 //   charge.refunded, account.updated
 import Stripe from "https://esm.sh/stripe@17.7.0?target=denonext";
 import { getServiceClient, getStripe } from "../_shared/stripe.ts";
+import { schedulePayouts } from "../_shared/payouts.ts";
 
 const admin = getServiceClient();
 
@@ -15,16 +17,34 @@ async function markPaid(session: Stripe.Checkout.Session) {
     ? session.payment_intent
     : session.payment_intent?.id ?? null;
 
+  let chargeId: string | null = null;
+  if (paymentIntent) {
+    const pi = await getStripe().paymentIntents.retrieve(paymentIntent);
+    chargeId = typeof pi.latest_charge === "string" ? pi.latest_charge : pi.latest_charge?.id ?? null;
+  }
+
   const { data: updated } = await admin.from("platform_commissions").update({
     payment_status: "paid",
     payment_date: new Date().toISOString().split("T")[0],
     paid_at: new Date().toISOString(),
     stripe_checkout_session_id: session.id,
     stripe_payment_intent_id: paymentIntent,
+    stripe_charge_id: chargeId,
   }).eq("booking_id", bookingId).neq("payment_status", "paid").select("id");
 
-  // Solo notifica la primera vez que pasa a pagado (Stripe reintenta webhooks).
-  if (updated?.length) await notifyPaid(bookingId);
+  // Solo la primera vez (Stripe reintenta webhooks).
+  if (!updated?.length) return;
+
+  // Carrera: el pago llegó cuando la reserva ya no estaba aprobada (expiró/cancelada) → reembolso total.
+  const { data: b } = await admin.from("bookings").select("status, billboard_id").eq("id", bookingId).single();
+  if (b?.status !== "approved" && paymentIntent) {
+    await getStripe().refunds.create({ payment_intent: paymentIntent, metadata: { booking_id: bookingId, reason: "late_payment" } },
+      { idempotencyKey: `late-refund-${bookingId}` });
+    return;
+  }
+
+  await schedulePayouts(admin, bookingId);
+  await notifyPaid(bookingId);
 }
 
 async function notifyPaid(bookingId: string) {
@@ -107,10 +127,10 @@ Deno.serve(async (req) => {
       case "charge.refunded": {
         const c = event.data.object as Stripe.Charge;
         const pi = typeof c.payment_intent === "string" ? c.payment_intent : c.payment_intent?.id;
-        if (pi && c.refunded) {
+        if (pi) {
           await admin.from("platform_commissions").update({
-            payment_status: "refunded",
-            refunded_at: new Date().toISOString(),
+            refunded_amount: c.amount_refunded / 100,
+            ...(c.refunded ? { payment_status: "refunded", refunded_at: new Date().toISOString() } : {}),
           }).eq("stripe_payment_intent_id", pi);
         }
         break;
