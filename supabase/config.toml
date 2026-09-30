@@ -39,8 +39,6 @@ project_id = "vzkzivropoohapysafya"
     verify_jwt = false
   [functions.send-notification-email]
     verify_jwt = false
-  [functions.send-verification-email]
-    verify_jwt = false
   [functions.validate-admin-invite]
     verify_jwt = false
   [functions.stripe-webhook]

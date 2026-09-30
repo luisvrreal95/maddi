@@ -1,19 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
 
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   
   
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const denied = await gate(req, { name: 'search-poi', ip: [600, 3600] });
+  if (denied) return denied;
+
   try {
-    const { query, lat, lon, limit = 8, countrySet = 'MX' } = await req.json();
+    const body = await req.json();
+    const query = typeof body.query === 'string' ? body.query.slice(0, 100) : '';
+    const { lat, lon } = body;
+    const limit = Math.min(Math.max(parseInt(body.limit) || 8, 1), 10);
+    const countrySet = /^[A-Z]{2}(,[A-Z]{2})*$/.test(body.countrySet) ? body.countrySet : 'MX';
 
     if (!query || query.length < 2) {
       return new Response(
@@ -41,7 +46,6 @@ serve(async (req) => {
     }
 
     console.log(`Searching POIs for: "${query}" (encoded: "${encodedQuery}") near ${lat || 'N/A'}, ${lon || 'N/A'}`);
-    console.log(`TomTom API Key prefix: ${TOMTOM_API_KEY.substring(0, 6)}..., length: ${TOMTOM_API_KEY.length}`);
 
     const response = await fetch(url);
     

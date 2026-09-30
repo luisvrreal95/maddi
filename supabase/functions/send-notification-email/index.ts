@@ -1,11 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import {
+  clientIp, corsFor, enforceRateLimit, escapeDeep, escapeHtml, HttpError, isAdminUser, isInternal, optionalUser,
+} from "../_shared/http.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 type EmailType =
   | 'booking_request'
@@ -569,7 +568,78 @@ const generateEmailHtml = (content: ReturnType<typeof getEmailContent>) => `
 </html>
 `;
 
+// ---------------------------------------------------------------------------------------------
+// Política de envío: este endpoint lo llama el navegador, así que NO se confía en el cliente.
+//  - público (sin sesión): solo formularios de contacto/valuación, con destinatario fijo o el
+//    correo que el propio visitante escribe, con límites por IP.
+//  - usuario con sesión: solo tipos "de usuario", y únicamente hacia usuarios relacionados
+//    (misma conversación/reserva) o hacia sí mismo.
+//  - admin: además los avisos administrativos.
+//  - interno (service role / CRON_SECRET): todo.
+// ---------------------------------------------------------------------------------------------
+const PUBLIC_TYPES = new Set(['support_contact', 'valuation_result', 'valuation_admin_notification']);
+const USER_TYPES = new Set([
+  'booking_request', 'booking_request_confirmation', 'booking_confirmed', 'booking_rejected',
+  'booking_cancelled', 'new_message', 'review_received', 'welcome',
+]);
+const ADMIN_TYPES = new Set(['verification_approved', 'verification_rejected', 'property_paused', 'property_reactivated']);
+
+const SUPPORT_EMAIL = Deno.env.get('SUPPORT_EMAIL') ?? 'soporte@maddi.com.mx';
+const ADMIN_EMAIL = Deno.env.get('ADMIN_NOTIFY_EMAIL') ?? SUPPORT_EMAIL;
+const EMAIL_RE = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+
+const unescapeHtml = (s: string) =>
+  s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+
+async function usersRelated(admin: ReturnType<typeof createClient>, a: string, b: string): Promise<boolean> {
+  const { data } = await admin.rpc('users_related', { _a: a, _b: b });
+  return data === true;
+}
+
+/** Decide si la petición puede enviarse y a quién. Lanza HttpError si no. */
+async function authorizeSender(
+  req: Request,
+  admin: ReturnType<typeof createClient>,
+  type: string,
+  email: string | undefined,
+  userId: string | undefined,
+): Promise<{ email?: string; userId?: string }> {
+  const ip = clientIp(req);
+  const user = await optionalUser(req, admin);
+
+  // Formularios públicos: destinatario decidido por el servidor.
+  if (PUBLIC_TYPES.has(type)) {
+    await enforceRateLimit(admin, `notify-public:ip:${ip}`, 10, 3600);
+    if (type === 'support_contact') return { email: SUPPORT_EMAIL };
+    if (type === 'valuation_admin_notification') return { email: ADMIN_EMAIL };
+    // valuation_result: va al correo que el visitante escribió
+    const to = String(email ?? '').trim().toLowerCase();
+    if (!EMAIL_RE.test(to) || to.length > 254) throw new HttpError(400, 'Correo inválido');
+    await enforceRateLimit(admin, `notify-valuation:email:${to}`, 3, 86400);
+    return { email: to };
+  }
+
+  if (!user) throw new HttpError(401, 'Inicia sesión para continuar');
+
+  const isAdmin = await isAdminUser(admin, user.id);
+  if (ADMIN_TYPES.has(type)) {
+    if (!isAdmin) throw new HttpError(403, 'No autorizado');
+  } else if (!USER_TYPES.has(type)) {
+    throw new HttpError(403, 'Tipo de correo no permitido');
+  }
+
+  await enforceRateLimit(admin, `notify:user:${user.id}`, 40, 3600);
+
+  const target = userId || user.id;
+  if (!isAdmin && !(await usersRelated(admin, user.id, target))) {
+    throw new HttpError(403, 'No puedes enviar correos a este usuario');
+  }
+  await enforceRateLimit(admin, `notify:to:${target}:${type}`, 15, 3600);
+  return { userId: target };
+}
+
 serve(async (req: Request): Promise<Response> => {
+  const corsHeaders = corsFor(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -584,19 +654,33 @@ serve(async (req: Request): Promise<Response> => {
       );
     }
 
-    let { email, type, recipientName, userId, entityId, data }: NotificationEmailRequest = await req.json();
+    const body = await req.json();
+    let { email, recipientName, userId } = body as NotificationEmailRequest;
+    const { type, entityId } = body as NotificationEmailRequest;
+    let data: Record<string, string | number | boolean> = body.data && typeof body.data === 'object' ? body.data : {};
 
-    if (!type) {
+    if (!type || typeof type !== 'string') {
       return new Response(
         JSON.stringify({ error: "Type is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Spam protection: check if we sent a similar email recently
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+
+    const internal = isInternal(req);
+    if (!internal) {
+      if (JSON.stringify(data).length > 5000) throw new HttpError(413, 'Solicitud demasiado grande');
+      const allowed = await authorizeSender(req, supabaseAdmin, type, email, userId);
+      email = allowed.email ?? '';        // el cliente no elige destinatario
+      userId = allowed.userId;
+      data = { ...data, baseUrl: BASE_URL }; // ni la base de los enlaces
+    }
+    // Todo texto que venga en `data` se inserta en HTML: se escapa siempre.
+    data = escapeDeep(data);
+    recipientName = escapeHtml(String(recipientName ?? '').slice(0, 100));
 
     // If email is empty but userId is provided, look up the user's email
     if (!email && userId) {
@@ -650,7 +734,7 @@ serve(async (req: Request): Promise<Response> => {
       const emailResult = await resend.emails.send({
         from: "Maddi <noreply@maddi.com.mx>",
         to: [email],
-        subject: emailContent.subject,
+        subject: unescapeHtml(emailContent.subject),
         html: generateEmailHtml(emailContent),
       });
       console.log("Email sent:", emailResult);
@@ -687,9 +771,15 @@ serve(async (req: Request): Promise<Response> => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
+    if (error instanceof HttpError) {
+      return new Response(
+        JSON.stringify({ success: false, error: error.message }),
+        { status: error.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("Error in send-notification-email:", error);
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({ error: "Internal server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

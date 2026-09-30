@@ -223,7 +223,7 @@ const ValorEspectacular: React.FC = () => {
 
       supabase.functions.invoke('send-notification-email', {
         body: {
-          email: 'luis@maddi.com.mx',
+          email: '',
           type: 'valuation_admin_notification',
           recipientName: 'Luis',
           data: {

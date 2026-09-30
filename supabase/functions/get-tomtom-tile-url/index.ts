@@ -1,18 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const denied = await gate(req, { name: 'get-tomtom-tile-url', ip: [120, 3600] });
+  if (denied) return denied;
+
   try {
-    const { type, timeSet } = await req.json().catch(() => ({ type: 'live' }));
+    const { type, timeSet: rawTimeSet } = await req.json().catch(() => ({ type: 'live', timeSet: undefined }));
+    const timeSet = typeof rawTimeSet === 'string' && /^[A-Za-z0-9:_-]{1,40}$/.test(rawTimeSet) ? rawTimeSet : undefined;
 
     // Use MADDI_TOMTOM_API_KEY secret
     const TOMTOM_API_KEY = Deno.env.get('MADDI_TOMTOM_API_KEY') || Deno.env.get('TOMTOM_API_KEY');
@@ -35,7 +37,6 @@ serve(async (req) => {
       tileUrl = `https://api.tomtom.com/traffic/map/4/tile/flow/relative0/{z}/{x}/{y}.png?tileSize=256&key=${TOMTOM_API_KEY}`;
     }
 
-    console.log(`Generated TomTom tile URL for type: ${type}`);
 
     return new Response(
       JSON.stringify({ tileUrl }),

@@ -1,17 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
 
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Cada llamada consume créditos del modelo: límite por IP y entrada acotada.
+  const denied = await gate(req, { name: 'ai-search', ip: [20, 3600] });
+  if (denied) return denied;
+
   try {
-    const { query, billboards } = await req.json();
+    const raw = await req.text();
+    if (raw.length > 400_000) {
+      return new Response(JSON.stringify({ matchingIds: [], explanation: "Solicitud demasiado grande" }), {
+        status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const parsed = JSON.parse(raw);
+    const query = typeof parsed.query === 'string' ? parsed.query.slice(0, 300) : '';
+    const billboards = Array.isArray(parsed.billboards) ? parsed.billboards.slice(0, 150) : [];
+    if (!query.trim() || billboards.length === 0) {
+      return new Response(JSON.stringify({ matchingIds: [], explanation: "Consulta vacía" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     // AI search is paused (cost control). No key configured means the

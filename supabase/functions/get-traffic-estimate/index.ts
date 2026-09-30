@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
+import { badCoords, corsFor, gate } from "../_shared/http.ts";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
 
 const CACHE_DAYS = 30;
 
@@ -24,9 +21,13 @@ function fallbackTraffic(city: string): number {
 }
 
 serve(async (req) => {
+  const corsHeaders = corsFor(req);
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const denied = await gate(req, { name: 'get-traffic-estimate', ip: [20, 3600] });
+  if (denied) return denied;
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -35,7 +36,7 @@ serve(async (req) => {
 
     const { latitude, longitude, city = '' } = await req.json();
 
-    if (!latitude || !longitude) {
+    if (!latitude || !longitude || badCoords(latitude, longitude)) {
       return new Response(
         JSON.stringify({ error: 'latitude and longitude are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
