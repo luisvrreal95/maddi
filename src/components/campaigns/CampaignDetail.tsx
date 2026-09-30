@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ArrowLeft, Calendar, MapPin, ExternalLink, Eye, Clock, Check, X, Info, Ban, Image as ImageIcon, DollarSign, Ruler, Lightbulb, Layers } from 'lucide-react';
+import { CreditCard, Loader2, CheckCircle, ArrowLeft, Calendar, MapPin, ExternalLink, Eye, Clock, Check, X, Info, Ban, Image as ImageIcon, DollarSign, Ruler, Lightbulb, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -15,6 +15,7 @@ import CampaignTrendChart from './CampaignTrendChart';
 import { Link } from 'react-router-dom';
 import { parseDateOnlyStart, parseDateOnlyEnd, getTodayStart } from '@/lib/dateUtils';
 import { toast } from 'sonner';
+import { startCheckout, PaymentStatus } from '@/lib/stripe';
 import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -57,16 +58,18 @@ interface CampaignDetailProps {
     notes?: string | null;
   };
   onBack: () => void;
+  paymentStatus?: PaymentStatus;
   onRefresh?: () => void;
 }
 
-const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefresh }) => {
+const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, paymentStatus, onBack, onRefresh }) => {
   const { user } = useAuth();
   const [billboard, setBillboard] = useState<Billboard | null>(null);
   const [inegiData, setInegiData] = useState<INEGIData | null>(null);
   const { token: mapboxToken } = useMapboxToken();
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [paying, setPaying] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
@@ -415,6 +418,47 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
               </a>
             ))}
           </div>
+        </Card>
+      )}
+
+      {/* Pago de la campaña aprobada */}
+      {booking.status === 'approved' && !isPast && paymentStatus !== 'paid' && paymentStatus !== 'refunded' && (
+        <Card className="p-5 border-primary/40">
+          <div className="flex items-start gap-4">
+            <div className="p-3 rounded-full bg-primary/15">
+              <CreditCard className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-semibold text-foreground mb-1">Tu campaña fue aprobada — falta el pago</h3>
+              <p className="text-sm text-muted-foreground mb-3">
+                Total a pagar: <span className="font-medium text-foreground">${Number(booking.total_price).toLocaleString('es-MX')} MXN</span>.
+                {paymentStatus === 'failed' && ' Tu intento anterior no se completó.'}
+              </p>
+              <Button
+                disabled={paying}
+                onClick={async () => {
+                  setPaying(true);
+                  try {
+                    await startCheckout(booking.id);
+                  } catch (e) {
+                    toast.error((e as Error).message);
+                    setPaying(false);
+                  }
+                }}
+                className="gap-2"
+              >
+                {paying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                Pagar campaña
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {booking.status === 'approved' && paymentStatus === 'paid' && (
+        <Card className="p-4 flex items-center gap-3 border-primary/40">
+          <CheckCircle className="w-5 h-5 text-primary" />
+          <span className="text-sm text-foreground">Pago confirmado</span>
         </Card>
       )}
 

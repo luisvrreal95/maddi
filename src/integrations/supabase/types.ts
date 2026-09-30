@@ -735,6 +735,10 @@ export type Database = {
           owner_payout: number
           payment_date: string | null
           payment_status: string | null
+          paid_at: string | null
+          refunded_at: string | null
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
           total_amount: number
           updated_at: string | null
         }
@@ -747,6 +751,10 @@ export type Database = {
           owner_payout: number
           payment_date?: string | null
           payment_status?: string | null
+          paid_at?: string | null
+          refunded_at?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           total_amount: number
           updated_at?: string | null
         }
@@ -759,6 +767,10 @@ export type Database = {
           owner_payout?: number
           payment_date?: string | null
           payment_status?: string | null
+          paid_at?: string | null
+          refunded_at?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
           total_amount?: number
           updated_at?: string | null
         }
@@ -1070,6 +1082,36 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_accounts: {
+        Row: {
+          charges_enabled: boolean
+          created_at: string
+          details_submitted: boolean
+          payouts_enabled: boolean
+          stripe_account_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          charges_enabled?: boolean
+          created_at?: string
+          details_submitted?: boolean
+          payouts_enabled?: boolean
+          stripe_account_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          charges_enabled?: boolean
+          created_at?: string
+          details_submitted?: boolean
+          payouts_enabled?: boolean
+          stripe_account_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -1205,6 +1247,10 @@ export type Database = {
       enqueue_email: {
         Args: { payload: Json; queue_name: string }
         Returns: number
+      }
+      owner_can_receive_payments: {
+        Args: { _owner_id: string }
+        Returns: boolean
       }
       has_role: {
         Args: {

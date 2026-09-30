@@ -13,6 +13,7 @@ import { Link } from 'react-router-dom';
 import { differenceInDays, format, isAfter, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
+import { ownerCanReceivePayments } from '@/lib/stripe';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -218,6 +219,14 @@ const BookingManagement: React.FC = () => {
     if (!selectedBooking || overlapWarning) return;
     setProcessing(true);
     try {
+      // Sin cuenta de cobro activa el anunciante no podría pagar la reserva aprobada.
+      if (user && !(await ownerCanReceivePayments(user.id))) {
+        toast.error('Conecta tu cuenta de cobro para aprobar reservas', {
+          description: 'Ve a Configuración → Cobros para completar el registro con Stripe.',
+          action: { label: 'Ir a Cobros', onClick: () => { window.location.href = '/settings?stripe=required'; } },
+        });
+        return;
+      }
       const isDigital = await isBillboardDigital(selectedBooking.billboard_id);
 
       const { error } = await supabase.from('bookings').update({ status: 'approved' }).eq('id', selectedBooking.id);

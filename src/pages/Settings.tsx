@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-import { User, Bell, Shield, Camera, Save, Loader2, Menu, LogOut, BadgeCheck } from 'lucide-react';
+import { User, Bell, Shield, Camera, Save, Loader2, Menu, LogOut, BadgeCheck, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import VerificationSection from '@/components/settings/VerificationSection';
+import StripeConnectSection from '@/components/settings/StripeConnectSection';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -284,8 +285,8 @@ const Settings: React.FC = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : (
-          <Tabs defaultValue="profile" className="w-full">
-            <TabsList className={`grid w-full ${userRole === 'owner' ? 'grid-cols-4' : 'grid-cols-3'} bg-muted mb-6`}>
+          <Tabs defaultValue={new URLSearchParams(window.location.search).get('stripe') ? 'payments' : 'profile'} className="w-full">
+            <TabsList className={`grid w-full ${userRole === 'owner' ? 'grid-cols-5' : 'grid-cols-3'} bg-muted mb-6`}>
               <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
                 <User className="w-4 h-4 mr-2" />
                 Perfil
@@ -298,6 +299,12 @@ const Settings: React.FC = () => {
                 <TabsTrigger value="verification" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
                   <BadgeCheck className="w-4 h-4 mr-2" />
                   Verificación
+                </TabsTrigger>
+              )}
+              {userRole === 'owner' && (
+                <TabsTrigger value="payments" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
+                  <Wallet className="w-4 h-4 mr-2" />
+                  Cobros
                 </TabsTrigger>
               )}
               <TabsTrigger value="security" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
@@ -472,6 +479,16 @@ const Settings: React.FC = () => {
                 <div className="bg-muted rounded-2xl p-6 border border-white/10">
                   <h2 className="text-white text-lg font-bold mb-6">Verificación de Identidad</h2>
                   <VerificationSection onVerificationChange={fetchProfile} />
+                </div>
+              </TabsContent>
+            )}
+
+            {/* Payments Tab - Only for owners */}
+            {userRole === 'owner' && (
+              <TabsContent value="payments">
+                <div className="bg-muted rounded-2xl p-6 border border-white/10">
+                  <h2 className="text-white text-lg font-bold mb-6">Cobros</h2>
+                  <StripeConnectSection />
                 </div>
               </TabsContent>
             )}

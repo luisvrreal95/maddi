@@ -11,6 +11,8 @@ type EmailType =
   | 'booking_request'
   | 'booking_request_confirmation'
   | 'booking_confirmed'
+  | 'payment_received_business'
+  | 'payment_received_owner'
   | 'booking_rejected'
   | 'booking_cancelled'
   | 'new_message'
@@ -89,9 +91,41 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
             <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas aprobadas:</strong> ${data.startDate} — ${data.endDate}</p>
             ${data.ownerName ? `<p style="margin: 4px 0; color: #FFFFFF;"><strong>Propietario:</strong> ${data.ownerName}</p>` : ''}
           </div>
-          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El siguiente paso es coordinar con el propietario la instalación de tu diseño.</p>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Para asegurar tu campaña, el siguiente paso es realizar el pago desde tu panel. Después coordinarás con el propietario la instalación de tu diseño.</p>
+        `,
+        cta: { text: 'Pagar mi campaña', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
+        secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
+      };
+
+    case 'payment_received_business':
+      return {
+        subject: `Pago confirmado — ${data.billboardTitle}`,
+        heading: `¡Pago recibido, ${displayName}!`,
+        message: `Confirmamos el pago de tu campaña en <strong>${data.billboardTitle}</strong>.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} — ${data.endDate}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Total pagado:</strong> $${data.totalPrice} MXN</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Coordina con el propietario la instalación de tu diseño.</p>
         `,
         cta: { text: 'Ver mi campaña', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
+        secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
+      };
+
+    case 'payment_received_owner':
+      return {
+        subject: `Recibiste un pago — ${data.billboardTitle}`,
+        heading: `¡Buenas noticias, ${displayName}!`,
+        message: `El anunciante pagó la campaña en <strong>${data.billboardTitle}</strong>. Stripe depositará tu parte en tu cuenta conectada.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Fechas:</strong> ${data.startDate} — ${data.endDate}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Total de la campaña:</strong> $${data.totalPrice} MXN</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Coordina con el anunciante la instalación del diseño. El monto que recibirás ya descuenta la comisión de Maddi.</p>
+        `,
+        cta: { text: 'Ver reserva', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
         secondaryCta: { text: 'Ir al chat', url: `${baseUrl}/messages` },
       };
 
