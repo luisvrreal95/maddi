@@ -28,7 +28,9 @@ Deno.serve(async (req) => {
   // Quién ya está listo para cobrar (o a medio registro)
   const { data: accounts } = await admin.from("stripe_accounts")
     .select("user_id, charges_enabled, payouts_enabled, details_submitted").in("user_id", ownerIds);
-  const acct = new Map((accounts ?? []).map((a) => [a.user_id, a]));
+  const acct = new Map<string, { charges_enabled: boolean; payouts_enabled: boolean; details_submitted: boolean }>(
+    (accounts ?? []).map((a: any) => [a.user_id, a]),
+  );
 
   // Recordatorios previos
   const { data: prior } = await admin.from("email_notifications")
@@ -54,7 +56,9 @@ Deno.serve(async (req) => {
   // Preferencias de correo
   const { data: profiles } = await admin.from("profiles")
     .select("user_id, full_name, notification_preferences").in("user_id", ownerIds);
-  const profile = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+  const profile = new Map<string, { notification_preferences: unknown }>(
+    (profiles ?? []).map((p: any) => [p.user_id, p]),
+  );
 
   let sent = 0;
   for (const owner of ownerIds) {
