@@ -17,6 +17,13 @@ export default {
         sans: ["Poppins", "system-ui", "-apple-system", "Segoe UI", "sans-serif"],
       },
       colors: {
+        "surface-light": "hsl(var(--surface-light))",
+        "surface-card": "hsl(var(--surface-card))",
+        "line-light": "hsl(var(--line-light))",
+        ink: {
+          DEFAULT: "hsl(var(--ink))",
+          muted: "hsl(var(--ink-muted))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

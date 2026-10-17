@@ -19,28 +19,23 @@ const PromoBanner: React.FC = () => {
   if (!visible) return null;
 
   return (
-    <div className="relative bg-gradient-to-r from-background via-background to-background border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-sm">
-        <a
-          href="https://maddi.com.mx/auth?role=owner"
-          className="flex items-center gap-2 md:gap-3 text-center"
-        >
-          <span className="bg-primary text-black text-[10px] md:text-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wide">
-            Nuevo
-          </span>
-          <span className="text-white/80 text-xs md:text-sm">
-            Lanzamiento 2026 — Comisión 0% en etapa inicial para Propietarios Fundadores
-          </span>
-          <span className="text-primary font-medium text-xs md:text-sm whitespace-nowrap">
-            Conocer más →
-          </span>
+    <div className="flex justify-center px-4 pt-4">
+      <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.06] py-1.5 pl-3.5 pr-1.5 text-[13px] text-muted-foreground max-sm:text-xs">
+        <span className="relative flex h-[7px] w-[7px] flex-shrink-0">
+          <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
+          <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-primary" />
+        </span>
+        <a href="https://maddi.com.mx/auth?role=owner" className="min-w-0 truncate">
+          <span className="max-sm:hidden">Lanzamiento 2026 · Comisión 0% para Propietarios Fundadores</span>
+          <span className="sm:hidden">Comisión 0% para Fundadores</span>
+          <span className="ml-2 font-semibold text-primary whitespace-nowrap">Conocer más →</span>
         </a>
         <button
           onClick={handleDismiss}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white/70 transition-colors p-1"
+          className="flex-shrink-0 rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
           aria-label="Cerrar banner"
         >
-          <X className="w-4 h-4" />
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>
