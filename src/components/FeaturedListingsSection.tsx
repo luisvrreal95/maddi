@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Monitor, Square, Footprints, ArrowRight } from 'lucide-react';
+import { MapPin, Monitor, Square, Footprints } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { HomeBillboards } from '@/hooks/useHomeBillboards';
 import type { Billboard } from '@/hooks/useBillboards';
@@ -15,11 +15,36 @@ const Eyebrow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </p>
 );
 
-const formatAddress = (b: Billboard) => {
-  if (!b.address) return b.city;
-  return b.city && !b.address.toLowerCase().includes(b.city.toLowerCase())
-    ? `${b.address}, ${b.city}`
-    : b.address;
+const shortAddress = (b: Billboard) => {
+  const raw = (b.address || '').split(' · ')[0];
+  const cleaned = raw
+    .replace(/,?\s*\b\d{5}\b/g, '')
+    .replace(/,\s*(Baja California|B\.?C\.?N?\.?|BCN|México|Mexico)\b/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return cleaned || b.city;
+};
+
+/**
+ * Picks the best distinct listings for the home: most impressions first, listings with a photo first,
+ * skipping near-duplicates (same price + impressions, or same street address).
+ */
+const pickFeatured = (list: Billboard[], max: number): Billboard[] => {
+  const hasImg = (b: Billboard) => !!(b.image_urls?.[0] || b.image_url);
+  const sorted = [...list].sort(
+    (a, b) => Number(hasImg(b)) - Number(hasImg(a)) || (b.daily_impressions || 0) - (a.daily_impressions || 0)
+  );
+  const picked: Billboard[] = [];
+  for (const b of sorted) {
+    const dup = picked.some(
+      p =>
+        (p.price_per_month === b.price_per_month && (p.daily_impressions || 0) === (b.daily_impressions || 0)) ||
+        shortAddress(p).toLowerCase() === shortAddress(b).toLowerCase()
+    );
+    if (!dup) picked.push(b);
+    if (picked.length === max) break;
+  }
+  return picked;
 };
 
 const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }> = ({ b, badge, onClick }) => {
@@ -35,7 +60,7 @@ const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }
             src={img}
             alt={b.title}
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className="h-full w-full object-cover object-[50%_30%] transition-transform duration-500 group-hover:scale-[1.04]"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-ink-muted">
@@ -50,7 +75,7 @@ const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }
       </div>
       <div className="p-6">
         <h3 className="text-xl font-semibold text-ink tracking-normal">{b.title}</h3>
-        <p className="mt-1 truncate text-sm text-ink-muted">{formatAddress(b)}</p>
+        <p className="mt-1 truncate text-sm text-ink-muted">{shortAddress(b)}</p>
         <div className="mt-5 flex items-end justify-between gap-3">
           <div>
             <p className="text-xs text-ink-muted">Precio mensual</p>
@@ -70,34 +95,13 @@ const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }
   );
 };
 
-const OwnerCTACard: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <div className="scan-card scan-card-dark relative flex h-full min-h-[420px] flex-col justify-between gap-8 overflow-hidden rounded-3xl border border-transparent bg-background p-8">
-    <div className="hero-glow pointer-events-none absolute -right-32 -top-32 h-80 w-80" />
-    <div className="relative">
-      <p className="text-sm font-semibold text-primary">Para propietarios</p>
-      <h3 className="mt-3 text-[28px] font-bold leading-tight text-foreground">
-        ¿Tienes un espectacular? Publícalo gratis.
-      </h3>
-      <p className="mt-3 text-muted-foreground">
-        Publica tu espacio y empieza a recibir solicitudes de anunciantes en tu ciudad.
-      </p>
-    </div>
-    <button
-      onClick={onClick}
-      className="relative inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
-    >
-      Publicar mi espectacular <ArrowRight className="h-4 w-4" />
-    </button>
-  </div>
-);
-
 const FeaturedListingsSection: React.FC<{ home: HomeBillboards }> = ({ home }) => {
   const navigate = useNavigate();
   const { available, isLoading, userCity } = home;
-  const featured = available.slice(0, 2);
+  const featured = pickFeatured(available, 3);
   // featured[0].city is unreliable (some records store other text there)
   const displayCity = userCity || 'Mexicali';
-  const gridCls = 'grid gap-6 [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] max-sm:[grid-template-columns:1fr]';
+  const gridCls = 'grid gap-6 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] max-sm:[grid-template-columns:1fr]';
 
   if (isLoading) {
     return (
@@ -144,9 +148,6 @@ const FeaturedListingsSection: React.FC<{ home: HomeBillboards }> = ({ home }) =
               <ListingCard b={b} badge={badges[idx % badges.length]} onClick={() => navigate(`/billboard/${b.id}`)} />
             </Reveal>
           ))}
-          <Reveal delay={featured.length * 90}>
-            <OwnerCTACard onClick={() => navigate('/auth?role=owner')} />
-          </Reveal>
         </div>
 
         <div className="mt-8 md:hidden [&>button]:w-full">{seeAll}</div>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Facebook, Instagram, Linkedin } from 'lucide-react';
-import maddiLogo from '@/assets/maddi-logo.svg';
+import MaddiWordmark from '@/components/ui/MaddiWordmark';
 
 const Footer: React.FC = () => {
   const socialLinks = [
@@ -21,7 +21,7 @@ const Footer: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start gap-8 max-sm:gap-6 mb-12">
           {/* Logo */}
           <div className="flex flex-col gap-3">
-            <img src={maddiLogo} alt="Maddi" className="h-10 w-auto" />
+            <MaddiWordmark className="h-10 w-auto" />
             <p className="text-white/50 text-sm italic">Hace todo más fácil</p>
           </div>
 

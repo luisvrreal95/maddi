@@ -1,7 +1,6 @@
 import React from 'react';
 import HeroSection from '@/components/HeroSection';
 import HowItWorksSection from '@/components/HowItWorksSection';
-import LiveStatsSection from '@/components/LiveStatsSection';
 import FeaturedListingsSection from '@/components/FeaturedListingsSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import OwnerCTASection from '@/components/OwnerCTASection';
@@ -24,7 +23,7 @@ const Index: React.FC = () => {
         <FeaturesSection />
       </div>
       <HowItWorksSection />
-      <LiveStatsSection />
+      {/* LiveStatsSection is hidden until the numbers (advertisers, listings) are worth showing. Component kept in components/LiveStatsSection.tsx */}
       <OwnerCTASection />
       <Footer />
       <MobileNavBar />
