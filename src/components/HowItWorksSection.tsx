@@ -13,7 +13,7 @@ interface RoleCardProps {
 }
 
 const RoleCard: React.FC<RoleCardProps> = ({ icon, role, steps }) => (
-  <div className="flex-1 bg-card border border-white/10 rounded-2xl p-8 max-sm:p-6 hover:border-primary/30 transition-colors">
+  <div className="scan-card scan-card-dark relative overflow-hidden flex-1 bg-card border border-white/10 rounded-2xl p-8 max-sm:p-6 hover:border-primary/30 transition-colors">
     <div className="flex items-center gap-3 mb-8">
       <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
         {icon}

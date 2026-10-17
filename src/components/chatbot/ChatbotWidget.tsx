@@ -47,17 +47,6 @@ const ChatbotWidget: React.FC = () => {
     </div>
   );
 
-  // Auto-open after 6 seconds
-  useEffect(() => {
-    if (hasAutoOpened) return;
-    const timer = setTimeout(() => {
-      setIsOpen(true);
-      setHasAutoOpened(true);
-      logEvent('chatbot_opened');
-    }, 6000);
-    return () => clearTimeout(timer);
-  }, [hasAutoOpened]);
-
   // Initialize welcome messages
   useEffect(() => {
     if (messages.length === 0) {

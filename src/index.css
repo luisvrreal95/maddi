@@ -149,3 +149,37 @@ All colors MUST be HSL.
 .float-card-shadow { box-shadow: 0 24px 60px hsl(0 0% 0% / 0.5); }
 .listing-card:hover { box-shadow: 0 28px 56px hsl(var(--ink) / 0.18); }
 .viewfinder { filter: drop-shadow(0 1px 2px hsl(0 0% 0% / 0.7)); }
+
+/* Card hover: lime light sweeping across the top edge + glow (same motion as the hero search bar) */
+@keyframes card-scan {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(380%); }
+}
+.scan-card { position: relative; }
+.scan-card::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  height: 2px;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, hsl(var(--primary)), transparent);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease;
+}
+.scan-card:hover::after {
+  opacity: 1;
+  animation: card-scan 1.6s linear infinite;
+}
+.scan-card:hover {
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.85), 0 0 44px hsl(var(--primary) / 0.28), 0 28px 56px hsl(0 0% 0% / 0.22);
+}
+.scan-card-dark:hover {
+  border-color: hsl(var(--primary) / 0.6);
+  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.6), 0 0 44px hsl(var(--primary) / 0.18);
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-card:hover::after { animation: none; }
+}

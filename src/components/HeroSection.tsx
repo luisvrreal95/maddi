@@ -4,7 +4,6 @@ import { MapPin, CalendarDays, Search, Loader2, Store, Building2, Navigation } f
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Header from './Header';
-import PromoBanner from './PromoBanner';
 import type { Billboard } from '@/hooks/useBillboards';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -157,14 +156,13 @@ const HeroSection: React.FC<{ available?: Billboard[] }> = ({ available = [] }) 
       <div className="hero-grid pointer-events-none absolute inset-0" />
 
       <div className="w-full relative z-20">
-        <PromoBanner />
         <Header transparent />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center gap-10 max-sm:gap-6 w-full max-w-5xl px-6 max-sm:px-4 pt-16 max-md:pt-12 max-sm:pt-6">
+      <div data-lift-hero className="relative z-10 flex flex-col items-center gap-10 max-sm:gap-6 w-full max-w-5xl px-6 max-sm:px-4 pt-12 max-md:pt-10 max-sm:pt-6">
         {/* Floating cards (≥1180px) */}
         {topImpressions && (
-          <div className="pointer-events-none absolute -left-24 top-10 hidden w-52 rounded-2xl border border-primary/30 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float min-[1180px]:block">
+          <div className="pointer-events-none absolute -left-16 top-10 hidden w-48 rounded-2xl border border-primary/30 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float min-[1180px]:block">
             <p className="text-xs text-muted-foreground">Impresiones al día</p>
             <p className="mt-1 text-[28px] font-semibold leading-none text-primary tabular-nums">
               {(topImpressions.daily_impressions || 0).toLocaleString()}
@@ -173,12 +171,12 @@ const HeroSection: React.FC<{ available?: Billboard[] }> = ({ available = [] }) 
           </div>
         )}
         {minPrice && isFinite(minPrice) && (
-          <div className="pointer-events-none absolute -right-24 top-40 hidden w-52 rounded-2xl border border-white/15 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float [animation-delay:-3s] min-[1180px]:block">
+          <div className="pointer-events-none absolute -right-16 top-40 hidden w-48 rounded-2xl border border-white/15 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float [animation-delay:-3s] min-[1180px]:block">
             <p className="text-xs text-muted-foreground">Desde</p>
             <p className="mt-1 text-[28px] font-semibold leading-none text-foreground tabular-nums">
               ${minPrice.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/mes</span>
             </p>
-            <p className="mt-2 text-xs text-muted-foreground">Sin comisión por ahora</p>
+            <p className="mt-2 text-xs text-muted-foreground">Precio mensual más bajo</p>
           </div>
         )}
 

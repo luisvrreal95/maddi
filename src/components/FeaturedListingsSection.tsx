@@ -4,6 +4,7 @@ import { MapPin, Monitor, Square, Footprints, ArrowRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { HomeBillboards } from '@/hooks/useHomeBillboards';
 import type { Billboard } from '@/hooks/useBillboards';
+import Reveal from '@/components/Reveal';
 
 const badges = ['Top tráfico', 'Zona comercial', 'Alta exposición'];
 
@@ -26,7 +27,7 @@ const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }
   return (
     <article
       onClick={onClick}
-      className="listing-card group cursor-pointer overflow-hidden rounded-3xl border border-line-light bg-surface-card transition-all duration-[280ms] hover:-translate-y-2 hover:border-ink motion-reduce:hover:translate-y-0"
+      className="listing-card scan-card group h-full cursor-pointer overflow-hidden rounded-3xl border border-line-light bg-surface-card transition-all duration-[280ms] hover:-translate-y-2 hover:border-ink motion-reduce:hover:translate-y-0"
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-surface-light">
         {img ? (
@@ -70,14 +71,14 @@ const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }
 };
 
 const OwnerCTACard: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <div className="relative flex flex-col justify-end overflow-hidden rounded-3xl bg-background p-8 min-h-[420px]">
+  <div className="scan-card scan-card-dark relative flex h-full flex-col justify-end overflow-hidden rounded-3xl bg-background p-8 min-h-[420px]">
     <div className="hero-glow pointer-events-none absolute -right-32 -top-32 h-80 w-80" />
     <p className="relative text-sm font-semibold text-primary">Para propietarios</p>
     <h3 className="relative mt-3 text-[28px] font-bold leading-tight text-foreground">
       ¿Tienes un espectacular? Publícalo gratis.
     </h3>
     <p className="relative mt-3 text-muted-foreground">
-      Sin comisiones por ahora. Cupos limitados en etapa inicial.
+      Publica tu espacio y empieza a recibir solicitudes de anunciantes en tu ciudad.
     </p>
     <button
       onClick={onClick}
@@ -137,9 +138,13 @@ const FeaturedListingsSection: React.FC<{ home: HomeBillboards }> = ({ home }) =
 
         <div className={gridCls}>
           {featured.map((b, idx) => (
-            <ListingCard key={b.id} b={b} badge={badges[idx % badges.length]} onClick={() => navigate(`/billboard/${b.id}`)} />
+            <Reveal key={b.id} delay={idx * 90}>
+              <ListingCard b={b} badge={badges[idx % badges.length]} onClick={() => navigate(`/billboard/${b.id}`)} />
+            </Reveal>
           ))}
-          <OwnerCTACard onClick={() => navigate('/auth?role=owner')} />
+          <Reveal delay={featured.length * 90}>
+            <OwnerCTACard onClick={() => navigate('/auth?role=owner')} />
+          </Reveal>
         </div>
 
         <div className="mt-8 md:hidden [&>button]:w-full">{seeAll}</div>

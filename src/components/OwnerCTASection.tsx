@@ -25,9 +25,6 @@ const OwnerCTASection: React.FC = () => {
             Publicar mis espectaculares gratis
             <ArrowRight className="w-5 h-5" />
           </button>
-          <p className="text-muted-foreground text-sm mt-4 relative z-10">
-            Sin comisiones por ahora. Cupos limitados en etapa inicial.
-          </p>
         </div>
       </div>
     </section>
