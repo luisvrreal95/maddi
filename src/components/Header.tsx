@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import UserMenu from '@/components/navigation/UserMenu';
 
-const Header: React.FC = () => {
+const Header: React.FC<{ transparent?: boolean }> = ({ transparent = false }) => {
   const { user, userRole } = useAuth();
   const navigate = useNavigate();
 
@@ -43,7 +43,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className="flex items-center justify-between relative w-full px-8 py-5 max-md:px-6 max-md:py-4 max-sm:px-4 max-sm:py-3">
+    <header className={`flex items-center justify-between relative w-full gap-4 ${transparent ? 'bg-transparent border-0' : ''} px-8 py-5 max-md:px-6 max-md:py-4 max-sm:px-4 max-sm:py-3`}>
       {/* Logo */}
       <div className="flex items-center">
         <a href="#" onClick={handleLogoClick} className="cursor-pointer">
@@ -58,10 +58,34 @@ const Header: React.FC = () => {
         </a>
       </div>
 
+      {/* Center links */}
+      <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-muted-foreground">
+        <button onClick={() => navigate('/search')} className="hover:text-foreground transition-colors">Buscar espacios</button>
+        <button onClick={() => navigate('/valor-espectacular')} className="hover:text-foreground transition-colors">Valúa tu espectacular</button>
+        <button onClick={() => navigate('/auth?role=owner')} className="hover:text-foreground transition-colors">Para propietarios</button>
+      </nav>
+
       {/* Right side navigation */}
       <nav className="flex items-center gap-3">
-        {user && <NotificationBell />}
-        <UserMenu />
+        {user ? (
+          <>
+            <NotificationBell />
+            <UserMenu />
+          </>
+        ) : (
+          <>
+            <button onClick={() => navigate('/auth')} className="hidden md:inline text-sm font-medium text-foreground hover:text-primary transition-colors">
+              Iniciar sesión
+            </button>
+            <button
+              onClick={() => navigate('/auth?role=owner')}
+              className="hidden md:inline-flex rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary-hover transition-colors"
+            >
+              Publicar gratis
+            </button>
+            <div className="md:hidden"><UserMenu /></div>
+          </>
+        )}
       </nav>
     </header>
   );
