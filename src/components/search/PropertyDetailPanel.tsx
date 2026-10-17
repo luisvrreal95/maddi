@@ -309,7 +309,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
             </div>
             <button
               onClick={onReserve}
-              className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-[#8AE63A] transition-colors"
+              className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold hover:bg-primary-hover transition-colors"
             >
               Reservar Ahora
             </button>

@@ -261,7 +261,7 @@ const DesignTemplates: React.FC = () => {
           
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary text-black hover:bg-[#8ae639] font-medium">
+              <Button className="bg-primary text-black hover:bg-primary-hover font-medium">
                 <Plus className="w-4 h-4 mr-2" />
                 Nueva Plantilla
               </Button>
@@ -294,7 +294,7 @@ const DesignTemplates: React.FC = () => {
                   ) : (
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-[#0a0a0a]"
+                      className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-white/20 rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-background"
                     >
                       {isUploading ? (
                         <>
@@ -303,9 +303,9 @@ const DesignTemplates: React.FC = () => {
                         </>
                       ) : (
                         <>
-                          <Upload className="h-10 w-10 text-white/40 mb-3" />
+                          <Upload className="h-10 w-10 text-muted-foreground mb-3" />
                           <p className="text-white/80 text-sm font-medium">Haz clic para subir tu diseño</p>
-                          <p className="text-white/40 text-xs mt-1">JPG, PNG, WebP (máx 10MB)</p>
+                          <p className="text-muted-foreground text-xs mt-1">JPG, PNG, WebP (máx 10MB)</p>
                         </>
                       )}
                     </div>
@@ -327,7 +327,7 @@ const DesignTemplates: React.FC = () => {
                     value={newTemplate.name}
                     onChange={(e) => setNewTemplate(prev => ({ ...prev, name: e.target.value }))}
                     placeholder="Ej: Promoción verano 2024"
-                    className="bg-[#0a0a0a] border-white/10 text-white mt-1"
+                    className="bg-background border-white/10 text-white mt-1"
                   />
                 </div>
 
@@ -339,7 +339,7 @@ const DesignTemplates: React.FC = () => {
                     value={newTemplate.description}
                     onChange={(e) => setNewTemplate(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Descripción de la plantilla..."
-                    className="bg-[#0a0a0a] border-white/10 text-white mt-1"
+                    className="bg-background border-white/10 text-white mt-1"
                     rows={2}
                   />
                 </div>
@@ -352,7 +352,7 @@ const DesignTemplates: React.FC = () => {
                       value={newTemplate.category}
                       onValueChange={(value) => setNewTemplate(prev => ({ ...prev, category: value }))}
                     >
-                      <SelectTrigger className="bg-[#0a0a0a] border-white/10 text-white mt-1">
+                      <SelectTrigger className="bg-background border-white/10 text-white mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-white/10">
@@ -370,7 +370,7 @@ const DesignTemplates: React.FC = () => {
                       value={newTemplate.size_preset}
                       onValueChange={handleSizePresetChange}
                     >
-                      <SelectTrigger className="bg-[#0a0a0a] border-white/10 text-white mt-1">
+                      <SelectTrigger className="bg-background border-white/10 text-white mt-1">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="bg-card border-white/10">
@@ -393,7 +393,7 @@ const DesignTemplates: React.FC = () => {
                         type="number"
                         value={newTemplate.width_px}
                         onChange={(e) => setNewTemplate(prev => ({ ...prev, width_px: parseInt(e.target.value) || 0 }))}
-                        className="bg-[#0a0a0a] border-white/10 text-white mt-1"
+                        className="bg-background border-white/10 text-white mt-1"
                       />
                     </div>
                     <div>
@@ -402,30 +402,30 @@ const DesignTemplates: React.FC = () => {
                         type="number"
                         value={newTemplate.height_px}
                         onChange={(e) => setNewTemplate(prev => ({ ...prev, height_px: parseInt(e.target.value) || 0 }))}
-                        className="bg-[#0a0a0a] border-white/10 text-white mt-1"
+                        className="bg-background border-white/10 text-white mt-1"
                       />
                     </div>
                   </div>
                 )}
 
                 {/* Public toggle */}
-                <div className="flex items-center gap-3 p-3 bg-[#0a0a0a] rounded-lg border border-white/10">
+                <div className="flex items-center gap-3 p-3 bg-background rounded-lg border border-white/10">
                   <input
                     type="checkbox"
                     id="is_public"
                     checked={newTemplate.is_public}
                     onChange={(e) => setNewTemplate(prev => ({ ...prev, is_public: e.target.checked }))}
-                    className="w-4 h-4 rounded border-white/20 bg-[#0a0a0a] text-primary focus:ring-primary"
+                    className="w-4 h-4 rounded border-white/20 bg-background text-primary focus:ring-primary"
                   />
                   <div>
                     <Label htmlFor="is_public" className="text-white text-sm cursor-pointer">Hacer pública</Label>
-                    <p className="text-white/40 text-xs">Otros usuarios podrán ver y usar tu plantilla</p>
+                    <p className="text-muted-foreground text-xs">Otros usuarios podrán ver y usar tu plantilla</p>
                   </div>
                 </div>
 
                 <Button 
                   onClick={handleCreate} 
-                  className="w-full bg-primary text-black hover:bg-[#8ae639] font-medium"
+                  className="w-full bg-primary text-black hover:bg-primary-hover font-medium"
                   disabled={!newTemplate.image_url || !newTemplate.name}
                 >
                   Crear Plantilla
@@ -476,7 +476,7 @@ const DesignTemplates: React.FC = () => {
             {activeTab === 'mine' && (
               <Button 
                 onClick={() => setDialogOpen(true)}
-                className="bg-primary text-black hover:bg-[#8ae639]"
+                className="bg-primary text-black hover:bg-primary-hover"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Crear mi primera plantilla
@@ -533,7 +533,7 @@ const DesignTemplates: React.FC = () => {
                       {template.description}
                     </p>
                   )}
-                  <p className="text-white/40 text-xs">
+                  <p className="text-muted-foreground text-xs">
                     {template.width_px} x {template.height_px}px
                   </p>
                 </CardContent>
@@ -561,7 +561,7 @@ const DesignTemplates: React.FC = () => {
               {previewTemplate.description && (
                 <p className="text-white/60">{previewTemplate.description}</p>
               )}
-              <div className="flex items-center gap-2 text-white/40 text-sm">
+              <div className="flex items-center gap-2 text-muted-foreground text-sm">
                 <span className="bg-primary/20 text-primary px-2 py-1 rounded text-xs">
                   {CATEGORIES.find(c => c.value === previewTemplate.category)?.label}
                 </span>
@@ -570,7 +570,7 @@ const DesignTemplates: React.FC = () => {
               <div className="flex gap-3">
                 <Button
                   onClick={() => window.open(previewTemplate.image_url, '_blank')}
-                  className="bg-primary text-black hover:bg-[#8ae639]"
+                  className="bg-primary text-black hover:bg-primary-hover"
                 >
                   <Download className="w-4 h-4 mr-2" />
                   Descargar

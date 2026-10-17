@@ -108,7 +108,7 @@ const Privacidad: React.FC = () => (
         </p>
       </Section>
 
-      <p className="text-white/40 text-sm mt-12 pt-6 border-t border-white/10">
+      <p className="text-muted-foreground text-sm mt-12 pt-6 border-t border-white/10">
         © 2026 Maddi · Contacto privacidad: privacidad@maddi.com.mx
       </p>
     </article>

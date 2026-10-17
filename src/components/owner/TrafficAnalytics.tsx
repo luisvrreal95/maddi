@@ -227,8 +227,8 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
 
   if (!billboard) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-8 text-center">
-        <Car className="w-12 h-12 mx-auto text-white/30 mb-4" />
+      <Card className="bg-card border-white/10 p-8 text-center">
+        <Car className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
         <p className="text-white/60">Selecciona un espectacular para ver el análisis de tráfico</p>
       </Card>
     );
@@ -271,7 +271,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-[#1E1E1E] border-white/10 p-4">
+          <Card className="bg-card border-white/10 p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                 <Eye className="w-5 h-5 text-primary" />
@@ -281,7 +281,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
                   <p className="text-white/60 text-xs">Impresiones/día</p>
                   <UITooltip>
                     <TooltipTrigger>
-                      <Info className="w-3 h-3 text-white/30" />
+                      <Info className="w-3 h-3 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="bg-muted border-white/10 text-white max-w-xs">
                       <p className="text-sm">Número estimado de vehículos que pasan diariamente frente al espectacular, multiplicado por factor de visibilidad.</p>
@@ -293,7 +293,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
             </div>
           </Card>
           
-          <Card className="bg-[#1E1E1E] border-white/10 p-4">
+          <Card className="bg-card border-white/10 p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                 <Calendar className="w-5 h-5 text-blue-400" />
@@ -303,7 +303,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
                   <p className="text-white/60 text-xs">Impresiones/mes</p>
                   <UITooltip>
                     <TooltipTrigger>
-                      <Info className="w-3 h-3 text-white/30" />
+                      <Info className="w-3 h-3 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="bg-muted border-white/10 text-white max-w-xs">
                       <p className="text-sm">Impresiones diarias multiplicadas por 30 días. Valor estimado mensual.</p>
@@ -315,7 +315,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
             </div>
           </Card>
           
-          <Card className="bg-[#1E1E1E] border-white/10 p-4">
+          <Card className="bg-card border-white/10 p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
                 <Clock className="w-5 h-5 text-orange-400" />
@@ -327,7 +327,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
             </div>
           </Card>
           
-          <Card className="bg-[#1E1E1E] border-white/10 p-4">
+          <Card className="bg-card border-white/10 p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
                 <Route className="w-5 h-5 text-purple-400" />
@@ -343,7 +343,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Hourly Traffic Chart with Peak Highlighting */}
-          <Card className="bg-[#1E1E1E] border-white/10 p-4">
+          <Card className="bg-card border-white/10 p-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-primary" />
@@ -402,7 +402,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
           </Card>
 
           {/* Daily Traffic Chart */}
-          <Card className="bg-[#1E1E1E] border-white/10 p-4">
+          <Card className="bg-card border-white/10 p-4">
             <div className="flex items-center gap-2 mb-4">
               <Calendar className="w-5 h-5 text-blue-400" />
               <h3 className="text-white font-semibold">Tráfico por Día</h3>
@@ -448,7 +448,7 @@ const TrafficAnalytics: React.FC<TrafficAnalyticsProps> = ({ billboard }) => {
         </div>
 
         {/* Traffic Level Badge */}
-        <Card className="bg-[#1E1E1E] border-white/10 p-4">
+        <Card className="bg-card border-white/10 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Car className="w-5 h-5 text-white/60" />

@@ -140,7 +140,7 @@ const BusinessAnalytics: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#111]">
+    <div className="min-h-screen bg-background">
       <BusinessHeader title="Analytics" />
 
       <main className="p-4 md:p-6 max-w-6xl mx-auto pb-24 md:pb-6">
@@ -157,7 +157,7 @@ const BusinessAnalytics: React.FC = () => {
             <p className="text-white/50 mb-8 max-w-sm mx-auto">
               Necesitas campañas aprobadas para ver tus analytics. ¡Busca espacios publicitarios y comienza!
             </p>
-            <Link to="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-[#111] rounded-full font-semibold hover:bg-[#8AE63A] transition-colors">
+            <Link to="/search" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-semibold hover:bg-primary-hover transition-colors">
               <MapPin className="w-5 h-5" /> Explorar espacios
             </Link>
           </div>
@@ -167,7 +167,7 @@ const BusinessAnalytics: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-white text-2xl font-bold">Resumen</h1>
-                <p className="text-white/40 text-sm mt-0.5">
+                <p className="text-muted-foreground text-sm mt-0.5">
                   {activeBookings.length > 0 && <span className="text-emerald-400">{activeBookings.length} activa{activeBookings.length !== 1 ? 's' : ''}</span>}
                   {activeBookings.length > 0 && (scheduledBookings.length > 0 || completedBookings.length > 0) && <span> · </span>}
                   {scheduledBookings.length > 0 && <span className="text-amber-400">{scheduledBookings.length} programada{scheduledBookings.length !== 1 ? 's' : ''}</span>}
@@ -194,10 +194,10 @@ const BusinessAnalytics: React.FC = () => {
                     <div className="w-6 h-6 md:w-8 md:h-8 rounded-md md:rounded-lg flex items-center justify-center" style={{ backgroundColor: `${kpi.accent}15` }}>
                       <kpi.icon className="w-3 h-3 md:w-4 md:h-4" style={{ color: kpi.accent }} />
                     </div>
-                    <span className="text-white/40 text-[10px] md:text-xs">{kpi.label}</span>
+                    <span className="text-muted-foreground text-[10px] md:text-xs">{kpi.label}</span>
                   </div>
                   <p className="text-white text-lg md:text-2xl font-bold">{kpi.value}</p>
-                  <p className="text-white/30 text-[10px] md:text-xs mt-0.5">{kpi.sub}</p>
+                  <p className="text-muted-foreground text-[10px] md:text-xs mt-0.5">{kpi.sub}</p>
                 </div>
               ))}
             </div>
@@ -207,7 +207,7 @@ const BusinessAnalytics: React.FC = () => {
               {/* Performance Chart */}
               <div className="lg:col-span-3 bg-card rounded-2xl p-5 border border-white/5">
                 <h3 className="text-white font-semibold mb-1">Tráfico por espectacular</h3>
-                <p className="text-white/40 text-xs mb-5">Estimado de vehículos durante cada campaña</p>
+                <p className="text-muted-foreground text-xs mb-5">Estimado de vehículos durante cada campaña</p>
                 <div className="h-[280px] -mx-2 overflow-hidden">
                   <ChartContainer config={chartConfig}>
                     <ResponsiveContainer width="100%" height="100%">
@@ -225,7 +225,7 @@ const BusinessAnalytics: React.FC = () => {
               {/* City Distribution */}
               <div className="lg:col-span-2 bg-card rounded-2xl p-5 border border-white/5">
                 <h3 className="text-white font-semibold mb-1">Inversión por ciudad</h3>
-                <p className="text-white/40 text-xs mb-5">Distribución de gasto publicitario</p>
+                <p className="text-muted-foreground text-xs mb-5">Distribución de gasto publicitario</p>
                 {cityChartData.length > 0 ? (
                   <div className="flex flex-col items-center overflow-hidden">
                     <ResponsiveContainer width={160} height={160}>
@@ -248,7 +248,7 @@ const BusinessAnalytics: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <p className="text-white/30 text-sm text-center py-8">Sin datos</p>
+                  <p className="text-muted-foreground text-sm text-center py-8">Sin datos</p>
                 )}
               </div>
             </div>
@@ -257,7 +257,7 @@ const BusinessAnalytics: React.FC = () => {
             <div className="bg-card rounded-2xl border border-white/5 overflow-hidden">
               <div className="p-5 border-b border-white/5">
                 <h3 className="text-white font-semibold">Tus campañas</h3>
-                <p className="text-white/40 text-xs mt-0.5">Detalle de cada espacio contratado</p>
+                <p className="text-muted-foreground text-xs mt-0.5">Detalle de cada espacio contratado</p>
               </div>
               <div className="divide-y divide-white/5">
                 {approvedBookings.map((booking) => {
@@ -279,7 +279,7 @@ const BusinessAnalytics: React.FC = () => {
                       {booking.billboard?.image_url ? (
                         <img src={booking.billboard.image_url} alt="" className="w-14 h-14 rounded-xl object-cover flex-shrink-0" />
                       ) : (
-                        <div className="w-14 h-14 rounded-xl bg-[#222] flex items-center justify-center flex-shrink-0">
+                        <div className="w-14 h-14 rounded-xl bg-card flex items-center justify-center flex-shrink-0">
                           <MapPin className="w-5 h-5 text-white/20" />
                         </div>
                       )}
@@ -297,12 +297,12 @@ const BusinessAnalytics: React.FC = () => {
                             </span>
                           )}
                           {isFinished && (
-                            <span className="text-[10px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded-full">
+                            <span className="text-[10px] text-muted-foreground bg-white/5 px-1.5 py-0.5 rounded-full">
                               Finalizada
                             </span>
                           )}
                         </div>
-                        <p className="text-white/40 text-xs mt-0.5">
+                        <p className="text-muted-foreground text-xs mt-0.5">
                           {booking.billboard?.city} · {format(new Date(booking.start_date), "d MMM", { locale: es })} — {format(new Date(booking.end_date), "d MMM yyyy", { locale: es })}
                           {isPending && daysUntilStart > 0 && (
                             <span className="text-amber-400 ml-1">· Inicia en {daysUntilStart} día{daysUntilStart !== 1 ? 's' : ''}</span>
@@ -314,7 +314,7 @@ const BusinessAnalytics: React.FC = () => {
                             <div className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden">
                               <div className="h-full rounded-full bg-emerald-400 transition-all" style={{ width: `${progressPct}%` }} />
                             </div>
-                            <span className="text-[10px] text-white/30">{progressPct}%</span>
+                            <span className="text-[10px] text-muted-foreground">{progressPct}%</span>
                           </div>
                         )}
                       </div>
@@ -334,32 +334,32 @@ const BusinessAnalytics: React.FC = () => {
                         {hasStarted ? (
                           <>
                             <div>
-                              <p className="text-white/40 text-[10px]">Tráfico est.</p>
+                              <p className="text-muted-foreground text-[10px]">Tráfico est.</p>
                               <p className="text-white text-sm font-medium">~{impressions.toLocaleString()}</p>
                             </div>
                             <div>
-                              <p className="text-white/40 text-[10px]">Inversión</p>
+                              <p className="text-muted-foreground text-[10px]">Inversión</p>
                               <p className="text-white text-sm font-medium">${booking.total_price.toLocaleString()}</p>
                             </div>
                             <div>
-                              <p className="text-white/40 text-[10px]">CPI</p>
+                              <p className="text-muted-foreground text-[10px]">CPI</p>
                               <p className="text-white text-sm font-medium">${cpi.toFixed(4)}</p>
                             </div>
                           </>
                         ) : (
                           <>
                             <div>
-                              <p className="text-white/40 text-[10px]">Inversión contratada</p>
+                              <p className="text-muted-foreground text-[10px]">Inversión contratada</p>
                               <p className="text-white text-sm font-medium">${booking.total_price.toLocaleString()}</p>
                             </div>
                             <div>
-                              <p className="text-white/40 text-[10px]">Inicia en</p>
+                              <p className="text-muted-foreground text-[10px]">Inicia en</p>
                               <p className="text-amber-400 text-sm font-medium">{daysUntilStart} día{daysUntilStart !== 1 ? 's' : ''}</p>
                             </div>
                           </>
                         )}
                       </div>
-                      <ArrowUpRight className="w-4 h-4 text-white/30" />
+                      <ArrowUpRight className="w-4 h-4 text-muted-foreground" />
                     </div>
                   );
                 })}

@@ -515,7 +515,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                       {format(new Date(booking.start_date), "d MMM", { locale: es })} — {format(new Date(booking.end_date), "d MMM yyyy", { locale: es })}
                     </p>
                     <p className="text-primary text-xs font-bold">${booking.total_price.toLocaleString()} MXN</p>
-                    <p className="text-white/40 text-[10px]">Click para ver detalle</p>
+                    <p className="text-muted-foreground text-[10px]">Click para ver detalle</p>
                   </TooltipContent>
                 </Tooltip>
               );
@@ -561,7 +561,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                 {monthBookings.length > 0 ? (
                   <span className="text-primary">{monthBookings.length} reservas</span>
                 ) : (
-                  <span className="text-white/40">Sin reservas</span>
+                  <span className="text-muted-foreground">Sin reservas</span>
                 )}
               </div>
             </div>
@@ -653,7 +653,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
         </div>
 
         {/* Calendar Grid */}
-        <div className="bg-[#1E1E1E] rounded-xl p-2 md:p-4 border border-white/5">
+        <div className="bg-card rounded-xl p-2 md:p-4 border border-white/5">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <div className="text-white/60">Cargando...</div>
@@ -706,7 +706,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
         {/* Selected Dates Actions */}
         {selectedDates.length > 0 && !rangeStart && (
-          <Card className="bg-[#1E1E1E] border-white/10">
+          <Card className="bg-card border-white/10">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-lg flex items-center justify-between">
                 {selectedDates.length} día(s) seleccionado(s)
@@ -761,7 +761,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={handleSavePrice} className="flex-1 bg-primary text-background hover:bg-[#8AE63A]">
+                    <Button onClick={handleSavePrice} className="flex-1 bg-primary text-background hover:bg-primary-hover">
                       Guardar
                     </Button>
                     <Button onClick={() => setEditMode(null)} variant="outline" className="border-white/20 text-white">
@@ -798,7 +798,7 @@ const OwnerCalendar: React.FC<OwnerCalendarProps> = ({ billboards, userId, onBil
 
         {/* Property Info & Booking Settings */}
         {selectedBillboard && (
-          <Card className="bg-[#1E1E1E] border-white/10">
+          <Card className="bg-card border-white/10">
             <CardHeader className="pb-3">
               <CardTitle className="text-white text-lg">Información</CardTitle>
             </CardHeader>
@@ -897,12 +897,12 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
   };
 
   return (
-    <Card className="bg-[#1E1E1E] border-white/10">
+    <Card className="bg-card border-white/10">
       <CardHeader className="pb-3">
         <CardTitle className="text-white text-lg flex items-center gap-2">
           <Clock className="w-4 h-4 text-primary" />
           Requisitos de reserva
-          <span className="text-xs font-normal text-white/40 ml-auto">(opcional)</span>
+          <span className="text-xs font-normal text-muted-foreground ml-auto">(opcional)</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -918,7 +918,7 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
             />
             <span className="text-white/50 text-sm">días</span>
           </div>
-          <p className="text-white/40 text-xs mt-1">0 = sin mínimo</p>
+          <p className="text-muted-foreground text-xs mt-1">0 = sin mínimo</p>
         </div>
         
         <div>
@@ -933,13 +933,13 @@ const BookingConstraintsCard: React.FC<BookingConstraintsCardProps> = ({ billboa
             />
             <span className="text-white/50 text-sm">días antes</span>
           </div>
-          <p className="text-white/40 text-xs mt-1">Tiempo para aprobar e instalar (recomendado: 7)</p>
+          <p className="text-muted-foreground text-xs mt-1">Tiempo para aprobar e instalar (recomendado: 7)</p>
         </div>
         
         <Button 
           onClick={handleSave} 
           disabled={isSaving || !hasChanges}
-          className="w-full bg-primary hover:bg-[#8AE63A] text-background disabled:opacity-50"
+          className="w-full bg-primary hover:bg-primary-hover text-background disabled:opacity-50"
         >
           {isSaving ? 'Guardando...' : 'Guardar cambios'}
         </Button>

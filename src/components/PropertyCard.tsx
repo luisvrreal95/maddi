@@ -26,7 +26,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
   onSelect
 }) => {
   return (
-    <article className="flex flex-1 min-w-0 flex-col items-center gap-9 self-stretch relative bg-card p-8 rounded-[23px] border-[1.5px] border-solid border-[rgba(255,255,255,0.30)] hover:border-white hover:bg-[#252525] transition-all duration-300 cursor-pointer max-md:w-full max-sm:gap-6 max-sm:p-6">
+    <article className="flex flex-1 min-w-0 flex-col items-center gap-9 self-stretch relative bg-card p-8 rounded-[23px] border-[1.5px] border-solid border-[rgba(255,255,255,0.30)] hover:border-white hover:bg-secondary transition-all duration-300 cursor-pointer max-md:w-full max-sm:gap-6 max-sm:p-6">
       <div className="flex flex-col items-start gap-8 self-stretch relative">
         <div className="flex flex-col items-start gap-6 self-stretch relative">
           <header className="flex flex-col items-start gap-2 self-stretch relative">
@@ -50,7 +50,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
               {price}
             </span>
             <div className="flex justify-center items-center gap-2 relative pt-1">
-              <span className="text-[#C4C4C4] text-2xl font-normal relative max-sm:text-xl">
+              <span className="text-muted-foreground text-2xl font-normal relative max-sm:text-xl">
                 /mes
               </span>
             </div>
@@ -74,7 +74,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({
         </div>
       </div>
       
-      <div className="flex flex-col justify-center items-center gap-4 self-stretch border relative p-6 rounded-lg border-solid border-[#444]">
+      <div className="flex flex-col justify-center items-center gap-4 self-stretch border relative p-6 rounded-lg border-solid border-border">
         <div className="flex justify-center items-center gap-2 relative">
           <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M14.6941 9.19439C14.9626 8.9259 14.9626 8.4906 14.6941 8.22212C14.4257 7.95363 13.9904 7.95363 13.7219 8.22212L9.62467 12.3193L8.27748 10.9721C8.00899 10.7036 7.57369 10.7036 7.30521 10.9721C7.03672 11.2406 7.03672 11.6759 7.30521 11.9444L9.13854 13.7777C9.40702 14.0462 9.84232 14.0462 10.1108 13.7777L14.6941 9.19439Z" fill="#9BFF43"/>

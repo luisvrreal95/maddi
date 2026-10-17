@@ -185,8 +185,8 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
 
   if (!billboard) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-8 text-center">
-        <MapPin className="w-12 h-12 mx-auto text-white/30 mb-4" />
+      <Card className="bg-card border-white/10 p-8 text-center">
+        <MapPin className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
         <p className="text-white/60">Selecciona un espectacular para ver qué hay alrededor</p>
       </Card>
     );
@@ -194,7 +194,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
 
   if (!result && !isLoading) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-8 text-center">
+      <Card className="bg-card border-white/10 p-8 text-center">
         <Sparkles className="w-12 h-12 mx-auto text-primary/50 mb-4" />
         <h3 className="text-white font-semibold mb-2">Análisis de Ubicación con IA</h3>
         <p className="text-white/60 text-sm mb-6">
@@ -202,7 +202,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
         </p>
         <Button
           onClick={fetchAnalysis}
-          className="bg-primary hover:bg-[#8AE63A] text-background font-medium"
+          className="bg-primary hover:bg-primary-hover text-background font-medium"
         >
           <Sparkles className="w-4 h-4 mr-2" />
           Analizar Ubicación
@@ -213,7 +213,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
 
   if (isLoading) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-8 text-center">
+      <Card className="bg-card border-white/10 p-8 text-center">
         <Loader2 className="w-12 h-12 mx-auto text-primary mb-4 animate-spin" />
         <h3 className="text-white font-semibold mb-2">Analizando ubicación...</h3>
         <p className="text-white/60 text-sm">
@@ -253,7 +253,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
           .map((category) => (
             <Card 
               key={category.name}
-              className="bg-[#1E1E1E] border-white/10 overflow-hidden"
+              className="bg-card border-white/10 overflow-hidden"
             >
               <button
                 onClick={() => toggleCategory(category.name)}
@@ -293,7 +293,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
                     </div>
                   ))}
                   {category.count > 5 && (
-                    <p className="text-white/40 text-xs text-center pt-2">
+                    <p className="text-muted-foreground text-xs text-center pt-2">
                       +{category.count - 5} más
                     </p>
                   )}
@@ -305,7 +305,7 @@ const NearbyBusinesses: React.FC<NearbyBusinessesProps> = ({ billboard }) => {
 
       {/* AI Analysis */}
       {result?.aiAnalysis && (
-        <Card className="bg-gradient-to-br from-[#9BFF43]/10 to-transparent border-primary/30 p-6">
+        <Card className="bg-gradient-to-br from-primary/10 to-transparent border-primary/30 p-6">
           <div className="flex items-center gap-2 mb-4">
             <Sparkles className="w-5 h-5 text-primary" />
             <h3 className="text-white font-semibold">Análisis con IA</h3>

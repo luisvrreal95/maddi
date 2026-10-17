@@ -110,7 +110,7 @@ const BookingSuccessScreen: React.FC<BookingSuccessScreenProps> = ({ data, onClo
       >
         <Button
           onClick={() => { onClose(); navigate('/business'); }}
-          className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] font-semibold"
+          className="w-full bg-primary text-primary-foreground hover:bg-primary-hover font-semibold"
         >
           Ver mis campañas
           <ArrowRight className="w-4 h-4 ml-1" />

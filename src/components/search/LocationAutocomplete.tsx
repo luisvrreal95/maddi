@@ -351,9 +351,9 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
                   handleSelect(suggestions[0]);
                 }
               }}
-              className="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-[#8AE63A] transition-colors"
+              className="w-10 h-10 bg-primary rounded-full flex items-center justify-center hover:bg-primary-hover transition-colors"
             >
-              <Search className="w-5 h-5 text-[#202020]" />
+              <Search className="w-5 h-5 text-primary-foreground" />
             </button>
           )}
         </div>
@@ -372,7 +372,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           ) : (
             <>
               {userLocation && (
-                <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40">
+                <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-muted-foreground">
                   <Navigation className="w-3 h-3" />
                   <span>Mostrando resultados cerca de ti</span>
                 </div>
@@ -392,7 +392,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
                         : 'hover:bg-white/5'
                     }`}
                   >
-                    <div className={`mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-white/40'}`}>
+                    <div className={`mt-0.5 flex-shrink-0 ${index === selectedIndex ? 'text-primary' : 'text-muted-foreground'}`}>
                       {getFeatureIcon(suggestion.feature_type, suggestion.poi_category)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -405,12 +405,12 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
                         {locationContext && <span className="text-white/50 font-normal"> — {locationContext}</span>}
                       </p>
                       {suggestion.poi_category && suggestion.poi_category.length > 0 && (
-                        <p className="text-xs text-white/40 truncate mt-0.5">
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
                           {suggestion.poi_category.slice(0, 2).join(', ')}
                         </p>
                       )}
                     </div>
-                    <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                    <span className="text-xs text-muted-foreground bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
                       {getFeatureTypeLabel(suggestion.feature_type)}
                     </span>
                   </button>

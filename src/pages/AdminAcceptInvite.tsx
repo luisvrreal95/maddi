@@ -134,7 +134,7 @@ const AdminAcceptInvite = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
@@ -142,7 +142,7 @@ const AdminAcceptInvite = () => {
 
   if (error || !invitation) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
         <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <ShieldX className="w-8 h-8 text-red-400" />
@@ -153,7 +153,7 @@ const AdminAcceptInvite = () => {
           </p>
           <Button
             onClick={() => navigate("/")}
-            className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover"
           >
             Ir al inicio
           </Button>
@@ -165,7 +165,7 @@ const AdminAcceptInvite = () => {
   const roleLabel = invitation.role === "super_admin" ? "Super Administrador" : "Administrador";
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
       <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10">
         {/* Header */}
         <div className="text-center mb-8">
@@ -176,7 +176,7 @@ const AdminAcceptInvite = () => {
           <p className="text-white/60 text-sm">
             Has sido invitado como <span className="text-primary font-semibold">{roleLabel}</span>
           </p>
-          <p className="text-white/40 text-xs mt-2">{invitation.email}</p>
+          <p className="text-muted-foreground text-xs mt-2">{invitation.email}</p>
         </div>
 
         {/* Form */}
@@ -191,7 +191,7 @@ const AdminAcceptInvite = () => {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Tu nombre"
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
+              className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground h-12 rounded-xl focus:border-primary focus:ring-primary/20"
               disabled={isSubmitting}
               autoComplete="name"
             />
@@ -208,14 +208,14 @@ const AdminAcceptInvite = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Mínimo 8 caracteres"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
+                className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
                 disabled={isSubmitting}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -232,7 +232,7 @@ const AdminAcceptInvite = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repite tu contraseña"
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
+              className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground h-12 rounded-xl focus:border-primary focus:ring-primary/20"
               disabled={isSubmitting}
               autoComplete="new-password"
             />
@@ -241,7 +241,7 @@ const AdminAcceptInvite = () => {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary-hover h-12 rounded-xl font-semibold"
           >
             {isSubmitting ? (
               <>
@@ -255,7 +255,7 @@ const AdminAcceptInvite = () => {
         </form>
 
         {/* Footer */}
-        <p className="text-center text-white/40 text-xs mt-6">
+        <p className="text-center text-muted-foreground text-xs mt-6">
           Panel de Administración de Maddi
         </p>
       </div>

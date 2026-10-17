@@ -64,13 +64,13 @@ const AdvertisingSection: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-start mb-12 relative z-10">
         <div className="flex flex-col gap-2">
-          <h2 className="text-[#202020] text-5xl md:text-6xl lg:text-7xl font-bold leading-tight uppercase max-sm:text-3xl">
+          <h2 className="text-primary-foreground text-5xl md:text-6xl lg:text-7xl font-bold leading-tight uppercase max-sm:text-3xl">
             PUBLICIDAD DIGITAL PARA TÚ
           </h2>
-          <h2 className="text-[#202020] text-5xl md:text-6xl lg:text-7xl font-bold leading-tight uppercase max-sm:text-3xl">
+          <h2 className="text-primary-foreground text-5xl md:text-6xl lg:text-7xl font-bold leading-tight uppercase max-sm:text-3xl">
             NEGOCIO
           </h2>
-          <p className="text-[#202020]/70 text-lg mt-2 max-sm:text-base">
+          <p className="text-primary-foreground/70 text-lg mt-2 max-sm:text-base">
             Encuentra los mejores espacios publicitarios
           </p>
         </div>
@@ -82,8 +82,8 @@ const AdvertisingSection: React.FC = () => {
             disabled={!canScrollLeft}
             className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
               canScrollLeft 
-                ? 'border-[#202020] hover:bg-card hover:text-white cursor-pointer text-[#202020]' 
-                : 'border-[#202020]/30 text-[#202020]/30 cursor-not-allowed'
+                ? 'border-border hover:bg-card hover:text-white cursor-pointer text-primary-foreground' 
+                : 'border-border/30 text-primary-foreground/30 cursor-not-allowed'
             }`}
             aria-label="Scroll left"
           >
@@ -95,8 +95,8 @@ const AdvertisingSection: React.FC = () => {
             disabled={!canScrollRight}
             className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${
               canScrollRight 
-                ? 'border-[#202020] hover:bg-card hover:text-white cursor-pointer text-[#202020]' 
-                : 'border-[#202020]/30 text-[#202020]/30 cursor-not-allowed'
+                ? 'border-border hover:bg-card hover:text-white cursor-pointer text-primary-foreground' 
+                : 'border-border/30 text-primary-foreground/30 cursor-not-allowed'
             }`}
             aria-label="Scroll right"
           >

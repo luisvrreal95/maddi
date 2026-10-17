@@ -129,7 +129,7 @@ const PendingActionsBlock: React.FC<PendingActionsBlockProps> = ({
               <p className="text-white font-medium">{action.title}</p>
               <p className="text-white/50 text-sm truncate">{action.subtitle}</p>
             </div>
-            <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors flex-shrink-0" />
+            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-white/60 transition-colors flex-shrink-0" />
           </button>
         ))}
       </div>

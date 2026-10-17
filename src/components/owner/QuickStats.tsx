@@ -114,7 +114,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ billboards, userId }) => {
       value: pendingBookings.toString(),
       subValue: pendingBookings > 0 ? 'Requieren atención' : 'Todo al día',
       icon: Clock,
-      color: pendingBookings > 0 ? 'text-yellow-400' : 'text-white/40',
+      color: pendingBookings > 0 ? 'text-yellow-400' : 'text-muted-foreground',
       bgColor: pendingBookings > 0 ? 'bg-yellow-500/10' : 'bg-white/5',
       tooltip: 'Reservas que están esperando tu aprobación o rechazo.',
     },
@@ -128,7 +128,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ billboards, userId }) => {
           return (
             <div
               key={stat.label}
-              className="bg-[#1E1E1E] rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-colors"
+              className="bg-card rounded-2xl p-5 border border-white/5 hover:border-white/10 transition-colors"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className={`w-10 h-10 rounded-xl ${stat.bgColor} flex items-center justify-center`}>
@@ -136,7 +136,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ billboards, userId }) => {
                 </div>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="text-white/30 hover:text-white/60 transition-colors">
+                    <button className="text-muted-foreground hover:text-white/60 transition-colors">
                       <Info className="w-4 h-4" />
                     </button>
                   </TooltipTrigger>
@@ -148,7 +148,7 @@ const QuickStats: React.FC<QuickStatsProps> = ({ billboards, userId }) => {
               <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
               <p className="text-white/50 text-sm">{stat.label}</p>
               {stat.subValue && (
-                <div className="text-white/40 text-xs mt-1">
+                <div className="text-muted-foreground text-xs mt-1">
                   {typeof stat.subValue === 'string' ? stat.subValue : stat.subValue}
                 </div>
               )}

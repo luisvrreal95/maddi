@@ -194,7 +194,7 @@ const RecommendedActions: React.FC<RecommendedActionsProps> = ({ billboards, use
 
   if (isLoading) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-6">
+      <Card className="bg-card border-white/10 p-6">
         <div className="flex items-center justify-center py-8">
           <Loader2 className="w-6 h-6 text-primary animate-spin" />
         </div>
@@ -203,7 +203,7 @@ const RecommendedActions: React.FC<RecommendedActionsProps> = ({ billboards, use
   }
 
   return (
-    <Card className="bg-gradient-to-br from-[#1E1E1E] to-[#252525] border-primary/20 p-6 mb-8">
+    <Card className="bg-gradient-to-br from-card to-card border-primary/20 p-6 mb-8">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">

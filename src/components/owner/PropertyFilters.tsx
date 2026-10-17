@@ -31,12 +31,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({
     <div className="flex flex-wrap gap-3 items-center">
       {/* Search Bar */}
       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Buscar propiedades..."
           value={searchQuery}
           onChange={(e) => onSearchChange?.(e.target.value)}
-          className="pl-10 bg-muted border-white/10 text-white placeholder:text-white/30"
+          className="pl-10 bg-muted border-white/10 text-white placeholder:text-muted-foreground"
         />
       </div>
 

@@ -141,7 +141,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
   // Not logged in or not admin - show admin login form
   if (!user || !isAdmin) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
         <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10">
           {/* Header */}
           <div className="text-center mb-8">
@@ -166,7 +166,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@maddi.com"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
+                className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground h-12 rounded-xl focus:border-primary focus:ring-primary/20"
                 disabled={isLoggingIn}
               />
             </div>
@@ -182,13 +182,13 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
                   disabled={isLoggingIn}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -198,7 +198,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
             <Button
               type="submit"
               disabled={isLoggingIn}
-              className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary-hover h-12 rounded-xl font-semibold"
             >
               {isLoggingIn ? (
                 <>
@@ -221,7 +221,7 @@ const AdminGuard = ({ children }: AdminGuardProps) => {
           </form>
 
           {/* Footer */}
-          <p className="text-center text-white/40 text-xs mt-6">
+          <p className="text-center text-muted-foreground text-xs mt-6">
             Acceso restringido solo para administradores de Maddi
           </p>
         </div>

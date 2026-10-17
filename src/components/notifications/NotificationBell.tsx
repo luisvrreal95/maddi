@@ -89,7 +89,7 @@ const NotificationBell: React.FC = () => {
         >
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-primary text-[#202020] text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -146,7 +146,7 @@ const NotificationBell: React.FC = () => {
                       <p className="text-white/50 text-xs mt-0.5 line-clamp-2">
                         {notification.message}
                       </p>
-                      <p className="text-white/30 text-xs mt-1">
+                      <p className="text-muted-foreground text-xs mt-1">
                         {formatDistanceToNow(new Date(notification.created_at), {
                           addSuffix: true,
                           locale: es

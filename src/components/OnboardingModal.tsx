@@ -140,7 +140,7 @@ const OnboardingModal: React.FC = () => {
             {secondaryLabel}
           </Button>
           <Button
-            className="flex-1 bg-primary text-black hover:bg-[#8AE83C] font-semibold"
+            className="flex-1 bg-primary text-black hover:bg-primary-hover font-semibold"
             onClick={() => go(primaryPath)}
           >
             {primaryLabel}

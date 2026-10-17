@@ -116,12 +116,12 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                 style={{ borderColor: COLORS[idx % COLORS.length] }}
               >
                 {/* Image */}
-                <div className="relative h-28 bg-[#3A3A3A]">
+                <div className="relative h-28 bg-secondary">
                   {property.imageUrl ? (
                     <img src={property.imageUrl} alt={property.name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <MapPin className="w-8 h-8 text-white/30" />
+                      <MapPin className="w-8 h-8 text-muted-foreground" />
                     </div>
                   )}
                   <button
@@ -176,7 +176,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
 
                   <button
                     onClick={() => onReserve(property)}
-                    className="w-full mt-3 py-2 rounded-lg bg-primary text-primary-foreground font-bold text-xs hover:bg-[#8AE63A] transition-colors"
+                    className="w-full mt-3 py-2 rounded-lg bg-primary text-primary-foreground font-bold text-xs hover:bg-primary-hover transition-colors"
                   >
                     Reservar
                   </button>
@@ -288,7 +288,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                         }`}>
                           {p.inegiData.socioeconomicLevel.charAt(0).toUpperCase() + p.inegiData.socioeconomicLevel.slice(1)}
                         </span>
-                      ) : <Minus className="inline w-4 h-4 text-white/30" />}
+                      ) : <Minus className="inline w-4 h-4 text-muted-foreground" />}
                     </td>
                   ))}
                 </tr>
@@ -296,7 +296,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                   <td className="py-2 pr-4 text-white/70">Negocios Cercanos</td>
                   {propertiesWithMetrics.map(p => (
                     <td key={p.id} className="text-center py-2 px-2 font-medium">
-                      {p.inegiData?.nearbyBusinessesCount ? `${p.inegiData.nearbyBusinessesCount}` : <Minus className="inline w-4 h-4 text-white/30" />}
+                      {p.inegiData?.nearbyBusinessesCount ? `${p.inegiData.nearbyBusinessesCount}` : <Minus className="inline w-4 h-4 text-muted-foreground" />}
                     </td>
                   ))}
                 </tr>
@@ -316,7 +316,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                   <td className="py-2 pr-4 text-white/70">Iluminación</td>
                   {propertiesWithMetrics.map(p => (
                     <td key={p.id} className="text-center py-2 px-2 font-medium">
-                      {p.status === 'Alto' ? <Check className="inline w-4 h-4 text-primary" /> : <Minus className="inline w-4 h-4 text-white/30" />}
+                      {p.status === 'Alto' ? <Check className="inline w-4 h-4 text-primary" /> : <Minus className="inline w-4 h-4 text-muted-foreground" />}
                     </td>
                   ))}
                 </tr>

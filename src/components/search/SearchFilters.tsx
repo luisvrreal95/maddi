@@ -42,7 +42,7 @@ const FilterDropdown: React.FC<FilterProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-200 ${
           selectedValues.length > 0
-            ? 'bg-primary border-primary text-[#202020]'
+            ? 'bg-primary border-primary text-primary-foreground'
             : 'bg-transparent border-white/20 text-white hover:border-white/40'
         }`}
       >
@@ -79,7 +79,7 @@ const FilterDropdown: React.FC<FilterProps> = ({
                       : 'border-white/30'
                   }`}>
                     {selectedValues.includes(option.value) && (
-                      <svg className="w-4 h-4 text-[#202020]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     )}

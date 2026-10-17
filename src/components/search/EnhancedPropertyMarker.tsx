@@ -79,8 +79,8 @@ export const createMarkerElement = (
           : 'w-16 h-16 border-2'
       }" style="background-color: ${isSelected ? traffic.color : '#2A2A2A'}; border-color: ${traffic.color}80;">
         ${checkmark}
-        <span class="text-xs font-bold ${isSelected ? 'text-[#202020]' : 'text-white'}">${formatViews(viewsPerDay)}</span>
-        <span class="text-[8px] ${isSelected ? 'text-[#202020]/70' : 'text-white/50'}">VISTAS/DÍA</span>
+        <span class="text-xs font-bold ${isSelected ? 'text-primary-foreground' : 'text-white'}">${formatViews(viewsPerDay)}</span>
+        <span class="text-[8px] ${isSelected ? 'text-primary-foreground/70' : 'text-white/50'}">VISTAS/DÍA</span>
         <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[6px] font-bold uppercase" style="background-color: ${traffic.color}; color: #202020;">
           ${traffic.level}
         </div>
@@ -122,10 +122,10 @@ const EnhancedPropertyMarker: React.FC<EnhancedPropertyMarkerProps> = ({
             </svg>
           </div>
         )}
-        <span className={`text-xs font-bold ${isSelected ? 'text-[#202020]' : 'text-white'}`}>
+        <span className={`text-xs font-bold ${isSelected ? 'text-primary-foreground' : 'text-white'}`}>
           {formatViews(viewsPerDay)}
         </span>
-        <span className={`text-[8px] ${isSelected ? 'text-[#202020]/70' : 'text-white/50'}`}>
+        <span className={`text-[8px] ${isSelected ? 'text-primary-foreground/70' : 'text-white/50'}`}>
           VISTAS/DÍA
         </span>
         <div 

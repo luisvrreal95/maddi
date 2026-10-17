@@ -101,7 +101,7 @@ const Favorites: React.FC = () => {
           </div>
           <Button
             onClick={() => setIsCreatingFolder(true)}
-            className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
+            className="bg-primary text-primary-foreground hover:bg-primary-hover"
           >
             <FolderPlus className="w-4 h-4 mr-2" />
             Nueva Carpeta
@@ -117,12 +117,12 @@ const Favorites: React.FC = () => {
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                 selectedFolder === null
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
+                  : 'bg-muted text-white/70 hover:bg-secondary'
               }`}
             >
               <Heart className="w-4 h-4" />
               <span>Todos</span>
-              <span className={`text-xs ${selectedFolder === null ? 'text-primary-foreground/60' : 'text-white/40'}`}>
+              <span className={`text-xs ${selectedFolder === null ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
                 ({favorites.length})
               </span>
             </button>
@@ -133,12 +133,12 @@ const Favorites: React.FC = () => {
               className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                 selectedFolder === 'none'
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
+                  : 'bg-muted text-white/70 hover:bg-secondary'
               }`}
             >
               <Folder className="w-4 h-4" />
               <span>Sin carpeta</span>
-              <span className={`text-xs ${selectedFolder === 'none' ? 'text-primary-foreground/60' : 'text-white/40'}`}>
+              <span className={`text-xs ${selectedFolder === 'none' ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
                 ({getUnfolderedCount()})
               </span>
             </button>
@@ -151,18 +151,18 @@ const Favorites: React.FC = () => {
                   className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
                     selectedFolder === folder.id
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-white/70 hover:bg-[#3A3A3A]'
+                      : 'bg-muted text-white/70 hover:bg-secondary'
                   }`}
                 >
                   <Folder className="w-4 h-4" />
                   <span>{folder.name}</span>
-                  <span className={`text-xs ${selectedFolder === folder.id ? 'text-primary-foreground/60' : 'text-white/40'}`}>
+                  <span className={`text-xs ${selectedFolder === folder.id ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
                     ({getFolderCount(folder.id)})
                   </span>
                 </button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="absolute -right-1 -top-1 w-5 h-5 rounded-full bg-[#3A3A3A] text-white/60 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button className="absolute -right-1 -top-1 w-5 h-5 rounded-full bg-secondary text-white/60 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <MoreVertical className="w-3 h-3" />
                     </button>
                   </DropdownMenuTrigger>
@@ -204,11 +204,11 @@ const Favorites: React.FC = () => {
             <h2 className="text-white text-xl font-semibold mb-2">
               {selectedFolder ? 'Esta carpeta está vacía' : 'No tienes favoritos guardados'}
             </h2>
-            <p className="text-white/40 mb-6">
+            <p className="text-muted-foreground mb-6">
               Explora espectaculares y guarda tus favoritos para verlos aquí.
             </p>
             <Link to="/search">
-              <Button className="bg-primary text-primary-foreground hover:bg-[#8AE63A]">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary-hover">
                 Explorar espectaculares
               </Button>
             </Link>
@@ -226,7 +226,7 @@ const Favorites: React.FC = () => {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                       />
                     ) : (
-                      <div className="w-full h-full bg-[#3A3A3A] flex items-center justify-center">
+                      <div className="w-full h-full bg-secondary flex items-center justify-center">
                         <MapPin className="w-12 h-12 text-white/20" />
                       </div>
                     )}
@@ -247,7 +247,7 @@ const Favorites: React.FC = () => {
                       {billboard.title}
                     </h3>
                   </Link>
-                  <p className="text-white/40 text-sm flex items-center gap-1 mb-3">
+                  <p className="text-muted-foreground text-sm flex items-center gap-1 mb-3">
                     <MapPin className="w-3 h-3" />
                     {billboard.city}, {billboard.state}
                   </p>
@@ -289,7 +289,7 @@ const Favorites: React.FC = () => {
             <Button
               onClick={handleCreateFolder}
               disabled={!newFolderName.trim()}
-              className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
+              className="bg-primary text-primary-foreground hover:bg-primary-hover"
             >
               Crear
             </Button>
@@ -315,7 +315,7 @@ const Favorites: React.FC = () => {
             <Button
               onClick={handleRenameFolder}
               disabled={!renameValue.trim()}
-              className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
+              className="bg-primary text-primary-foreground hover:bg-primary-hover"
             >
               Guardar
             </Button>

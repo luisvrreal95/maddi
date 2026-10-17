@@ -151,7 +151,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
               </>
             ) : (
               <>
-                <Plus className="h-6 w-6 text-white/40 mb-1" />
+                <Plus className="h-6 w-6 text-muted-foreground mb-1" />
                 <p className="text-white/60 text-xs text-center px-2">Agregar foto</p>
               </>
             )}
@@ -160,7 +160,7 @@ const MultiImageUpload: React.FC<MultiImageUploadProps> = ({
       </div>
 
       {/* Helper text */}
-      <p className="text-white/40 text-xs">
+      <p className="text-muted-foreground text-xs">
         {value.length}/{maxImages} imágenes · La primera será la principal · JPG, PNG, WebP (máx 5MB c/u)
       </p>
 

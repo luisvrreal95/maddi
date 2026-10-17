@@ -26,7 +26,7 @@ const BillboardSelector: React.FC<BillboardSelectorProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-4">
+      <Card className="bg-card border-white/10 p-4">
         <Skeleton className="h-10 w-full bg-white/10" />
       </Card>
     );
@@ -34,7 +34,7 @@ const BillboardSelector: React.FC<BillboardSelectorProps> = ({
 
   if (billboards.length === 0) {
     return (
-      <Card className="bg-[#1E1E1E] border-white/10 p-6 text-center">
+      <Card className="bg-card border-white/10 p-6 text-center">
         <p className="text-white/60">No tienes espectaculares registrados</p>
       </Card>
     );
@@ -52,7 +52,7 @@ const BillboardSelector: React.FC<BillboardSelectorProps> = ({
           if (billboard) onSelect(billboard);
         }}
       >
-        <SelectTrigger className="w-full md:w-80 bg-[#1E1E1E] border-white/10 text-white h-12">
+        <SelectTrigger className="w-full md:w-80 bg-card border-white/10 text-white h-12">
           <SelectValue placeholder="Selecciona un espectacular">
             {selectedBillboard && (
               <div className="flex items-center gap-3">
