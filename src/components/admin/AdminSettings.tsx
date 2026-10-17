@@ -383,7 +383,7 @@ const AdminSettings = ({ isSuperAdmin }: AdminSettingsProps) => {
                             {a.role === "super_admin" ? "Super Admin" : "Admin"}
                           </Badge>
                         </div>
-                        <div className="font-mono text-xs break-all">{a.user_id}</div>
+                        <div className="text-xs tabular-nums break-all">{a.user_id}</div>
                         <div className="text-right">
                           {a.user_id !== user?.id && (
                             <Button
