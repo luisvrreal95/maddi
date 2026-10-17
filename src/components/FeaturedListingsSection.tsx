@@ -6,7 +6,14 @@ import type { HomeBillboards } from '@/hooks/useHomeBillboards';
 import type { Billboard } from '@/hooks/useBillboards';
 import Reveal from '@/components/Reveal';
 
-const badges = ['Top tráfico', 'Zona comercial', 'Alta exposición'];
+// Badge comes from real data instead of a fixed rotation.
+const badgeFor = (b: Billboard, idx: number): string => {
+  if (idx === 0 && (b.daily_impressions || 0) > 0) return 'Top tráfico';
+  if (b.billboard_type === 'pantalla_digital') return 'Pantalla digital';
+  if (b.illumination && b.illumination.toLowerCase() === 'iluminado') return 'Iluminado';
+  const labels: Record<string, string> = { espectacular: 'Espectacular', muro: 'Muro', puente: 'Puente peatonal', valla: 'Valla' };
+  return labels[(b.billboard_type || '').toLowerCase()] || 'Disponible';
+};
 
 const Eyebrow: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <p className="flex items-center gap-2 text-sm font-semibold text-ink">
@@ -76,10 +83,10 @@ const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }
       <div className="p-6">
         <h3 className="text-xl font-semibold text-ink tracking-normal">{b.title}</h3>
         <p className="mt-1 truncate text-sm text-ink-muted">{shortAddress(b)}</p>
-        <div className="mt-5 flex items-end justify-between gap-3">
+        <div className="mt-5 flex flex-wrap items-end justify-between gap-x-3 gap-y-2">
           <div>
             <p className="text-xs text-ink-muted">Precio mensual</p>
-            <p className="text-[32px] font-bold leading-tight text-ink tabular-nums">
+            <p className="whitespace-nowrap text-[32px] font-bold leading-tight text-ink tabular-nums">
               ${b.price_per_month.toLocaleString()}
               <span className="text-sm font-normal text-ink-muted"> /mes</span>
             </p>
@@ -101,7 +108,7 @@ const FeaturedListingsSection: React.FC<{ home: HomeBillboards }> = ({ home }) =
   const featured = pickFeatured(available, 3);
   // featured[0].city is unreliable (some records store other text there)
   const displayCity = userCity || 'Mexicali';
-  const gridCls = 'grid gap-6 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] max-sm:[grid-template-columns:1fr]';
+  const gridCls = 'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3';
 
   if (isLoading) {
     return (
@@ -145,7 +152,7 @@ const FeaturedListingsSection: React.FC<{ home: HomeBillboards }> = ({ home }) =
         <div className={gridCls}>
           {featured.map((b, idx) => (
             <Reveal key={b.id} delay={idx * 90}>
-              <ListingCard b={b} badge={badges[idx % badges.length]} onClick={() => navigate(`/billboard/${b.id}`)} />
+              <ListingCard b={b} badge={badgeFor(b, idx)} onClick={() => navigate(`/billboard/${b.id}`)} />
             </Reveal>
           ))}
         </div>
