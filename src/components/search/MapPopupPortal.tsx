@@ -90,7 +90,9 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
     price_per_month: parseInt(property.price.replace(/[^0-9]/g, '')) || 0,
     image_url: property.imageUrl || undefined,
     daily_impressions: parseInt(property.viewsPerDay.replace(/[^0-9]/g, '')) || 0,
-    billboard_type: 'Espectacular',
+    size: property.size,
+    peak_hours: property.peakHours,
+    availability: property.availability,
   };
 
   useEffect(() => {
@@ -104,7 +106,7 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
       closeButton: false,
       closeOnClick: false,
       offset: [20, 0],
-      maxWidth: '360px',
+      maxWidth: '480px',
       className: 'custom-mapbox-popup',
       anchor: 'left'
     })
