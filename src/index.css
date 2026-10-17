@@ -31,6 +31,11 @@ All colors MUST be HSL.
     --input: 144 19% 15%;
     --ring: 92 100% 63%;
     --radius: 0.75rem;
+    --surface-light: 140 15% 94%;
+    --surface-card: 0 0% 100%;
+    --line-light: 137 13% 84%;
+    --ink: 0 0% 11%;
+    --ink-muted: 140 10% 32%;
     --sidebar-background: 150 38% 3%;
     --sidebar-foreground: 132 24% 96%;
     --sidebar-primary: 92 100% 63%;
@@ -73,7 +78,8 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .animate-glow-pulse,
   .animate-float,
-  .animate-scan {
+  .animate-scan,
+  .animate-ping {
     animation: none !important;
   }
 }
@@ -119,3 +125,27 @@ All colors MUST be HSL.
 .mb-safe {
   margin-bottom: env(safe-area-inset-bottom, 0);
 }
+
+/* Home hero decorative layers */
+.hero-glow {
+  background: radial-gradient(closest-side, hsl(var(--primary) / 0.24), transparent);
+}
+.hero-grid {
+  background-image:
+    linear-gradient(hsl(var(--primary) / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--primary) / 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 100%);
+}
+.dots-light {
+  background-color: hsl(var(--surface-light));
+  background-image: radial-gradient(hsl(var(--ink) / 0.09) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+.search-shell {
+  box-shadow: 0 30px 80px hsl(0 0% 0% / 0.55), 0 0 60px hsl(var(--primary) / 0.1);
+}
+.float-card-shadow { box-shadow: 0 24px 60px hsl(0 0% 0% / 0.5); }
+.listing-card:hover { box-shadow: 0 28px 56px hsl(var(--ink) / 0.18); }
+.viewfinder { filter: drop-shadow(0 1px 2px hsl(0 0% 0% / 0.7)); }
