@@ -150,7 +150,7 @@ const HeroSection: React.FC<{ available?: Billboard[] }> = ({ available = [] }) 
     : null;
 
   return (
-    <section className="relative flex flex-col items-center bg-background pb-36 max-md:pb-28 overflow-hidden">
+    <section className={`relative flex flex-col items-center bg-background pb-36 max-md:pb-28 overflow-x-clip ${showSuggestions ? 'z-30' : ''}`}>
       {/* Decorative layers */}
       <div className="hero-glow pointer-events-none absolute left-1/2 top-[-200px] h-[700px] w-[1040px] -translate-x-1/2 animate-glow-pulse" />
       <div className="hero-grid pointer-events-none absolute inset-0" />
@@ -277,7 +277,7 @@ const HeroSection: React.FC<{ available?: Billboard[] }> = ({ available = [] }) 
                     </div>
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-card border-border" align="start">
+                <PopoverContent className="z-[200] w-auto p-0 bg-card border-border" align="start">
                   <Calendar
                     mode="range"
                     selected={dateRange}
