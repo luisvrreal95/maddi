@@ -199,7 +199,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                     <XAxis type="number" tick={{ fill: '#fff', fontSize: 10, opacity: 0.5 }} axisLine={false} tickLine={false} />
                     <YAxis type="category" dataKey="name" tick={{ fill: '#fff', fontSize: 10, opacity: 0.7 }} axisLine={false} tickLine={false} width={80} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
+                      contentStyle={{ backgroundColor: '#0B1410', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                       formatter={(value: number) => [formatNumber(value), 'Vistas']}
                     />
                     <Bar dataKey="value" radius={[0, 4, 4, 0]}>
@@ -215,7 +215,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
             {/* Price Comparison */}
             <div className="bg-muted rounded-xl p-4">
               <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-blue-400" />
+                <DollarSign className="w-4 h-4 text-primary" />
                 Precio Mensual
               </h4>
               <div className="h-40">
@@ -224,7 +224,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
                     <XAxis type="number" tick={{ fill: '#fff', fontSize: 10, opacity: 0.5 }} axisLine={false} tickLine={false} />
                     <YAxis type="category" dataKey="name" tick={{ fill: '#fff', fontSize: 10, opacity: 0.7 }} axisLine={false} tickLine={false} width={80} />
                     <Tooltip
-                      contentStyle={{ backgroundColor: '#2A2A2A', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
+                      contentStyle={{ backgroundColor: '#0B1410', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', color: '#fff' }}
                       formatter={(value: number) => [`$${formatNumber(value)}`, 'Precio']}
                     />
                     <Bar dataKey="value" radius={[0, 4, 4, 0]}>
@@ -332,7 +332,7 @@ const ComparisonPanel: React.FC<ComparisonPanelProps> = ({
 
           {/* Best Value Recommendation */}
           {propertiesWithMetrics.length > 1 && (
-            <div className="bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-xl p-4 mt-4 border border-primary/30">
+            <div className="bg-gradient-to-r from-primary/20 to-primary/5 rounded-xl p-4 mt-4 border border-primary/30">
               <div className="flex items-center gap-3">
                 <Zap className="w-8 h-8 text-primary" />
                 <div>

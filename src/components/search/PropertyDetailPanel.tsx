@@ -158,7 +158,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
             </div>
             <div className="bg-muted rounded-xl p-4">
               <div className="flex items-center gap-2 mb-2">
-                <Target className="w-5 h-5 text-blue-400" />
+                <Target className="w-5 h-5 text-primary" />
                 <span className="text-white/60 text-sm">CPM Estimado</span>
               </div>
               <p className="text-white text-2xl font-bold">${cpm}</p>
@@ -214,7 +214,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
                     />
                     <Tooltip
                       contentStyle={{
-                        backgroundColor: '#2A2A2A',
+                        backgroundColor: '#0B1410',
                         border: '1px solid rgba(255,255,255,0.1)',
                         borderRadius: '8px',
                         color: '#fff'
@@ -247,7 +247,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
           {/* Area Context */}
           <div className="bg-muted rounded-xl p-4">
             <h3 className="text-white font-semibold mb-4 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-blue-400" />
+              <MapPin className="w-5 h-5 text-primary" />
               Contexto del Área
             </h3>
             <div className="space-y-3">

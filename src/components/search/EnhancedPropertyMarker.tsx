@@ -58,83 +58,46 @@ export const createMarkerElement = (
   const traffic = getTrafficLevel(viewsPerDay);
   const el = document.createElement('div');
   el.className = 'custom-marker';
-  
-  const compareRing = isCompareMode && isInCompare 
-    ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-[#202020]' 
-    : '';
-  
-  const checkmark = isInCompare 
-    ? `<div class="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-         <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-         </svg>
-       </div>`
+  el.style.zIndex = isSelected ? '10' : '1';
+
+  const bg = isSelected ? '#9BFF43' : 'rgba(5,11,8,0.92)';
+  const fg = isSelected ? '#07110B' : '#F2F7F3';
+  const border = isInCompare ? '#9BFF43' : isSelected ? '#9BFF43' : 'rgba(255,255,255,0.18)';
+  const dot = isSelected ? '#07110B' : traffic.color;
+  const glow = isSelected || isInCompare ? '0 0 0 4px rgba(155,255,67,0.22), 0 6px 20px rgba(155,255,67,0.35)' : '0 4px 14px rgba(0,0,0,0.5)';
+  const check = isInCompare
+    ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:9999px;background:${isSelected ? '#07110B' : '#9BFF43'};color:${isSelected ? '#9BFF43' : '#07110B'};font-size:9px;line-height:1;font-weight:800;">✓</span>`
     : '';
 
   el.innerHTML = `
-    <div class="flex flex-col items-center cursor-pointer transition-transform duration-200 ${isSelected ? 'scale-110' : 'hover:scale-105'}">
-      <div class="relative flex flex-col items-center justify-center rounded-full transition-all duration-300 ${compareRing} ${
-        isSelected
-          ? `w-20 h-20 shadow-[0_0_30px_${traffic.glowColor}]`
-          : 'w-16 h-16 border-2'
-      }" style="background-color: ${isSelected ? traffic.color : '#2A2A2A'}; border-color: ${traffic.color}80;">
-        ${checkmark}
-        <span class="text-xs font-bold ${isSelected ? 'text-primary-foreground' : 'text-white'}">${formatViews(viewsPerDay)}</span>
-        <span class="text-[8px] ${isSelected ? 'text-primary-foreground/70' : 'text-white/50'}">VISTAS/DÍA</span>
-        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[6px] font-bold uppercase" style="background-color: ${traffic.color}; color: #202020;">
-          ${traffic.level}
-        </div>
-      </div>
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:9999px;cursor:pointer;font-family:Poppins,system-ui,sans-serif;font-size:12px;font-weight:600;white-space:nowrap;background:${bg};color:${fg};border:1.5px solid ${border};box-shadow:${glow};backdrop-filter:blur(6px);transform:scale(${isSelected ? 1.12 : 1});transition:transform .2s ease, box-shadow .2s ease;">
+      <span style="width:8px;height:8px;border-radius:9999px;background:${dot};flex:none;"></span>
+      <span>${formatViews(viewsPerDay)}</span>
+      ${check}
     </div>
   `;
-  
+
   return el;
 };
 
-const EnhancedPropertyMarker: React.FC<EnhancedPropertyMarkerProps> = ({ 
-  viewsPerDay, 
+const EnhancedPropertyMarker: React.FC<EnhancedPropertyMarkerProps> = ({
+  viewsPerDay,
   isSelected,
   isCompareMode = false,
   isInCompare = false
 }) => {
   const traffic = getTrafficLevel(viewsPerDay);
-  
   return (
-    <div className={`flex flex-col items-center cursor-pointer transition-transform duration-200 ${isSelected ? 'scale-110' : 'hover:scale-105'}`}>
-      <div
-        className={`relative flex flex-col items-center justify-center rounded-full transition-all duration-300 ${
-          isCompareMode && isInCompare ? 'ring-2 ring-blue-400 ring-offset-2 ring-offset-[#202020]' : ''
-        } ${
-          isSelected
-            ? 'w-20 h-20'
-            : 'w-16 h-16 border-2'
-        }`}
-        style={{
-          backgroundColor: isSelected ? traffic.color : '#2A2A2A',
-          borderColor: `${traffic.color}80`,
-          boxShadow: isSelected ? `0 0 30px ${traffic.glowColor}` : undefined
-        }}
-      >
-        {isInCompare && (
-          <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-        )}
-        <span className={`text-xs font-bold ${isSelected ? 'text-primary-foreground' : 'text-white'}`}>
-          {formatViews(viewsPerDay)}
-        </span>
-        <span className={`text-[8px] ${isSelected ? 'text-primary-foreground/70' : 'text-white/50'}`}>
-          VISTAS/DÍA
-        </span>
-        <div 
-          className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded text-[6px] font-bold uppercase"
-          style={{ backgroundColor: traffic.color, color: '#202020' }}
-        >
-          {traffic.level}
-        </div>
-      </div>
+    <div
+      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] px-2.5 py-1.5 text-xs font-semibold"
+      style={{
+        background: isSelected ? '#9BFF43' : 'rgba(5,11,8,0.92)',
+        color: isSelected ? '#07110B' : '#F2F7F3',
+        borderColor: isSelected || (isCompareMode && isInCompare) ? '#9BFF43' : 'rgba(255,255,255,0.18)',
+      }}
+    >
+      <span className="h-2 w-2 rounded-full" style={{ background: isSelected ? '#07110B' : traffic.color }} />
+      {formatViews(viewsPerDay)}
     </div>
   );
 };

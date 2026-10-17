@@ -137,6 +137,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const propsCountRef = useRef(0);
+  propsCountRef.current = properties.length;
   const poiMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const incidentMarkersRef = useRef<mapboxgl.Marker[]>([]);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
@@ -205,6 +207,10 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     if (!map.current || !mapboxToken) return;
 
     // If we have selectedBounds, use them directly
+    const isBroad = !selectedPlaceType || ['place', 'region', 'country', 'district'].includes(selectedPlaceType);
+    // City-level searches are framed on the billboards themselves (see fit effect below)
+    if (isBroad && propsCountRef.current > 0) return;
+
     if (selectedBounds) {
       map.current.fitBounds(
         [[selectedBounds[0], selectedBounds[1]], [selectedBounds[2], selectedBounds[3]]],
@@ -239,6 +245,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
           const [lng, lat] = feature.center;
           const bbox = feature.bbox;
           const placeType = feature.place_type?.[0];
+          const broad = ['place', 'region', 'country', 'district'].includes(placeType);
+          if (broad && propsCountRef.current > 0) return;
           
           if (bbox) {
             map.current?.fitBounds(
@@ -262,6 +270,26 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
     geocodeLocation();
   }, [searchLocation, selectedBounds, selectedCenter, selectedPlaceType, mapboxToken]);
+
+  // Frame the map on the billboards (not the whole municipality)
+  const propsKey = properties.map(p => p.id).sort().join(',');
+  useEffect(() => {
+    if (!map.current || properties.length === 0) return;
+    const isBroad = !selectedPlaceType || ['place', 'region', 'country', 'district'].includes(selectedPlaceType);
+    if (!isBroad) return;
+    const m = map.current;
+    const run = () => {
+      if (properties.length === 1) {
+        m.flyTo({ center: [properties[0].lng, properties[0].lat], zoom: 14, duration: 1000 });
+        return;
+      }
+      const b = new mapboxgl.LngLatBounds();
+      properties.forEach(p => b.extend([p.lng, p.lat]));
+      m.fitBounds(b, { padding: { top: 90, bottom: 90, left: 90, right: 90 }, maxZoom: 14, duration: 1000 });
+    };
+    if (m.loaded()) run(); else m.once('load', run);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [propsKey, selectedPlaceType, searchLocation]);
 
   // Fetch INEGI data for a property
   const fetchINEGIData = useCallback(async (billboardId: string, lat: number, lng: number) => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Eye, Users, Clock, Maximize, Check, Star, Store, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Eye, Clock, Maximize, Check, Star, Store, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import FavoriteHeartButton from './FavoriteHeartButton';
 
@@ -85,15 +85,15 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
   return (
     <article
       onClick={onClick}
-      className={`bg-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 border-2 ${
+      className={`scan-card scan-card-dark bg-card rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 border ${
         isSelected
-          ? 'border-primary shadow-[0_0_20px_rgba(155,255,67,0.2)]'
-          : 'border-transparent hover:border-primary hover:shadow-[0_0_15px_rgba(155,255,67,0.15)]'
+          ? 'border-primary shadow-[0_0_24px_rgba(155,255,67,0.18)]'
+          : 'border-border'
       }`}
     >
       {/* Image Carousel */}
       {allImages.length > 0 && (
-        <div className="relative w-full h-48 group overflow-hidden">
+        <div className="relative w-full h-44 group overflow-hidden">
           <img 
             src={allImages[currentImageIndex]} 
             alt={property.name}
@@ -139,7 +139,7 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
         </div>
       )}
 
-      <div className="p-5">
+      <div className="p-4">
         {/* Header */}
         <div className="flex justify-between items-start mb-3">
           {/* Compare Checkbox */}
@@ -199,23 +199,10 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
         )}
 
         {/* Metrics */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <Eye className="w-4 h-4 text-primary mx-auto mb-1" />
-            <p className="text-foreground font-bold text-xs">{property.viewsPerDay}</p>
-          </div>
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <Users className="w-4 h-4 text-primary mx-auto mb-1" />
-            <p className="text-foreground font-bold text-xs">{property.pointsOfInterest}</p>
-          </div>
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <Clock className="w-4 h-4 text-primary mx-auto mb-1" />
-            <p className="text-foreground font-bold text-xs">{property.peakHours}</p>
-          </div>
-          <div className="bg-secondary rounded-lg p-2 text-center">
-            <Maximize className="w-4 h-4 text-primary mx-auto mb-1" />
-            <p className="text-foreground font-bold text-xs">{property.size}</p>
-          </div>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mb-4 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5"><Eye className="w-3.5 h-3.5 text-primary" />{property.viewsPerDay}/día</span>
+          <span className="inline-flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary" />{property.peakHours}</span>
+          <span className="inline-flex items-center gap-1.5"><Maximize className="w-3.5 h-3.5 text-primary" />{property.size}</span>
         </div>
 
         {/* Footer */}
@@ -226,7 +213,7 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
           </div>
           <button 
             onClick={handleViewDetails}
-            className="px-6 py-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+            className="px-5 py-2 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary-hover transition-colors"
           >
             Ver Detalles
           </button>

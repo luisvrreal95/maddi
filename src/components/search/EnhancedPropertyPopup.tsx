@@ -128,7 +128,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
             <p className="text-white/50 text-[9px]">Vistas/Día</p>
           </div>
           <div className="bg-muted rounded-xl p-2.5 text-center">
-            <Car className="w-4 h-4 text-blue-400 mx-auto mb-1" />
+            <Car className="w-4 h-4 text-primary mx-auto mb-1" />
             <p className="text-white font-bold text-sm">{formatViews(estimatedFlow)}</p>
             <p className="text-white/50 text-[9px]">Flujo/Hora</p>
           </div>
@@ -252,7 +252,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
             onClick={onAddToCompare}
             className={`p-2.5 rounded-xl transition-colors ${
               isInCompare 
-                ? 'bg-blue-500 text-white' 
+                ? 'bg-primary text-primary-foreground' 
                 : 'bg-muted text-white/70 hover:text-white hover:bg-secondary'
             }`}
             title={isInCompare ? 'En comparador' : 'Agregar a comparar'}
