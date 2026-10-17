@@ -25,9 +25,9 @@ const PromoBanner: React.FC = () => {
           <span className="absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 animate-ping" />
           <span className="relative inline-flex h-[7px] w-[7px] rounded-full bg-primary" />
         </span>
-        <a href="https://maddi.com.mx/auth?role=owner" className="min-w-0 truncate">
-          <span className="max-sm:hidden">Lanzamiento 2026 · Comisión 0% para Propietarios Fundadores</span>
-          <span className="sm:hidden">Comisión 0% para Fundadores</span>
+        <a href="https://maddi.com.mx/auth?role=owner" className="flex min-w-0 items-center">
+          <span className="truncate max-sm:hidden">Lanzamiento 2026 · Comisión 0% para Propietarios Fundadores</span>
+          <span className="truncate sm:hidden">0% comisión Fundadores</span>
           <span className="ml-2 font-semibold text-primary whitespace-nowrap">Conocer más →</span>
         </a>
         <button
