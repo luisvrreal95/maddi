@@ -174,7 +174,7 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
                 </span>
               </div>
             ) : (
-              <span className="inline-flex items-center mt-2 px-2.5 py-1 rounded-full bg-primary text-background text-xs font-bold">
+              <span className="inline-flex items-center mt-2 px-2.5 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold">
                 Nuevo
               </span>
             )}

@@ -164,8 +164,8 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
 
     mapboxgl.accessToken = mapboxToken;
 
-    // Always use dark style
-    const mapStyle = 'mapbox://styles/mapbox/dark-v11';
+    // Light style (Search screen uses the light theme)
+    const mapStyle = 'mapbox://styles/mapbox/light-v11';
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,

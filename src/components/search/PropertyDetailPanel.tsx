@@ -125,7 +125,7 @@ const PropertyDetailPanel: React.FC<PropertyDetailPanelProps> = ({ property, onC
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50 backdrop-blur-sm">
+    <div className="theme-dark fixed inset-0 z-50 flex items-center justify-end bg-black/50 backdrop-blur-sm">
       <div className="h-full w-full max-w-lg bg-card overflow-y-auto animate-in slide-in-from-right duration-300">
         {/* Header */}
         <div className="sticky top-0 z-10 bg-card border-b border-white/10 p-4">

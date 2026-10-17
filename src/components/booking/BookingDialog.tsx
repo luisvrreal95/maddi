@@ -401,7 +401,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-muted border-white/10 text-white max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="theme-light bg-card border-border text-foreground max-w-md max-h-[90vh] overflow-y-auto">
         {bookingSuccess ? (
           <>
             <DialogHeader>

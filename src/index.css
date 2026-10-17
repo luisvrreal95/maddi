@@ -189,3 +189,52 @@ All colors MUST be HSL.
 @media (prefers-reduced-motion: reduce) {
   .scan-card:hover::after { animation: none; opacity: 1; background: hsl(var(--primary) / 0.6); }
 }
+
+
+/* ---- Search screen: light theme scope ---- */
+@layer base {
+  .theme-light {
+    --background: 140 15% 95%;
+    --foreground: 150 30% 6%;
+    --card: 0 0% 100%;
+    --card-foreground: 150 30% 6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 30% 6%;
+    --secondary: 140 14% 93%;
+    --secondary-foreground: 150 30% 6%;
+    --muted: 140 14% 93%;
+    --muted-foreground: 140 10% 36%;
+    --border: 137 13% 84%;
+    --input: 137 13% 84%;
+    color: hsl(var(--foreground));
+  }
+  .theme-dark {
+    --background: 150 38% 3%;
+    --foreground: 132 24% 96%;
+    --card: 142 27% 6%;
+    --card-foreground: 132 24% 96%;
+    --popover: 142 27% 6%;
+    --popover-foreground: 132 24% 96%;
+    --secondary: 146 25% 11%;
+    --secondary-foreground: 132 24% 96%;
+    --muted: 146 25% 11%;
+    --muted-foreground: 137 12% 70%;
+    --border: 144 19% 15%;
+    --input: 144 19% 15%;
+    color: hsl(var(--foreground));
+  }
+}
+/* Legacy hard-coded "white on dark" utilities remap to theme tokens inside the light scope */
+.theme-light .text-white { color: hsl(var(--foreground)); }
+.theme-light [class*="text-white/"] { color: hsl(var(--muted-foreground)); }
+.theme-light [class*="border-white/"] { border-color: hsl(var(--border)); }
+.theme-light .bg-white\/5, .theme-light .bg-white\/10 { background-color: hsl(var(--secondary)); }
+.theme-light .hover\:bg-white\/5:hover { background-color: hsl(var(--secondary)); }
+/* Lime text is unreadable on white: use a deep green for text/icons only */
+.theme-light .text-primary { color: hsl(100 100% 22%); }
+.theme-light .bg-primary .text-primary, .theme-light .text-primary-foreground { color: hsl(var(--primary-foreground)); }
+.theme-dark .text-white { color: #fff; }
+.theme-dark [class*="text-white/"] { color: hsl(var(--muted-foreground)); }
+.theme-dark [class*="border-white/"] { border-color: hsl(var(--border)); }
+.theme-dark .text-primary { color: hsl(var(--primary)); }
+.theme-light .keep-white, .theme-dark .keep-white { color: #fff !important; }

@@ -611,7 +611,7 @@ const SearchPage: React.FC = () => {
   // Mobile View
   if (isMobile) {
     return (
-      <>
+      <div className="theme-light contents">
         <MobileSearchView
           properties={properties}
           selectedPropertyId={selectedPropertyId}
@@ -642,13 +642,13 @@ const SearchPage: React.FC = () => {
         )}
         
         <MobileNavBar />
-      </>
+      </div>
     );
   }
 
   // Desktop View
   return (
-    <div className="h-screen bg-background flex flex-col overflow-hidden">
+    <div className="theme-light h-screen bg-background text-foreground flex flex-col overflow-hidden">
       <BusinessHeader />
 
       <div className="bg-card border-b border-border flex-shrink-0 px-4 py-2">

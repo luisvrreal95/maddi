@@ -80,7 +80,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
   const congestionLevel = trafficData?.congestionLevel || Math.min(100, Math.round((viewsNumber / 50000) * 100));
 
   return (
-    <div className="bg-card rounded-2xl overflow-hidden shadow-2xl w-[380px] border border-white/10">
+    <div className="bg-card rounded-2xl overflow-hidden shadow-2xl w-[380px] border border-border">
       {/* Compact Header */}
       <div className="relative h-32 bg-gradient-to-br from-secondary to-card">
         {property.imageUrl ? (
@@ -107,13 +107,13 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
         </div>
         
         <div className="absolute bottom-2 left-3 right-3">
-          <h3 className="text-white font-bold text-base drop-shadow-lg truncate">{property.name}</h3>
-          <p className="text-white/60 text-xs truncate">{property.address}</p>
+          <h3 className="keep-white font-bold text-base drop-shadow-lg truncate">{property.name}</h3>
+          <p className="keep-white opacity-70 text-xs truncate">{property.address}</p>
         </div>
         
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/70 transition-colors"
+          className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center !text-white hover:bg-black/70 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>

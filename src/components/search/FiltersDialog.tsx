@@ -165,7 +165,7 @@ const FiltersDialog: React.FC<FiltersDialogProps> = ({ onFiltersChange, resultsC
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col data-[state=open]:animate-enter data-[state=closed]:animate-exit">
+      <DialogContent className="theme-light bg-background max-w-2xl max-h-[85vh] flex flex-col data-[state=open]:animate-enter data-[state=closed]:animate-exit">
         <DialogHeader className="border-b border-border pb-4 flex-shrink-0">
           <DialogTitle className="text-center text-lg font-semibold">Filtros</DialogTitle>
         </DialogHeader>

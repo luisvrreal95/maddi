@@ -19,7 +19,7 @@ const getTrafficLevel = (views: number): { level: string; color: string; bgColor
   } else if (views >= 25000) {
     return { 
       level: 'medio-alto', 
-      color: '#9BFF43', // lime
+      color: '#7BD61A', // lime (darker for light map)
       bgColor: 'bg-primary',
       glowColor: 'rgba(155, 255, 67, 0.5)'
     };
@@ -60,17 +60,17 @@ export const createMarkerElement = (
   el.className = 'custom-marker';
   el.style.zIndex = isSelected ? '10' : '1';
 
-  const bg = isSelected ? '#9BFF43' : 'rgba(5,11,8,0.92)';
-  const fg = isSelected ? '#07110B' : '#F2F7F3';
-  const border = isInCompare ? '#9BFF43' : isSelected ? '#9BFF43' : 'rgba(255,255,255,0.18)';
-  const dot = isSelected ? '#07110B' : traffic.color;
-  const glow = isSelected || isInCompare ? '0 0 0 4px rgba(155,255,67,0.22), 0 6px 20px rgba(155,255,67,0.35)' : '0 4px 14px rgba(0,0,0,0.5)';
+  const bg = isSelected ? '#0B120E' : '#FFFFFF';
+  const fg = isSelected ? '#FFFFFF' : '#111111';
+  const border = isInCompare ? '#4FA800' : isSelected ? '#0B120E' : '#CBD6CF';
+  const dot = isSelected ? '#9BFF43' : traffic.color;
+  const glow = isSelected || isInCompare ? '0 0 0 5px rgba(155,255,67,0.45), 0 8px 24px rgba(0,0,0,0.3)' : '0 4px 12px rgba(0,0,0,0.18)';
   const check = isInCompare
-    ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:9999px;background:${isSelected ? '#07110B' : '#9BFF43'};color:${isSelected ? '#9BFF43' : '#07110B'};font-size:9px;line-height:1;font-weight:800;">✓</span>`
+    ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:9999px;background:#9BFF43;color:#07110B;font-size:9px;line-height:1;font-weight:800;">✓</span>`
     : '';
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:9999px;cursor:pointer;font-family:Poppins,system-ui,sans-serif;font-size:12px;font-weight:600;white-space:nowrap;background:${bg};color:${fg};border:1.5px solid ${border};box-shadow:${glow};backdrop-filter:blur(6px);transform:scale(${isSelected ? 1.12 : 1});transition:transform .2s ease, box-shadow .2s ease;">
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:9999px;cursor:pointer;font-family:Poppins,system-ui,sans-serif;font-size:12px;font-weight:600;white-space:nowrap;background:${bg};color:${fg};border:1.5px solid ${border};box-shadow:${glow};transform:scale(${isSelected ? 1.12 : 1});transition:transform .2s ease, box-shadow .2s ease;">
       <span style="width:8px;height:8px;border-radius:9999px;background:${dot};flex:none;"></span>
       <span>${formatViews(viewsPerDay)}</span>
       ${check}
@@ -91,12 +91,12 @@ const EnhancedPropertyMarker: React.FC<EnhancedPropertyMarkerProps> = ({
     <div
       className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] px-2.5 py-1.5 text-xs font-semibold"
       style={{
-        background: isSelected ? '#9BFF43' : 'rgba(5,11,8,0.92)',
-        color: isSelected ? '#07110B' : '#F2F7F3',
-        borderColor: isSelected || (isCompareMode && isInCompare) ? '#9BFF43' : 'rgba(255,255,255,0.18)',
+        background: isSelected ? '#0B120E' : '#FFFFFF',
+        color: isSelected ? '#FFFFFF' : '#111111',
+        borderColor: isSelected ? '#0B120E' : isCompareMode && isInCompare ? '#4FA800' : '#CBD6CF',
       }}
     >
-      <span className="h-2 w-2 rounded-full" style={{ background: isSelected ? '#07110B' : traffic.color }} />
+      <span className="h-2 w-2 rounded-full" style={{ background: isSelected ? '#9BFF43' : traffic.color }} />
       {formatViews(viewsPerDay)}
     </div>
   );
