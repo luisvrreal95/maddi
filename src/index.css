@@ -194,6 +194,7 @@ All colors MUST be HSL.
 /* ---- Search screen: light theme scope ---- */
 @layer base {
   .theme-light {
+    --logo-ink: #0B120E;
     --background: 140 15% 95%;
     --foreground: 150 30% 6%;
     --card: 0 0% 100%;
@@ -229,7 +230,7 @@ All colors MUST be HSL.
 .theme-light [class*="text-white/"] { color: hsl(var(--muted-foreground)); }
 .theme-light [class*="border-white/"] { border-color: hsl(var(--border)); }
 .theme-light .bg-white\/5, .theme-light .bg-white\/10 { background-color: hsl(var(--secondary)); }
-.theme-light .hover\:bg-white\/5:hover { background-color: hsl(var(--secondary)); }
+.theme-light .hover\:bg-white\/10:hover, .theme-light .hover\:bg-white\/5:hover { background-color: hsl(var(--secondary)); }
 /* Lime text is unreadable on white: use a deep green for text/icons only */
 .theme-light .text-primary { color: hsl(100 100% 22%); }
 .theme-light .bg-primary .text-primary, .theme-light .text-primary-foreground { color: hsl(var(--primary-foreground)); }
