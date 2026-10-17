@@ -52,8 +52,8 @@ const FileField = ({ label, required, file, onChange, disabled }: FileFieldProps
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1 py-4">
-            <Upload className="w-6 h-6 text-white/40" />
-            <span className="text-xs text-white/40">JPG, PNG o PDF (máx 10MB)</span>
+            <Upload className="w-6 h-6 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">JPG, PNG o PDF (máx 10MB)</span>
           </div>
         )}
       </div>
@@ -61,7 +61,7 @@ const FileField = ({ label, required, file, onChange, disabled }: FileFieldProps
         <button
           type="button"
           onClick={(e) => { e.stopPropagation(); onChange(null); }}
-          className="text-xs text-white/40 hover:text-red-400 transition-colors"
+          className="text-xs text-muted-foreground hover:text-red-400 transition-colors"
           disabled={disabled}
         >
           Quitar archivo
@@ -276,7 +276,7 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="rfc" className="text-white/80">RFC <span className="text-white/30 font-normal">(opcional)</span></Label>
+        <Label htmlFor="rfc" className="text-white/80">RFC <span className="text-muted-foreground font-normal">(opcional)</span></Label>
         <Input
           id="rfc"
           value={rfc}
@@ -311,7 +311,7 @@ const VerificationSection = ({ onVerificationChange }: VerificationSectionProps)
       </Button>
 
       {(!ineFront || !ineBack) && (
-        <p className="text-white/30 text-xs text-center">
+        <p className="text-muted-foreground text-xs text-center">
           INE frente e INE reverso son requeridos
         </p>
       )}

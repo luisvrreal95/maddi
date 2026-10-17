@@ -402,7 +402,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                   onChange={(e) => setFormData({ ...formData, min_campaign_days: parseInt(e.target.value) || 0 })}
                   className="bg-card border-white/10"
                 />
-                <p className="text-white/40 text-xs mt-1">0 = sin mínimo</p>
+                <p className="text-muted-foreground text-xs mt-1">0 = sin mínimo</p>
               </div>
               <div>
                 <Label htmlFor="min_advance_booking_days" className="text-sm text-white/60">Anticipación mínima (días)</Label>
@@ -414,7 +414,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
                   onChange={(e) => setFormData({ ...formData, min_advance_booking_days: parseInt(e.target.value) || 0 })}
                   className="bg-card border-white/10"
                 />
-                <p className="text-white/40 text-xs mt-1">Recomendado: 7 días</p>
+                <p className="text-muted-foreground text-xs mt-1">Recomendado: 7 días</p>
               </div>
             </div>
           </div>
@@ -475,7 +475,7 @@ const AddBillboardDialog: React.FC<AddBillboardDialogProps> = ({
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-primary text-[#202020] hover:bg-[#8AE63A]"
+              className="flex-1 bg-primary text-primary-foreground hover:bg-primary-hover"
             >
               {isLoading ? 'Guardando...' : billboard ? 'Actualizar' : 'Agregar'}
             </Button>

@@ -27,7 +27,7 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
   const isPausedByOwner = !billboard.is_available && billboard.pause_reason === 'owner';
   return (
     <div 
-      className="bg-[#1E1E1E] rounded-xl border border-white/10 p-4 cursor-pointer hover:border-primary/30 hover:shadow-[0_0_20px_rgba(155,255,67,0.05)] transition-all"
+      className="bg-card rounded-xl border border-white/10 p-4 cursor-pointer hover:border-primary/30 hover:shadow-[0_0_20px_rgba(155,255,67,0.05)] transition-all"
       onClick={onClick}
     >
       <div className="flex items-center gap-4">
@@ -67,7 +67,7 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
             <MapPin className="w-3 h-3 flex-shrink-0" />
             {billboard.address}, {billboard.city}
           </p>
-          <div className="flex items-center gap-4 mt-1.5 text-xs text-white/40">
+          <div className="flex items-center gap-4 mt-1.5 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
               <Eye className="w-3 h-3" />
               {billboard.daily_impressions 
@@ -94,7 +94,7 @@ const PropertyListItem: React.FC<PropertyListItemProps> = ({
         {(onEdit || onDelete || onPause) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-white/40 hover:text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-white hover:bg-white/10">
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>

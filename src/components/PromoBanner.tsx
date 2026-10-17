@@ -19,7 +19,7 @@ const PromoBanner: React.FC = () => {
   if (!visible) return null;
 
   return (
-    <div className="relative bg-gradient-to-r from-[#0a0a0a] via-[#111a0e] to-[#0a0a0a] border-b border-white/5">
+    <div className="relative bg-gradient-to-r from-background via-background to-background border-b border-white/5">
       <div className="max-w-7xl mx-auto px-4 py-2.5 flex items-center justify-center gap-3 text-sm">
         <a
           href="https://maddi.com.mx/auth?role=owner"
@@ -37,7 +37,7 @@ const PromoBanner: React.FC = () => {
         </a>
         <button
           onClick={handleDismiss}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors p-1"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white/70 transition-colors p-1"
           aria-label="Cerrar banner"
         >
           <X className="w-4 h-4" />

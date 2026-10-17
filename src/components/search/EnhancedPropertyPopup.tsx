@@ -82,7 +82,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
   return (
     <div className="bg-card rounded-2xl overflow-hidden shadow-2xl w-[380px] border border-white/10">
       {/* Compact Header */}
-      <div className="relative h-32 bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A]">
+      <div className="relative h-32 bg-gradient-to-br from-secondary to-card">
         {property.imageUrl ? (
           <img 
             src={property.imageUrl} 
@@ -96,7 +96,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
             </div>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
         
         {/* Traffic Level Badge */}
         <div 
@@ -228,7 +228,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
                 <Store className="w-3 h-3" />
                 <span>{inegiData.nearbyBusinessesCount} negocios</span>
               </div>
-              <span className="text-white/40">|</span>
+              <span className="text-muted-foreground">|</span>
               <span className="text-white/70 truncate">{inegiData.dominantSector}</span>
             </div>
           </div>
@@ -253,7 +253,7 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
             className={`p-2.5 rounded-xl transition-colors ${
               isInCompare 
                 ? 'bg-blue-500 text-white' 
-                : 'bg-muted text-white/70 hover:text-white hover:bg-[#3A3A3A]'
+                : 'bg-muted text-white/70 hover:text-white hover:bg-secondary'
             }`}
             title={isInCompare ? 'En comparador' : 'Agregar a comparar'}
           >
@@ -261,14 +261,14 @@ const EnhancedPropertyPopup: React.FC<EnhancedPropertyPopupProps> = ({
           </button>
           <button
             onClick={onViewDetails}
-            className="flex-1 py-2.5 rounded-xl bg-muted text-white font-medium text-sm hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-2.5 rounded-xl bg-muted text-white font-medium text-sm hover:bg-secondary transition-colors flex items-center justify-center gap-2"
           >
             Ver Detalles
             <ChevronRight className="w-4 h-4" />
           </button>
           <button
             onClick={onReserve}
-            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-[#8AE63A] transition-colors"
+            className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary-hover transition-colors"
           >
             Reservar
           </button>

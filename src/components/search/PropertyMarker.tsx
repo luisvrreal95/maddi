@@ -21,10 +21,10 @@ const PropertyMarker: React.FC<PropertyMarkerProps> = ({ viewsPerDay, isSelected
             : 'w-16 h-16 bg-muted border-2 border-primary/50 hover:border-primary'
         }`}
       >
-        <span className={`text-xs font-bold ${isSelected ? 'text-[#202020]' : 'text-white'}`}>
+        <span className={`text-xs font-bold ${isSelected ? 'text-primary-foreground' : 'text-white'}`}>
           {viewsPerDay}
         </span>
-        <span className={`text-[8px] ${isSelected ? 'text-[#202020]/70' : 'text-white/50'}`}>
+        <span className={`text-[8px] ${isSelected ? 'text-primary-foreground/70' : 'text-white/50'}`}>
           VISTAS/DÍA
         </span>
       </div>

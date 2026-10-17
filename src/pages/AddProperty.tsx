@@ -635,7 +635,7 @@ const AddProperty: React.FC = () => {
           <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
           <div>
             <p className="text-white font-medium text-sm">Paso {step} de 5 — Publica tu ubicación</p>
-            <p className="text-white/40 text-xs">Te tomará menos de 3 minutos</p>
+            <p className="text-muted-foreground text-xs">Te tomará menos de 3 minutos</p>
           </div>
         </div>
       </div>
@@ -668,7 +668,7 @@ const AddProperty: React.FC = () => {
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="h-14 text-lg bg-muted border-white/20 text-white placeholder:text-white/40 focus:border-primary"
+                    className="h-14 text-lg bg-muted border-white/20 text-white placeholder:text-muted-foreground focus:border-primary"
                     placeholder="Ej: Plaza Cataviña - Vista Principal"
                   />
                 </div>
@@ -681,11 +681,11 @@ const AddProperty: React.FC = () => {
                       type="number"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="h-14 text-lg pl-8 bg-muted border-white/20 text-white placeholder:text-white/40 focus:border-primary"
+                      className="h-14 text-lg pl-8 bg-muted border-white/20 text-white placeholder:text-muted-foreground focus:border-primary"
                       placeholder="10,000"
                     />
                   </div>
-                  <p className="text-white/40 text-sm mt-2">
+                  <p className="text-muted-foreground text-sm mt-2">
                     Puedes ajustar precios por temporada después.
                   </p>
                 </div>
@@ -731,11 +731,11 @@ const AddProperty: React.FC = () => {
                           setShowAddressSuggestions(true);
                         }
                       }}
-                      className="h-14 text-lg pl-12 bg-muted border-white/20 text-white placeholder:text-white/40 focus:border-primary"
+                      className="h-14 text-lg pl-12 bg-muted border-white/20 text-white placeholder:text-muted-foreground focus:border-primary"
                       placeholder="Busca una plaza, negocio o dirección..."
                     />
                     {isLoadingSuggestions && (
-                      <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 animate-spin" />
+                      <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground animate-spin" />
                     )}
                   </div>
                   
@@ -753,7 +753,7 @@ const AddProperty: React.FC = () => {
                             <p className="font-medium text-white truncate">{suggestion.text}</p>
                             <p className="text-sm text-white/50 truncate">{suggestion.place_name}</p>
                           </div>
-                          <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                          <span className="text-xs text-muted-foreground bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
                             {getPlaceTypeLabel(suggestion.place_type)}
                           </span>
                         </button>
@@ -790,7 +790,7 @@ const AddProperty: React.FC = () => {
                     className="w-full h-[300px]"
                   />
                 </div>
-                <p className="text-white/40 text-sm text-center">
+                <p className="text-muted-foreground text-sm text-center">
                   📍 Arrastra el marcador para ajustar la ubicación exacta
                 </p>
               </div>
@@ -855,7 +855,7 @@ const AddProperty: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <Plus className="h-8 w-8 text-white/40 mb-2" />
+                        <Plus className="h-8 w-8 text-muted-foreground mb-2" />
                         <p className="text-white/60 text-sm">Agregar foto</p>
                       </>
                     )}
@@ -863,7 +863,7 @@ const AddProperty: React.FC = () => {
                 )}
               </div>
               
-              <p className="text-white/40 text-sm mt-4 text-center">
+              <p className="text-muted-foreground text-sm mt-4 text-center">
                 {imageUrls.length}/6 imágenes · La primera será la principal · JPG, PNG, WebP (máx 5MB)
               </p>
               
@@ -948,7 +948,7 @@ const AddProperty: React.FC = () => {
                         No
                       </button>
                     </div>
-                    <p className="text-white/40 text-xs mt-2">
+                    <p className="text-muted-foreground text-xs mt-2">
                       Los formatos digitales permiten múltiples campañas simultáneas.
                     </p>
                   </div>
@@ -963,7 +963,7 @@ const AddProperty: React.FC = () => {
                         value={height}
                         onChange={(e) => setHeight(e.target.value)}
                         placeholder="Alto"
-                        className="h-14 bg-muted border-white/20 text-white placeholder:text-white/40"
+                        className="h-14 bg-muted border-white/20 text-white placeholder:text-muted-foreground"
                       />
                     </div>
                     <div>
@@ -971,7 +971,7 @@ const AddProperty: React.FC = () => {
                         value={width}
                         onChange={(e) => setWidth(e.target.value)}
                         placeholder="Ancho"
-                        className="h-14 bg-muted border-white/20 text-white placeholder:text-white/40"
+                        className="h-14 bg-muted border-white/20 text-white placeholder:text-muted-foreground"
                       />
                     </div>
                   </div>
@@ -1169,7 +1169,7 @@ const AddProperty: React.FC = () => {
                 </div>
 
                 {/* Min Campaign Days */}
-                <div className="bg-[#1E1E1E] rounded-xl p-6 border border-white/10">
+                <div className="bg-card rounded-xl p-6 border border-white/10">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <CalendarIcon className="w-6 h-6 text-primary" />
@@ -1194,7 +1194,7 @@ const AddProperty: React.FC = () => {
                 </div>
 
                 {/* Min Advance Booking Days */}
-                <div className="bg-[#1E1E1E] rounded-xl p-6 border border-white/10">
+                <div className="bg-card rounded-xl p-6 border border-white/10">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center flex-shrink-0">
                       <Clock className="w-6 h-6 text-blue-400" />
@@ -1219,7 +1219,7 @@ const AddProperty: React.FC = () => {
                 </div>
 
                 {/* Ownership Type */}
-                <div className="bg-[#1E1E1E] rounded-xl p-6 border border-white/10">
+                <div className="bg-card rounded-xl p-6 border border-white/10">
                   <div className="flex items-start gap-4">
                     <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
                       <CheckCircle className="w-6 h-6 text-purple-400" />
@@ -1301,7 +1301,7 @@ const AddProperty: React.FC = () => {
           {step < 5 ? (
             <Button
               onClick={goToNextStep}
-              className="bg-primary hover:bg-[#8AE63A] text-background font-medium px-8"
+              className="bg-primary hover:bg-primary-hover text-background font-medium px-8"
             >
               Siguiente
               <ArrowRight className="w-4 h-4 ml-2" />
@@ -1310,7 +1310,7 @@ const AddProperty: React.FC = () => {
             <Button
               onClick={handleSubmit}
               disabled={isLoading}
-              className="bg-primary hover:bg-[#8AE63A] text-background font-medium px-8"
+              className="bg-primary hover:bg-primary-hover text-background font-medium px-8"
             >
               {isLoading ? (
                 <>

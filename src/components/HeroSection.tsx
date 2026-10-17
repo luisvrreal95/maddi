@@ -142,12 +142,12 @@ const HeroSection: React.FC = () => {
   };
 
   return (
-    <section className="relative flex flex-col items-center bg-[hsl(0,0%,12.5%)] pt-0 pb-32 max-md:pb-20 max-sm:pb-10 overflow-visible">
+    <section className="relative flex flex-col items-center bg-card pt-0 pb-32 max-md:pb-20 max-sm:pb-10 overflow-visible">
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[hsl(0,0%,8%)] pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background pointer-events-none" />
       
       {/* Decorative accent */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[hsl(88,100%,63%)] opacity-[0.03] blur-[120px] pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-primary opacity-[0.03] blur-[120px] pointer-events-none" />
 
       <div className="w-full relative z-10">
         <Header />
@@ -168,13 +168,13 @@ const HeroSection: React.FC = () => {
 
         {/* Search Bar */}
         <div className="w-full max-w-3xl">
-          <div className="flex items-stretch bg-[hsl(0,0%,16%)] rounded-2xl border border-white/10 overflow-visible shadow-2xl max-md:flex-col max-md:rounded-xl">
+          <div className="flex items-stretch bg-secondary rounded-2xl border border-white/10 overflow-visible shadow-2xl max-md:flex-col max-md:rounded-xl">
             {/* Location field */}
             <div className="flex-1 relative">
               <div className="flex items-center gap-3 px-5 py-4 max-sm:px-4 max-sm:py-3 max-md:border-b max-md:border-white/10">
-                <MapPin className="w-5 h-5 text-white/40 flex-shrink-0" />
+                <MapPin className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                 <div className="flex-1">
-                  <label className="text-white/40 text-xs font-medium uppercase tracking-wider">Ubicación</label>
+                  <label className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Ubicación</label>
                   <input
                     ref={inputRef}
                     type="text"
@@ -182,21 +182,21 @@ const HeroSection: React.FC = () => {
                     onChange={(e) => { setLocation(e.target.value); setSelectedCoords(null); }}
                     onFocus={() => { requestGeolocation(); if (suggestions.length > 0) setShowSuggestions(true); }}
                     placeholder="Plaza, colonia o dirección"
-                    className="w-full bg-transparent text-white text-sm outline-none placeholder:text-white/25 mt-0.5"
+                    className="w-full bg-transparent text-white text-sm outline-none placeholder:text-muted-foreground mt-0.5"
                   />
                 </div>
-                {isLoading && <Loader2 className="w-4 h-4 text-white/30 animate-spin" />}
+                {isLoading && <Loader2 className="w-4 h-4 text-muted-foreground animate-spin" />}
               </div>
 
               {/* Suggestions dropdown */}
               {showSuggestions && suggestions.length > 0 && (
                 <div
                   ref={dropdownRef}
-                  className="absolute top-full left-0 mt-2 bg-[hsl(0,0%,13%)] border border-white/10 rounded-xl shadow-2xl z-[100] max-h-[320px] overflow-y-auto"
+                  className="absolute top-full left-0 mt-2 bg-card border border-white/10 rounded-xl shadow-2xl z-[100] max-h-[320px] overflow-y-auto"
                   style={{ minWidth: '340px', width: 'max-content', maxWidth: '500px' }}
                 >
                   {userLocation && (
-                    <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/30">
+                    <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-muted-foreground">
                       <Navigation className="w-3 h-3" />
                       <span>Resultados cercanos</span>
                     </div>
@@ -211,13 +211,13 @@ const HeroSection: React.FC = () => {
                       {getTypeIcon(s.type, s)}
                       <div className="flex-1 min-w-0">
                         <p className="text-white text-sm truncate">{s.displayName || s.name}</p>
-                        <p className="text-white/40 text-xs truncate">{s.displayContext || s.address}</p>
+                        <p className="text-muted-foreground text-xs truncate">{s.displayContext || s.address}</p>
                       </div>
-                      <span className="text-white/30 text-xs bg-white/5 px-2 py-0.5 rounded-full flex-shrink-0">
+                      <span className="text-muted-foreground text-xs bg-white/5 px-2 py-0.5 rounded-full flex-shrink-0">
                         {getTypeLabel(s.type, s)}
                       </span>
                       {s.distance && (
-                        <span className="text-white/30 text-xs">{(s.distance / 1000).toFixed(1)} km</span>
+                        <span className="text-muted-foreground text-xs">{(s.distance / 1000).toFixed(1)} km</span>
                       )}
                     </button>
                   ))}
@@ -233,10 +233,10 @@ const HeroSection: React.FC = () => {
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="w-full flex items-center gap-3 px-5 py-4 text-left max-md:border-b max-md:border-white/10">
-                    <CalendarDays className="w-5 h-5 text-white/40 flex-shrink-0" />
+                    <CalendarDays className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                     <div className="flex-1">
-                      <label className="text-white/40 text-xs font-medium uppercase tracking-wider">Fechas</label>
-                      <p className={cn("text-sm mt-0.5", dateRange?.from ? "text-white" : "text-white/25")}>
+                      <label className="text-muted-foreground text-xs font-medium uppercase tracking-wider">Fechas</label>
+                      <p className={cn("text-sm mt-0.5", dateRange?.from ? "text-white" : "text-muted-foreground")}>
                         {dateRange?.from ? (
                           dateRange.to ? (
                             `${format(dateRange.from, 'd MMM', { locale: es })} — ${format(dateRange.to, 'd MMM', { locale: es })}`
@@ -246,7 +246,7 @@ const HeroSection: React.FC = () => {
                     </div>
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-[hsl(0,0%,14%)] border-white/10" align="start">
+                <PopoverContent className="w-auto p-0 bg-card border-white/10" align="start">
                   <Calendar
                     mode="range"
                     selected={dateRange}

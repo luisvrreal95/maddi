@@ -286,21 +286,21 @@ const Settings: React.FC = () => {
         ) : (
           <Tabs defaultValue="profile" className="w-full">
             <TabsList className={`grid w-full ${userRole === 'owner' ? 'grid-cols-4' : 'grid-cols-3'} bg-muted mb-6`}>
-              <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
+              <TabsTrigger value="profile" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <User className="w-4 h-4 mr-2" />
                 Perfil
               </TabsTrigger>
-              <TabsTrigger value="notifications" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
+              <TabsTrigger value="notifications" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Bell className="w-4 h-4 mr-2" />
                 Notificaciones
               </TabsTrigger>
               {userRole === 'owner' && (
-                <TabsTrigger value="verification" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
+                <TabsTrigger value="verification" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                   <BadgeCheck className="w-4 h-4 mr-2" />
                   Verificación
                 </TabsTrigger>
               )}
-              <TabsTrigger value="security" className="data-[state=active]:bg-primary data-[state=active]:text-[#202020]">
+              <TabsTrigger value="security" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                 <Shield className="w-4 h-4 mr-2" />
                 Seguridad
               </TabsTrigger>
@@ -316,15 +316,15 @@ const Settings: React.FC = () => {
                   <div className="relative">
                     <Avatar className="w-24 h-24">
                       <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-[#202020] text-2xl font-bold">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-2xl font-bold">
                         {fullName.charAt(0).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
-                    <label className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-[#8AE63A] transition-colors">
+                    <label className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center cursor-pointer hover:bg-primary-hover transition-colors">
                       {isUploadingAvatar ? (
-                        <Loader2 className="w-4 h-4 animate-spin text-[#202020]" />
+                        <Loader2 className="w-4 h-4 animate-spin text-primary-foreground" />
                       ) : (
-                        <Camera className="w-4 h-4 text-[#202020]" />
+                        <Camera className="w-4 h-4 text-primary-foreground" />
                       )}
                       <input
                         type="file"
@@ -386,14 +386,14 @@ const Settings: React.FC = () => {
                       disabled
                       className="mt-1 bg-card border-white/10 text-white/50"
                     />
-                    <p className="text-white/30 text-xs mt-1">El correo no se puede cambiar</p>
+                    <p className="text-muted-foreground text-xs mt-1">El correo no se puede cambiar</p>
                   </div>
 
                   {userRole === 'owner' && (
                     <div className="flex items-center justify-between p-4 rounded-xl bg-card border border-white/10">
                       <div>
                         <Label htmlFor="isAnonymous" className="text-white font-medium cursor-pointer">Perfil Anónimo</Label>
-                        <p className="text-white/40 text-xs mt-1">Tu información no será visible para otros usuarios en tus espectaculares</p>
+                        <p className="text-muted-foreground text-xs mt-1">Tu información no será visible para otros usuarios en tus espectaculares</p>
                       </div>
                       <Switch
                         id="isAnonymous"
@@ -407,7 +407,7 @@ const Settings: React.FC = () => {
                   <Button
                     onClick={handleSaveProfile}
                     disabled={isSaving}
-                    className="w-full bg-primary text-[#202020] hover:bg-[#8AE63A] mt-4"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary-hover mt-4"
                   >
                     {isSaving ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />
@@ -453,7 +453,7 @@ const Settings: React.FC = () => {
                   <Button
                     onClick={handleSaveNotifications}
                     disabled={isSaving}
-                    className="w-full bg-primary text-[#202020] hover:bg-[#8AE63A] mt-4"
+                    className="w-full bg-primary text-primary-foreground hover:bg-primary-hover mt-4"
                   >
                     {isSaving ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />

@@ -154,12 +154,12 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
     <div className="space-y-8">
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-primary/20 p-6">
+        <Card className="bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20 p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-white/60 text-sm mb-1">Ingresos totales</p>
               <p className="text-3xl font-bold text-white">${totalPaid.toLocaleString()}</p>
-              <p className="text-xs text-white/40 mt-1">acumulado pagado</p>
+              <p className="text-xs text-muted-foreground mt-1">acumulado pagado</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
               <DollarSign className="w-6 h-6 text-primary" />
@@ -167,12 +167,12 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
           </div>
         </Card>
 
-        <Card className="bg-[#1E1E1E] border-white/10 p-6">
+        <Card className="bg-card border-white/10 p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-white/60 text-sm mb-1">Ingresos del mes</p>
               <p className="text-3xl font-bold text-white">${monthPaid.toLocaleString()}</p>
-              <p className="text-xs text-white/40 mt-1">{startOfMonth.toLocaleDateString('es-MX', { month: 'long' })}</p>
+              <p className="text-xs text-muted-foreground mt-1">{startOfMonth.toLocaleDateString('es-MX', { month: 'long' })}</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center">
               <Calendar className="w-6 h-6 text-blue-400" />
@@ -180,12 +180,12 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
           </div>
         </Card>
 
-        <Card className="bg-[#1E1E1E] border-white/10 p-6">
+        <Card className="bg-card border-white/10 p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-white/60 text-sm mb-1">Tasa de ocupación</p>
               <p className="text-3xl font-bold text-white">{occupancy}%</p>
-              <p className="text-xs text-white/40 mt-1">{billboardsWithActive} de {billboards.length} activos</p>
+              <p className="text-xs text-muted-foreground mt-1">{billboardsWithActive} de {billboards.length} activos</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center">
               <TrendingUp className="w-6 h-6 text-purple-400" />
@@ -193,7 +193,7 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
           </div>
         </Card>
 
-        <Card className="bg-[#1E1E1E] border-white/10 p-6">
+        <Card className="bg-card border-white/10 p-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-white/60 text-sm mb-1">Impresiones diarias</p>
@@ -202,7 +202,7 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
                   ? `${(totalDailyImpressions / 1000).toFixed(1)}K`
                   : totalDailyImpressions}
               </p>
-              <p className="text-xs text-white/40 mt-1">suma de todos tus espectaculares</p>
+              <p className="text-xs text-muted-foreground mt-1">suma de todos tus espectaculares</p>
             </div>
             <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
               <Eye className="w-6 h-6 text-white/60" />
@@ -212,7 +212,7 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
       </div>
 
       {/* Earnings chart */}
-      <Card className="bg-[#1E1E1E] border-white/10 p-6">
+      <Card className="bg-card border-white/10 p-6">
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-white">Ingresos por mes</h3>
           <p className="text-white/50 text-sm mt-1">Últimos 6 meses</p>
@@ -240,7 +240,7 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
 
       {/* Top billboard */}
       {topBillboard && (
-        <Card className="bg-gradient-to-r from-[#9BFF43]/10 to-transparent border-primary/20 p-6">
+        <Card className="bg-gradient-to-r from-primary/10 to-transparent border-primary/20 p-6">
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
               <Trophy className="w-7 h-7 text-primary" />

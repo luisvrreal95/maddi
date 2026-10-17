@@ -359,7 +359,7 @@ const Messages: React.FC = () => {
             {selectedConversation.billboard.image_url ? (
               <img src={selectedConversation.billboard.image_url} alt="" className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
             ) : (
-              <div className="w-20 h-20 rounded-lg bg-[#3A3A3A] flex items-center justify-center flex-shrink-0">
+              <div className="w-20 h-20 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
                 <MapPin className="w-8 h-8 text-white/20" />
               </div>
             )}
@@ -379,7 +379,7 @@ const Messages: React.FC = () => {
               )}
             </div>
           </Link>
-          <p className="text-white/40 text-xs mt-3 pt-3 border-t border-white/10">
+          <p className="text-muted-foreground text-xs mt-3 pt-3 border-t border-white/10">
             Escribe tu mensaje para contactar al propietario sobre este espectacular.
           </p>
         </div>
@@ -402,7 +402,7 @@ const Messages: React.FC = () => {
           <React.Fragment key={msg.id}>
             {showDateSeparator && (
               <div className="flex items-center justify-center my-4">
-                <span className="text-white/40 text-xs bg-card px-3 py-1 rounded-full border border-white/10">{msgDate}</span>
+                <span className="text-muted-foreground text-xs bg-card px-3 py-1 rounded-full border border-white/10">{msgDate}</span>
               </div>
             )}
             
@@ -426,9 +426,9 @@ const Messages: React.FC = () => {
               </div>
             ) : (
               <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMyMessage ? 'bg-primary text-[#141414] rounded-br-md' : 'bg-muted text-white rounded-bl-md'}`}>
+                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMyMessage ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-white rounded-bl-md'}`}>
                   <p>{msg.content}</p>
-                  <div className={`flex items-center gap-1 justify-end mt-1 ${isMyMessage ? 'text-[#141414]/60' : 'text-white/40'}`}>
+                  <div className={`flex items-center gap-1 justify-end mt-1 ${isMyMessage ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
                     <span className="text-xs">
                       {new Date(msg.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
                     </span>
@@ -469,7 +469,7 @@ const Messages: React.FC = () => {
     if (selectedConversation) {
       return (
         <div className="h-screen bg-card flex flex-col">
-          <div className="p-3 border-b border-white/5 bg-[#141414] flex items-center gap-3 flex-shrink-0">
+          <div className="p-3 border-b border-white/5 bg-card flex items-center gap-3 flex-shrink-0">
             <button
               onClick={() => { setSelectedConversation(null); setMessages([]); }}
               className="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white"
@@ -480,12 +480,12 @@ const Messages: React.FC = () => {
               <img src={selectedConversation.billboard.image_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
             ) : (
               <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-white/40" />
+                <MessageSquare className="w-4 h-4 text-muted-foreground" />
               </div>
             )}
             <div className="flex-1 min-w-0">
               <p className="text-white font-semibold text-sm truncate">{selectedConversation.other_user?.full_name || 'Usuario'}</p>
-              <p className="text-white/40 text-xs truncate">{selectedConversation.billboard?.title}</p>
+              <p className="text-muted-foreground text-xs truncate">{selectedConversation.billboard?.title}</p>
             </div>
           </div>
 
@@ -493,16 +493,16 @@ const Messages: React.FC = () => {
             {renderMessages()}
           </ScrollArea>
 
-          <div className="p-3 border-t border-white/5 bg-[#141414] flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+          <div className="p-3 border-t border-white/5 bg-card flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
             <div className="flex gap-2">
               <Input
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Escribe un mensaje..."
-                className="bg-card border-white/10 text-white placeholder:text-white/30 text-sm"
+                className="bg-card border-white/10 text-white placeholder:text-muted-foreground text-sm"
               />
-              <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-[#141414] hover:bg-[#8AE63A] px-3">
+              <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-primary-foreground hover:bg-primary-hover px-3">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
@@ -523,12 +523,12 @@ const Messages: React.FC = () => {
             Mensajes
           </h2>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar conversaciones..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-[#141414] border-white/10 text-white placeholder:text-white/30"
+              className="pl-10 bg-card border-white/10 text-white placeholder:text-muted-foreground"
             />
           </div>
         </div>
@@ -543,7 +543,7 @@ const Messages: React.FC = () => {
           ) : filteredConversations.length === 0 ? (
             <div className="p-4 text-center pt-16">
               <MessageSquare className="w-12 h-12 text-white/20 mx-auto mb-3" />
-              <p className="text-white/40 text-sm">No tienes conversaciones</p>
+              <p className="text-muted-foreground text-sm">No tienes conversaciones</p>
             </div>
           ) : (
             <div className="px-4 pb-24 space-y-1">
@@ -561,7 +561,7 @@ const Messages: React.FC = () => {
                       {conv.billboard?.image_url ? (
                         <img src={conv.billboard.image_url} alt="" className="w-12 h-12 rounded-full object-cover" />
                       ) : (
-                        <User className="w-5 h-5 text-white/40" />
+                        <User className="w-5 h-5 text-muted-foreground" />
                       )}
                       {conv.is_pinned && (
                         <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
@@ -576,7 +576,7 @@ const Messages: React.FC = () => {
                         </p>
                         <div className="flex items-center gap-2">
                           {conv.last_message && (
-                            <span className="text-white/30 text-[10px]">
+                            <span className="text-muted-foreground text-[10px]">
                               {new Date(conv.last_message_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
                             </span>
                           )}
@@ -587,13 +587,13 @@ const Messages: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <p className="text-white/40 text-xs truncate">{conv.billboard?.title}</p>
+                      <p className="text-muted-foreground text-xs truncate">{conv.billboard?.title}</p>
                       {conv.last_message && (
                         <div className="flex items-center gap-1 mt-0.5">
                           {isMyLastMessage && (
                             conv.last_message.is_read 
                               ? <CheckCheck className="w-3 h-3 text-primary flex-shrink-0" />
-                              : <Check className="w-3 h-3 text-white/40 flex-shrink-0" />
+                              : <Check className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                           )}
                           <p className={`text-xs truncate ${hasUnread && !isMyLastMessage ? 'font-semibold text-white/80' : 'text-white/50'}`}>
                             {isMyLastMessage ? 'Tú: ' : ''}{truncateMessage(conv.last_message.content)}
@@ -621,19 +621,19 @@ const Messages: React.FC = () => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Conversations List */}
-        <div className="w-80 border-r border-white/5 bg-[#141414] flex flex-col">
+        <div className="w-80 border-r border-white/5 bg-card flex flex-col">
           <div className="p-4 border-b border-white/5">
             <h2 className="text-white font-semibold flex items-center gap-2 mb-4">
               <MessageSquare className="w-5 h-5 text-primary" />
               Mensajes
             </h2>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar conversaciones..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-card border-white/10 text-white placeholder:text-white/30"
+                className="pl-10 bg-card border-white/10 text-white placeholder:text-muted-foreground"
               />
             </div>
           </div>
@@ -646,7 +646,7 @@ const Messages: React.FC = () => {
               </div>
             ) : filteredConversations.length === 0 ? (
               <div className="p-4 text-center">
-                <p className="text-white/40 text-sm">No tienes conversaciones</p>
+                <p className="text-muted-foreground text-sm">No tienes conversaciones</p>
               </div>
             ) : (
               <div className="p-2">
@@ -669,7 +669,7 @@ const Messages: React.FC = () => {
                       >
                         <div className="flex items-start gap-3">
                           <div className="relative w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                            <User className="w-5 h-5 text-white/40" />
+                            <User className="w-5 h-5 text-muted-foreground" />
                             {conv.is_pinned && (
                               <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                                 <Pin className="w-2.5 h-2.5 text-primary-foreground" />
@@ -693,7 +693,7 @@ const Messages: React.FC = () => {
                                 </span>
                               )}
                             </div>
-                            <p className="text-white/40 text-xs truncate mt-0.5">
+                            <p className="text-muted-foreground text-xs truncate mt-0.5">
                               {conv.billboard?.title}
                             </p>
                             {conv.last_message && (
@@ -701,7 +701,7 @@ const Messages: React.FC = () => {
                                 {isMyLastMessage && (
                                   conv.last_message.is_read 
                                     ? <CheckCheck className="w-3 h-3 text-primary flex-shrink-0" />
-                                    : <Check className="w-3 h-3 text-white/40 flex-shrink-0" />
+                                    : <Check className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                                 )}
                                 <p className={`text-xs truncate ${
                                   hasUnread && !isMyLastMessage
@@ -720,7 +720,7 @@ const Messages: React.FC = () => {
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-white/40 hover:text-white hover:bg-white/10">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-white hover:bg-white/10">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
@@ -761,21 +761,21 @@ const Messages: React.FC = () => {
         <div className="flex-1 flex flex-col bg-card">
           {selectedConversation ? (
             <>
-              <div className="p-4 border-b border-white/5 bg-[#141414]">
+              <div className="p-4 border-b border-white/5 bg-card">
                 <div className="flex items-center gap-3">
                   {selectedConversation.billboard?.image_url ? (
                     <img src={selectedConversation.billboard.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
                   ) : (
                     <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-white/40" />
+                      <MessageSquare className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
                   <div className="flex-1">
                     <p className="text-white font-semibold flex items-center gap-2">
-                      <User className="w-4 h-4 text-white/40" />
+                      <User className="w-4 h-4 text-muted-foreground" />
                       {selectedConversation.other_user?.full_name || 'Usuario'}
                     </p>
-                    <p className="text-white/40 text-sm">{selectedConversation.billboard?.title}</p>
+                    <p className="text-muted-foreground text-sm">{selectedConversation.billboard?.title}</p>
                   </div>
                 </div>
               </div>
@@ -784,16 +784,16 @@ const Messages: React.FC = () => {
                 {renderMessages()}
               </ScrollArea>
 
-              <div className="p-4 border-t border-white/5 bg-[#141414]">
+              <div className="p-4 border-t border-white/5 bg-card">
                 <div className="flex gap-2">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyPress={handleKeyPress}
                     placeholder="Escribe un mensaje..."
-                    className="bg-card border-white/10 text-white placeholder:text-white/30"
+                    className="bg-card border-white/10 text-white placeholder:text-muted-foreground"
                   />
-                  <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-[#141414] hover:bg-[#8AE63A]">
+                  <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-primary-foreground hover:bg-primary-hover">
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>
@@ -803,7 +803,7 @@ const Messages: React.FC = () => {
             <div className="flex-1 flex items-center justify-center bg-card">
               <div className="text-center">
                 <MessageSquare className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                <p className="text-white/40">Selecciona una conversación para ver los mensajes</p>
+                <p className="text-muted-foreground">Selecciona una conversación para ver los mensajes</p>
               </div>
             </div>
           )}

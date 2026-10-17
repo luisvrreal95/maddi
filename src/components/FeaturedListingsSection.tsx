@@ -47,7 +47,7 @@ const FeaturedListingsSection: React.FC = () => {
 
   if (isLoading || !geoReady) {
     return (
-      <section className="bg-[hsl(0,0%,8%)] py-20 px-6 md:px-16">
+      <section className="bg-background py-20 px-6 md:px-16">
         <div className="max-w-7xl mx-auto">
           <Skeleton className="h-10 w-64 mb-8 bg-white/10" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -65,7 +65,7 @@ const FeaturedListingsSection: React.FC = () => {
   }
 
   return (
-    <section className="bg-[hsl(0,0%,8%)] py-20 max-sm:py-12 px-6 max-sm:px-4 md:px-16">
+    <section className="bg-background py-20 max-sm:py-12 px-6 max-sm:px-4 md:px-16">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-end justify-between mb-10 max-sm:mb-6">
           <div>
@@ -73,7 +73,7 @@ const FeaturedListingsSection: React.FC = () => {
               Espectaculares destacados en{' '}
               <span className="text-primary">{displayCity}</span>
             </h2>
-            <p className="text-white/40 mt-2">Ubicaciones estratégicas con alta visibilidad</p>
+            <p className="text-muted-foreground mt-2">Ubicaciones estratégicas con alta visibilidad</p>
           </div>
           <button
             onClick={() => navigate('/search')}
@@ -91,9 +91,9 @@ const FeaturedListingsSection: React.FC = () => {
               <article
                 key={b.id}
                 onClick={() => navigate(`/billboard/${b.id}`)}
-                className="group cursor-pointer bg-[hsl(0,0%,13%)] rounded-2xl overflow-hidden border border-white/5 hover:border-white/15 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl"
+                className="group cursor-pointer bg-card rounded-2xl overflow-hidden border border-white/5 hover:border-white/15 transition-all duration-300 hover:translate-y-[-2px] hover:shadow-xl"
               >
-                <div className="relative h-48 bg-[hsl(0,0%,18%)] overflow-hidden">
+                <div className="relative h-48 bg-secondary overflow-hidden">
                   {(b.image_urls?.[0] || b.image_url) ? (
                     <img
                       src={b.image_urls?.[0] || b.image_url!}
@@ -116,22 +116,22 @@ const FeaturedListingsSection: React.FC = () => {
                   <h3 className="text-white font-semibold text-lg group-hover:text-primary transition-colors">
                     {b.title}
                   </h3>
-                  <div className="flex items-center gap-1.5 mt-1.5 text-white/40 text-sm">
+                  <div className="flex items-center gap-1.5 mt-1.5 text-muted-foreground text-sm">
                     <MapPin className="w-3.5 h-3.5" />
                     <span className="truncate">{b.address}, {b.city}</span>
                   </div>
 
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
                     <div>
-                      <p className="text-white/40 text-xs">Precio mensual</p>
+                      <p className="text-muted-foreground text-xs">Precio mensual</p>
                       <p className="text-white font-bold text-xl">
                         ${b.price_per_month.toLocaleString()}
-                        <span className="text-white/40 text-sm font-normal"> /mes</span>
+                        <span className="text-muted-foreground text-sm font-normal"> /mes</span>
                       </p>
                     </div>
                     {b.daily_impressions && (
                       <div className="text-right">
-                        <p className="text-white/40 text-xs">Impresiones</p>
+                        <p className="text-muted-foreground text-xs">Impresiones</p>
                         <div className="flex items-center gap-1 text-primary text-sm font-medium">
                           <Eye className="w-3.5 h-3.5" />
                           +{b.daily_impressions.toLocaleString()}/día
@@ -166,23 +166,23 @@ const CategoriesSection: React.FC = () => {
   ];
 
   return (
-    <section className="bg-[hsl(0,0%,8%)] py-20 max-sm:py-12 px-6 max-sm:px-4 md:px-16">
+    <section className="bg-background py-20 max-sm:py-12 px-6 max-sm:px-4 md:px-16">
       <div className="max-w-7xl mx-auto">
         <h2 className="text-white text-3xl max-sm:text-2xl md:text-4xl font-bold mb-3">
           Explora por categoría
         </h2>
-        <p className="text-white/40 mb-10 max-sm:mb-6 max-sm:text-sm">Encuentra el formato ideal para tu marca</p>
+        <p className="text-muted-foreground mb-10 max-sm:mb-6 max-sm:text-sm">Encuentra el formato ideal para tu marca</p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-sm:gap-3">
           {categories.map((cat) => (
             <button
               key={cat.label}
               onClick={() => navigate(`/search?type=${encodeURIComponent(cat.label)}`)}
-              className="group flex flex-col items-start gap-3 max-sm:gap-2 p-6 max-sm:p-4 rounded-2xl bg-[hsl(0,0%,13%)] border border-white/5 hover:border-primary/30 hover:bg-[hsl(0,0%,15%)] transition-all duration-300"
+              className="group flex flex-col items-start gap-3 max-sm:gap-2 p-6 max-sm:p-4 rounded-2xl bg-card border border-white/5 hover:border-primary/30 hover:bg-secondary transition-all duration-300"
             >
               <span className="text-3xl max-sm:text-2xl">{cat.icon}</span>
               <div>
                 <h3 className="text-white font-semibold max-sm:text-sm group-hover:text-primary transition-colors">{cat.label}</h3>
-                <p className="text-white/40 text-sm max-sm:text-xs mt-1">{cat.desc}</p>
+                <p className="text-muted-foreground text-sm max-sm:text-xs mt-1">{cat.desc}</p>
               </div>
             </button>
           ))}

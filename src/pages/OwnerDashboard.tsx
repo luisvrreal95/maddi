@@ -294,7 +294,7 @@ const OwnerDashboard: React.FC = () => {
               </h1>
               <Button
                 onClick={() => navigate('/owner/add-property')}
-                className="bg-primary hover:bg-[#8AE63A] text-background font-medium flex items-center gap-2 w-full sm:w-auto justify-center"
+                className="bg-primary hover:bg-primary-hover text-background font-medium flex items-center gap-2 w-full sm:w-auto justify-center"
               >
                 <Plus className="w-4 h-4" />
                 Agregar espectacular
@@ -333,7 +333,7 @@ const OwnerDashboard: React.FC = () => {
                   subtitle={`${billboards.length} propiedades en Maddi`}
                   shareUrl={`/profile/${user?.id}`}
                 />
-                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-[#8AE63A] text-background font-medium flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
+                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-primary-hover text-background font-medium flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Agregar espectacular</span>
                   <span className="sm:hidden">Agregar</span>
@@ -359,7 +359,7 @@ const OwnerDashboard: React.FC = () => {
               <div className="text-center py-16">
                 <h2 className="text-white text-2xl font-bold mb-2">Sin espectaculares</h2>
                 <p className="text-white/60 mb-6">Agrega tu primer espectacular para comenzar a recibir contactos</p>
-                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-[#8AE63A] text-background font-medium flex items-center gap-2 mx-auto">
+                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-primary-hover text-background font-medium flex items-center gap-2 mx-auto">
                   <Plus className="w-4 h-4" />
                   Agregar espectacular
                 </Button>
@@ -415,7 +415,7 @@ const OwnerDashboard: React.FC = () => {
             <div className="mb-6">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Dashboard del Espectacular</h1>
               <p className="text-white/60 mb-1">Perfil y características del entorno del espectacular.</p>
-              <p className="text-white/40 text-sm mb-6">
+              <p className="text-muted-foreground text-sm mb-6">
                 📍 Datos estimados basados en tráfico (TomTom) y actividad económica (INEGI DENUE). No representan ingresos reales.
               </p>
               
@@ -445,14 +445,14 @@ const OwnerDashboard: React.FC = () => {
                 }} />
                 
                 {/* CTA to Statistics */}
-                <div className="bg-gradient-to-r from-[#9BFF43]/10 to-transparent border border-primary/20 rounded-xl p-6 flex items-center justify-between">
+                <div className="bg-gradient-to-r from-primary/10 to-transparent border border-primary/20 rounded-xl p-6 flex items-center justify-between">
                   <div>
                     <h3 className="text-white font-semibold text-lg">¿Quieres ver resultados reales?</h3>
                     <p className="text-white/60 text-sm mt-1">Revisa ingresos, contactos y reservas de este espectacular</p>
                   </div>
                   <Button
                     onClick={() => handleTabChange('stats')}
-                    className="bg-primary hover:bg-[#8AE63A] text-background font-medium"
+                    className="bg-primary hover:bg-primary-hover text-background font-medium"
                   >
                     Ver rendimiento e ingresos
                   </Button>
@@ -472,7 +472,7 @@ const OwnerDashboard: React.FC = () => {
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Estadísticas</h1>
               <p className="text-white/60 mb-1">Resultados e ingresos generados por tus espectaculares.</p>
-              <p className="text-white/40 text-sm">💰 Datos reales basados en tus reservas y comisiones.</p>
+              <p className="text-muted-foreground text-sm">💰 Datos reales basados en tus reservas y comisiones.</p>
             </div>
             <OwnerStatsTab billboards={billboards} userId={user?.id || ''} />
           </>
@@ -487,13 +487,13 @@ const OwnerDashboard: React.FC = () => {
       </main>
 
       <footer className="bg-card py-4 border-t border-white/10">
-        <p className="text-center text-white/40 text-sm">© 2025 Maddi.</p>
+        <p className="text-center text-muted-foreground text-sm">© 2025 Maddi.</p>
       </footer>
 
       <AddPropertyDialog open={showAddDialog} onOpenChange={(open) => { setShowAddDialog(open); if (!open) setEditingBillboard(null); }} billboard={editingBillboard} onSave={handleBillboardSaved} />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#1E1E1E] border-white/10">
+        <AlertDialogContent className="bg-card border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">¿Eliminar espectacular?</AlertDialogTitle>
             <AlertDialogDescription className="text-white/60">
@@ -501,14 +501,14 @@ const OwnerDashboard: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-muted border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted border-white/10 text-white hover:bg-secondary">Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} className="bg-red-600 hover:bg-red-700 text-white">Eliminar permanentemente</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <AlertDialog open={pauseDialogOpen} onOpenChange={setPauseDialogOpen}>
-        <AlertDialogContent className="bg-[#1E1E1E] border-white/10">
+        <AlertDialogContent className="bg-card border-white/10">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-white">
               {billboardToPause && !billboardToPause.is_available && billboardToPause.pause_reason === 'owner'
@@ -522,7 +522,7 @@ const OwnerDashboard: React.FC = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="bg-muted border-white/10 text-white hover:bg-[#3A3A3A]">Cancelar</AlertDialogCancel>
+            <AlertDialogCancel className="bg-muted border-white/10 text-white hover:bg-secondary">Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmPause} className="bg-orange-600 hover:bg-orange-700 text-white">
               {billboardToPause && !billboardToPause.is_available && billboardToPause.pause_reason === 'owner' ? 'Reactivar' : 'Pausar'}
             </AlertDialogAction>

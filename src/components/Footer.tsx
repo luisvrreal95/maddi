@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
                 aria-label={social.label}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-white/70 hover:bg-primary hover:text-[#202020] transition-all duration-300"
+                className="w-10 h-10 rounded-full bg-muted flex items-center justify-center text-white/70 hover:bg-primary hover:text-primary-foreground transition-all duration-300"
               >
                 <social.icon className="w-5 h-5" />
               </a>
@@ -60,7 +60,7 @@ const Footer: React.FC = () => {
 
         {/* Copyright */}
         <div className="text-center">
-          <p className="text-white/40 text-sm">
+          <p className="text-muted-foreground text-sm">
             © 2026 Maddi. Todos los derechos reservados.
           </p>
         </div>

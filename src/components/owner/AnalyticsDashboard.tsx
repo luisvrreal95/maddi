@@ -251,7 +251,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                   <p className="text-white/60 text-sm">Contactos recibidos</p>
                   <UITooltip>
                     <TooltipTrigger>
-                      <Info className="w-3.5 h-3.5 text-white/30" />
+                      <Info className="w-3.5 h-3.5 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="bg-muted border-white/10 max-w-xs">
                       <p className="text-sm">Personas que solicitaron información en este periodo.</p>
@@ -272,14 +272,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
           </Card>
 
           {/* 2. Vistas estimadas del periodo */}
-          <Card className="bg-[#1E1E1E] border-white/10 p-6">
+          <Card className="bg-card border-white/10 p-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-white/60 text-sm">Vistas estimadas del periodo</p>
                   <UITooltip>
                     <TooltipTrigger>
-                      <Info className="w-3.5 h-3.5 text-white/30" />
+                      <Info className="w-3.5 h-3.5 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="bg-muted border-white/10 max-w-xs">
                       <p className="text-sm">Estimación basada en ubicación y tráfico. No es un dato exacto.</p>
@@ -293,7 +293,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                       ? `${(totalImpressions / 1000).toFixed(0)}K` 
                       : totalImpressions}
                 </p>
-                <p className="text-sm text-white/40 mt-1">en {periodDays} días</p>
+                <p className="text-sm text-muted-foreground mt-1">en {periodDays} días</p>
               </div>
               <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
                 <Eye className="w-6 h-6 text-white/60" />
@@ -302,14 +302,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
           </Card>
 
           {/* 3. Ingresos del periodo */}
-          <Card className="bg-gradient-to-br from-[#9BFF43]/20 to-[#9BFF43]/5 border-primary/20 p-6">
+          <Card className="bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20 p-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
                   <p className="text-white/60 text-sm">Ingresos del periodo</p>
                   <UITooltip>
                     <TooltipTrigger>
-                      <Info className="w-3.5 h-3.5 text-white/30" />
+                      <Info className="w-3.5 h-3.5 text-muted-foreground" />
                     </TooltipTrigger>
                     <TooltipContent className="bg-muted border-white/10 max-w-xs">
                       <p className="text-sm">Ingresos generados en el periodo seleccionado.</p>
@@ -332,14 +332,14 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
 
           {/* 4. Espectacular más visto */}
           {mostViewedBillboard && (
-            <Card className="bg-[#1E1E1E] border-white/10 p-6">
+            <Card className="bg-card border-white/10 p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="text-white/60 text-sm">Espectacular más visto</p>
                     <UITooltip>
                       <TooltipTrigger>
-                        <Info className="w-3.5 h-3.5 text-white/30" />
+                        <Info className="w-3.5 h-3.5 text-muted-foreground" />
                       </TooltipTrigger>
                       <TooltipContent className="bg-muted border-white/10 max-w-xs">
                         <p className="text-sm">El espacio con mayor número de vistas en este periodo.</p>
@@ -347,7 +347,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                     </UITooltip>
                   </div>
                   <p className="text-lg font-bold text-white truncate">{mostViewedBillboard.title}</p>
-                  <p className="text-sm text-white/40 mt-1">
+                  <p className="text-sm text-muted-foreground mt-1">
                     ~{((mostViewedBillboard.daily_impressions || 0) / 1000).toFixed(0)}K vistas/día
                   </p>
                 </div>
@@ -362,7 +362,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Earnings Chart */}
-          <Card className="bg-[#1E1E1E] border-white/10 p-6 lg:col-span-2">
+          <Card className="bg-card border-white/10 p-6 lg:col-span-2">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-white">Evolución de Ingresos</h3>
               <p className="text-white/50 text-sm mt-1">
@@ -412,7 +412,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
           </Card>
 
           {/* Booking Status Chart */}
-          <Card className="bg-[#1E1E1E] border-white/10 p-6">
+          <Card className="bg-card border-white/10 p-6">
             <div className="mb-4">
               <h3 className="text-lg font-semibold text-white">Estado de Reservas</h3>
               <p className="text-white/50 text-sm mt-1">
@@ -452,7 +452,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                 </div>
               </div>
             ) : (
-              <div className="h-[240px] flex items-center justify-center text-white/40">
+              <div className="h-[240px] flex items-center justify-center text-muted-foreground">
                 <div className="text-center">
                   <Calendar className="w-12 h-12 mx-auto mb-2 opacity-30" />
                   <p>Sin reservas en este periodo</p>
@@ -464,7 +464,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
 
         {/* Summary Table */}
         {billboards.length > 0 && (
-          <Card className="bg-[#1E1E1E] border-white/10 p-6">
+          <Card className="bg-card border-white/10 p-6">
             <h3 className="text-lg font-semibold text-white mb-4">Resumen por Espectacular</h3>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -494,7 +494,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ billboards, use
                                 <img src={billboard.image_url} alt={billboard.title} className="w-full h-full object-cover" />
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
-                                  <MapPin className="w-4 h-4 text-white/40" />
+                                  <MapPin className="w-4 h-4 text-muted-foreground" />
                                 </div>
                               )}
                             </div>

@@ -60,7 +60,7 @@ const StarRating = ({
           className={`${onRatingChange ? 'cursor-pointer hover:scale-110' : 'cursor-default'} transition-transform`}
         >
           <Star
-            className={`${sizeClass} ${star <= rating ? 'fill-[#9BFF43] text-primary' : 'text-white/30'}`}
+            className={`${sizeClass} ${star <= rating ? 'fill-primary text-primary' : 'text-muted-foreground'}`}
           />
         </button>
       ))}
@@ -292,7 +292,7 @@ const ReviewsPage: React.FC = () => {
           {/* Stats banner */}
           {ownerStats.totalReviews > 0 ? (
             <div className="bg-card border border-border rounded-xl px-6 py-4 mb-8 flex items-center gap-3">
-              <Star className="w-5 h-5 fill-[#9BFF43] text-primary flex-shrink-0" />
+              <Star className="w-5 h-5 fill-primary text-primary flex-shrink-0" />
               <p className="text-foreground font-semibold">
                 {ownerStats.averageRating.toFixed(1)} promedio
                 <span className="text-muted-foreground font-normal ml-2">
@@ -380,7 +380,7 @@ const ReviewsPage: React.FC = () => {
         {/* Business stats summary (Gap C) */}
         {reviews.length > 0 && (
           <div className="bg-card border border-border rounded-xl px-6 py-4 mb-8 flex items-center gap-3">
-            <Star className="w-5 h-5 fill-[#9BFF43] text-primary flex-shrink-0" />
+            <Star className="w-5 h-5 fill-primary text-primary flex-shrink-0" />
             <p className="text-foreground font-semibold">
               Has escrito {reviews.length} {reviews.length === 1 ? 'reseña' : 'reseñas'}
               <span className="text-muted-foreground font-normal ml-2">

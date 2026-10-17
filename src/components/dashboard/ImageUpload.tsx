@@ -117,9 +117,9 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ value, onChange, userId }) =>
             </>
           ) : (
             <>
-              <ImageIcon className="h-8 w-8 text-white/40 mb-2" />
+              <ImageIcon className="h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-white/60 text-sm">Haz clic para subir imagen</p>
-              <p className="text-white/40 text-xs mt-1">JPG, PNG, WebP (máx 5MB)</p>
+              <p className="text-muted-foreground text-xs mt-1">JPG, PNG, WebP (máx 5MB)</p>
             </>
           )}
         </div>

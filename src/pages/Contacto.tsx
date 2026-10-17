@@ -122,14 +122,14 @@ const Contacto: React.FC = () => {
                     {errors.message ? (
                       <p className="text-red-400 text-xs">{errors.message}</p>
                     ) : <span />}
-                    <span className="text-white/40 text-xs">{form.message.length}/2000</span>
+                    <span className="text-muted-foreground text-xs">{form.message.length}/2000</span>
                   </div>
                 </div>
 
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-primary text-black hover:bg-[#8AE83C] font-semibold"
+                  className="w-full bg-primary text-black hover:bg-primary-hover font-semibold"
                 >
                   {submitting ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>

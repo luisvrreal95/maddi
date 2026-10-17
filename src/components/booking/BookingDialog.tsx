@@ -473,7 +473,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     <span className="text-white font-medium">{format(startDate, 'd MMM yyyy', { locale: es })}</span>
                     <span className="text-white/60">hasta</span>
                     <span className="text-white font-medium">{format(endDate, 'd MMM yyyy', { locale: es })}</span>
-                    <span className="text-white/40 ml-auto">({campaignDays} días)</span>
+                    <span className="text-muted-foreground ml-auto">({campaignDays} días)</span>
                   </div>
                 )}
               </div>
@@ -507,7 +507,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 />
                 <p className={cn(
                   "text-xs mt-1",
-                  message.trim().length < 20 ? "text-orange-400" : "text-white/40"
+                  message.trim().length < 20 ? "text-orange-400" : "text-muted-foreground"
                 )}>
                   {message.trim().length}/1000 caracteres (mínimo 20)
                 </p>
@@ -519,7 +519,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                     <ImageIcon className="w-3.5 h-3.5 text-primary" />
                     Sube tu diseño
                   </Label>
-                  <span className="text-xs text-white/40">Opcional · Máx 5</span>
+                  <span className="text-xs text-muted-foreground">Opcional · Máx 5</span>
                 </div>
                 
                 {designPreviews.length > 0 && (
@@ -533,7 +533,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                           <button
                             type="button"
                             onClick={() => handleRemoveImage(index)}
-                            className="text-white/40 hover:text-red-400 transition-colors flex-shrink-0"
+                            className="text-muted-foreground hover:text-red-400 transition-colors flex-shrink-0"
                           >
                             <X className="w-3.5 h-3.5" />
                           </button>
@@ -597,7 +597,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 <Button
                   type="submit"
                   disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate || isUploadingImage}
-                  className="flex-1 bg-primary text-[#202020] hover:bg-[#8AE63A] disabled:opacity-50"
+                  className="flex-1 bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
                 >
                   {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
                 </Button>

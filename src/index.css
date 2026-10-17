@@ -6,86 +6,39 @@
 All colors MUST be HSL.
 */
 
+/* Maddi design system — dark only, green-tinted black + lime accent. All colors HSL. */
 @layer base {
-  :root {
-    /* Maddi dark theme — tokens unificados */
-    --background: 0 0% 7%;          /* #121212 */
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 10%;               /* #1A1A1A */
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 10%;            /* #1A1A1A */
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 88 100% 63%;         /* #9BFF43 */
-    --primary-foreground: 0 0% 7%;
-
-    --secondary: 0 0% 16%;          /* #2A2A2A */
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 16%;              /* #2A2A2A */
-    --muted-foreground: 0 0% 65%;
-
-    --accent: 88 100% 63%;          /* #9BFF43 */
-    --accent-foreground: 0 0% 7%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 88 100% 63%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 7%;
-    --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 88 100% 63%;
-    --sidebar-primary-foreground: 0 0% 7%;
-    --sidebar-accent: 0 0% 13%;
-    --sidebar-accent-foreground: 0 0% 96%;
-    --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 88 100% 63%;
-  }
-
+  :root,
   .dark {
-    --background: 0 0% 10%;
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 13%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 13%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 88 100% 63%;
-    --primary-foreground: 0 0% 10%;
-
-    --secondary: 0 0% 17%;
-    --secondary-foreground: 0 0% 98%;
-
-    --muted: 0 0% 17%;
-    --muted-foreground: 0 0% 65%;
-
-    --accent: 88 100% 63%;
-    --accent-foreground: 0 0% 10%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 88 100% 63%;
-    
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 0 0% 96%;
-    --sidebar-primary: 88 100% 63%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 16%;
-    --sidebar-accent-foreground: 0 0% 96%;
-    --sidebar-border: 0 0% 16%;
-    --sidebar-ring: 88 100% 63%;
+    --background: 150 38% 3%;
+    --foreground: 132 24% 96%;
+    --card: 142 27% 6%;
+    --card-foreground: 132 24% 96%;
+    --popover: 142 27% 6%;
+    --popover-foreground: 132 24% 96%;
+    --primary: 92 100% 63%;
+    --primary-foreground: 150 38% 6%;
+    --primary-hover: 92 77% 56%;
+    --secondary: 146 25% 11%;
+    --secondary-foreground: 132 24% 96%;
+    --muted: 146 25% 11%;
+    --muted-foreground: 137 12% 70%;
+    --accent: 92 100% 63%;
+    --accent-foreground: 150 38% 6%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 132 24% 96%;
+    --border: 144 19% 15%;
+    --input: 144 19% 15%;
+    --ring: 92 100% 63%;
+    --radius: 0.75rem;
+    --sidebar-background: 150 38% 3%;
+    --sidebar-foreground: 132 24% 96%;
+    --sidebar-primary: 92 100% 63%;
+    --sidebar-primary-foreground: 150 38% 6%;
+    --sidebar-accent: 146 25% 11%;
+    --sidebar-accent-foreground: 132 24% 96%;
+    --sidebar-border: 144 19% 15%;
+    --sidebar-ring: 92 100% 63%;
   }
 }
 
@@ -95,7 +48,33 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+
+  code, kbd, samp, pre {
+    font-family: inherit;
+  }
+
+  .tabular-nums, [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow-pulse,
+  .animate-float,
+  .animate-scan {
+    animation: none !important;
   }
 }
 

@@ -62,7 +62,7 @@ const AddToFolderDialog: React.FC<AddToFolderDialogProps> = ({
               <Button
                 onClick={handleCreateFolder}
                 disabled={!newFolderName.trim()}
-                className="bg-primary text-primary-foreground hover:bg-[#8AE63A]"
+                className="bg-primary text-primary-foreground hover:bg-primary-hover"
               >
                 Crear
               </Button>
@@ -124,7 +124,7 @@ const AddToFolderDialog: React.FC<AddToFolderDialogProps> = ({
               ))}
 
               {folders.length === 0 && !isLoading && (
-                <p className="text-center text-white/40 py-4 text-sm">
+                <p className="text-center text-muted-foreground py-4 text-sm">
                   No tienes carpetas. Crea una para organizar tus favoritos.
                 </p>
               )}

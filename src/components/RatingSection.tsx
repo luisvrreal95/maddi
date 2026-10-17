@@ -21,10 +21,10 @@ const RatingSection: React.FC = () => {
       </div>
       
       <div className="flex items-center gap-[88px] opacity-75 relative max-md:gap-12 max-sm:flex-wrap max-sm:gap-8 max-sm:justify-center">
-        <div className="text-[#D9D9D9] text-xl font-semibold">sum.com</div>
-        <div className="text-[#D9D9D9] text-xl font-semibold">Empresa</div>
-        <div className="text-[#D9D9D9] text-xl font-semibold">LOGO IPSUM</div>
-        <div className="text-[#D9D9D9] text-xl font-semibold">Brand</div>
+        <div className="text-muted-foreground text-xl font-semibold">sum.com</div>
+        <div className="text-muted-foreground text-xl font-semibold">Empresa</div>
+        <div className="text-muted-foreground text-xl font-semibold">LOGO IPSUM</div>
+        <div className="text-muted-foreground text-xl font-semibold">Brand</div>
       </div>
     </section>
   );

@@ -30,7 +30,7 @@ const PropertyPopup: React.FC<PropertyPopupProps> = ({ property, onClose, onRese
   return (
     <div className="bg-card rounded-2xl overflow-hidden shadow-2xl w-[350px] border border-white/10">
       {/* Header with Image */}
-      <div className="relative h-40 bg-gradient-to-br from-[#2A2A2A] to-[#1A1A1A]">
+      <div className="relative h-40 bg-gradient-to-br from-secondary to-card">
         {property.imageUrl ? (
           <img 
             src={property.imageUrl} 
@@ -45,7 +45,7 @@ const PropertyPopup: React.FC<PropertyPopupProps> = ({ property, onClose, onRese
           </div>
         )}
         {/* Overlay gradient */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1A1A] via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
         {/* Title overlay */}
         <div className="absolute bottom-3 left-4 right-4">
           <h3 className="text-white font-bold text-lg drop-shadow-lg">{property.name}</h3>
@@ -114,14 +114,14 @@ const PropertyPopup: React.FC<PropertyPopupProps> = ({ property, onClose, onRese
         <div className="flex gap-3">
           <button
             onClick={handleViewDetails}
-            className="flex-1 py-3 rounded-full bg-muted text-white font-semibold text-sm hover:bg-[#3A3A3A] transition-colors flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-full bg-muted text-white font-semibold text-sm hover:bg-secondary transition-colors flex items-center justify-center gap-2"
           >
             <ExternalLink className="w-4 h-4" />
             Ver Detalle
           </button>
           <button
             onClick={onReserve}
-            className="flex-1 py-3 rounded-full bg-primary text-primary-foreground font-bold text-sm hover:bg-[#8AE63A] transition-colors"
+            className="flex-1 py-3 rounded-full bg-primary text-primary-foreground font-bold text-sm hover:bg-primary-hover transition-colors"
           >
             Reservar
           </button>

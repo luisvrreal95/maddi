@@ -99,7 +99,7 @@ const TopListingsSection: React.FC = () => {
     return (
       <section className="flex flex-col items-start self-stretch relative">
         <div className="w-full bg-card pt-16 pb-24 px-16 max-md:px-8 max-sm:px-5 text-center">
-          <p className="text-white/40 text-lg">No hay espectaculares disponibles en este momento.</p>
+          <p className="text-muted-foreground text-lg">No hay espectaculares disponibles en este momento.</p>
         </div>
       </section>
     );
@@ -114,7 +114,7 @@ const TopListingsSection: React.FC = () => {
 
         <header className="flex flex-col items-center gap-10 self-stretch relative mb-12">
           <div className="flex flex-col items-center gap-4 self-stretch relative">
-            <h2 className="text-[#D9D9D9] text-8xl font-bold leading-[96px] uppercase relative max-md:text-7xl max-md:leading-[72px] max-sm:text-4xl max-sm:leading-[40px] text-center">
+            <h2 className="text-muted-foreground text-8xl font-bold leading-[96px] uppercase relative max-md:text-7xl max-md:leading-[72px] max-sm:text-4xl max-sm:leading-[40px] text-center">
               Top listings
             </h2>
             {displayCity && (

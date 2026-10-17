@@ -106,7 +106,7 @@ const ResetPassword = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
         <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
           <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <KeyRound className="w-8 h-8 text-red-400" />
@@ -114,7 +114,7 @@ const ResetPassword = () => {
           <h1 className="text-2xl font-bold text-white mb-2">Enlace inválido</h1>
           <p className="text-white/60 text-sm mb-6">{error}</p>
           <Link to="/auth">
-            <Button className="bg-primary text-primary-foreground hover:bg-[#8AE63A]">
+            <Button className="bg-primary text-primary-foreground hover:bg-primary-hover">
               Ir a iniciar sesión
             </Button>
           </Link>
@@ -125,7 +125,7 @@ const ResetPassword = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
         <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10 text-center">
           <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-primary" />
@@ -141,14 +141,14 @@ const ResetPassword = () => {
 
   if (!sessionReady) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center gap-6 p-4">
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-6 p-4">
       <div className="bg-card rounded-2xl p-8 max-w-md w-full border border-white/10">
         {/* Header */}
         <div className="text-center mb-8">
@@ -177,14 +177,14 @@ const ResetPassword = () => {
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
+                className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground h-12 rounded-xl focus:border-primary focus:ring-primary/20 pr-12"
                 disabled={isUpdating}
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-white transition-colors"
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -201,7 +201,7 @@ const ResetPassword = () => {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Repite tu contraseña"
-              className="bg-white/5 border-white/10 text-white placeholder:text-white/30 h-12 rounded-xl focus:border-primary focus:ring-primary/20"
+              className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground h-12 rounded-xl focus:border-primary focus:ring-primary/20"
               disabled={isUpdating}
               autoComplete="new-password"
             />
@@ -213,7 +213,7 @@ const ResetPassword = () => {
           <Button
             type="submit"
             disabled={isUpdating || !newPassword || !confirmPassword || newPassword !== confirmPassword}
-            className="w-full bg-primary text-primary-foreground hover:bg-[#8AE63A] h-12 rounded-xl font-semibold"
+            className="w-full bg-primary text-primary-foreground hover:bg-primary-hover h-12 rounded-xl font-semibold"
           >
             {isUpdating ? (
               <>

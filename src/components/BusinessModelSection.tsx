@@ -64,7 +64,7 @@ const BusinessModelSection: React.FC = () => {
       
       <header className="flex flex-col items-center gap-10 self-stretch relative rounded-[8px_8px_0_0]">
         <div className="flex flex-col items-center gap-4 self-stretch relative">
-          <h2 className="text-[#D9D9D9] text-8xl font-bold leading-[96px] uppercase relative max-md:text-7xl max-md:leading-[72px] max-sm:text-4xl max-sm:leading-[40px] text-center">
+          <h2 className="text-muted-foreground text-8xl font-bold leading-[96px] uppercase relative max-md:text-7xl max-md:leading-[72px] max-sm:text-4xl max-sm:leading-[40px] text-center">
             MODELO DE NEGOCIO
           </h2>
         </div>

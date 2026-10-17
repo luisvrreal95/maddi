@@ -120,7 +120,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
   }, [billboard.id]);
 
   return (
-    <div className={`bg-[#1E1E1E] rounded-2xl border ${isPausedByAdmin ? 'border-orange-500/30' : 'border-primary/30'} p-5 relative hover:border-primary/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all h-full flex flex-col`}>
+    <div className={`bg-card rounded-2xl border ${isPausedByAdmin ? 'border-orange-500/30' : 'border-primary/30'} p-5 relative hover:border-primary/60 hover:shadow-[0_0_30px_rgba(155,255,67,0.15)] transition-all h-full flex flex-col`}>
       {/* Admin pause banner */}
       {isPausedByAdmin && (
         <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 mb-4 flex items-center justify-between">
@@ -156,7 +156,7 @@ const OwnerPropertyCard: React.FC<OwnerPropertyCardProps> = ({ billboard, onEdit
           <div className="w-full h-full bg-muted flex items-center justify-center">
             <div className="text-center">
               <MapPin className="w-8 h-8 text-white/20 mx-auto mb-2" />
-              <span className="text-white/30 text-sm">Sin imagen</span>
+              <span className="text-muted-foreground text-sm">Sin imagen</span>
             </div>
           </div>
         )}

@@ -229,7 +229,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                 </p>
                 <p className="text-white/60 text-xs">Acción urgente requerida</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             </button>
           )}
           {unreadCount > 0 && (
@@ -246,7 +246,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                 </p>
                 <p className="text-white/60 text-xs">Responde a tus anunciantes</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             </button>
           )}
           {categorizedBookings.expiring.length > 0 && (
@@ -263,7 +263,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                 </p>
                 <p className="text-white/60 text-xs">Próximas a finalizar</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-white/40 flex-shrink-0" />
+              <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
             </button>
           )}
         </div>
@@ -292,7 +292,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
             {categorizedBookings.pending.slice(0, 3).map((booking) => (
               <div
                 key={booking.id}
-                className="bg-[#1E1E1E] rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-[#252525] transition-colors"
+                className="bg-card rounded-xl p-3 flex items-center gap-3 cursor-pointer hover:bg-secondary transition-colors"
                 onClick={() => navigate('/owner?tab=reservas')}
               >
                 <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-muted">
@@ -319,7 +319,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
       
       {/* Quick Stats Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-        <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
+        <div className="bg-card rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
@@ -330,7 +330,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
             </div>
           </div>
         </div>
-        <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
+        <div className="bg-card rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
               <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
@@ -341,7 +341,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
             </div>
           </div>
         </div>
-        <div className="bg-[#1E1E1E] rounded-xl p-3 sm:p-4 border border-white/5">
+        <div className="bg-card rounded-xl p-3 sm:p-4 border border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
               <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
@@ -412,16 +412,16 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
         </h2>
         
         {getFilteredBookings().length === 0 ? (
-          <div className="bg-[#1E1E1E] rounded-xl p-8 text-center border border-white/5">
+          <div className="bg-card rounded-xl p-8 text-center border border-white/5">
             <Calendar className="w-12 h-12 text-white/20 mx-auto mb-3" />
-            <p className="text-white/40">No hay reservas en esta categoría</p>
+            <p className="text-muted-foreground">No hay reservas en esta categoría</p>
           </div>
         ) : (
           <div className="space-y-2">
             {getFilteredBookings().map((booking) => (
               <div 
                 key={booking.id}
-                className="bg-[#1E1E1E] rounded-xl p-4 border border-white/5 hover:border-white/10 transition-colors cursor-pointer group"
+                className="bg-card rounded-xl p-4 border border-white/5 hover:border-white/10 transition-colors cursor-pointer group"
                 onClick={() => navigate(`/owner?tab=reservas`)}
               >
                 <div className="flex items-center gap-4">
@@ -452,7 +452,7 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                     </div>
                     {(booking.status === 'approved' || booking.status === 'pending') && booking.profile && (
                       <div className="flex items-center gap-2 mt-2 text-sm">
-                        <User className="w-3.5 h-3.5 text-white/40" />
+                        <User className="w-3.5 h-3.5 text-muted-foreground" />
                         <span className="text-white/60">
                           {booking.profile.company_name || booking.profile.full_name}
                         </span>
@@ -488,10 +488,10 @@ const OwnerHome: React.FC<OwnerHomeProps> = ({ billboards, userId }) => {
                     <p className="text-primary font-bold">
                       ${Number(booking.total_price).toLocaleString()}
                     </p>
-                    <p className="text-white/40 text-sm">MXN</p>
+                    <p className="text-muted-foreground text-sm">MXN</p>
                   </div>
                   
-                  <ChevronRight className="w-5 h-5 text-white/30 group-hover:text-white/60 transition-colors" />
+                  <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-white/60 transition-colors" />
                 </div>
               </div>
             ))}

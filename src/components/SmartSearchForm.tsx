@@ -260,7 +260,7 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
             style={{ maxHeight: '400px', overflowY: 'auto' }}
           >
             {userLocation && (
-              <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-white/40 bg-muted">
+              <div className="px-4 py-2 border-b border-white/5 flex items-center gap-2 text-xs text-muted-foreground bg-muted">
                 <Navigation className="w-3 h-3" />
                 <span>Mostrando resultados cerca de ti</span>
               </div>
@@ -278,11 +278,11 @@ const SmartSearchForm: React.FC<SmartSearchFormProps> = ({ onSearch }) => {
                   <p className="text-sm text-white/50 truncate">{suggestion.displayContext || suggestion.address}</p>
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className="text-xs text-white/30 bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
+                  <span className="text-xs text-muted-foreground bg-white/5 px-2 py-1 rounded-full flex-shrink-0">
                     {getTypeLabel(suggestion.type, suggestion)}
                   </span>
                   {suggestion.distance && (
-                    <span className="text-xs text-white/40">{(suggestion.distance / 1000).toFixed(1)} km</span>
+                    <span className="text-xs text-muted-foreground">{(suggestion.distance / 1000).toFixed(1)} km</span>
                   )}
                 </div>
               </button>
