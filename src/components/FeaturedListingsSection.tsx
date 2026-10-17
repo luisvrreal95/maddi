@@ -71,18 +71,20 @@ const ListingCard: React.FC<{ b: Billboard; badge: string; onClick: () => void }
 };
 
 const OwnerCTACard: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <div className="scan-card scan-card-dark relative flex h-full flex-col justify-end overflow-hidden rounded-3xl bg-background p-8 min-h-[420px]">
+  <div className="scan-card scan-card-dark relative flex h-full min-h-[420px] flex-col justify-between gap-8 overflow-hidden rounded-3xl border border-transparent bg-background p-8">
     <div className="hero-glow pointer-events-none absolute -right-32 -top-32 h-80 w-80" />
-    <p className="relative text-sm font-semibold text-primary">Para propietarios</p>
-    <h3 className="relative mt-3 text-[28px] font-bold leading-tight text-foreground">
-      ¿Tienes un espectacular? Publícalo gratis.
-    </h3>
-    <p className="relative mt-3 text-muted-foreground">
-      Publica tu espacio y empieza a recibir solicitudes de anunciantes en tu ciudad.
-    </p>
+    <div className="relative">
+      <p className="text-sm font-semibold text-primary">Para propietarios</p>
+      <h3 className="mt-3 text-[28px] font-bold leading-tight text-foreground">
+        ¿Tienes un espectacular? Publícalo gratis.
+      </h3>
+      <p className="mt-3 text-muted-foreground">
+        Publica tu espacio y empieza a recibir solicitudes de anunciantes en tu ciudad.
+      </p>
+    </div>
     <button
       onClick={onClick}
-      className="relative mt-8 inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
+      className="relative inline-flex w-fit items-center gap-2 rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary-hover"
     >
       Publicar mi espectacular <ArrowRight className="h-4 w-4" />
     </button>

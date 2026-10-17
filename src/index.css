@@ -150,36 +150,42 @@ All colors MUST be HSL.
 .listing-card:hover { box-shadow: 0 28px 56px hsl(var(--ink) / 0.18); }
 .viewfinder { filter: drop-shadow(0 1px 2px hsl(0 0% 0% / 0.7)); }
 
-/* Card hover: lime light sweeping across the top edge + glow (same motion as the hero search bar) */
-@keyframes card-scan {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(380%); }
+/* Card hover: a lime light travels around the whole card border (same idea as the hero search bar) + glow */
+@property --scan-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes card-orbit {
+  to { --scan-angle: 360deg; }
 }
 .scan-card { position: relative; }
 .scan-card::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   z-index: 20;
-  height: 2px;
-  width: 30%;
-  background: linear-gradient(90deg, transparent, hsl(var(--primary)), transparent);
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--scan-angle), transparent 0deg, transparent 230deg, hsl(var(--primary) / 0.35) 300deg, hsl(var(--primary)) 350deg, transparent 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
   opacity: 0;
   pointer-events: none;
-  transition: opacity .2s ease;
+  transition: opacity .25s ease;
 }
 .scan-card:hover::after {
   opacity: 1;
-  animation: card-scan 1.6s linear infinite;
+  animation: card-orbit 2.4s linear infinite;
 }
 .scan-card:hover {
-  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.85), 0 0 44px hsl(var(--primary) / 0.28), 0 28px 56px hsl(0 0% 0% / 0.22);
+  box-shadow: 0 0 40px hsl(var(--primary) / 0.22), 0 28px 56px hsl(0 0% 0% / 0.2);
 }
 .scan-card-dark:hover {
-  border-color: hsl(var(--primary) / 0.6);
-  box-shadow: 0 0 0 1px hsl(var(--primary) / 0.6), 0 0 44px hsl(var(--primary) / 0.18);
+  border-color: hsl(var(--primary) / 0.25);
+  box-shadow: 0 0 44px hsl(var(--primary) / 0.16);
 }
 @media (prefers-reduced-motion: reduce) {
-  .scan-card:hover::after { animation: none; }
+  .scan-card:hover::after { animation: none; opacity: 1; background: hsl(var(--primary) / 0.6); }
 }

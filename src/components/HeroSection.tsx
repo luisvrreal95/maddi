@@ -162,7 +162,7 @@ const HeroSection: React.FC<{ available?: Billboard[] }> = ({ available = [] }) 
       <div data-lift-hero className="relative z-10 flex flex-col items-center gap-10 max-sm:gap-6 w-full max-w-5xl px-6 max-sm:px-4 pt-12 max-md:pt-10 max-sm:pt-6">
         {/* Floating cards (≥1180px) */}
         {topImpressions && (
-          <div className="pointer-events-none absolute -left-16 top-10 hidden w-48 rounded-2xl border border-primary/30 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float min-[1180px]:block">
+          <div className="pointer-events-none absolute -left-44 top-4 hidden w-48 rounded-2xl border border-primary/30 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float min-[1536px]:block">
             <p className="text-xs text-muted-foreground">Impresiones al día</p>
             <p className="mt-1 text-[28px] font-semibold leading-none text-primary tabular-nums">
               {(topImpressions.daily_impressions || 0).toLocaleString()}
@@ -171,7 +171,7 @@ const HeroSection: React.FC<{ available?: Billboard[] }> = ({ available = [] }) 
           </div>
         )}
         {minPrice && isFinite(minPrice) && (
-          <div className="pointer-events-none absolute -right-16 top-40 hidden w-48 rounded-2xl border border-white/15 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float [animation-delay:-3s] min-[1180px]:block">
+          <div className="pointer-events-none absolute -right-44 top-36 hidden w-48 rounded-2xl border border-white/15 bg-background/85 p-4 float-card-shadow backdrop-blur animate-float [animation-delay:-3s] min-[1536px]:block">
             <p className="text-xs text-muted-foreground">Desde</p>
             <p className="mt-1 text-[28px] font-semibold leading-none text-foreground tabular-nums">
               ${minPrice.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">/mes</span>
