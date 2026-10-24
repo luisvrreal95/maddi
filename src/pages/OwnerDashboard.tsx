@@ -4,10 +4,9 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Plus, LayoutGrid, List } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Billboard } from '@/hooks/useBillboards';
 import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
-import OwnerPropertyCard from '@/components/owner/OwnerPropertyCard';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
 import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
 import OwnerStatsTab from '@/components/owner/OwnerStatsTab';
@@ -17,10 +16,8 @@ import TrafficAnalytics from '@/components/owner/TrafficAnalytics';
 import RecommendedActions from '@/components/owner/RecommendedActions';
 import OwnerHome from '@/components/owner/OwnerHome';
 import OwnerCalendar from '@/components/owner/OwnerCalendar';
-import PropertyFilters from '@/components/owner/PropertyFilters';
-import PropertyListItem from '@/components/owner/PropertyListItem';
+import OwnerPropertiesTab from '@/components/owner/OwnerPropertiesTab';
 import { INEGIInsights } from '@/components/billboard/INEGIInsights';
-import ShareDialog from '@/components/share/ShareDialog';
 import MobileNavBar from '@/components/navigation/MobileNavBar';
 import {
   AlertDialog,
@@ -133,57 +130,25 @@ const OwnerDashboard: React.FC = () => {
     return uniqueCities.sort();
   }, [billboards]);
 
-  // Fetch bookings to check current reservations
-  const [currentBookings, setCurrentBookings] = useState<any[]>([]);
-  
-  useEffect(() => {
-    const fetchCurrentBookings = async () => {
-      if (!user) return;
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      const { data } = await supabase
-        .from('bookings')
-        .select('billboard_id, start_date, end_date')
-        .eq('status', 'approved')
-        .lte('start_date', today.toISOString())
-        .gte('end_date', today.toISOString());
-      
-      setCurrentBookings(data || []);
-    };
-    
-    fetchCurrentBookings();
-  }, [user]);
+  // Reservas aprobadas (próximos 90 días) y solicitudes pendientes de mis caras
+  const [currentBookings, setCurrentBookings] = useState<{ billboard_id: string; start_date: string; end_date: string }[]>([]);
+  const [pendingCount, setPendingCount] = useState(0);
 
-  // Filter billboards
-  const filteredBillboards = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    return billboards.filter(b => {
-      // Search filter
-      if (searchQuery) {
-        const query = searchQuery.toLowerCase();
-        const matchesTitle = b.title.toLowerCase().includes(query);
-        const matchesCity = b.city.toLowerCase().includes(query);
-        const matchesAddress = b.address.toLowerCase().includes(query);
-        if (!matchesTitle && !matchesCity && !matchesAddress) return false;
-      }
-      if (filterCity !== 'all' && b.city !== filterCity) return false;
-      
-      // Check if billboard has active booking today
-      const hasActiveBooking = currentBookings.some(booking => 
-        booking.billboard_id === b.id &&
-        new Date(booking.start_date) <= today &&
-        new Date(booking.end_date) >= today
-      );
-      
-      if (filterStatus === 'available' && (hasActiveBooking || !b.is_available)) return false;
-      if (filterStatus === 'unavailable' && !hasActiveBooking && b.is_available) return false;
-      return true;
-    });
-  }, [billboards, filterCity, filterStatus, searchQuery, currentBookings]);
+  useEffect(() => {
+    const ids = billboards.map(b => b.id);
+    if (ids.length === 0) { setCurrentBookings([]); setPendingCount(0); return; }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const limit = new Date(today.getTime() + 90 * 86400000);
+    (async () => {
+      const [{ data: approved }, { count }] = await Promise.all([
+        supabase.from('bookings').select('billboard_id, start_date, end_date').in('billboard_id', ids).eq('status', 'approved')
+          .gte('end_date', today.toISOString()).lte('start_date', limit.toISOString()),
+        supabase.from('bookings').select('id', { count: 'exact', head: true }).in('billboard_id', ids).eq('status', 'pending'),
+      ]);
+      setCurrentBookings(approved || []);
+      setPendingCount(count || 0);
+    })();
+  }, [billboards]);
 
   const handleBillboardSaved = () => {
     fetchBillboards();
@@ -282,7 +247,7 @@ const OwnerDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="theme-light min-h-screen bg-background flex flex-col">
       <OwnerDashboardHeader activeTab={activeTab} onTabChange={handleTabChange} />
 
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-4 md:px-6 md:py-8 pb-24 md:pb-8">
@@ -305,88 +270,22 @@ const OwnerDashboard: React.FC = () => {
         )}
 
         {activeTab === 'propiedades' && (
-          <>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">Mis Espectaculares</h1>
-              <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto">
-                {/* View Toggle */}
-                <div className="flex items-center bg-muted rounded-lg p-1">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-md transition-colors ${
-                      viewMode === 'grid' ? 'bg-primary text-background' : 'text-white/60 hover:text-white'
-                    }`}
-                  >
-                    <LayoutGrid className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-md transition-colors ${
-                      viewMode === 'list' ? 'bg-primary text-background' : 'text-white/60 hover:text-white'
-                    }`}
-                  >
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
-                <ShareDialog
-                  title={displayName}
-                  subtitle={`${billboards.length} propiedades en Maddi`}
-                  shareUrl={`/profile/${user?.id}`}
-                />
-                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-primary-hover text-background font-medium flex items-center gap-2 text-xs sm:text-sm whitespace-nowrap">
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Agregar espectacular</span>
-                  <span className="sm:hidden">Agregar</span>
-                </Button>
-              </div>
-            </div>
-            <div className="mb-6">
-              <PropertyFilters
-                cities={cities}
-                selectedCity={filterCity}
-                onCityChange={setFilterCity}
-                selectedStatus={filterStatus}
-                onStatusChange={setFilterStatus}
-                onClearFilters={() => { setFilterCity('all'); setFilterStatus('all'); setSearchQuery(''); }}
-                hasActiveFilters={filterCity !== 'all' || filterStatus !== 'all' || searchQuery !== ''}
-                searchQuery={searchQuery}
-                onSearchChange={setSearchQuery}
-              />
-            </div>
-            {isLoading ? (
-              <div className="text-white/60 text-center py-12">Cargando propiedades...</div>
-            ) : filteredBillboards.length === 0 ? (
-              <div className="text-center py-16">
-                <h2 className="text-white text-2xl font-bold mb-2">Sin espectaculares</h2>
-                <p className="text-white/60 mb-6">Agrega tu primer espectacular para comenzar a recibir contactos</p>
-                <Button onClick={() => navigate('/owner/add-property')} className="bg-primary hover:bg-primary-hover text-background font-medium flex items-center gap-2 mx-auto">
-                  <Plus className="w-4 h-4" />
-                  Agregar espectacular
-                </Button>
-              </div>
-            ) : viewMode === 'grid' ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBillboards.map((billboard) => (
-                  <div key={billboard.id} onClick={() => handlePropertyClick(billboard)} className="cursor-pointer">
-                    <OwnerPropertyCard billboard={billboard} onEdit={() => handleEditBillboard(billboard)} onDelete={() => handleDeleteClick(billboard)} onPause={() => handlePauseClick(billboard)} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredBillboards.map((billboard) => (
-                  <PropertyListItem 
-                    key={billboard.id} 
-                    billboard={billboard} 
-                    onClick={() => handlePropertyClick(billboard)}
-                    onEdit={() => handleEditBillboard(billboard)}
-                    onDelete={() => handleDeleteClick(billboard)}
-                    onPause={() => handlePauseClick(billboard)}
-                  />
-                ))}
-              </div>
-            )}
-          </>
+          <OwnerPropertiesTab
+            billboards={billboards}
+            bookings={currentBookings}
+            pendingCount={pendingCount}
+            isLoading={isLoading}
+            displayName={displayName}
+            userId={user?.id || ''}
+            onAdd={() => navigate('/owner/add-property')}
+            onOpenFace={handlePropertyClick}
+            onEdit={handleEditBillboard}
+            onPause={handlePauseClick}
+            onDelete={handleDeleteClick}
+            onCalendar={(b) => { setSelectedBillboard(b); handleTabChange('calendario'); }}
+            onGoReservas={() => handleTabChange('reservas')}
+            onRefresh={fetchBillboards}
+          />
         )}
 
         {activeTab === 'calendario' && (

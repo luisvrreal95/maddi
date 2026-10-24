@@ -78,7 +78,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
                 className={cn(
                   "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2 relative",
                   isActive
-                    ? "bg-white text-background"
+                    ? "bg-foreground text-background"
                     : "text-white/70 hover:text-white hover:bg-white/10"
                 )}
               >
@@ -135,7 +135,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
               className={cn(
                 "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5 relative",
                 isActive
-                  ? "bg-white text-background"
+                  ? "bg-foreground text-background"
                   : "text-white/70 hover:text-white bg-white/5"
               )}
             >
@@ -155,7 +155,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
               className={cn(
                 "flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1.5",
                 mobileSecondary.some(i => i.id === currentTab)
-                  ? "bg-white text-background"
+                  ? "bg-foreground text-background"
                   : "text-white/70 bg-white/5 hover:text-white"
               )}
             >

@@ -24,3 +24,26 @@ export const normalizeFaceLabel = (label: string | null | undefined, index: numb
   if (!l) return defaultFaceLabel(index);
   return /^cara\b/i.test(l) ? l : `Cara ${l}`;
 };
+
+/** Direcciones hacia donde mira una cara. Se guarda `key` en billboards.facing. */
+export interface FacingOption { key: string; short: string; label: string; bearing: number; opposite: string }
+export const FACINGS: FacingOption[] = [
+  { key: 'norte', short: 'N', label: 'norte', bearing: 0, opposite: 'sur' },
+  { key: 'noreste', short: 'NE', label: 'noreste', bearing: 45, opposite: 'suroeste' },
+  { key: 'oriente', short: 'E', label: 'oriente', bearing: 90, opposite: 'poniente' },
+  { key: 'sureste', short: 'SE', label: 'sureste', bearing: 135, opposite: 'noroeste' },
+  { key: 'sur', short: 'S', label: 'sur', bearing: 180, opposite: 'norte' },
+  { key: 'suroeste', short: 'SO', label: 'suroeste', bearing: 225, opposite: 'noreste' },
+  { key: 'poniente', short: 'O', label: 'poniente', bearing: 270, opposite: 'oriente' },
+  { key: 'noroeste', short: 'NO', label: 'noroeste', bearing: 315, opposite: 'sureste' },
+];
+
+export const getFacing = (key?: string | null): FacingOption | undefined =>
+  FACINGS.find((f) => f.key === (key || '').toLowerCase().trim());
+
+/** "oriente" -> "Mira al oriente"; texto libre antiguo se muestra tal cual. */
+export const facingText = (key?: string | null): string => {
+  if (!key) return '';
+  const f = getFacing(key);
+  return f ? `Mira al ${f.label}` : key;
+};

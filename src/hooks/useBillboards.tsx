@@ -33,6 +33,7 @@ export interface Billboard {
   image_urls: string[] | null;
   is_available: boolean;
   pause_reason: string | null;
+  is_digital?: boolean;
   points_of_interest: string[] | null;
   min_campaign_days: number | null;
   min_advance_booking_days: number | null;
