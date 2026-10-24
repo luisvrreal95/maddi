@@ -13,9 +13,10 @@ interface Props {
   totalStructures: number;
   selectedIds: string[];
   initialMode?: ShareMode;
+  onNeedSelection?: () => void;
 }
 
-const PortfolioShareDialog: React.FC<Props> = ({ open, onOpenChange, userId, totalStructures, selectedIds, initialMode }) => {
+const PortfolioShareDialog: React.FC<Props> = ({ open, onOpenChange, userId, totalStructures, selectedIds, initialMode, onNeedSelection }) => {
   const [mode, setMode] = useState<ShareMode>('available');
   const [prices, setPrices] = useState(true);
 
@@ -39,26 +40,26 @@ const PortfolioShareDialog: React.FC<Props> = ({ open, onOpenChange, userId, tot
   const tabs: { id: ShareMode; label: string; disabled?: boolean }[] = [
     { id: 'all', label: `Todo (${totalStructures})` },
     { id: 'available', label: 'Solo disponibles' },
-    { id: 'selection', label: `Selección${selectedIds.length ? ` (${selectedIds.length})` : ''}`, disabled: selectedIds.length === 0 },
+    { id: 'selection', label: `Selección${selectedIds.length ? ` (${selectedIds.length})` : ''}` },
   ];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="theme-light bg-card text-foreground border-border sm:max-w-[520px] rounded-3xl">
+      <DialogContent className="theme-light bg-card text-foreground border-border sm:max-w-[520px] w-[calc(100vw-2rem)] rounded-3xl overflow-hidden [&>*]:min-w-0">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Compartir portafolio</DialogTitle>
           <DialogDescription>Un enlace público con tus espectaculares. Lo mandas por WhatsApp o correo.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex bg-secondary rounded-full p-1 text-sm font-semibold">
+        <div className="flex bg-secondary rounded-full p-1 text-xs sm:text-sm font-semibold">
           {tabs.map((t) => (
-            <button key={t.id} disabled={t.disabled} onClick={() => setMode(t.id)}
-              className={cn('flex-1 py-2 rounded-full transition-colors', mode === t.id ? 'bg-foreground text-background' : 'text-muted-foreground', t.disabled && 'opacity-40 cursor-not-allowed')}>
+            <button key={t.id} disabled={t.disabled} onClick={() => { if (t.id === 'selection' && selectedIds.length === 0) { onNeedSelection?.(); return; } setMode(t.id); }}
+              className={cn('flex-1 min-w-0 py-2 px-1 rounded-full transition-colors whitespace-nowrap', mode === t.id ? 'bg-foreground text-background' : 'text-muted-foreground', t.disabled && 'opacity-40 cursor-not-allowed')}>
               {t.label}
             </button>
           ))}
         </div>
-        {selectedIds.length === 0 && <p className="text-xs text-muted-foreground -mt-2">Para compartir una selección, márcala en la vista Lista.</p>}
+        {selectedIds.length === 0 && <p className="text-xs text-muted-foreground -mt-2">Selección: te llevamos a la vista Lista para que marques las caras.</p>}
 
         <div className="border border-border rounded-2xl p-4 flex items-center justify-between text-sm">
           <span>Mostrar precios</span>
@@ -66,8 +67,8 @@ const PortfolioShareDialog: React.FC<Props> = ({ open, onOpenChange, userId, tot
         </div>
 
         <div className="flex items-center gap-2 border border-border rounded-xl pl-4 pr-1.5 py-1.5 text-sm">
-          <span className="flex-1 truncate text-muted-foreground">{url.replace(/^https?:\/\//, '')}</span>
-          <button onClick={copy} className="bg-primary text-primary-foreground font-semibold px-5 py-2 rounded-full hover:bg-primary-hover">Copiar enlace</button>
+          <span className="flex-1 min-w-0 truncate text-muted-foreground">{url.replace(/^https?:\/\//, '')}</span>
+          <button onClick={copy} className="flex-none bg-primary text-primary-foreground font-semibold px-4 py-2 rounded-full hover:bg-primary-hover">Copiar enlace</button>
         </div>
 
         <div className="flex gap-2 text-sm font-medium">

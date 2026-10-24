@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { Plus, Search, LayoutGrid, List, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -236,7 +237,7 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
         </div>
       )}
 
-      <PortfolioShareDialog open={shareOpen} onOpenChange={setShareOpen} userId={p.userId} totalStructures={structures.length} selectedIds={selected} initialMode={shareMode} />
+      <PortfolioShareDialog open={shareOpen} onOpenChange={setShareOpen} userId={p.userId} totalStructures={structures.length} selectedIds={selected} initialMode={shareMode} onNeedSelection={() => { setShareOpen(false); setView('list'); toast.info('Marca las caras que quieras compartir y toca “Compartir selección”.'); }} />
 
       <AddFaceDialog open={!!addFaceFor} onOpenChange={(o) => !o && setAddFaceFor(null)} faces={addFaceFor?.faces || []} onSaved={p.onRefresh} />
     </div>
