@@ -41,6 +41,8 @@ interface Property {
   lat: number;
   lng: number;
   imageUrl?: string | null;
+  siblings?: Array<Property>;
+  faceLabel?: string;
 }
 
 interface POI {
@@ -91,6 +93,7 @@ interface SearchMapProps {
   properties: Property[];
   selectedPropertyId: string | null;
   onPropertySelect: (id: string | null) => void;
+  onFaceChange?: (id: string) => void;
   mapboxToken: string;
   searchLocation?: string;
   selectedBounds?: [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
@@ -119,6 +122,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
   properties,
   selectedPropertyId,
   onPropertySelect,
+  onFaceChange,
   mapboxToken,
   searchLocation,
   selectedBounds,
@@ -383,7 +387,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       const isInCompare = compareIds.includes(property.id);
       const viewsNum = parseInt(property.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
       
-      const el = createMarkerElement(viewsNum, isSelected, isCompareMode, isInCompare);
+      const el = createMarkerElement(viewsNum, isSelected, isCompareMode, isInCompare, property.siblings?.length ?? 1);
 
       el.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -404,6 +408,17 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
       markersRef.current.push(marker);
     });
   }, [properties, selectedPropertyId, onPropertySelect, compareIds, isCompareMode, fetchINEGIData]);
+
+  // Si cambia la cara activa de la estructura abierta, el popup sigue a la nueva cara
+  useEffect(() => {
+    if (!popupProperty) return;
+    const match = properties.find(p => p.id === popupProperty.id || p.siblings?.some(sib => sib.id === popupProperty.id));
+    if (match && match.id !== popupProperty.id) {
+      setPopupProperty(match);
+      setPopupCoords([match.lng, match.lat]);
+      fetchINEGIData(match.id, match.lat, match.lng);
+    }
+  }, [properties]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fly to selected property
   useEffect(() => {
@@ -822,6 +837,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
           onViewDetails={handleViewDetails}
           onAddToCompare={handleAddToCompare}
           isInCompare={compareIds.includes(popupProperty.id)}
+          onFaceChange={onFaceChange}
         />
       )}
 

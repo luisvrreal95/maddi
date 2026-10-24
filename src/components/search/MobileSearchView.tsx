@@ -29,6 +29,8 @@ interface MapProperty {
   imageUrls: string[] | null;
   averageRating?: number;
   totalReviews?: number;
+  faceLabel?: string;
+  siblings?: MapProperty[];
 }
 
 interface INEGICardData {
@@ -352,7 +354,12 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground truncate text-sm">{property.name}</p>
+                <p className="font-semibold text-foreground truncate text-sm">
+                  {property.name}
+                  {property.siblings && property.siblings.length > 1 && (
+                    <span className="ml-1.5 rounded-full bg-secondary px-1.5 py-0.5 text-[10px] font-semibold text-muted-foreground align-middle">{property.siblings.length} caras</span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground truncate">{property.address}</p>
                 <div className="flex items-center justify-between mt-1.5">
                   <span className="text-foreground font-bold text-sm">{property.price}<span className="text-muted-foreground font-normal text-xs">/mes</span></span>
@@ -432,6 +439,22 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
 
               {/* Scrollable Content — grows with content, capped by sheet max-h */}
               <div className="overflow-y-auto p-4 space-y-4">
+                {detailProperty.siblings && detailProperty.siblings.length > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    {detailProperty.siblings.map((face) => (
+                      <button
+                        key={face.id}
+                        onClick={() => handlePropertyClick(face)}
+                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${
+                          face.id === detailProperty.id ? 'border-foreground bg-foreground text-background' : 'border-border text-muted-foreground'
+                        }`}
+                      >
+                        {face.faceLabel}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <div>
                   <h3 className="text-lg font-bold text-foreground leading-tight">{detailProperty.name}</h3>
                   <p className="text-muted-foreground text-sm mt-0.5">{detailProperty.address}</p>

@@ -33,12 +33,16 @@ interface SearchResultCardProps {
     totalReviews?: number;
     imageUrl?: string | null;
     imageUrls?: string[] | null;
+    faceLabel?: string;
+    facing?: string | null;
+    siblings?: Array<{ id: string; faceLabel?: string; price: string }>;
   };
   isSelected: boolean;
   onClick: () => void;
   isInCompare?: boolean;
   onToggleCompare?: (id: string) => void;
   inegiData?: INEGIData;
+  onFaceChange?: (id: string) => void;
 }
 
 const SearchResultCard: React.FC<SearchResultCardProps> = ({ 
@@ -47,7 +51,8 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
   onClick,
   isInCompare = false,
   onToggleCompare,
-  inegiData
+  inegiData,
+  onFaceChange
 }) => {
   const navigate = useNavigate();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -136,6 +141,26 @@ const SearchResultCard: React.FC<SearchResultCardProps> = ({
           <div className="absolute top-2 right-2">
             <FavoriteHeartButton billboardId={property.id} />
           </div>
+        </div>
+      )}
+
+      {/* Caras de la misma estructura */}
+      {property.siblings && property.siblings.length > 1 && (
+        <div className="flex items-center gap-1.5 px-4 pt-3" onClick={(e) => e.stopPropagation()}>
+          {property.siblings.map((face) => (
+            <button
+              key={face.id}
+              onClick={() => onFaceChange?.(face.id)}
+              className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                face.id === property.id
+                  ? 'border-foreground bg-foreground text-background'
+                  : 'border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground'
+              }`}
+            >
+              {face.faceLabel}
+            </button>
+          ))}
+          <span className="ml-auto text-[11px] text-muted-foreground">{property.siblings.length} caras</span>
         </div>
       )}
 

@@ -20,6 +20,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 import { useMapboxToken } from '@/contexts/MapboxTokenContext';
+import { structureKey, normalizeFaceLabel } from '@/lib/billboardFaces';
 
 // INEGI data type for cards
 interface INEGICardData {
@@ -52,6 +53,11 @@ interface MapProperty {
   };
   averageRating?: number;
   totalReviews?: number;
+  groupKey?: string;
+  faceLabel?: string;
+  facing?: string | null;
+  /** Otras caras de la misma estructura (ya filtradas por disponibilidad/filtros) */
+  siblings?: MapProperty[];
 }
 
 function getPeakHours(illumination: string | null | undefined): string {
@@ -82,6 +88,8 @@ const transformBillboardToProperty = (billboard: Billboard, reviewStats?: { aver
   owner: billboard.owner,
   averageRating: reviewStats?.averageRating || 0,
   totalReviews: reviewStats?.totalReviews || 0,
+  groupKey: structureKey(billboard),
+  facing: billboard.facing ?? null,
 });
 
 const SearchPage: React.FC = () => {
@@ -453,6 +461,54 @@ const SearchPage: React.FC = () => {
     return filtered;
   }, [allProperties, filters, billboards, inegiDataMap, dateFilter, unavailableBillboardIds]);
 
+  // Caras de una misma estructura: una tarjeta / un pin por estructura, selector de cara dentro
+  const [activeFaceByGroup, setActiveFaceByGroup] = useState<Record<string, string>>({});
+
+  const facedProperties = useMemo(() => {
+    const byGroup: Record<string, MapProperty[]> = {};
+    properties.forEach(p => {
+      const key = p.groupKey || p.id;
+      (byGroup[key] ||= []).push(p);
+    });
+    const meta = (id: string) => billboards.find(b => b.id === id);
+    Object.keys(byGroup).forEach((key) => {
+      byGroup[key] = [...byGroup[key]]
+        .sort((a, b) => {
+          const la = meta(a.id)?.face_label || '';
+          const lb = meta(b.id)?.face_label || '';
+          return la && lb ? la.localeCompare(lb) : (meta(a.id)?.created_at || '').localeCompare(meta(b.id)?.created_at || '');
+        })
+        .map((f, i) => ({ ...f, faceLabel: normalizeFaceLabel(meta(f.id)?.face_label, i) }));
+    });
+    return byGroup;
+  }, [properties, billboards]);
+
+  // Una propiedad por estructura (la cara activa), con sus hermanas en `siblings`
+  const displayProperties = useMemo(() => {
+    const seen = new Set<string>();
+    const out: MapProperty[] = [];
+    properties.forEach((p) => {
+      const key = p.groupKey || p.id;
+      if (seen.has(key)) return;
+      seen.add(key);
+      const faces = facedProperties[key] || [p];
+      const active = faces.find(f => f.id === activeFaceByGroup[key]) || faces[0];
+      out.push({ ...active, siblings: faces.length > 1 ? faces : undefined });
+    });
+    return out;
+  }, [facedProperties, activeFaceByGroup, properties]);
+
+  // Si se selecciona una cara (pin, popup, etc.), esa pasa a ser la activa de su estructura
+  useEffect(() => {
+    if (!selectedPropertyId) return;
+    const p = properties.find(x => x.id === selectedPropertyId);
+    if (p?.groupKey && activeFaceByGroup[p.groupKey] !== p.id) {
+      setActiveFaceByGroup(prev => ({ ...prev, [p.groupKey as string]: p.id }));
+    }
+  }, [selectedPropertyId, properties]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleFaceChange = (id: string) => setSelectedPropertyId(id);
+
   const handleFiltersChange = (newFilters: Record<string, any>) => {
     if (newFilters.dateRange) {
       setDateFilter(newFilters.dateRange);
@@ -587,9 +643,10 @@ const SearchPage: React.FC = () => {
     return (
       <SearchMap
         ref={mapRef}
-        properties={properties}
+        properties={displayProperties}
         selectedPropertyId={selectedPropertyId}
         onPropertySelect={setSelectedPropertyId}
+        onFaceChange={handleFaceChange}
         mapboxToken={mapboxToken}
         searchLocation={confirmedLocation}
         selectedBounds={selectedLocationData?.bbox}
@@ -606,19 +663,19 @@ const SearchPage: React.FC = () => {
         hidePopup={true}
       />
     );
-  }, [isLoadingToken, mapboxToken, properties, selectedPropertyId, confirmedLocation, selectedLocationData, mapLayers, poiCategories, trafficHour, compareIds, isCompareMode]);
+  }, [isLoadingToken, mapboxToken, displayProperties, selectedPropertyId, confirmedLocation, selectedLocationData, mapLayers, poiCategories, trafficHour, compareIds, isCompareMode]);
 
   // Mobile View
   if (isMobile) {
     return (
       <div className="theme-light contents">
         <MobileSearchView
-          properties={properties}
+          properties={displayProperties}
           selectedPropertyId={selectedPropertyId}
           onPropertySelect={setSelectedPropertyId}
           onFiltersChange={handleFiltersChange}
           onFiltersPreview={handleFiltersPreview}
-          resultsCount={properties.length}
+          resultsCount={displayProperties.length}
           isLoading={isLoadingBillboards}
           inegiDataMap={inegiDataMap}
           onReserveClick={handleReserveClick}
@@ -671,20 +728,20 @@ const SearchPage: React.FC = () => {
           />
           
           <Badge variant="secondary" className="hidden sm:flex flex-shrink-0">
-            {isLoadingBillboards ? '...' : properties.length} resultados
+            {isLoadingBillboards ? '...' : displayProperties.length} resultados
           </Badge>
 
           <FiltersDialog 
             onFiltersChange={handleFiltersChange}
             onFiltersPreview={handleFiltersPreview}
-            resultsCount={properties.length}
+            resultsCount={displayProperties.length}
           />
         </div>
       </div>
 
       <main className="flex-1 flex min-h-0 relative">
         <div ref={listRef} className="w-[480px] flex-shrink-0 h-full overflow-y-auto p-4">
-          {properties.length === 0 && !isLoadingBillboards ? (
+          {displayProperties.length === 0 && !isLoadingBillboards ? (
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
               <MapPin className="w-12 h-12 text-primary mb-4" />
               <h3 className="text-foreground text-lg font-semibold mb-2">No hay espectaculares disponibles</h3>
@@ -694,7 +751,7 @@ const SearchPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {properties.map((property) => (
+              {displayProperties.map((property) => (
                 <SearchResultCard
                   key={property.id}
                   property={property}
@@ -703,6 +760,7 @@ const SearchPage: React.FC = () => {
                   isInCompare={compareIds.includes(property.id)}
                   onToggleCompare={handleToggleCompare}
                   inegiData={inegiDataMap[property.id]}
+                  onFaceChange={handleFaceChange}
                 />
               ))}
             </div>
@@ -717,9 +775,10 @@ const SearchPage: React.FC = () => {
           ) : mapboxToken ? (
             <SearchMap
               ref={mapRef}
-              properties={properties}
+              properties={displayProperties}
               selectedPropertyId={selectedPropertyId}
               onPropertySelect={setSelectedPropertyId}
+              onFaceChange={handleFaceChange}
               mapboxToken={mapboxToken}
               searchLocation={confirmedLocation}
               selectedBounds={selectedLocationData?.bbox}

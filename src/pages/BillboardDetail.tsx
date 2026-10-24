@@ -1,3 +1,4 @@
+import { structureKey, normalizeFaceLabel } from '@/lib/billboardFaces';
 import { costPerThousand } from '@/components/search/MaddiScorePopup';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -70,6 +71,26 @@ const BillboardDetail: React.FC = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [ownerVerified, setOwnerVerified] = useState(false);
   const { stats: reviewStats } = useReviews(id);
+  const [faces, setFaces] = useState<Array<{ id: string; label: string; price: number }>>([]);
+
+  // Otras caras de la misma estructura (mismo structure_id, o mismo propietario y coordenadas)
+  useEffect(() => {
+    if (!billboard) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('billboards')
+        .select('id, owner_id, latitude, longitude, structure_id, face_label, price_per_month, created_at, is_available')
+        .eq('owner_id', billboard.owner_id);
+      if (cancelled || !data) return;
+      const key = structureKey(billboard);
+      const same = data
+        .filter((b: any) => structureKey(b) === key && (b.is_available || b.id === billboard.id))
+        .sort((a: any, b: any) => (a.face_label && b.face_label ? a.face_label.localeCompare(b.face_label) : String(a.created_at).localeCompare(String(b.created_at))));
+      setFaces(same.length > 1 ? same.map((b: any, i: number) => ({ id: b.id, label: normalizeFaceLabel(b.face_label, i), price: b.price_per_month })) : []);
+    })();
+    return () => { cancelled = true; };
+  }, [billboard]);
 
   useEffect(() => {
     const fetchBillboard = async () => {
@@ -245,6 +266,22 @@ const BillboardDetail: React.FC = () => {
                     {billboard.is_available ? 'Disponible' : 'No disponible'}
                   </Badge>
                 </div>
+                {faces.length > 1 && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Esta estructura tiene {faces.length} caras, cada una se renta por separado:</span>
+                    {faces.map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => f.id !== billboard.id && navigate(`/billboard/${f.id}`)}
+                        className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+                          f.id === billboard.id ? 'border-foreground bg-foreground text-background' : 'border-border text-foreground hover:border-foreground/50'
+                        }`}
+                      >
+                        {f.label} · ${f.price.toLocaleString()}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {(reviewStats.totalReviews > 0 || ownerVerified) && (
                   <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
                     {reviewStats.totalReviews > 0 ? (

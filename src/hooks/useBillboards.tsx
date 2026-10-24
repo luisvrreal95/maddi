@@ -24,6 +24,9 @@ export interface Billboard {
   billboard_type: string;
   illumination: string;
   faces: number;
+  structure_id?: string | null;
+  face_label?: string | null;
+  facing?: string | null;
   daily_impressions: number | null;
   price_per_month: number;
   image_url: string | null;

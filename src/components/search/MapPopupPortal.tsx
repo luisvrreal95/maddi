@@ -17,6 +17,7 @@ interface Property {
   lat: number;
   lng: number;
   imageUrl?: string | null;
+  siblings?: Array<{ id: string; faceLabel?: string }>;
 }
 
 interface CategoryDistribution {
@@ -60,6 +61,7 @@ interface MapPopupPortalProps {
   onViewDetails: () => void;
   onAddToCompare: () => void;
   isInCompare: boolean;
+  onFaceChange?: (id: string) => void;
 }
 
 const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
@@ -75,7 +77,8 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
   onReserve,
   onViewDetails,
   onAddToCompare,
-  isInCompare
+  isInCompare,
+  onFaceChange
 }) => {
   const popupRef = useRef<mapboxgl.Popup | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -160,6 +163,9 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
       onClose={onClose}
       onCompare={onAddToCompare}
       isSelected={isInCompare}
+      faces={property.siblings?.map(f => ({ id: f.id, label: f.faceLabel || 'Cara' }))}
+      activeFaceId={property.id}
+      onFaceChange={onFaceChange}
     />,
     containerRef.current
   );

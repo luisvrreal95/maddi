@@ -150,6 +150,9 @@ export type Database = {
           points_of_interest: string[] | null
           price_per_month: number
           state: string
+          structure_id: string | null
+          face_label: string | null
+          facing: string | null
           title: string
           updated_at: string
           width_m: number
@@ -179,6 +182,9 @@ export type Database = {
           points_of_interest?: string[] | null
           price_per_month: number
           state: string
+          structure_id?: string | null
+          face_label?: string | null
+          facing?: string | null
           title: string
           updated_at?: string
           width_m: number
@@ -208,6 +214,9 @@ export type Database = {
           points_of_interest?: string[] | null
           price_per_month?: number
           state?: string
+          structure_id?: string | null
+          face_label?: string | null
+          facing?: string | null
           title?: string
           updated_at?: string
           width_m?: number

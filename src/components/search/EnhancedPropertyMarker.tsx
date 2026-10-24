@@ -53,7 +53,8 @@ export const createMarkerElement = (
   viewsPerDay: number,
   isSelected: boolean,
   isCompareMode: boolean = false,
-  isInCompare: boolean = false
+  isInCompare: boolean = false,
+  faceCount: number = 1
 ): HTMLDivElement => {
   const traffic = getTrafficLevel(viewsPerDay);
   const el = document.createElement('div');
@@ -74,6 +75,7 @@ export const createMarkerElement = (
       <span style="width:8px;height:8px;border-radius:9999px;background:${dot};flex:none;"></span>
       <span>${formatViews(viewsPerDay)}</span>
       ${check}
+      ${faceCount > 1 ? `<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:9999px;background:${isSelected ? '#9BFF43' : '#EEF3F0'};color:#07110B;">${faceCount} caras</span>` : ''}
     </div>
   `;
 

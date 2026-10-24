@@ -44,6 +44,9 @@ interface MaddiScorePopupProps {
     peak_hours?: string;
     availability?: string;
   };
+  faces?: Array<{ id: string; label: string }>;
+  activeFaceId?: string;
+  onFaceChange?: (id: string) => void;
   trafficData?: TrafficData;
   inegiData?: INEGIData;
   isLoadingTraffic?: boolean;
@@ -59,7 +62,7 @@ export function costPerThousand(price?: number, dailyViews?: number): number | n
   return price / ((dailyViews * 30) / 1000);
 }
 
-const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({ property, onClose, onCompare, isSelected = false }) => {
+const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({ property, onClose, onCompare, isSelected = false, faces, activeFaceId, onFaceChange }) => {
   const navigate = useNavigate();
   const cpm = costPerThousand(property.price_per_month, property.daily_impressions);
   const size = property.size && property.size.trim() && !/^n\/?a$/i.test(property.size.trim()) ? property.size : null;
@@ -89,6 +92,22 @@ const MaddiScorePopup: React.FC<MaddiScorePopupProps> = ({ property, onClose, on
             <X className="h-4 w-4" />
           </button>
         </div>
+
+        {faces && faces.length > 1 && (
+          <div className="mt-2 flex gap-1.5">
+            {faces.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => onFaceChange?.(f.id)}
+                className={`rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                  f.id === activeFaceId ? 'border-foreground bg-foreground text-background' : 'border-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="mt-3 flex items-baseline gap-1.5">
           <span className="text-2xl font-bold text-foreground">${property.price_per_month?.toLocaleString()}</span>
