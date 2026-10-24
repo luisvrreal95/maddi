@@ -58,6 +58,10 @@ const FacingPicker: React.FC<FacingPickerProps> = ({ latitude, longitude, mapbox
         <circle r="9" fill="#111" />
         <circle r="3.5" fill="#9BFF43" />
       </svg>
+      <div className="absolute right-3 bottom-3 flex flex-col rounded-xl overflow-hidden border border-[#CBD6CF] bg-white shadow-sm">
+        <button type="button" aria-label="Acercar" onClick={() => map.current?.zoomIn({ duration: 250 })} className="w-9 h-9 text-lg font-semibold text-[#111] hover:bg-[#EEF3F0]">+</button>
+        <button type="button" aria-label="Alejar" onClick={() => map.current?.zoomOut({ duration: 250 })} className="w-9 h-9 text-lg font-semibold text-[#111] border-t border-[#CBD6CF] hover:bg-[#EEF3F0]">−</button>
+      </div>
       {FACINGS.map((f) => {
         const rad = (f.bearing * Math.PI) / 180;
         const x = Math.sin(rad) * R;
