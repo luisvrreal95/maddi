@@ -255,7 +255,8 @@ const BookingManagement: React.FC = () => {
       setSelectedBooking(null);
     } catch (error) {
       console.error('Error:', error);
-      toast.error('Error al aprobar la reserva');
+      const msg = (error as { message?: string })?.message || '';
+      toast.error(msg.includes('empalman') ? 'No se puede aprobar: esas fechas ya fueron reservadas por otra campaña.' : 'Error al aprobar la reserva');
     } finally { setProcessing(false); }
   };
 
