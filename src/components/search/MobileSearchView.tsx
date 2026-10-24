@@ -9,6 +9,7 @@ import FiltersDialog from '@/components/search/FiltersDialog';
 import LocationAutocomplete, { SelectedLocation } from '@/components/search/LocationAutocomplete';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { costPerThousand } from '@/components/search/MaddiScorePopup';
 
 interface MapProperty {
   id: string;
@@ -354,7 +355,7 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
                 <p className="font-semibold text-foreground truncate text-sm">{property.name}</p>
                 <p className="text-xs text-muted-foreground truncate">{property.address}</p>
                 <div className="flex items-center justify-between mt-1.5">
-                  <span className="text-primary font-bold text-sm">{property.price}/mes</span>
+                  <span className="text-foreground font-bold text-sm">{property.price}<span className="text-muted-foreground font-normal text-xs">/mes</span></span>
                   {property.averageRating && property.averageRating > 0 && (
                     <span className="flex items-center gap-1 text-xs">
                       <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
@@ -386,7 +387,7 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
       <Sheet open={!!selectedPropertyId} onOpenChange={(open) => !open && handleCloseDetail()}>
         <SheetContent 
           side="bottom" 
-          className="rounded-t-3xl p-0 overflow-hidden h-auto max-h-[85vh] flex flex-col"
+          className="theme-light rounded-t-3xl p-0 overflow-hidden h-auto max-h-[85vh] flex flex-col bg-card"
         >
           {!detailProperty ? (
             // Skeleton loader while content resolves
@@ -436,36 +437,37 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
                   <p className="text-muted-foreground text-sm mt-0.5">{detailProperty.address}</p>
                 </div>
 
-                <div className="text-2xl font-bold text-primary">
-                  {detailProperty.price}/mes
+                <div>
+                  <div className="text-2xl font-bold text-foreground">
+                    {detailProperty.price}<span className="text-sm font-normal text-muted-foreground">/mes</span>
+                  </div>
+                  {(() => {
+                    const cpm = costPerThousand(
+                      parseInt(detailProperty.price.replace(/[^0-9]/g, '')) || 0,
+                      parseInt(detailProperty.viewsPerDay.replace(/[^0-9]/g, '')) || 0
+                    );
+                    return cpm !== null ? (
+                      <span className="mt-1 inline-block rounded-full bg-primary/20 px-2.5 py-0.5 text-xs font-semibold text-foreground">
+                        ≈ ${Math.round(cpm).toLocaleString()} por 1,000 vistas
+                      </span>
+                    ) : null;
+                  })()}
                 </div>
 
                 {/* Quick stats - Optimized for mobile */}
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-secondary rounded-lg p-2.5 text-center">
-                    <p className="text-xs text-muted-foreground">Impresiones</p>
+                    <p className="text-xs text-muted-foreground">Vistas</p>
                     <p className="font-semibold text-foreground text-sm">{detailProperty.viewsPerDay}/día</p>
                   </div>
                   <div className="bg-secondary rounded-lg p-2.5 text-center">
                     <p className="text-xs text-muted-foreground">Tamaño</p>
                     <p className="font-semibold text-foreground text-sm">{detailProperty.size}</p>
                   </div>
-                  {inegiDataMap[detailProperty.id]?.socioeconomicLevel ? (
-                    <div className="bg-secondary rounded-lg p-2.5 text-center">
-                      <p className="text-xs text-muted-foreground">NSE</p>
-                      <p className="font-semibold text-foreground text-sm">
-                        {inegiDataMap[detailProperty.id].socioeconomicLevel}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="bg-secondary rounded-lg p-2.5 text-center">
-                      <p className="text-xs text-muted-foreground">Rating</p>
-                      <p className="font-semibold text-foreground text-sm flex items-center justify-center gap-1">
-                        <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                        {detailProperty.averageRating?.toFixed(1) || 'N/A'}
-                      </p>
-                    </div>
-                  )}
+                  <div className="bg-secondary rounded-lg p-2.5 text-center">
+                    <p className="text-xs text-muted-foreground">Horario</p>
+                    <p className="font-semibold text-foreground text-sm">{detailProperty.peakHours}</p>
+                  </div>
                 </div>
 
                 {/* Additional info */}
@@ -492,15 +494,15 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
               <div className="flex-shrink-0 p-4 border-t border-border bg-card">
                 <div className="flex gap-3">
                   <Button 
-                    variant="outline" 
-                    className="flex-1 h-11"
+                    className="flex-[1.4] h-11 rounded-full bg-primary text-primary-foreground hover:bg-primary-hover"
                     onClick={() => handleViewDetails(detailProperty)}
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Ver detalles
                   </Button>
                   <Button 
-                    className="flex-1 h-11 bg-primary text-primary-foreground"
+                    variant="outline"
+                    className="flex-1 h-11 rounded-full"
                     onClick={() => handleReserve(detailProperty)}
                   >
                     Cotizar
