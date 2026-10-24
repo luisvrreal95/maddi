@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Billboard } from '@/hooks/useBillboards';
-import ShareDialog from '@/components/share/ShareDialog';
+import PortfolioShareDialog from './PortfolioShareDialog';
+import { Share2 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { structureKey, normalizeFaceLabel, facingText } from '@/lib/billboardFaces';
 import OwnerStructureCard, { BookingRange, Structure, StatusChip, faceStatus } from './OwnerStructureCard';
 import AddFaceDialog from './AddFaceDialog';
@@ -25,6 +27,7 @@ interface Props {
   onCalendar: (b: Billboard) => void;
   onGoReservas: () => void;
   onRefresh: () => void;
+  onBulkPause: (ids: string[]) => void;
 }
 
 type StatusFilter = 'all' | 'available' | 'rented' | 'paused';
@@ -36,6 +39,9 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
   const [city, setCity] = useState('all');
   const [status, setStatus] = useState<StatusFilter>('all');
   const [sort, setSort] = useState<Sort>('recent');
+  const [selected, setSelected] = useState<string[]>([]);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareMode, setShareMode] = useState<'all' | 'available' | 'selection' | undefined>();
   const [addFaceFor, setAddFaceFor] = useState<Structure | null>(null);
 
   const structures = useMemo<Structure[]>(() => {
@@ -72,6 +78,8 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
     if (sort === 'price') list.sort((a, b) => Number(b.faces[0].price_per_month) - Number(a.faces[0].price_per_month));
     return list;
   }, [structures, q, city, status, sort, p.bookings]);
+
+  const allIds = useMemo(() => visible.flatMap((s) => s.faces.map((f) => f.id)), [visible]);
 
   // KPIs
   const faceCount = p.billboards.length;
@@ -115,7 +123,9 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
             <button onClick={() => setView('grid')} className={cn('px-3.5 py-1.5 rounded-full flex items-center gap-1.5', view === 'grid' ? 'bg-foreground text-background' : 'text-muted-foreground')}><LayoutGrid className="w-3.5 h-3.5" />Tarjetas</button>
             <button onClick={() => setView('list')} className={cn('px-3.5 py-1.5 rounded-full flex items-center gap-1.5', view === 'list' ? 'bg-foreground text-background' : 'text-muted-foreground')}><List className="w-3.5 h-3.5" />Lista</button>
           </div>
-          <ShareDialog title={p.displayName} subtitle={`${structures.length} espectaculares en Maddi`} shareUrl={`/profile/${p.userId}`} />
+          <Button variant="outline" className="rounded-full bg-card border-border font-semibold" onClick={() => { setShareMode(undefined); setShareOpen(true); }}>
+            <Share2 className="w-4 h-4 mr-1.5" />Compartir portafolio
+          </Button>
           <Button onClick={p.onAdd} className="rounded-full bg-primary text-primary-foreground hover:bg-primary-hover font-semibold">
             <Plus className="w-4 h-4 mr-1.5" />Agregar espectacular
           </Button>
@@ -185,7 +195,8 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
           <table className="w-full text-sm min-w-[720px]">
             <thead>
               <tr className="text-left text-xs text-muted-foreground bg-secondary/60">
-                <th className="px-4 py-3 font-semibold">Espectacular</th><th className="px-2 py-3 font-semibold">Cara</th>
+                <th className="pl-4 py-3 w-8"><Checkbox aria-label="Seleccionar todo" checked={allIds.length > 0 && selected.length === allIds.length} onCheckedChange={(c) => setSelected(c ? allIds : [])} /></th>
+                <th className="px-2 py-3 font-semibold">Espectacular</th><th className="px-2 py-3 font-semibold">Cara</th>
                 <th className="px-2 py-3 font-semibold">Precio/mes</th><th className="px-2 py-3 font-semibold">Vistas/día</th>
                 <th className="px-2 py-3 font-semibold">Estado</th><th className="px-2 py-3 font-semibold">Acciones</th>
               </tr>
@@ -195,7 +206,8 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
                 const st = faceStatus(f, p.bookings);
                 return (
                   <tr key={f.id} className="border-t border-border hover:bg-secondary/40 cursor-pointer" onClick={() => p.onOpenFace(f)}>
-                    <td className="px-4 py-3"><div className="font-semibold">{s.title}</div><div className="text-xs text-muted-foreground">{s.city}</div></td>
+                    <td className="pl-4 py-3" onClick={(e) => e.stopPropagation()}><Checkbox aria-label="Seleccionar" checked={selected.includes(f.id)} onCheckedChange={(c) => setSelected((prev) => c ? [...prev, f.id] : prev.filter((x) => x !== f.id))} /></td>
+                    <td className="px-2 py-3"><div className="font-semibold">{s.title}</div><div className="text-xs text-muted-foreground">{s.city}</div></td>
                     <td className="px-2 py-3 whitespace-nowrap">{normalizeFaceLabel(f.face_label, i).replace('Cara ', '')}{f.facing ? ` · ${facingText(f.facing).replace('Mira al ', '')}` : ''}</td>
                     <td className="px-2 py-3">${Number(f.price_per_month).toLocaleString('es-MX')}</td>
                     <td className="px-2 py-3">{f.daily_impressions ? f.daily_impressions.toLocaleString('es-MX') : '—'}</td>
@@ -214,6 +226,17 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
           </table>
         </div>
       )}
+
+      {view === 'list' && selected.length > 0 && (
+        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background rounded-full px-5 py-3 flex items-center gap-5 text-sm shadow-xl">
+          <b>{selected.length} {selected.length === 1 ? 'seleccionada' : 'seleccionadas'}</b>
+          <button className="font-semibold text-[#9BFF43]" onClick={() => { setShareMode('selection'); setShareOpen(true); }}>Compartir selección</button>
+          <button onClick={() => { p.onBulkPause(selected); setSelected([]); }}>Pausar</button>
+          <button className="opacity-70" onClick={() => setSelected([])} aria-label="Limpiar selección"><X className="w-4 h-4" /></button>
+        </div>
+      )}
+
+      <PortfolioShareDialog open={shareOpen} onOpenChange={setShareOpen} userId={p.userId} totalStructures={structures.length} selectedIds={selected} initialMode={shareMode} />
 
       <AddFaceDialog open={!!addFaceFor} onOpenChange={(o) => !o && setAddFaceFor(null)} faces={addFaceFor?.faces || []} onSaved={p.onRefresh} />
     </div>

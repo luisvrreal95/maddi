@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, Star, CheckCircle, Calendar, MapPin, Loader2, Building2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -44,6 +44,8 @@ interface ReviewData {
 
 const PublicProfile = () => {
   const { userId } = useParams<{ userId: string }>();
+  const [searchParams] = useSearchParams();
+  const showPrices = searchParams.get("precios") !== "0";
   const [profile, setProfile] = useState<OwnerProfile | null>(null);
   const [billboards, setBillboards] = useState<Billboard[]>([]);
   const [reviews, setReviews] = useState<ReviewData[]>([]);
@@ -79,11 +81,15 @@ const PublicProfile = () => {
         );
 
         // Fetch owner's billboards
-        const { data: billboardsData } = await supabase
+        const idsParam = searchParams.get("ids");
+        let bq = supabase
           .from("billboards")
           .select("id, title, city, state, image_url, price_per_month, is_available")
-          .eq("owner_id", userId)
-          .eq("is_available", true);
+          .eq("owner_id", userId);
+        if (idsParam) bq = bq.in("id", idsParam.split(",").filter(Boolean));
+        else if (searchParams.get("todo") === "1") bq = bq.or("pause_reason.is.null,pause_reason.neq.owner");
+        else bq = bq.eq("is_available", true);
+        const { data: billboardsData } = await bq;
 
         setBillboards(billboardsData || []);
 
@@ -391,9 +397,11 @@ const PublicProfile = () => {
                       <p className="text-sm text-muted-foreground mb-2">
                         {billboard.city}, {billboard.state}
                       </p>
-                      <p className="text-primary font-bold">
-                        {formatCurrency(billboard.price_per_month)}/mes
-                      </p>
+                      {showPrices && (
+                        <p className="text-primary font-bold">
+                          {formatCurrency(billboard.price_per_month)}/mes
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 </Link>

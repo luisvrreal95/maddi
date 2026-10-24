@@ -285,6 +285,10 @@ const OwnerDashboard: React.FC = () => {
             onCalendar={(b) => { setSelectedBillboard(b); handleTabChange('calendario'); }}
             onGoReservas={() => handleTabChange('reservas')}
             onRefresh={fetchBillboards}
+            onBulkPause={async (ids) => {
+              const { error } = await supabase.from('billboards').update({ is_available: false, pause_reason: 'owner' }).in('id', ids);
+              if (error) toast.error('No se pudieron pausar'); else { toast.success(`${ids.length} pausada(s)`); fetchBillboards(); }
+            }}
           />
         )}
 
