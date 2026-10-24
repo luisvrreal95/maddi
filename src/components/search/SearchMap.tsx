@@ -367,7 +367,18 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
+    // Billboards sharing (almost) the same spot would stack exactly: fan them out horizontally
+    const groups: Record<string, string[]> = {};
+    properties.forEach((p) => {
+      const key = `${p.lat.toFixed(4)},${p.lng.toFixed(4)}`;
+      (groups[key] ||= []).push(p.id);
+    });
+
     properties.forEach((property) => {
+      const groupIds = groups[`${property.lat.toFixed(4)},${property.lng.toFixed(4)}`];
+      const fanOffset: [number, number] = groupIds.length > 1
+        ? [(groupIds.indexOf(property.id) - (groupIds.length - 1) / 2) * 64, 0]
+        : [0, 0];
       const isSelected = property.id === selectedPropertyId;
       const isInCompare = compareIds.includes(property.id);
       const viewsNum = parseInt(property.viewsPerDay.replace(/[^0-9]/g, '')) || 0;
@@ -386,7 +397,7 @@ const SearchMap = forwardRef<SearchMapRef, SearchMapProps>(({
         }
       });
 
-      const marker = new mapboxgl.Marker({ element: el })
+      const marker = new mapboxgl.Marker({ element: el, offset: fanOffset })
         .setLngLat([property.lng, property.lat])
         .addTo(map.current!);
 

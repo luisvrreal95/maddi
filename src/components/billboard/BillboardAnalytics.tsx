@@ -295,8 +295,8 @@ const BillboardAnalytics: React.FC<BillboardAnalyticsProps> = ({
           <TooltipProvider>
             <UITooltip>
               <TooltipTrigger asChild>
-                <div className="bg-blue-500/10 rounded-xl p-4 text-center cursor-help">
-                  <Calendar className="w-5 h-5 text-blue-500 mx-auto mb-1.5" />
+                <div className="bg-secondary rounded-xl p-4 text-center cursor-help">
+                  <Calendar className="w-5 h-5 text-primary mx-auto mb-1.5" />
                   <p className="text-xl font-bold text-foreground">{formatNumber(monthlyImpressions)}</p>
                   <p className="text-xs text-muted-foreground">Impresiones/mes</p>
                 </div>
@@ -309,8 +309,8 @@ const BillboardAnalytics: React.FC<BillboardAnalyticsProps> = ({
           <TooltipProvider>
             <UITooltip>
               <TooltipTrigger asChild>
-                <div className="bg-purple-500/10 rounded-xl p-4 text-center cursor-help">
-                  <Users className="w-5 h-5 text-purple-500 mx-auto mb-1.5" />
+                <div className="bg-secondary rounded-xl p-4 text-center cursor-help">
+                  <Users className="w-5 h-5 text-primary mx-auto mb-1.5" />
                   <p className="text-xl font-bold text-foreground">{formatNumber(estimatedReach)}</p>
                   <p className="text-xs text-muted-foreground">Alcance mensual</p>
                 </div>

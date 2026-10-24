@@ -167,6 +167,10 @@ const BillboardDetail: React.FC = () => {
     }
   };
 
+  const addressHasCity = (billboard.address || '').toLowerCase().includes((billboard.city || '').toLowerCase());
+  const locationLine = addressHasCity
+    ? billboard.address
+    : `${billboard.address} · ${billboard.city}, ${billboard.state}`;
   const cpm = costPerThousand(billboard.price_per_month, billboard.daily_impressions ?? undefined);
 
   return (
@@ -264,7 +268,7 @@ const BillboardDetail: React.FC = () => {
                 )}
                 <p className="text-muted-foreground mt-2 flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 flex-shrink-0" />
-                  {billboard.address} · {billboard.city}, {billboard.state}
+                  {locationLine}
                 </p>
                 {isPausedByAdmin && isOwner && (
                   <div className="mt-3 bg-orange-500/10 border border-orange-500/20 rounded-lg p-3 flex items-center justify-between">
@@ -412,10 +416,6 @@ const BillboardDetail: React.FC = () => {
 
               {/* Availability Calendar */}
               <Card className="bg-card border-border p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <h3 className="font-semibold text-foreground text-sm">Disponibilidad</h3>
-                </div>
                 <AvailabilityCalendar billboardId={billboard.id} isDigital={billboard.is_digital} />
               </Card>
             </div>
