@@ -356,7 +356,7 @@ const MobileSearchView: React.FC<MobileSearchViewProps> = ({
                 <p className="text-xs text-muted-foreground truncate">{property.address}</p>
                 <div className="flex items-center justify-between mt-1.5">
                   <span className="text-foreground font-bold text-sm">{property.price}<span className="text-muted-foreground font-normal text-xs">/mes</span></span>
-                  {property.averageRating && property.averageRating > 0 && (
+                  {!!property.averageRating && property.averageRating > 0 && (
                     <span className="flex items-center gap-1 text-xs">
                       <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
                       {property.averageRating.toFixed(1)}

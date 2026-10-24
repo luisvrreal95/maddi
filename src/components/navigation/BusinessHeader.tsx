@@ -101,7 +101,7 @@ const BusinessHeader: React.FC<BusinessHeaderProps> = ({ title, showBackButton =
                       <Link to={item.path} className="flex items-center gap-2 relative">
                         <Icon className="w-4 h-4" />
                         {item.label}
-                        {item.badge && item.badge > 0 && (
+                        {!!item.badge && item.badge > 0 && (
                           <span className="ml-auto min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center px-1">
                             {item.badge > 99 ? '99+' : item.badge}
                           </span>
