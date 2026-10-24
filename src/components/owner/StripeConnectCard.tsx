@@ -20,7 +20,14 @@ const StripeConnectCard: React.FC = () => {
   const start = async () => {
     setBusy(true);
     const { data, error } = await supabase.functions.invoke('stripe-connect-onboard');
-    if (error || !(data as any)?.url) { toast.error('No se pudo abrir el alta de pagos'); setBusy(false); return; }
+    if (error || !(data as any)?.url) {
+      let detail = (data as any)?.error as string | undefined;
+      try { const body = await (error as any)?.context?.json?.(); detail = detail || body?.error; } catch { /* sin detalle */ }
+      console.error('stripe-connect-onboard', error, detail);
+      toast.error(`No se pudo abrir el alta de pagos${detail ? `: ${detail}` : ''}`);
+      setBusy(false);
+      return;
+    }
     window.location.href = (data as any).url;
   };
 
