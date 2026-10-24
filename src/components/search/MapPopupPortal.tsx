@@ -105,7 +105,7 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
     const popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
-      offset: [20, 0],
+      offset: [52, 0],
       maxWidth: '480px',
       className: 'custom-mapbox-popup',
       anchor: 'left'
