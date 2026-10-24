@@ -38,7 +38,6 @@ const AddFaceDialog: React.FC<AddFaceDialogProps> = ({ open, onOpenChange, faces
   const [saving, setSaving] = useState(false);
   const [w, setW] = useState('');
   const [h, setH] = useState('');
-  const [firstFacingPick, setFirstFacingPick] = useState<string | null>(null);
 
   const needsFirstFacing = !!first && !getFacing(first.facing);
 
@@ -50,7 +49,7 @@ const AddFaceDialog: React.FC<AddFaceDialogProps> = ({ open, onOpenChange, faces
       setPreview(null);
       setCopySpecs(true);
       setW(''); setH('');
-      setFirstFacingPick(null);
+
     }
   }, [open, suggestedFacing, source?.id]);
 
@@ -64,9 +63,9 @@ const AddFaceDialog: React.FC<AddFaceDialogProps> = ({ open, onOpenChange, faces
   if (!source) return null;
 
   const f = getFacing(facing);
-  const effectiveFirst = getFacing(first.facing) || getFacing(firstFacingPick);
+  const effectiveFirst = getFacing(first.facing);
   const priceNum = Number(price.replace(/[^0-9.]/g, ''));
-  const canSave = !!facing && !!photo && priceNum > 0 && (!needsFirstFacing || !!firstFacingPick) && (copySpecs || (Number(w) > 0 && Number(h) > 0)) && !saving;
+  const canSave = !!facing && !!photo && priceNum > 0 && (copySpecs || (Number(w) > 0 && Number(h) > 0)) && !saving;
 
   const save = async () => {
     if (!user || !canSave || !photo) return;
@@ -84,7 +83,7 @@ const AddFaceDialog: React.FC<AddFaceDialogProps> = ({ open, onOpenChange, faces
         const patch: Record<string, string> = {};
         if (!source.structure_id) patch.structure_id = structureId;
         if (!first.face_label) patch.face_label = 'A';
-        if (needsFirstFacing && firstFacingPick) patch.facing = firstFacingPick;
+        if (needsFirstFacing && getFacing(facing)) patch.facing = getFacing(facing)!.opposite;
         const { error: e1 } = await supabase.from('billboards').update(patch).eq('id', source.id);
         if (e1) throw e1;
       }
@@ -141,24 +140,9 @@ const AddFaceDialog: React.FC<AddFaceDialogProps> = ({ open, onOpenChange, faces
         </DialogHeader>
 
         <div className="space-y-5">
-          {needsFirstFacing && (
-            <div className="rounded-2xl bg-secondary p-4">
-              <p className="text-sm font-semibold">¿Hacia dónde mira la {firstLabel}?</p>
-              <p className="text-xs text-muted-foreground mb-3">Es la cara que ya tienes publicada. Toca una dirección.</p>
-              <div className="flex flex-wrap gap-2">
-                {['norte','noreste','oriente','sureste','sur','suroeste','poniente','noroeste'].map((k) => (
-                  <button key={k} type="button" onClick={() => { setFirstFacingPick(k); const o = getFacing(k)?.opposite; if (o) setFacing(o); }}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${firstFacingPick === k ? 'bg-foreground text-background border-foreground' : 'bg-card border-border'}`}>
-                    {getFacing(k)!.short}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           <div>
             <p className="text-sm font-semibold">¿Hacia dónde mira esta cara?</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Toca una dirección. {suggestedFacing || firstFacingPick ? 'Ya marcamos la opuesta a la ' + firstLabel + ', que es lo más común.' : ''}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">Toca una dirección. {suggestedFacing ? 'Ya marcamos la opuesta a la ' + firstLabel + ', que es lo más común.' : 'Mira el mapa y toca hacia dónde ve la cara. La ' + firstLabel + ' quedará hacia el lado opuesto (puedes cambiarlo después).'}</p>
           </div>
 
           <div className="grid md:grid-cols-[1fr_190px] gap-4">

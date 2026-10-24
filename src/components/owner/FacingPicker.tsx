@@ -28,12 +28,15 @@ const FacingPicker: React.FC<FacingPickerProps> = ({ latitude, longitude, mapbox
       container: el.current,
       style: 'mapbox://styles/mapbox/light-v11',
       center: [longitude, latitude],
-      zoom: 16.5,
+      zoom: 17,
       interactive: false,
       attributionControl: false,
     });
     map.current = m;
-    return () => { m.remove(); map.current = null; };
+    const ro = new ResizeObserver(() => m.resize());
+    ro.observe(el.current);
+    const t = setTimeout(() => m.resize(), 350);
+    return () => { clearTimeout(t); ro.disconnect(); m.remove(); map.current = null; };
   }, [latitude, longitude, mapboxToken]);
 
   const other = getFacing(otherFace?.facing);
@@ -48,7 +51,7 @@ const FacingPicker: React.FC<FacingPickerProps> = ({ latitude, longitude, mapbox
 
   return (
     <div className="relative w-full h-[300px] rounded-2xl overflow-hidden border border-border bg-secondary select-none">
-      <div ref={el} className="absolute inset-0" />
+      <div className="absolute inset-0"><div ref={el} className="w-full h-full" /></div>
       <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="-210 -150 420 300" preserveAspectRatio="xMidYMid meet">
         {other && cone(other.bearing, 'rgba(51,65,58,0.22)', 'rgba(51,65,58,0.5)', true)}
         {cur && cone(cur.bearing, 'rgba(155,255,67,0.55)', '#4FA800')}
