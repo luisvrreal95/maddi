@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { toast } from 'sonner';
 import { Plus, Search, LayoutGrid, List, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -42,7 +41,7 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
   const [sort, setSort] = useState<Sort>('recent');
   const [selected, setSelected] = useState<string[]>([]);
   const [shareOpen, setShareOpen] = useState(false);
-  const [shareMode, setShareMode] = useState<'all' | 'available' | 'selection' | undefined>();
+  const [shareFromList, setShareFromList] = useState(false);
   const [addFaceFor, setAddFaceFor] = useState<Structure | null>(null);
 
   const structures = useMemo<Structure[]>(() => {
@@ -124,7 +123,7 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
             <button onClick={() => setView('grid')} className={cn('px-3.5 py-1.5 rounded-full flex items-center gap-1.5', view === 'grid' ? 'bg-foreground text-background' : 'text-muted-foreground')}><LayoutGrid className="w-3.5 h-3.5" />Tarjetas</button>
             <button onClick={() => setView('list')} className={cn('px-3.5 py-1.5 rounded-full flex items-center gap-1.5', view === 'list' ? 'bg-foreground text-background' : 'text-muted-foreground')}><List className="w-3.5 h-3.5" />Lista</button>
           </div>
-          <Button variant="outline" className="rounded-full bg-card border-border font-semibold" onClick={() => { setShareMode(undefined); setShareOpen(true); }}>
+          <Button variant="outline" className="rounded-full bg-card border-border font-semibold" onClick={() => { setShareFromList(false); setShareOpen(true); }}>
             <Share2 className="w-4 h-4 mr-1.5" />Compartir portafolio
           </Button>
           <Button onClick={p.onAdd} className="rounded-full bg-primary text-primary-foreground hover:bg-primary-hover font-semibold">
@@ -192,6 +191,17 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
           ))}
         </div>
       ) : (
+        <>
+        {view === 'list' && selected.length > 0 && (
+          <div className="mb-3 bg-foreground text-background rounded-2xl px-5 py-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+            <b>{selected.length} {selected.length === 1 ? 'seleccionada' : 'seleccionadas'}</b>
+            <button className="font-semibold bg-[#9BFF43] text-[#07110B] rounded-full px-4 py-1.5" onClick={() => { setShareFromList(true); setShareOpen(true); }}>Compartir selección</button>
+            <button onClick={() => { p.onBulkPause(selected); setSelected([]); }}>Pausar</button>
+            <button className="opacity-70" onClick={() => setSelected([])} aria-label="Limpiar selección"><X className="w-4 h-4" /></button>
+          </div>
+        )}
+
+
         <div className="bg-card border border-border rounded-2xl overflow-x-auto">
           <table className="w-full text-sm min-w-[720px]">
             <thead>
@@ -226,18 +236,11 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
-      {view === 'list' && selected.length > 0 && (
-        <div className="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background rounded-full px-5 py-3 flex items-center gap-5 text-sm shadow-xl">
-          <b>{selected.length} {selected.length === 1 ? 'seleccionada' : 'seleccionadas'}</b>
-          <button className="font-semibold text-[#9BFF43]" onClick={() => { setShareMode('selection'); setShareOpen(true); }}>Compartir selección</button>
-          <button onClick={() => { p.onBulkPause(selected); setSelected([]); }}>Pausar</button>
-          <button className="opacity-70" onClick={() => setSelected([])} aria-label="Limpiar selección"><X className="w-4 h-4" /></button>
-        </div>
-      )}
-
-      <PortfolioShareDialog open={shareOpen} onOpenChange={setShareOpen} userId={p.userId} totalStructures={structures.length} selectedIds={selected} initialMode={shareMode} onNeedSelection={() => { setShareOpen(false); setView('list'); toast.info('Marca las caras que quieras compartir y toca “Compartir selección”.'); }} />
+      <PortfolioShareDialog open={shareOpen} onOpenChange={setShareOpen} userId={p.userId} preselected={shareFromList ? selected : []}
+        items={structures.flatMap((st) => st.faces.map((f, i) => { const x = faceStatus(f, p.bookings); return { id: f.id, title: st.title, label: normalizeFaceLabel(f.face_label, i), status: x.status, until: x.until, price: Number(f.price_per_month) }; }))} />
 
       <AddFaceDialog open={!!addFaceFor} onOpenChange={(o) => !o && setAddFaceFor(null)} faces={addFaceFor?.faces || []} onSaved={p.onRefresh} />
     </div>
