@@ -9,6 +9,7 @@ import { Share2 } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { structureKey, normalizeFaceLabel, facingText } from '@/lib/billboardFaces';
 import OwnerStructureCard, { BookingRange, Structure, StatusChip, faceStatus } from './OwnerStructureCard';
+import StripeConnectCard from './StripeConnectCard';
 import AddFaceDialog from './AddFaceDialog';
 import { cn } from '@/lib/utils';
 
@@ -131,6 +132,8 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
           </Button>
         </div>
       </div>
+
+      <StripeConnectCard />
 
       {faceCount > 0 && (
         <div className="bg-card border border-border rounded-2xl p-4 mb-5 flex flex-col md:flex-row md:items-center gap-4">

@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
+import PaymentStep from './PaymentStep';
 import BookingSuccessScreen from './BookingSuccessScreen';
 
 interface BookingDialogProps {
@@ -80,6 +81,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
       setDesignPaths([]);
       setDesignPreviews([]);
       setBookingSuccess(null);
+      setPendingPayment(null);
       if (!isDigital) {
         fetchExistingBookings();
       } else {
@@ -202,6 +204,155 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     setDesignPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
+  const [pendingPayment, setPendingPayment] = useState<{ bookingData: any } | null>(null);
+
+  const ownerAcceptsPayments = async (): Promise<boolean> => {
+    const { data } = await supabase.from('profiles').select('stripe_charges_enabled').eq('user_id', billboard.owner_id).maybeSingle();
+    return !!(data as any)?.stripe_charges_enabled;
+  };
+
+  const showSuccess = () => {
+    if (!startDate || !endDate) return;
+    setBookingSuccess({
+      billboardTitle: billboard.title,
+      startDate: format(startDate, 'd MMM yyyy', { locale: es }),
+      endDate: format(endDate, 'd MMM yyyy', { locale: es }),
+      totalPrice,
+    });
+  };
+
+  const handlePaid = async () => {
+    if (!pendingPayment) return;
+    await finalizeBooking(pendingPayment.bookingData);
+    setPendingPayment(null);
+    showSuccess();
+  };
+
+  const handleCancelPayment = async () => {
+    if (pendingPayment) {
+      // la solicitud sin pago no debe llegar al propietario
+      await supabase.from('bookings').delete().eq('id', pendingPayment.bookingData.id);
+    }
+    setPendingPayment(null);
+  };
+
+  const finalizeBooking = async (bookingData: any) => {
+    if (!startDate || !endDate) return;
+    // Auto-create conversation thread
+    try {
+      const { data: existingConv } = await supabase
+        .from('conversations')
+        .select('id')
+        .eq('billboard_id', billboard.id)
+        .eq('business_id', user?.id)
+        .eq('owner_id', billboard.owner_id)
+        .maybeSingle();
+
+      let conversationId: string;
+
+      if (existingConv) {
+        conversationId = existingConv.id;
+      } else {
+        const { data: newConv, error: convError } = await supabase
+          .from('conversations')
+          .insert({
+            billboard_id: billboard.id,
+            business_id: user?.id,
+            owner_id: billboard.owner_id,
+          })
+          .select('id')
+          .single();
+
+        if (convError) throw convError;
+        conversationId = newConv.id;
+      }
+
+      // Insert system message with booking info (Airbnb-style)
+      const formattedStartShort = format(startDate, "d MMM yyyy", { locale: es });
+      const formattedEndShort = format(endDate, "d MMM yyyy", { locale: es });
+      const systemContent = `__SYSTEM_BOOKING__${JSON.stringify({
+        bookingId: bookingData.id,
+        billboardTitle: billboard.title,
+        startDate: formattedStartShort,
+        endDate: formattedEndShort,
+        totalPrice: totalPrice,
+      })}`;
+      
+      await supabase.from('messages').insert({
+        conversation_id: conversationId,
+        sender_id: user?.id,
+        content: systemContent,
+      });
+
+      // Send the user's message text
+      await supabase.from('messages').insert({
+        conversation_id: conversationId,
+        sender_id: user?.id,
+        content: message.trim(),
+      });
+    } catch (chatError) {
+      console.error('Error creating conversation:', chatError);
+    }
+
+    // Send notification emails
+    try {
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('full_name, company_name')
+        .eq('user_id', billboard.owner_id)
+        .maybeSingle();
+      
+      const { data: businessProfile } = await supabase
+        .from('profiles')
+        .select('full_name, company_name')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      const formattedStart = format(startDate, 'd MMM yyyy', { locale: es });
+      const formattedEnd = format(endDate, 'd MMM yyyy', { locale: es });
+      const businessName = businessProfile?.company_name || businessProfile?.full_name || 'Anunciante';
+
+      // Email to owner: new booking request
+      await supabase.functions.invoke('send-notification-email', {
+        body: {
+          type: 'booking_request',
+          recipientName: ownerProfile?.full_name || 'Propietario',
+          userId: billboard.owner_id,
+          entityId: bookingData.id,
+          data: {
+            billboardTitle: billboard.title,
+            businessName,
+            startDate: formattedStart,
+            endDate: formattedEnd,
+            totalPrice: totalPrice,
+            message: message.trim().slice(0, 200),
+            bookingId: bookingData.id,
+          }
+        }
+      });
+
+      // Email to business: confirmation of request sent
+      await supabase.functions.invoke('send-notification-email', {
+        body: {
+          type: 'booking_request_confirmation',
+          recipientName: businessProfile?.full_name || 'Anunciante',
+          userId: user?.id,
+          entityId: bookingData.id,
+          data: {
+            billboardTitle: billboard.title,
+            startDate: formattedStart,
+            endDate: formattedEnd,
+            totalPrice: totalPrice,
+            bookingId: bookingData.id,
+          }
+        }
+      });
+    } catch (emailError) {
+      console.error('Error sending notification email:', emailError);
+    }
+
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -260,119 +411,13 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
       if (error) throw error;
 
-      // Auto-create conversation thread
-      try {
-        const { data: existingConv } = await supabase
-          .from('conversations')
-          .select('id')
-          .eq('billboard_id', billboard.id)
-          .eq('business_id', user?.id)
-          .eq('owner_id', billboard.owner_id)
-          .maybeSingle();
-
-        let conversationId: string;
-
-        if (existingConv) {
-          conversationId = existingConv.id;
-        } else {
-          const { data: newConv, error: convError } = await supabase
-            .from('conversations')
-            .insert({
-              billboard_id: billboard.id,
-              business_id: user?.id,
-              owner_id: billboard.owner_id,
-            })
-            .select('id')
-            .single();
-
-          if (convError) throw convError;
-          conversationId = newConv.id;
-        }
-
-        // Insert system message with booking info (Airbnb-style)
-        const formattedStartShort = format(startDate, "d MMM yyyy", { locale: es });
-        const formattedEndShort = format(endDate, "d MMM yyyy", { locale: es });
-        const systemContent = `__SYSTEM_BOOKING__${JSON.stringify({
-          bookingId: bookingData.id,
-          billboardTitle: billboard.title,
-          startDate: formattedStartShort,
-          endDate: formattedEndShort,
-          totalPrice: totalPrice,
-        })}`;
-        
-        await supabase.from('messages').insert({
-          conversation_id: conversationId,
-          sender_id: user?.id,
-          content: systemContent,
-        });
-
-        // Send the user's message text
-        await supabase.from('messages').insert({
-          conversation_id: conversationId,
-          sender_id: user?.id,
-          content: message.trim(),
-        });
-      } catch (chatError) {
-        console.error('Error creating conversation:', chatError);
+      const ownerPays = await ownerAcceptsPayments();
+      if (ownerPays) {
+        setPendingPayment({ bookingData });
+        return;
       }
 
-      // Send notification emails
-      try {
-        const { data: ownerProfile } = await supabase
-          .from('profiles')
-          .select('full_name, company_name')
-          .eq('user_id', billboard.owner_id)
-          .maybeSingle();
-        
-        const { data: businessProfile } = await supabase
-          .from('profiles')
-          .select('full_name, company_name')
-          .eq('user_id', user?.id)
-          .maybeSingle();
-
-        const formattedStart = format(startDate, 'd MMM yyyy', { locale: es });
-        const formattedEnd = format(endDate, 'd MMM yyyy', { locale: es });
-        const businessName = businessProfile?.company_name || businessProfile?.full_name || 'Anunciante';
-
-        // Email to owner: new booking request
-        await supabase.functions.invoke('send-notification-email', {
-          body: {
-            type: 'booking_request',
-            recipientName: ownerProfile?.full_name || 'Propietario',
-            userId: billboard.owner_id,
-            entityId: bookingData.id,
-            data: {
-              billboardTitle: billboard.title,
-              businessName,
-              startDate: formattedStart,
-              endDate: formattedEnd,
-              totalPrice: totalPrice,
-              message: message.trim().slice(0, 200),
-              bookingId: bookingData.id,
-            }
-          }
-        });
-
-        // Email to business: confirmation of request sent
-        await supabase.functions.invoke('send-notification-email', {
-          body: {
-            type: 'booking_request_confirmation',
-            recipientName: businessProfile?.full_name || 'Anunciante',
-            userId: user?.id,
-            entityId: bookingData.id,
-            data: {
-              billboardTitle: billboard.title,
-              startDate: formattedStart,
-              endDate: formattedEnd,
-              totalPrice: totalPrice,
-              bookingId: bookingData.id,
-            }
-          }
-        });
-      } catch (emailError) {
-        console.error('Error sending notification email:', emailError);
-      }
-
+      await finalizeBooking(bookingData);
       const formattedStartDisplay = format(startDate, "d MMM yyyy", { locale: es });
       const formattedEndDisplay = format(endDate, "d MMM yyyy", { locale: es });
       setBookingSuccess({
@@ -411,6 +456,13 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
               data={bookingSuccess}
               onClose={() => onOpenChange(false)}
             />
+          </>
+        ) : pendingPayment ? (
+          <>
+            <DialogHeader>
+              <DialogTitle className="text-xl font-bold">Pago de tu solicitud</DialogTitle>
+            </DialogHeader>
+            <PaymentStep bookingId={pendingPayment.bookingData.id} total={totalPrice} onPaid={handlePaid} onCancel={handleCancelPayment} />
           </>
         ) : (
           <>

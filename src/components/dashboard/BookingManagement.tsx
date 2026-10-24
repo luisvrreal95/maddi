@@ -32,6 +32,8 @@ interface Booking {
   notes: string | null;
   ad_design_url: string | null;
   created_at: string;
+  payment_status?: string;
+  stripe_payment_intent_id?: string | null;
   billboard?: { title: string; address: string; city: string; image_url?: string | null; };
   profile?: { full_name: string; company_name: string | null; };
 }
@@ -115,7 +117,8 @@ const BookingManagement: React.FC = () => {
           return { ...booking, billboard: billboard || undefined, profile: profile || undefined };
         })
       );
-      setBookings(enrichedBookings);
+      // las solicitudes con pago sin autorizar todavía no son del propietario
+      setBookings(enrichedBookings.filter((b: any) => !['requires_payment', 'failed'].includes(b.payment_status)));
     } catch (error) {
       console.error('Error fetching bookings:', error);
       toast.error('Error al cargar reservas');
@@ -220,8 +223,14 @@ const BookingManagement: React.FC = () => {
     try {
       const isDigital = await isBillboardDigital(selectedBooking.billboard_id);
 
-      const { error } = await supabase.from('bookings').update({ status: 'approved' }).eq('id', selectedBooking.id);
-      if (error) throw error;
+      if (selectedBooking.stripe_payment_intent_id) {
+        // Con pago en Maddi: el servidor aprueba y captura el cobro
+        const { data: res, error: fnErr } = await supabase.functions.invoke('stripe-booking-action', { body: { booking_id: selectedBooking.id, action: 'approve' } });
+        if (fnErr || (res as any)?.error) throw new Error((res as any)?.error || fnErr?.message || 'Error al cobrar');
+      } else {
+        const { error } = await supabase.from('bookings').update({ status: 'approved' }).eq('id', selectedBooking.id);
+        if (error) throw error;
+      }
 
       if (!isDigital) {
         const { error: blockError } = await supabase.from('blocked_dates').insert({
@@ -256,7 +265,7 @@ const BookingManagement: React.FC = () => {
     } catch (error) {
       console.error('Error:', error);
       const msg = (error as { message?: string })?.message || '';
-      toast.error(msg.includes('empalman') ? 'No se puede aprobar: esas fechas ya fueron reservadas por otra campaña.' : 'Error al aprobar la reserva');
+      toast.error(msg.includes('empalman') || msg.includes('empalm') ? 'No se puede aprobar: esas fechas ya fueron reservadas por otra campaña.' : (selectedBooking?.stripe_payment_intent_id && msg ? msg : 'Error al aprobar la reserva'));
     } finally { setProcessing(false); }
   };
 
@@ -264,8 +273,13 @@ const BookingManagement: React.FC = () => {
     if (!selectedBooking) return;
     setProcessing(true);
     try {
-      const { error } = await supabase.from('bookings').update({ status: 'rejected' }).eq('id', selectedBooking.id);
-      if (error) throw error;
+      if (selectedBooking.stripe_payment_intent_id) {
+        const { data: res, error: fnErr } = await supabase.functions.invoke('stripe-booking-action', { body: { booking_id: selectedBooking.id, action: 'reject' } });
+        if (fnErr || (res as any)?.error) throw new Error((res as any)?.error || fnErr?.message || 'Error al rechazar');
+      } else {
+        const { error } = await supabase.from('bookings').update({ status: 'rejected' }).eq('id', selectedBooking.id);
+        if (error) throw error;
+      }
       try {
         await supabase.functions.invoke('send-notification-email', {
           body: {
