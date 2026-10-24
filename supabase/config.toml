@@ -43,3 +43,18 @@ project_id = "vzkzivropoohapysafya"
     verify_jwt = false
   [functions.validate-admin-invite]
     verify_jwt = false
+
+  [functions.stripe-connect-onboard]
+    verify_jwt = false
+
+  [functions.stripe-connect-status]
+    verify_jwt = false
+
+  [functions.stripe-create-payment]
+    verify_jwt = false
+
+  [functions.stripe-booking-action]
+    verify_jwt = false
+
+  [functions.stripe-webhook]
+    verify_jwt = false
