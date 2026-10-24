@@ -1,3 +1,4 @@
+import { costPerThousand } from '@/components/search/MaddiScorePopup';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -166,8 +167,10 @@ const BillboardDetail: React.FC = () => {
     }
   };
 
+  const cpm = costPerThousand(billboard.price_per_month, billboard.daily_impressions ?? undefined);
+
   return (
-    <div className="min-h-screen bg-background pb-36 lg:pb-0">
+    <div className="theme-light min-h-screen bg-background text-foreground pb-36 lg:pb-0">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-md border-b border-border px-6 max-sm:px-4 py-3 sticky top-0 z-30">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -281,23 +284,23 @@ const BillboardDetail: React.FC = () => {
 
               {/* Specs Grid */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-sm:gap-2">
-                <div className="bg-card border border-border rounded-xl p-4 max-sm:p-3 text-center hover:border-white/20 transition-colors">
+                <div className="bg-card border border-border rounded-xl p-4 max-sm:p-3 text-center hover:border-foreground/30 transition-colors">
                   <Maximize2 className="w-5 h-5 text-primary mx-auto mb-2" />
                   <p className="text-foreground text-sm font-bold">{billboard.width_m}m × {billboard.height_m}m</p>
                   <p className="text-muted-foreground text-xs">Dimensiones</p>
                 </div>
-                <div className="bg-card border border-border rounded-xl p-4 text-center hover:border-white/20 transition-colors">
+                <div className="bg-card border border-border rounded-xl p-4 text-center hover:border-foreground/30 transition-colors">
                   <Sun className="w-5 h-5 text-primary mx-auto mb-2" />
                   <p className="text-foreground text-sm font-bold capitalize">{billboard.illumination}</p>
                   <p className="text-muted-foreground text-xs">Iluminación</p>
                 </div>
-                <div className="bg-card border border-border rounded-xl p-4 text-center hover:border-white/20 transition-colors">
+                <div className="bg-card border border-border rounded-xl p-4 text-center hover:border-foreground/30 transition-colors">
                   <Layers className="w-5 h-5 text-primary mx-auto mb-2" />
                   <p className="text-foreground text-sm font-bold capitalize">{billboard.billboard_type}</p>
                   <p className="text-muted-foreground text-xs">{billboard.faces} cara{billboard.faces > 1 ? 's' : ''}</p>
                 </div>
-                {billboard.daily_impressions && (
-                  <div className="bg-card border border-border rounded-xl p-4 text-center hover:border-white/20 transition-colors">
+                {!!billboard.daily_impressions && (
+                  <div className="bg-card border border-border rounded-xl p-4 text-center hover:border-foreground/30 transition-colors">
                     <Eye className="w-5 h-5 text-primary mx-auto mb-2" />
                     <p className="text-foreground text-sm font-bold">{(billboard.daily_impressions / 1000).toFixed(0)}K</p>
                     <p className="text-muted-foreground text-xs">Impresiones/día</p>
@@ -325,7 +328,7 @@ const BillboardDetail: React.FC = () => {
                   }}
                 >
                   <img
-                    src={`https://api.mapbox.com/styles/v1/mapbox/dark-v11/static/pin-l+9BFF43(${billboard.longitude},${billboard.latitude})/${billboard.longitude},${billboard.latitude},14,0/1200x200@2x?access_token=${mapboxToken}`}
+                    src={`https://api.mapbox.com/styles/v1/mapbox/light-v11/static/pin-l+111111(${billboard.longitude},${billboard.latitude})/${billboard.longitude},${billboard.latitude},14,0/1200x200@2x?access_token=${mapboxToken}`}
                     alt="Ubicación"
                     className="w-full h-[200px] object-cover"
                     onError={() => setMapError(true)}
@@ -369,14 +372,20 @@ const BillboardDetail: React.FC = () => {
               {/* Price & CTA Card */}
               <Card className="bg-card border-border p-6">
                 <p className="text-muted-foreground text-sm mb-1">Precio mensual</p>
-                <p className="text-primary text-3xl font-bold mb-4">
+                <p className="text-foreground text-3xl font-bold">
                   ${billboard.price_per_month.toLocaleString()} <span className="text-base font-normal text-muted-foreground">MXN</span>
                 </p>
+                {cpm !== null && (
+                  <span className="mt-2 mb-4 inline-block rounded-full bg-primary/20 px-3 py-1 text-xs font-semibold text-foreground">
+                    ≈ ${Math.round(cpm).toLocaleString()} por 1,000 vistas
+                  </span>
+                )}
+                {cpm === null && <div className="mb-4" />}
 
                 {billboard.is_available && !billboard.pause_reason ? (
                   <Button
                     onClick={handleBookingClick}
-                    className="w-full bg-primary text-primary-foreground hover:bg-primary/90 py-5 text-base font-bold"
+                    className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary-hover py-5 text-base font-bold"
                   >
                     Solicitar Reserva
                   </Button>
@@ -418,14 +427,17 @@ const BillboardDetail: React.FC = () => {
       <div className="fixed bottom-16 left-0 right-0 z-20 lg:hidden bg-card/95 backdrop-blur-md border-t border-border px-4 py-3 safe-area-bottom">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <p className="text-primary text-xl font-bold">
+            <p className="text-foreground text-xl font-bold leading-tight">
               ${billboard.price_per_month.toLocaleString()} <span className="text-sm font-normal text-muted-foreground">MXN/mes</span>
             </p>
+            {cpm !== null && (
+              <p className="text-[11px] text-muted-foreground">≈ ${Math.round(cpm).toLocaleString()} por 1,000 vistas</p>
+            )}
           </div>
           {billboard.is_available && !billboard.pause_reason ? (
             <Button
               onClick={handleBookingClick}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 px-6 py-2.5 font-bold rounded-xl"
+              className="bg-primary text-primary-foreground hover:bg-primary-hover px-6 py-2.5 font-bold rounded-full"
             >
               Solicitar Reserva
             </Button>
