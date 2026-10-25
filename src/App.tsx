@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { MapboxTokenProvider } from "@/contexts/MapboxTokenContext";
-import { ReactNode, lazy, Suspense } from "react";
+import { ReactNode, lazy, Suspense, useEffect } from "react";
 import LoadingState from "./components/ui/LoadingState";
 import OnboardingModal from "./components/OnboardingModal";
 
@@ -68,6 +68,18 @@ const ProtectedRoute = ({
   return <>{children}</>;
 };
 
+// Toda la app es clara salvo el inicio y el panel de administración.
+// La clase va en <body> para que diálogos y menús (que se montan fuera del árbol) también sean claros.
+const ThemeByRoute = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const dark = pathname === '/' || pathname.startsWith('/admin');
+    document.body.classList.toggle('theme-light', !dark);
+    document.body.classList.toggle('theme-dark', dark);
+  }, [pathname]);
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -75,6 +87,7 @@ const App = () => (
         <MapboxTokenProvider>
         <Sonner />
         <BrowserRouter>
+          <ThemeByRoute />
           <OnboardingModal />
           <Suspense fallback={<LoadingState fullScreen />}>
             <Routes>

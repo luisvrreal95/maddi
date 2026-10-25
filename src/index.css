@@ -238,4 +238,8 @@ All colors MUST be HSL.
 .theme-dark [class*="text-white/"] { color: hsl(var(--muted-foreground)); }
 .theme-dark [class*="border-white/"] { border-color: hsl(var(--border)); }
 .theme-dark .text-primary { color: hsl(var(--primary)); }
+/* Elementos con fondo saturado u oscuro (badges rojos, botones sobre fotos) conservan texto blanco */
+.theme-light .bg-red-500.text-white, .theme-light .bg-red-600.text-white, .theme-light .bg-destructive.text-white,
+.theme-light [class*="bg-black/"].text-white, .theme-light [class*="bg-black/"] .text-white,
+.theme-light [class*="bg-black/"] [class*="text-white/"] { color: #fff; }
 .theme-light .keep-white, .theme-dark .keep-white { color: #fff !important; }
