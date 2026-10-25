@@ -105,13 +105,19 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
     containerRef.current = container;
 
     // Create popup immediately with proper settings
+    // Si no cabe a la derecha del pin, la tarjeta se abre hacia la izquierda
+    const CARD_W = 480;
+    const GAP = 52;
+    const pt = map.project(coordinates as [number, number]);
+    const mapW = map.getContainer().clientWidth;
+    const fitsRight = pt.x + GAP + CARD_W + 16 <= mapW;
     const popup = new mapboxgl.Popup({
       closeButton: false,
       closeOnClick: false,
-      offset: [52, 0],
+      offset: [fitsRight ? GAP : -GAP, 0],
       maxWidth: '480px',
       className: 'custom-mapbox-popup',
-      anchor: 'left'
+      anchor: fitsRight ? 'left' : 'right'
     })
       .setLngLat(coordinates)
       .setDOMContent(container)
@@ -130,7 +136,23 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
     // Mark as ready to render React content
     setIsReady(true);
 
+    // Una vez pintada la tarjeta, mueve el mapa si quedó recortada (arriba/abajo/lados)
+    const fitTimer = window.setTimeout(() => {
+      const el = popup.getElement();
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const c = map.getContainer().getBoundingClientRect();
+      const M = 16;
+      let dx = 0, dy = 0;
+      if (r.right > c.right - M) dx = r.right - (c.right - M);
+      else if (r.left < c.left + M) dx = r.left - (c.left + M);
+      if (r.bottom > c.bottom - M) dy = r.bottom - (c.bottom - M);
+      else if (r.top < c.top + M) dy = r.top - (c.top + M);
+      if (dx || dy) map.panBy([dx, dy], { duration: 300 });
+    }, 120);
+
     return () => {
+      window.clearTimeout(fitTimer);
       popup.remove();
       containerRef.current = null;
       setIsReady(false);
