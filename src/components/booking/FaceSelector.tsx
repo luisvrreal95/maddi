@@ -98,7 +98,7 @@ const FaceSelector: React.FC<Props> = ({ latitude, longitude, mapboxToken, faces
                 {f.image_url ? <img src={f.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" /> : null}
                 <div className="min-w-0">
                   <p className="text-white text-sm font-semibold truncate">{f.label}</p>
-                  <p className="text-white/50 text-[11px] truncate">{facingText(f.facing) || 'Dirección sin indicar'}</p>
+                  <p className="text-white/50 text-[11px] truncate">{facingText(f.facing) || 'Orientación por confirmar'}</p>
                 </div>
               </div>
               <p className="text-white text-xs font-medium mt-1.5">${Number(f.price).toLocaleString()}/mes</p>

@@ -53,13 +53,14 @@ interface Props {
   bookings: BookingRange[];
   onOpenFace: (b: Billboard) => void;
   onEdit: (b: Billboard) => void;
+  onSetFacing?: (f: Billboard, s: Structure) => void;
   onPause: (b: Billboard) => void;
   onDelete: (b: Billboard) => void;
   onCalendar: (b: Billboard) => void;
   onAddFace: (s: Structure) => void;
 }
 
-const OwnerStructureCard: React.FC<Props> = ({ structure, bookings, onOpenFace, onEdit, onPause, onDelete, onCalendar, onAddFace }) => {
+const OwnerStructureCard: React.FC<Props> = ({ structure, bookings, onOpenFace, onEdit, onSetFacing, onPause, onDelete, onCalendar, onAddFace }) => {
   const img = structure.faces[0].image_urls?.[0] || structure.faces[0].image_url;
   return (
     <div className="bg-card border border-border rounded-3xl overflow-hidden">
@@ -84,7 +85,9 @@ const OwnerStructureCard: React.FC<Props> = ({ structure, bookings, onOpenFace, 
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold">{fmtMoney(f.price_per_month)}<span className="font-normal text-muted-foreground">/mes</span></div>
                     <div className="text-[11px] text-muted-foreground truncate">
-                      {[facingText(f.facing), f.daily_impressions ? `${f.daily_impressions.toLocaleString('es-MX')} vistas/día` : ''].filter(Boolean).join(' · ') || label}
+                      {f.facing ? [facingText(f.facing), f.daily_impressions ? `${f.daily_impressions.toLocaleString('es-MX')} vistas/día` : ''].filter(Boolean).join(' · ') : (
+                        <button type="button" onClick={(e) => { e.stopPropagation(); onSetFacing?.(f, structure); }} className="text-amber-700 font-semibold underline">Indicar hacia dónde mira</button>
+                      )}
                     </div>
                   </div>
                   <StatusChip s={st} />
@@ -95,6 +98,7 @@ const OwnerStructureCard: React.FC<Props> = ({ structure, bookings, onOpenFace, 
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="theme-light bg-card border-border">
                         <DropdownMenuItem onClick={() => onEdit(f)}><Pencil className="w-4 h-4 mr-2" />Editar</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onSetFacing?.(f, structure)}><MapPin className="w-4 h-4 mr-2" />Orientación</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onCalendar(f)}><CalendarDays className="w-4 h-4 mr-2" />Calendario</DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onPause(f)}>
                           {st.status === 'paused' ? <><Play className="w-4 h-4 mr-2" />Reactivar</> : <><Pause className="w-4 h-4 mr-2" />Pausar</>}

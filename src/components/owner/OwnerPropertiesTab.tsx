@@ -11,6 +11,7 @@ import { structureKey, normalizeFaceLabel, facingText } from '@/lib/billboardFac
 import OwnerStructureCard, { BookingRange, Structure, StatusChip, faceStatus } from './OwnerStructureCard';
 import StripeConnectCard from './StripeConnectCard';
 import AddFaceDialog from './AddFaceDialog';
+import SetFacingDialog from './SetFacingDialog';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -44,6 +45,7 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
   const [shareOpen, setShareOpen] = useState(false);
   const [shareFromList, setShareFromList] = useState(false);
   const [addFaceFor, setAddFaceFor] = useState<Structure | null>(null);
+  const [facingFor, setFacingFor] = useState<{ face: any; faces: any[] } | null>(null);
 
   const structures = useMemo<Structure[]>(() => {
     const m: Record<string, Billboard[]> = {};
@@ -190,7 +192,7 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 items-start">
           {visible.map((s) => (
             <OwnerStructureCard key={s.key} structure={s} bookings={p.bookings}
-              onOpenFace={p.onOpenFace} onEdit={p.onEdit} onPause={p.onPause} onDelete={p.onDelete} onCalendar={p.onCalendar} onAddFace={setAddFaceFor} />
+              onOpenFace={p.onOpenFace} onEdit={p.onEdit} onSetFacing={(f, st) => setFacingFor({ face: f, faces: st.faces })} onPause={p.onPause} onDelete={p.onDelete} onCalendar={p.onCalendar} onAddFace={setAddFaceFor} />
           ))}
         </div>
       ) : (
@@ -245,6 +247,7 @@ const OwnerPropertiesTab: React.FC<Props> = (p) => {
       <PortfolioShareDialog open={shareOpen} onOpenChange={setShareOpen} userId={p.userId} preselected={shareFromList ? selected : []}
         items={structures.flatMap((st) => st.faces.map((f, i) => { const x = faceStatus(f, p.bookings); return { id: f.id, title: st.title, label: normalizeFaceLabel(f.face_label, i), status: x.status, until: x.until, price: Number(f.price_per_month) }; }))} />
 
+      <SetFacingDialog open={!!facingFor} onOpenChange={(o) => !o && setFacingFor(null)} face={facingFor?.face || null} faces={facingFor?.faces || []} onSaved={p.onRefresh} />
       <AddFaceDialog open={!!addFaceFor} onOpenChange={(o) => !o && setAddFaceFor(null)} faces={addFaceFor?.faces || []} onSaved={p.onRefresh} />
     </div>
   );
