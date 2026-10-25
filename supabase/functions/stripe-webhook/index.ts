@@ -35,6 +35,8 @@ serve(async (req) => {
       case "payment_intent.canceled": {
         const pi = event.data.object;
         await db.from("bookings").update({ payment_status: "canceled" }).eq("stripe_payment_intent_id", pi.id).neq("payment_status", "captured");
+        // La retención venció (7 días) o fue cancelada: una solicitud aún pendiente se rechaza sola
+        await db.from("bookings").update({ status: "rejected" }).eq("stripe_payment_intent_id", pi.id).eq("status", "pending");
         break;
       }
       case "account.updated": {

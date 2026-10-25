@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { differenceInDays, format, isAfter, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
+import BookingDecisionDialog, { bookingFees, money } from '@/components/booking/BookingDecisionDialog';
 import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -45,12 +46,7 @@ const BookingManagement: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [rejectReason, setRejectReason] = useState('');
-  const [showRejectDialog, setShowRejectDialog] = useState(false);
-  const [showApproveDialog, setShowApproveDialog] = useState(false);
-  const [overlapWarning, setOverlapWarning] = useState<string | null>(null);
-  const [selectedBookingIsDigital, setSelectedBookingIsDigital] = useState(false);
-  const [processing, setProcessing] = useState(false);
+  const [decisionMode, setDecisionMode] = useState<'approve' | 'reject' | null>(null);
   const [resolvedImages, setResolvedImages] = useState<Record<string, string[]>>({});
   const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>('pending');
@@ -158,153 +154,8 @@ const BookingManagement: React.FC = () => {
   const tabCounts = { pending: categorized.pending.length, approved: categorized.approved.length, past: categorized.past.length };
   const currentBookings = categorized[activeTab];
 
-  const isBillboardDigital = async (billboardId: string): Promise<boolean> => {
-    const { data, error } = await supabase
-      .from('billboards')
-      .select('is_digital')
-      .eq('id', billboardId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error checking billboard digital status:', error);
-      return false;
-    }
-
-    return data?.is_digital === true;
-  };
-
-  const checkOverlap = async (booking: Booking): Promise<boolean> => {
-    const isDigital = await isBillboardDigital(booking.billboard_id);
-    if (isDigital) {
-      setOverlapWarning(null);
-      return false;
-    }
-
-    const { data: approvedBookings } = await supabase
-      .from('bookings').select('id, start_date, end_date').eq('billboard_id', booking.billboard_id).eq('status', 'approved').neq('id', booking.id);
-    if (approvedBookings && approvedBookings.length > 0) {
-      const bookingStart = new Date(booking.start_date);
-      const bookingEnd = new Date(booking.end_date);
-      for (const existing of approvedBookings) {
-        const existingStart = new Date(existing.start_date);
-        const existingEnd = new Date(existing.end_date);
-        if (bookingStart <= existingEnd && bookingEnd >= existingStart) {
-          setOverlapWarning(`No se puede aprobar: las fechas se solapan con una campaña ya aprobada (${new Date(existing.start_date).toLocaleDateString()} - ${new Date(existing.end_date).toLocaleDateString()}).`);
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  const handleApproveClick = async (booking: Booking) => {
-    setSelectedBooking(booking);
-    setOverlapWarning(null);
-
-    const isDigital = await isBillboardDigital(booking.billboard_id);
-    setSelectedBookingIsDigital(isDigital);
-
-    if (!isDigital) {
-      await checkOverlap(booking);
-    }
-
-    setShowApproveDialog(true);
-  };
-
-  const handleRejectClick = (booking: Booking) => {
-    setSelectedBooking(booking);
-    setRejectReason('');
-    setShowRejectDialog(true);
-  };
-
-  const approveBooking = async () => {
-    if (!selectedBooking || overlapWarning) return;
-    setProcessing(true);
-    try {
-      const isDigital = await isBillboardDigital(selectedBooking.billboard_id);
-
-      if (selectedBooking.stripe_payment_intent_id) {
-        // Con pago en Maddi: el servidor aprueba y captura el cobro
-        const { data: res, error: fnErr } = await supabase.functions.invoke('stripe-booking-action', { body: { booking_id: selectedBooking.id, action: 'approve' } });
-        if (fnErr || (res as any)?.error) throw new Error((res as any)?.error || fnErr?.message || 'Error al cobrar');
-      } else {
-        const { error } = await supabase.from('bookings').update({ status: 'approved' }).eq('id', selectedBooking.id);
-        if (error) throw error;
-      }
-
-      if (!isDigital) {
-        const { error: blockError } = await supabase.from('blocked_dates').insert({
-          billboard_id: selectedBooking.billboard_id,
-          start_date: selectedBooking.start_date,
-          end_date: selectedBooking.end_date,
-          reason: `Campaña aprobada #${selectedBooking.id.slice(0, 8)}`,
-        });
-        if (blockError) throw blockError;
-      }
-      try {
-        await supabase.functions.invoke('send-notification-email', {
-          body: {
-            type: 'booking_confirmed',
-            recipientName: selectedBooking.profile?.full_name || 'Anunciante',
-            userId: selectedBooking.business_id,
-            entityId: selectedBooking.id,
-            data: {
-              billboardTitle: selectedBooking.billboard?.title || 'Espectacular',
-              startDate: new Date(selectedBooking.start_date).toLocaleDateString('es-MX'),
-              endDate: new Date(selectedBooking.end_date).toLocaleDateString('es-MX'),
-              totalPrice: selectedBooking.total_price,
-              ownerName: user?.user_metadata?.full_name || 'Propietario',
-            }
-          }
-        });
-      } catch {}
-      setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, status: 'approved' } : b));
-      toast.success('Campaña aprobada');
-      setShowApproveDialog(false);
-      setSelectedBooking(null);
-    } catch (error) {
-      console.error('Error:', error);
-      const msg = (error as { message?: string })?.message || '';
-      toast.error(msg.includes('empalman') || msg.includes('empalm') ? 'No se puede aprobar: esas fechas ya fueron reservadas por otra campaña.' : (selectedBooking?.stripe_payment_intent_id && msg ? msg : 'Error al aprobar la reserva'));
-    } finally { setProcessing(false); }
-  };
-
-  const rejectBooking = async () => {
-    if (!selectedBooking) return;
-    setProcessing(true);
-    try {
-      if (selectedBooking.stripe_payment_intent_id) {
-        const { data: res, error: fnErr } = await supabase.functions.invoke('stripe-booking-action', { body: { booking_id: selectedBooking.id, action: 'reject' } });
-        if (fnErr || (res as any)?.error) throw new Error((res as any)?.error || fnErr?.message || 'Error al rechazar');
-      } else {
-        const { error } = await supabase.from('bookings').update({ status: 'rejected' }).eq('id', selectedBooking.id);
-        if (error) throw error;
-      }
-      try {
-        await supabase.functions.invoke('send-notification-email', {
-          body: {
-            type: 'booking_rejected',
-            recipientName: selectedBooking.profile?.full_name || 'Anunciante',
-            userId: selectedBooking.business_id,
-            entityId: selectedBooking.id,
-            data: {
-              billboardTitle: selectedBooking.billboard?.title || 'Espectacular',
-              startDate: new Date(selectedBooking.start_date).toLocaleDateString('es-MX'),
-              endDate: new Date(selectedBooking.end_date).toLocaleDateString('es-MX'),
-              reason: rejectReason || '',
-            }
-          }
-        });
-      } catch {}
-      setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, status: 'rejected' } : b));
-      toast.success('Reserva rechazada');
-      setShowRejectDialog(false);
-      setSelectedBooking(null);
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al rechazar la reserva');
-    } finally { setProcessing(false); }
-  };
+  const handleApproveClick = (booking: Booking) => { setSelectedBooking(booking); setDecisionMode('approve'); };
+  const handleRejectClick = (booking: Booking) => { setSelectedBooking(booking); setDecisionMode('reject'); };
 
   const getMessageFromNotes = (notes: string | null): { message: string; extraNotes: string | null } => {
     if (!notes) return { message: '', extraNotes: null };
@@ -325,7 +176,7 @@ const BookingManagement: React.FC = () => {
   };
 
   // Detail view for a selected booking
-  if (selectedBooking && !showApproveDialog && !showRejectDialog) {
+  if (selectedBooking && !decisionMode) {
     const days = differenceInDays(new Date(selectedBooking.end_date), new Date(selectedBooking.start_date));
     const months = Math.round((days / 30) * 100) / 100;
     const images = resolvedImages[selectedBooking.id] || [];
@@ -449,6 +300,22 @@ const BookingManagement: React.FC = () => {
                 </div>
               </div>
             )}
+
+            {selectedBooking.stripe_payment_intent_id && (() => {
+              const f = bookingFees(selectedBooking as any);
+              const ps = (selectedBooking as any).payment_status;
+              const label = ps === 'captured' ? 'Cobrado' : ps === 'authorized' ? 'Tarjeta retenida' : ps === 'canceled' ? 'Liberado' : 'En proceso';
+              return (
+                <div className="rounded-2xl border border-white/10 p-4 text-sm space-y-1.5">
+                  <div className="flex justify-between"><span className="font-semibold">Pago · {label}</span><span>{money(selectedBooking.total_price)}</span></div>
+                  <div className="flex justify-between text-muted-foreground"><span>Comisión Maddi (15%)</span><span>− {money(f.fee)}</span></div>
+                  <div className="flex justify-between"><span>Recibes</span><b>{money(f.payout)}</b></div>
+                  {selectedBooking.status === 'pending' && (selectedBooking as any).payment_expires_at && (
+                    <p className="text-xs text-muted-foreground pt-1">Responde antes del {format(new Date((selectedBooking as any).payment_expires_at), "d 'de' MMMM", { locale: es })} o la tarjeta se libera.</p>
+                  )}
+                </div>
+              );
+            })()}
 
             {/* Actions */}
             <div className="flex gap-2 pt-2">
@@ -628,61 +495,15 @@ const BookingManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Approve Confirmation Dialog */}
-      <AlertDialog open={showApproveDialog} onOpenChange={(open) => { setShowApproveDialog(open); if (!open) { setSelectedBooking(null); setSelectedBookingIsDigital(false); } }}>
-        <AlertDialogContent className="bg-card border-white/10">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              {overlapWarning ? 'No se puede aprobar' : '¿Aprobar campaña?'}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
-              {overlapWarning ? (
-                <div className="flex items-start gap-2 text-orange-400">
-                  <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <span>{overlapWarning}</span>
-                </div>
-              ) : (
-                <>
-                  {selectedBookingIsDigital
-                    ? 'Al aprobar, el negocio recibirá una notificación. Esta propiedad es digital: las fechas NO se bloquean y se permiten campañas simultáneas.'
-                    : 'Al aprobar, las fechas serán bloqueadas y el negocio recibirá una notificación.'}
-                  <br /><br />
-                  <strong className="text-white">Periodo:</strong> {selectedBooking && `${format(new Date(selectedBooking.start_date), "d MMM yyyy", { locale: es })} — ${format(new Date(selectedBooking.end_date), "d MMM yyyy", { locale: es })}`}
-                </>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={processing} className="border-white/20 text-white hover:bg-white/10">
-              {overlapWarning ? 'Cerrar' : 'Cancelar'}
-            </AlertDialogCancel>
-            {!overlapWarning && (
-              <AlertDialogAction onClick={approveBooking} disabled={processing} className="bg-primary text-primary-foreground hover:bg-primary-hover">
-                {processing ? 'Aprobando...' : 'Aprobar campaña'}
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Reject Dialog */}
-      <AlertDialog open={showRejectDialog} onOpenChange={(open) => { setShowRejectDialog(open); if (!open) setSelectedBooking(null); }}>
-        <AlertDialogContent className="bg-card border-white/10">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">¿Rechazar solicitud?</AlertDialogTitle>
-            <AlertDialogDescription className="text-white/60">
-              El negocio será notificado. Puedes agregar un motivo opcional.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Motivo del rechazo (opcional)..." className="bg-muted border-white/10 text-white" rows={3} />
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={processing} className="border-white/20 text-white hover:bg-white/10">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={rejectBooking} disabled={processing} className="bg-red-500 hover:bg-red-600">
-              {processing ? 'Rechazando...' : 'Rechazar'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <BookingDecisionDialog
+        booking={decisionMode ? (selectedBooking as any) : null}
+        mode={decisionMode}
+        onClose={() => { setDecisionMode(null); setSelectedBooking(null); }}
+        onDone={(id, status) => {
+          setBookings(prev => prev.map(x => x.id === id ? { ...x, status } : x));
+          setDecisionMode(null); setSelectedBooking(null);
+        }}
+      />
     </div>
   );
 };

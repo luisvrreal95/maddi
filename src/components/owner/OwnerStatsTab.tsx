@@ -44,24 +44,39 @@ const OwnerStatsTab: React.FC<OwnerStatsTabProps> = ({ billboards, userId }) => 
         }
 
         // Get bookings for these billboards (incl. their commissions)
-        const { data: bookings } = await supabase
+        const { data: bookingsRaw } = await supabase
           .from('bookings')
-          .select('id, billboard_id, total_price, start_date, end_date, status')
+          .select('*')
           .in('billboard_id', billboardIds);
 
+        const bookings = (bookingsRaw || []) as any[];
         const bookingIds = (bookings || []).map(b => b.id);
         const bookingMap = new Map((bookings || []).map(b => [b.id, b]));
 
-        let comms: CommissionRow[] = [];
+        // Ingresos reales: pagos cobrados con Stripe (bookings) + comisiones históricas anteriores
+        const comms: CommissionRow[] = [];
+        const seen = new Set<string>();
+        ((bookings as any[]) || []).forEach(b => {
+          if (b.payment_status !== 'captured') return;
+          seen.add(b.id);
+          const fee = b.platform_fee ?? Math.round(Number(b.total_price) * 0.15);
+          comms.push({
+            owner_payout: Number(b.owner_payout ?? Number(b.total_price) - fee),
+            payment_status: 'paid',
+            created_at: b.updated_at || b.created_at,
+            booking_id: b.id,
+            booking: b,
+          });
+        });
         if (bookingIds.length > 0) {
           const { data: commData } = await supabase
             .from('platform_commissions')
             .select('owner_payout, payment_status, created_at, booking_id')
             .in('booking_id', bookingIds);
-          comms = (commData || []).map(c => ({
-            ...c,
-            booking: bookingMap.get(c.booking_id) as any,
-          }));
+          (commData || []).forEach(c => {
+            if (seen.has(c.booking_id)) return;
+            comms.push({ ...c, booking: bookingMap.get(c.booking_id) as any });
+          });
         }
         setCommissions(comms);
 

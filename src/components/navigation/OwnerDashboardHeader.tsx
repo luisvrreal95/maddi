@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut, MoreHorizontal, CalendarCheck } from 'lucide-react';
+import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut, MoreHorizontal, CalendarCheck, Wallet } from 'lucide-react';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import NotificationBell from '@/components/notifications/NotificationBell';
 import {
@@ -30,6 +30,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
     { id: 'propiedades', label: 'Mis espectaculares', icon: Building2 },
     { id: 'reservas', label: 'Reservas', icon: CalendarCheck },
     { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
+    { id: 'pagos', label: 'Pagos', icon: Wallet },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'calendario', label: 'Calendario', icon: Calendar },
     { id: 'stats', label: 'Estadísticas', icon: BarChart3 },

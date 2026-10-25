@@ -2,7 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin, MapPin, DollarSign, ExternalLink, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Send, User, Search, Check, CheckCheck, MoreVertical, Trash2, Mail, MailOpen, Pin, MapPin, ExternalLink, ArrowLeft, CalendarDays, CreditCard, ShieldCheck, ChevronDown } from 'lucide-react';
+import { format } from 'date-fns';
+import { es } from 'date-fns/locale';
+import BookingDecisionDialog, { bookingFees, money } from '@/components/booking/BookingDecisionDialog';
 import { sendNotificationEmail, getUserEmailAndName } from '@/lib/emailService';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +58,22 @@ interface Conversation {
   unread_count?: number;
 }
 
+interface ConvBooking {
+  id: string;
+  billboard_id: string;
+  business_id: string;
+  start_date: string;
+  end_date: string;
+  total_price: number;
+  status: string;
+  payment_status?: string | null;
+  stripe_payment_intent_id?: string | null;
+  platform_fee?: number | null;
+  owner_payout?: number | null;
+  payment_expires_at?: string | null;
+  created_at: string;
+}
+
 interface Message {
   id: string;
   conversation_id: string;
@@ -77,6 +96,10 @@ const Messages: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState<string | null>(null);
   const [showBillboardContext, setShowBillboardContext] = useState(false);
+  const [bookingMap, setBookingMap] = useState<Record<string, ConvBooking>>({});
+  const [filter, setFilter] = useState<'all' | 'unread' | 'requests'>('all');
+  const [decision, setDecision] = useState<{ mode: 'approve' | 'reject' } | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   const conversationIdFromUrl = searchParams.get('conversation');
@@ -179,6 +202,19 @@ const Messages: React.FC = () => {
       );
 
       setConversations(conversationsWithDetails);
+
+      // última solicitud de reserva por conversación (billboard + anunciante)
+      const bbIds = Array.from(new Set(conversationsWithDetails.map(c => c.billboard_id)));
+      if (bbIds.length) {
+        const { data: bks } = await supabase.from('bookings').select('*').in('billboard_id', bbIds).order('created_at', { ascending: false });
+        const map: Record<string, ConvBooking> = {};
+        ((bks as any[]) || []).forEach(b => {
+          if (['requires_payment', 'failed'].includes(b.payment_status)) return;
+          const key = `${b.billboard_id}:${b.business_id}`;
+          if (!map[key]) map[key] = b;
+        });
+        setBookingMap(map);
+      }
       
       if (conversationIdFromUrl && conversationsWithDetails.length > 0) {
         const targetConv = conversationsWithDetails.find(c => c.id === conversationIdFromUrl);
@@ -337,104 +373,111 @@ const Messages: React.FC = () => {
     }
   };
 
-  const filteredConversations = conversations.filter(conv =>
-    conv.other_user?.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.billboard?.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // ---------- Reservas ligadas a las conversaciones ----------
+  const bookingFor = (c: Conversation | null) => (c ? bookingMap[`${c.billboard_id}:${c.business_id}`] : undefined);
+  const selectedBooking = bookingFor(selectedConversation);
+  const isOwner = userRole === 'owner';
 
-  const truncateMessage = (content: string, maxLength: number = 35) => {
-    return content.length > maxLength ? content.substring(0, maxLength) + '...' : content;
+  const statusChip = (b?: ConvBooking) => {
+    if (!b) return null;
+    const map: Record<string, { label: string; cls: string }> = {
+      pending: { label: 'Solicitud pendiente', cls: 'bg-amber-100 text-amber-800' },
+      approved: { label: 'Aprobada', cls: 'bg-[#E3F9C9] text-[#2F6B00]' },
+      rejected: { label: 'Rechazada', cls: 'bg-muted text-muted-foreground' },
+      cancelled: { label: 'Cancelada', cls: 'bg-muted text-muted-foreground' },
+    };
+    const m = map[b.status];
+    return m ? <span className={`text-[10.5px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${m.cls}`}>{m.label}</span> : null;
   };
 
-  // Shared message rendering
+  const needsAnswer = (c: Conversation) => isOwner && bookingFor(c)?.status === 'pending';
+
+  const filteredConversations = conversations.filter(conv => {
+    const q = searchQuery.toLowerCase();
+    const matches = conv.other_user?.full_name.toLowerCase().includes(q) || conv.billboard?.title.toLowerCase().includes(q);
+    if (!matches) return false;
+    if (filter === 'unread') return (conv.unread_count || 0) > 0 || conv.is_manually_unread;
+    if (filter === 'requests') return bookingFor(conv)?.status === 'pending';
+    return true;
+  });
+  const requestsCount = conversations.filter(c => bookingFor(c)?.status === 'pending').length;
+
+  const truncateMessage = (content: string, maxLength: number = 40) => {
+    if (content.startsWith('__SYSTEM_BOOKING__')) return 'Solicitud de reserva';
+    return content.length > maxLength ? content.substring(0, maxLength) + '…' : content;
+  };
+
+  const shortDate = (d: string) => format(new Date(d), 'd MMM', { locale: es });
+  const longDate = (d: string) => format(new Date(d), 'd MMM yyyy', { locale: es });
+
+  const quickReplies = isOwner
+    ? ['Gracias por tu solicitud 🙌', '¿Me mandas tu arte?', '¿Qué fechas tienes en mente?']
+    : ['¿Puedo cambiar las fechas?', 'Te mando mi arte hoy', 'Gracias'];
+
+  // ---------- Mensajes ----------
   const renderMessages = () => (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {showBillboardContext && selectedConversation?.billboard && messages.length === 0 && (
-        <div className="bg-muted border border-white/10 rounded-xl p-4 mb-4">
-          <p className="text-white/50 text-xs mb-2">Conversación sobre:</p>
-          <Link 
-            to={`/billboard/${selectedConversation.billboard_id}`}
-            className="flex gap-3 hover:bg-white/5 rounded-lg transition-colors"
-          >
+        <div className="bg-muted rounded-2xl p-4 mb-4">
+          <p className="text-muted-foreground text-xs mb-2">Conversación sobre:</p>
+          <Link to={`/billboard/${selectedConversation.billboard_id}`} className="flex gap-3">
             {selectedConversation.billboard.image_url ? (
-              <img src={selectedConversation.billboard.image_url} alt="" className="w-20 h-20 rounded-lg object-cover flex-shrink-0" />
+              <img src={selectedConversation.billboard.image_url} alt="" className="w-20 h-20 rounded-xl object-cover flex-shrink-0" />
             ) : (
-              <div className="w-20 h-20 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">
-                <MapPin className="w-8 h-8 text-white/20" />
-              </div>
+              <div className="w-20 h-20 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0"><MapPin className="w-8 h-8 text-muted-foreground" /></div>
             )}
-            <div className="flex-1 min-w-0">
-              <h4 className="text-white font-semibold truncate">{selectedConversation.billboard.title}</h4>
-              {selectedConversation.billboard.city && (
-                <p className="text-white/50 text-sm flex items-center gap-1 mt-1">
-                  <MapPin className="w-3 h-3" />
-                  {selectedConversation.billboard.city}, {selectedConversation.billboard.state}
-                </p>
-              )}
-              {selectedConversation.billboard.price_per_month && (
-                <p className="text-primary font-bold mt-1 flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" />
-                  ${selectedConversation.billboard.price_per_month.toLocaleString()}/mes
-                </p>
-              )}
+            <div className="min-w-0">
+              <h4 className="font-semibold truncate">{selectedConversation.billboard.title}</h4>
+              {selectedConversation.billboard.city && <p className="text-muted-foreground text-sm mt-1">{selectedConversation.billboard.city}, {selectedConversation.billboard.state}</p>}
+              {selectedConversation.billboard.price_per_month ? <p className="font-bold mt-1">${selectedConversation.billboard.price_per_month.toLocaleString()}/mes</p> : null}
             </div>
           </Link>
-          <p className="text-muted-foreground text-xs mt-3 pt-3 border-t border-white/10">
-            Escribe tu mensaje para contactar al propietario sobre este espectacular.
-          </p>
+          <p className="text-muted-foreground text-xs mt-3 pt-3 border-t border-border">Escribe tu mensaje para contactar al propietario sobre este espectacular.</p>
         </div>
       )}
-      
+
       {messages.map((msg, idx) => {
-        const isMyMessage = msg.sender_id === user?.id;
+        const isMine = msg.sender_id === user?.id;
         const isLastInGroup = idx === messages.length - 1 || messages[idx + 1]?.sender_id !== msg.sender_id;
-        const msgDate = new Date(msg.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
-        const prevMsgDate = idx > 0 ? new Date(messages[idx - 1].created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
-        const showDateSeparator = idx === 0 || msgDate !== prevMsgDate;
-        
-        const isSystemBooking = msg.content.startsWith('__SYSTEM_BOOKING__');
-        let bookingMeta: { bookingId: string; billboardTitle: string; startDate: string; endDate: string; totalPrice: number } | null = null;
-        if (isSystemBooking) {
-          try { bookingMeta = JSON.parse(msg.content.replace('__SYSTEM_BOOKING__', '')); } catch { /* ignore */ }
+        const dayKey = (m: Message) => new Date(m.created_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' });
+        const showDate = idx === 0 || dayKey(msg) !== dayKey(messages[idx - 1]);
+
+        let meta: { bookingId: string; billboardTitle: string; startDate: string; endDate: string; totalPrice: number } | null = null;
+        if (msg.content.startsWith('__SYSTEM_BOOKING__')) {
+          try { meta = JSON.parse(msg.content.replace('__SYSTEM_BOOKING__', '')); } catch { /* ignore */ }
         }
+        const payLine = meta && selectedBooking && selectedBooking.id === meta.bookingId
+          ? (selectedBooking.payment_status === 'authorized' ? `Pago autorizado · ${money(selectedBooking.total_price)} retenidos en la tarjeta`
+            : selectedBooking.payment_status === 'captured' ? `Pago cobrado · ${money(selectedBooking.total_price)}`
+            : selectedBooking.payment_status === 'canceled' ? 'Tarjeta liberada · no se cobró nada' : null)
+          : null;
 
         return (
           <React.Fragment key={msg.id}>
-            {showDateSeparator && (
-              <div className="flex items-center justify-center my-4">
-                <span className="text-muted-foreground text-xs bg-card px-3 py-1 rounded-full border border-white/10">{msgDate}</span>
-              </div>
+            {showDate && (
+              <div className="flex justify-center my-3"><span className="text-muted-foreground text-xs">{dayKey(msg)}</span></div>
             )}
-            
-            {isSystemBooking && bookingMeta ? (
-              <div className="flex justify-center my-3">
-                <div className="bg-muted border border-white/10 rounded-xl px-4 py-3 max-w-[85%] text-center">
-                  <p className="text-white/70 text-sm">
-                    {userRole === 'owner' 
-                      ? <>Has recibido una nueva solicitud para <strong className="text-white">{bookingMeta.billboardTitle}</strong> del {bookingMeta.startDate} al {bookingMeta.endDate}.</>
-                      : <>Tu solicitud para <strong className="text-white">{bookingMeta.billboardTitle}</strong> del {bookingMeta.startDate} al {bookingMeta.endDate} ha sido enviada.</>
-                    }
-                  </p>
-                  <Link
-                    to={userRole === 'owner' ? `/owner?tab=reservas&booking=${bookingMeta.bookingId}` : `/business?booking=${bookingMeta.bookingId}`}
-                    className="inline-flex items-center gap-1 text-primary text-sm font-medium mt-1.5 hover:underline"
-                  >
-                    Ver solicitud
-                    <ExternalLink className="w-3 h-3" />
-                  </Link>
+            {meta ? (
+              <div className="flex flex-col items-center gap-1.5 my-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted rounded-full px-4 py-1.5 max-w-full">
+                  <CalendarDays className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">
+                    {isOwner ? 'Solicitud recibida' : 'Solicitud enviada'} · {meta.billboardTitle} · {meta.startDate} – {meta.endDate}
+                  </span>
                 </div>
+                {payLine && (
+                  <div className="flex items-center gap-2 text-xs font-medium text-[#2F6B00] bg-[#EAF9D6] rounded-full px-4 py-1.5">
+                    <CreditCard className="w-3.5 h-3.5 shrink-0" /> {payLine}
+                  </div>
+                )}
               </div>
             ) : (
-              <div className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMyMessage ? 'bg-primary text-primary-foreground rounded-br-md' : 'bg-muted text-white rounded-bl-md'}`}>
-                  <p>{msg.content}</p>
-                  <div className={`flex items-center gap-1 justify-end mt-1 ${isMyMessage ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
-                    <span className="text-xs">
-                      {new Date(msg.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                    {isMyMessage && isLastInGroup && (
-                      msg.is_read ? <CheckCheck className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />
-                    )}
+              <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${isMine ? 'bg-foreground text-background rounded-br-md' : 'bg-muted text-foreground rounded-bl-md'}`}>
+                  <p className="whitespace-pre-wrap break-words text-[15px]">{msg.content}</p>
+                  <div className={`flex items-center gap-1 justify-end mt-1 ${isMine ? 'opacity-60' : 'text-muted-foreground'}`}>
+                    <span className="text-[11px]">{new Date(msg.created_at).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })}</span>
+                    {isMine && isLastInGroup && (msg.is_read ? <CheckCheck className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />)}
                   </div>
                 </div>
               </div>
@@ -446,371 +489,255 @@ const Messages: React.FC = () => {
     </div>
   );
 
+  const composer = (
+    <div className="border-t border-border bg-background p-3 md:p-4" style={{ paddingBottom: isMobile ? 'calc(env(safe-area-inset-bottom, 0px) + 12px)' : undefined }}>
+      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+        {quickReplies.map(q => (
+          <button key={q} onClick={() => setNewMessage(q)} className="whitespace-nowrap text-xs border border-border rounded-full px-3 py-1.5 hover:bg-muted transition-colors">{q}</button>
+        ))}
+      </div>
+      <div className="flex gap-2">
+        <Input value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyPress={handleKeyPress}
+          placeholder="Escribe un mensaje…" className="rounded-full bg-background border-border" />
+        <Button onClick={sendMessage} disabled={!newMessage.trim()} className="rounded-full bg-[#9BFF43] text-[#07110B] hover:bg-[#8AEE32] px-4">
+          <Send className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+
+  // ---------- Panel de detalles de la reserva ----------
+  const bookingPanel = (compact = false) => {
+    const b = selectedBooking;
+    const c = selectedConversation;
+    if (!c) return null;
+    const paid = !!b?.stripe_payment_intent_id;
+    const fees = b ? bookingFees(b as any) : null;
+    const deadline = b?.payment_expires_at ? format(new Date(b.payment_expires_at), "d 'de' MMMM", { locale: es }) : null;
+    return (
+      <div className={compact ? 'p-4 space-y-3' : 'p-5 space-y-4'}>
+        {!compact && <h3 className="font-bold text-lg">Detalles de la reserva</h3>}
+        {c.billboard?.image_url && !compact && (
+          <img src={c.billboard.image_url} alt="" className="w-full h-40 object-cover rounded-2xl" />
+        )}
+        <div>
+          <Link to={`/billboard/${c.billboard_id}`} className="font-semibold hover:underline">{c.billboard?.title}</Link>
+          {c.billboard?.city && <p className="text-sm text-muted-foreground">{c.billboard.city}, {c.billboard.state}</p>}
+        </div>
+        {!b ? (
+          <p className="text-sm text-muted-foreground">Aún no hay una solicitud de reserva en esta conversación.</p>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">{statusChip(b)}
+              {b.status === 'pending' && paid && <span className="text-[11px] text-[#2F6B00] font-medium flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" />Tarjeta retenida</span>}
+            </div>
+            <div className="rounded-2xl border border-border divide-y divide-border text-sm">
+              <div className="flex justify-between p-3"><span className="text-muted-foreground">Fechas</span><span className="font-medium">{shortDate(b.start_date)} – {longDate(b.end_date)}</span></div>
+              <div className="flex justify-between p-3"><span className="text-muted-foreground">{paid ? 'Total' : 'Total de la campaña'}</span><b>{money(b.total_price)}</b></div>
+              {paid && fees && isOwner && (
+                <>
+                  <div className="flex justify-between p-3"><span className="text-muted-foreground">Comisión Maddi (15%)</span><span>− {money(fees.fee)}</span></div>
+                  <div className="flex justify-between p-3"><span className="font-semibold">Recibes</span><b className="text-[#2F7A00]">{money(fees.payout)}</b></div>
+                </>
+              )}
+            </div>
+            {b.status === 'pending' && deadline && paid && (
+              <p className="text-xs text-muted-foreground">{isOwner ? `Responde antes del ${deadline}. Después, la tarjeta se libera y la solicitud vence.` : `El propietario responde antes del ${deadline}. Si no, tu tarjeta se libera sin cobro.`}</p>
+            )}
+            {isOwner && b.status === 'pending' && (
+              <div className="flex gap-2">
+                <Button onClick={() => setDecision({ mode: 'approve' })} className="flex-1 rounded-full bg-[#9BFF43] text-[#07110B] hover:bg-[#8AEE32] font-semibold">
+                  {paid ? 'Aprobar y cobrar' : 'Aprobar'}
+                </Button>
+                <Button onClick={() => setDecision({ mode: 'reject' })} variant="outline" className="rounded-full">Rechazar</Button>
+              </div>
+            )}
+            <Link to={isOwner ? `/owner?tab=reservas&booking=${b.id}` : `/business?booking=${b.id}`} className="inline-flex items-center gap-1 text-sm font-medium hover:underline">
+              Ver solicitud completa <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const decisionDialog = (
+    <BookingDecisionDialog
+      booking={decision && selectedBooking ? ({ ...selectedBooking, billboard: selectedConversation?.billboard, profile: { full_name: selectedConversation?.other_user?.full_name } } as any) : null}
+      mode={decision?.mode ?? null}
+      onClose={() => setDecision(null)}
+      onDone={() => { setDecision(null); fetchConversations(); }}
+    />
+  );
+
   const deleteDialog = (
     <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-      <AlertDialogContent className="bg-muted border-white/10">
+      <AlertDialogContent className="theme-light bg-white border-border">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-white">¿Eliminar conversación?</AlertDialogTitle>
-          <AlertDialogDescription className="text-white/60">
-            Esta acción no se puede deshacer. Se eliminarán todos los mensajes de esta conversación.
-          </AlertDialogDescription>
+          <AlertDialogTitle>¿Eliminar conversación?</AlertDialogTitle>
+          <AlertDialogDescription>Esta acción no se puede deshacer. Se eliminarán todos los mensajes de esta conversación.</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="bg-white/10 text-white border-white/10 hover:bg-white/20">Cancelar</AlertDialogCancel>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction onClick={deleteConversation} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Eliminar</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
   );
 
-  // ==================== MOBILE LAYOUT ====================
+  // ---------- Lista de conversaciones ----------
+  const listColumn = (
+    <div className="flex flex-col min-h-0 h-full bg-background">
+      <div className="p-4 pb-3 space-y-3 flex-shrink-0">
+        <h2 className="text-2xl font-bold tracking-tight">Mensajes</h2>
+        <div className="relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input placeholder="Buscar conversaciones" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 rounded-full bg-muted border-transparent" />
+        </div>
+        <div className="flex gap-2">
+          {([['all', 'Todos'], ['unread', 'Sin leer'], ['requests', requestsCount ? `Solicitudes · ${requestsCount}` : 'Solicitudes']] as const).map(([id, label]) => (
+            <button key={id} onClick={() => setFilter(id)}
+              className={`text-xs font-medium rounded-full px-3.5 py-1.5 border transition-colors ${filter === id ? 'bg-foreground text-background border-foreground' : 'border-border hover:bg-muted'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <ScrollArea className="flex-1 min-h-0">
+        {isLoading ? (
+          <div className="p-4 space-y-3">{[1, 2, 3].map(i => <div key={i} className="animate-pulse bg-muted rounded-xl h-16" />)}</div>
+        ) : filteredConversations.length === 0 ? (
+          <div className="p-8 text-center">
+            <MessageSquare className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">No hay conversaciones aquí</p>
+          </div>
+        ) : (
+          <div className="px-2 pb-24 md:pb-4">
+            {filteredConversations.map(conv => {
+              const hasUnread = (conv.unread_count || 0) > 0 || conv.is_manually_unread;
+              const mine = conv.last_message?.sender_id === user?.id;
+              const active = selectedConversation?.id === conv.id;
+              return (
+                <div key={conv.id} className={`relative group rounded-2xl transition-colors ${active ? 'bg-muted' : 'hover:bg-muted/60'}`}>
+                  <button onClick={() => setSelectedConversation(conv)} className="w-full p-3 text-left flex gap-3">
+                    <div className="relative w-12 h-12 rounded-xl bg-muted flex-shrink-0 overflow-hidden flex items-center justify-center">
+                      {conv.billboard?.image_url ? <img src={conv.billboard.image_url} alt="" className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-muted-foreground" />}
+                      {conv.is_pinned && <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-foreground flex items-center justify-center"><Pin className="w-2.5 h-2.5 text-background" /></div>}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`truncate text-sm ${hasUnread ? 'font-bold' : 'font-medium'}`}>{conv.other_user?.full_name}</p>
+                        <span className="text-[11px] text-muted-foreground flex-shrink-0">{format(new Date(conv.last_message_at), 'd MMM', { locale: es })}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{conv.billboard?.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        {conv.last_message && (
+                          <p className={`text-xs truncate flex-1 ${hasUnread && !mine ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                            {mine ? 'Tú: ' : ''}{truncateMessage(conv.last_message.content)}
+                          </p>
+                        )}
+                        {needsAnswer(conv) ? statusChip(bookingFor(conv)) : null}
+                        {hasUnread && <span className="min-w-[18px] h-[18px] rounded-full bg-[#9BFF43] text-[#07110B] text-[10px] font-bold flex items-center justify-center px-1">{conv.unread_count || 1}</span>}
+                      </div>
+                      {!needsAnswer(conv) && bookingFor(conv) && <div className="mt-1">{statusChip(bookingFor(conv))}</div>}
+                    </div>
+                  </button>
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 bg-background/80"><MoreVertical className="w-4 h-4" /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="theme-light bg-white">
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); togglePinConversation(conv.id); }} className="gap-2"><Pin className="w-4 h-4" />{conv.is_pinned ? 'Quitar fijado' : 'Fijar conversación'}</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); markAsUnread(conv.id); }} className="gap-2">{hasUnread ? <MailOpen className="w-4 h-4" /> : <Mail className="w-4 h-4" />}Marcar como no leído</DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => handleDeleteClick(e, conv.id)} className="text-destructive gap-2"><Trash2 className="w-4 h-4" />Eliminar conversación</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </ScrollArea>
+    </div>
+  );
+
+  const chatHeader = selectedConversation && (
+    <div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-shrink-0 bg-background">
+      {isMobile && (
+        <button onClick={() => { setSelectedConversation(null); setMessages([]); setPanelOpen(false); }} className="w-8 h-8 flex items-center justify-center"><ArrowLeft className="w-5 h-5" /></button>
+      )}
+      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center"><User className="w-5 h-5 text-muted-foreground" /></div>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold truncate">{selectedConversation.other_user?.full_name || 'Usuario'}</p>
+        <p className="text-muted-foreground text-xs truncate">{selectedConversation.billboard?.title}</p>
+      </div>
+      {isMobile && (
+        <button onClick={() => setPanelOpen(o => !o)} className="text-xs font-medium border border-border rounded-full px-3 py-1.5 flex items-center gap-1">
+          Reserva <ChevronDown className={`w-3.5 h-3.5 transition-transform ${panelOpen ? 'rotate-180' : ''}`} />
+        </button>
+      )}
+    </div>
+  );
+
+  const header = isOwner ? <OwnerDashboardHeader /> : <BusinessHeader />;
+
+  // ==================== MÓVIL ====================
   if (isMobile) {
-    // Mobile: full-screen chat when conversation selected
     if (selectedConversation) {
       return (
-        <div className="h-screen bg-card flex flex-col">
-          <div className="p-3 border-b border-white/5 bg-card flex items-center gap-3 flex-shrink-0">
-            <button
-              onClick={() => { setSelectedConversation(null); setMessages([]); }}
-              className="w-8 h-8 flex items-center justify-center text-white/60 hover:text-white"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            {selectedConversation.billboard?.image_url ? (
-              <img src={selectedConversation.billboard.image_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
-            ) : (
-              <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-muted-foreground" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-semibold text-sm truncate">{selectedConversation.other_user?.full_name || 'Usuario'}</p>
-              <p className="text-muted-foreground text-xs truncate">{selectedConversation.billboard?.title}</p>
+        <div className="theme-light h-screen bg-background text-foreground flex flex-col">
+          {chatHeader}
+          {panelOpen && <div className="border-b border-border bg-muted/40 max-h-[55vh] overflow-y-auto flex-shrink-0">{bookingPanel(true)}</div>}
+          {!panelOpen && selectedBooking?.status === 'pending' && isOwner && (
+            <div className="px-4 py-2 border-b border-border bg-amber-50 flex items-center justify-between gap-2 flex-shrink-0">
+              <span className="text-xs text-amber-900">Solicitud · {money(selectedBooking.total_price)}</span>
+              <button onClick={() => setPanelOpen(true)} className="text-xs font-semibold underline">Revisar</button>
             </div>
-          </div>
-
-          <ScrollArea className="flex-1 p-4">
-            {renderMessages()}
-          </ScrollArea>
-
-          <div className="p-3 border-t border-white/5 bg-card flex-shrink-0" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
-            <div className="flex gap-2">
-              <Input
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Escribe un mensaje..."
-                className="bg-card border-white/10 text-white placeholder:text-muted-foreground text-sm"
-              />
-              <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-primary-foreground hover:bg-primary-hover px-3">
-                <Send className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-          {deleteDialog}
+          )}
+          <ScrollArea className="flex-1 p-4">{renderMessages()}</ScrollArea>
+          {composer}
+          {deleteDialog}{decisionDialog}
         </div>
       );
     }
-
-    // Mobile: conversation list
     return (
-      <div className="h-screen bg-card flex flex-col">
-        {userRole === 'owner' ? <OwnerDashboardHeader /> : <BusinessHeader />}
-        
-        <div className="p-4 border-b border-white/5 flex-shrink-0">
-          <h2 className="text-white font-semibold flex items-center gap-2 mb-3">
-            <MessageSquare className="w-5 h-5 text-primary" />
-            Mensajes
-          </h2>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar conversaciones..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card border-white/10 text-white placeholder:text-muted-foreground"
-            />
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          {isLoading ? (
-            <div className="p-4 space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="animate-pulse bg-white/5 rounded-lg h-16"></div>
-              ))}
-            </div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="p-4 text-center pt-16">
-              <MessageSquare className="w-12 h-12 text-white/20 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">No tienes conversaciones</p>
-            </div>
-          ) : (
-            <div className="px-4 pb-24 space-y-1">
-              {filteredConversations.map(conv => {
-                const hasUnread = (conv.unread_count || 0) > 0 || conv.is_manually_unread;
-                const isMyLastMessage = conv.last_message?.sender_id === user?.id;
-                
-                return (
-                  <button
-                    key={conv.id}
-                    onClick={() => setSelectedConversation(conv)}
-                    className="w-full p-3 rounded-xl text-left hover:bg-white/5 active:bg-white/10 transition-colors flex items-start gap-3"
-                  >
-                    <div className="relative w-12 h-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      {conv.billboard?.image_url ? (
-                        <img src={conv.billboard.image_url} alt="" className="w-12 h-12 rounded-full object-cover" />
-                      ) : (
-                        <User className="w-5 h-5 text-muted-foreground" />
-                      )}
-                      {conv.is_pinned && (
-                        <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                          <Pin className="w-2.5 h-2.5 text-primary-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className={`truncate text-sm ${hasUnread ? 'font-bold text-white' : 'font-medium text-white'}`}>
-                          {conv.other_user?.full_name}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          {conv.last_message && (
-                            <span className="text-muted-foreground text-[10px]">
-                              {new Date(conv.last_message_at).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })}
-                            </span>
-                          )}
-                          {hasUnread && (
-                            <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
-                              {conv.unread_count || 1}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <p className="text-muted-foreground text-xs truncate">{conv.billboard?.title}</p>
-                      {conv.last_message && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          {isMyLastMessage && (
-                            conv.last_message.is_read 
-                              ? <CheckCheck className="w-3 h-3 text-primary flex-shrink-0" />
-                              : <Check className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                          )}
-                          <p className={`text-xs truncate ${hasUnread && !isMyLastMessage ? 'font-semibold text-white/80' : 'text-white/50'}`}>
-                            {isMyLastMessage ? 'Tú: ' : ''}{truncateMessage(conv.last_message.content)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </ScrollArea>
-
+      <div className="theme-light h-screen bg-background text-foreground flex flex-col">
+        {header}
+        <div className="flex-1 min-h-0">{listColumn}</div>
         <MobileNavBar />
-        {deleteDialog}
+        {deleteDialog}{decisionDialog}
       </div>
     );
   }
 
-  // ==================== DESKTOP LAYOUT (unchanged) ====================
+  // ==================== ESCRITORIO ====================
   return (
-    <div className="min-h-screen bg-card flex flex-col">
-      {userRole === 'owner' ? <OwnerDashboardHeader /> : <BusinessHeader />}
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Conversations List */}
-        <div className="w-80 border-r border-white/5 bg-card flex flex-col">
-          <div className="p-4 border-b border-white/5">
-            <h2 className="text-white font-semibold flex items-center gap-2 mb-4">
-              <MessageSquare className="w-5 h-5 text-primary" />
-              Mensajes
-            </h2>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar conversaciones..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-card border-white/10 text-white placeholder:text-muted-foreground"
-              />
-            </div>
-          </div>
-          <ScrollArea className="flex-1">
-            {isLoading ? (
-              <div className="p-4 space-y-3">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="animate-pulse bg-white/5 rounded-lg h-16"></div>
-                ))}
-              </div>
-            ) : filteredConversations.length === 0 ? (
-              <div className="p-4 text-center">
-                <p className="text-muted-foreground text-sm">No tienes conversaciones</p>
-              </div>
-            ) : (
-              <div className="p-2">
-                {filteredConversations.map(conv => {
-                  const hasUnread = (conv.unread_count || 0) > 0 || conv.is_manually_unread;
-                  const isMyLastMessage = conv.last_message?.sender_id === user?.id;
-                  
-                  return (
-                    <div
-                      key={conv.id}
-                      className={`relative group rounded-lg transition-all duration-200 ${
-                        selectedConversation?.id === conv.id 
-                          ? 'bg-primary/10 border border-primary/30' 
-                          : 'hover:bg-white/5 border border-transparent'
-                      }`}
-                    >
-                      <button
-                        onClick={() => setSelectedConversation(conv)}
-                        className="w-full p-3 text-left"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="relative w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                            <User className="w-5 h-5 text-muted-foreground" />
-                            {conv.is_pinned && (
-                              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
-                                <Pin className="w-2.5 h-2.5 text-primary-foreground" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <p className={`truncate ${
-                                hasUnread 
-                                  ? 'font-bold text-white' 
-                                  : selectedConversation?.id === conv.id 
-                                    ? 'font-medium text-primary' 
-                                    : 'font-medium text-white'
-                              }`}>
-                                {conv.other_user?.full_name}
-                              </p>
-                              {hasUnread && (
-                                <span className="min-w-[18px] h-[18px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1 ml-1">
-                                  {conv.unread_count || 1}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-muted-foreground text-xs truncate mt-0.5">
-                              {conv.billboard?.title}
-                            </p>
-                            {conv.last_message && (
-                              <div className="flex items-center gap-1 mt-1">
-                                {isMyLastMessage && (
-                                  conv.last_message.is_read 
-                                    ? <CheckCheck className="w-3 h-3 text-primary flex-shrink-0" />
-                                    : <Check className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                                )}
-                                <p className={`text-xs truncate ${
-                                  hasUnread && !isMyLastMessage
-                                    ? 'font-semibold text-white/80' 
-                                    : 'text-white/50'
-                                }`}>
-                                  {isMyLastMessage ? 'Tú: ' : ''}{truncateMessage(conv.last_message.content)}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </button>
-                      
-                      {/* Context Menu */}
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-white hover:bg-white/10">
-                              <MoreVertical className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="bg-muted border-white/10">
-                            <DropdownMenuItem 
-                              onClick={(e) => { e.stopPropagation(); togglePinConversation(conv.id); }}
-                              className="text-white hover:bg-white/10 gap-2"
-                            >
-                              <Pin className="w-4 h-4" />
-                              {conv.is_pinned ? 'Quitar fijado' : 'Fijar conversación'}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={(e) => { e.stopPropagation(); markAsUnread(conv.id); }}
-                              className="text-white hover:bg-white/10 gap-2"
-                            >
-                              {hasUnread ? <MailOpen className="w-4 h-4" /> : <Mail className="w-4 h-4" />}
-                              Marcar como no leído
-                            </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={(e) => handleDeleteClick(e, conv.id)}
-                              className="text-destructive hover:bg-destructive/10 gap-2"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Eliminar conversación
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </ScrollArea>
-        </div>
-
-        {/* Messages Area */}
-        <div className="flex-1 flex flex-col bg-card">
+    <div className="theme-light h-screen bg-background text-foreground flex flex-col">
+      {header}
+      <div className="flex-1 min-h-0 grid grid-cols-[340px_minmax(0,1fr)_360px] border-t border-border">
+        <div className="border-r border-border min-h-0">{listColumn}</div>
+        <div className="flex flex-col min-h-0 min-w-0">
           {selectedConversation ? (
             <>
-              <div className="p-4 border-b border-white/5 bg-card">
-                <div className="flex items-center gap-3">
-                  {selectedConversation.billboard?.image_url ? (
-                    <img src={selectedConversation.billboard.image_url} alt="" className="w-10 h-10 rounded-lg object-cover" />
-                  ) : (
-                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                      <MessageSquare className="w-5 h-5 text-muted-foreground" />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <p className="text-white font-semibold flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      {selectedConversation.other_user?.full_name || 'Usuario'}
-                    </p>
-                    <p className="text-muted-foreground text-sm">{selectedConversation.billboard?.title}</p>
-                  </div>
-                </div>
-              </div>
-
-              <ScrollArea className="flex-1 p-4">
-                {renderMessages()}
-              </ScrollArea>
-
-              <div className="p-4 border-t border-white/5 bg-card">
-                <div className="flex gap-2">
-                  <Input
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Escribe un mensaje..."
-                    className="bg-card border-white/10 text-white placeholder:text-muted-foreground"
-                  />
-                  <Button onClick={sendMessage} disabled={!newMessage.trim()} className="bg-primary text-primary-foreground hover:bg-primary-hover">
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
+              {chatHeader}
+              <ScrollArea className="flex-1 min-h-0 p-5">{renderMessages()}</ScrollArea>
+              {composer}
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-card">
-              <div className="text-center">
-                <MessageSquare className="w-16 h-16 text-white/20 mx-auto mb-4" />
-                <p className="text-muted-foreground">Selecciona una conversación para ver los mensajes</p>
+            <div className="flex-1 flex items-center justify-center text-center">
+              <div>
+                <MessageSquare className="w-14 h-14 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-muted-foreground">Selecciona una conversación</p>
               </div>
             </div>
           )}
         </div>
+        <div className="border-l border-border overflow-y-auto min-h-0">{selectedConversation ? bookingPanel() : null}</div>
       </div>
-
-      {deleteDialog}
+      {deleteDialog}{decisionDialog}
     </div>
   );
 };

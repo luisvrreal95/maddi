@@ -6,9 +6,17 @@ serve(async (req) => {
   try {
     const user = await requireUser(req);
     if (!user) return json({ error: "No autenticado" }, 401);
+    let body: { login_link?: boolean } = {};
+    try { body = await req.json(); } catch { /* sin cuerpo */ }
     const db = adminClient();
     const { data: profile } = await db.from("profiles").select("stripe_account_id").eq("user_id", user.id).maybeSingle();
     if (!profile?.stripe_account_id) return json({ connected: false, chargesEnabled: false, payoutsEnabled: false });
+
+    if (body.login_link) {
+      // Enlace de un solo uso al panel Express de Stripe (pagos, depósitos, cuenta bancaria)
+      const link = await getStripe().accounts.createLoginLink(profile.stripe_account_id);
+      return json({ url: link.url });
+    }
 
     const account = await getStripe().accounts.retrieve(profile.stripe_account_id);
     const chargesEnabled = !!account.charges_enabled;

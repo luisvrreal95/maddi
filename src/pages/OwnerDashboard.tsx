@@ -10,6 +10,7 @@ import OwnerDashboardHeader from '@/components/navigation/OwnerDashboardHeader';
 import AddPropertyDialog from '@/components/owner/AddPropertyDialog';
 import AnalyticsDashboard from '@/components/owner/AnalyticsDashboard';
 import OwnerStatsTab from '@/components/owner/OwnerStatsTab';
+import OwnerPaymentsTab from '@/components/owner/OwnerPaymentsTab';
 import BookingManagement from '@/components/dashboard/BookingManagement';
 import BillboardSelector from '@/components/owner/BillboardSelector';
 import TrafficAnalytics from '@/components/owner/TrafficAnalytics';
@@ -30,7 +31,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-type TabType = 'inicio' | 'propiedades' | 'dashboard' | 'calendario' | 'mensajes' | 'stats' | 'reservas';
+type TabType = 'inicio' | 'propiedades' | 'dashboard' | 'calendario' | 'mensajes' | 'stats' | 'reservas' | 'pagos';
 type ViewMode = 'grid' | 'list';
 
 const OwnerDashboard: React.FC = () => {
@@ -68,7 +69,7 @@ const OwnerDashboard: React.FC = () => {
   // Handle tab from URL params
   useEffect(() => {
     const tab = searchParams.get('tab') as TabType | null;
-    if (tab && ['inicio', 'propiedades', 'dashboard', 'calendario', 'mensajes', 'stats', 'reservas'].includes(tab)) {
+    if (tab && ['inicio', 'propiedades', 'dashboard', 'calendario', 'mensajes', 'stats', 'reservas', 'pagos'].includes(tab)) {
       setActiveTab(tab);
     }
     // Handle billboard selection from URL
@@ -357,7 +358,7 @@ const OwnerDashboard: React.FC = () => {
                     onClick={() => handleTabChange('stats')}
                     className="bg-primary hover:bg-primary-hover text-background font-medium"
                   >
-                    Ver rendimiento e ingresos
+                    Ver rendimiento
                   </Button>
                 </div>
               </div>
@@ -375,11 +376,13 @@ const OwnerDashboard: React.FC = () => {
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Estadísticas</h1>
               <p className="text-white/60 mb-1">Resultados e ingresos generados por tus espectaculares.</p>
-              <p className="text-muted-foreground text-sm">💰 Datos reales basados en tus reservas y comisiones.</p>
+              <p className="text-muted-foreground text-sm">Para ver cobros y depósitos, ve a la pestaña <button onClick={() => handleTabChange('pagos')} className="underline text-white">Pagos</button>.</p>
             </div>
             <OwnerStatsTab billboards={billboards} userId={user?.id || ''} />
           </>
         )}
+
+        {activeTab === 'pagos' && <OwnerPaymentsTab billboards={billboards} userId={user?.id || ''} />}
 
         {activeTab === 'reservas' && (
           <>
