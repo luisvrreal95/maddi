@@ -62,14 +62,14 @@ const FaceSelector: React.FC<Props> = ({ latitude, longitude, mapboxToken, faces
       const wrap = document.createElement('div');
       wrap.style.cssText = 'width:0;height:0;position:relative;pointer-events:none;';
       const cone = document.createElement('div');
-      cone.style.cssText = `position:absolute;left:-40px;top:-96px;width:80px;height:96px;transform-origin:40px 96px;transform:rotate(${fc.bearing}deg);pointer-events:none;`;
-      cone.innerHTML = `<svg width="80" height="96" viewBox="0 0 80 96"><path d="M40 96 L2 4 L78 4 Z" fill="${sel ? 'rgba(155,255,67,0.55)' : 'rgba(51,65,58,0.2)'}" stroke="${sel ? '#4FA800' : 'rgba(51,65,58,0.5)'}" stroke-width="${sel ? 2 : 1.5}" ${sel ? '' : 'stroke-dasharray="4 4"'}/></svg>`;
+      cone.style.cssText = `position:absolute;left:-55px;top:-135px;width:110px;height:135px;transform-origin:55px 135px;transform:rotate(${fc.bearing}deg);pointer-events:none;`;
+      cone.innerHTML = `<svg width="110" height="135" viewBox="0 0 110 135" style="${sel ? 'filter:drop-shadow(0 0 10px rgba(155,255,67,.9))' : ''}"><path d="M55 135 L3 6 L107 6 Z" fill="${sel ? 'rgba(155,255,67,0.6)' : 'rgba(51,65,58,0.16)'}" stroke="${sel ? '#4FA800' : 'rgba(51,65,58,0.5)'}" stroke-width="${sel ? 2 : 1.5}" ${sel ? '' : 'stroke-dasharray="4 4"'}/></svg>`;
       wrap.appendChild(cone);
       const rad = (fc.bearing * Math.PI) / 180;
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = f.label.replace(/^Cara\s*/i, '');
-      btn.style.cssText = `position:absolute;left:${Math.sin(rad) * 80 - 15}px;top:${-Math.cos(rad) * 80 - 15}px;width:30px;height:30px;border-radius:999px;font:700 12px Poppins,sans-serif;cursor:pointer;pointer-events:auto;border:2px solid ${sel ? '#111' : '#CBD6CF'};background:${sel ? '#9BFF43' : '#fff'};color:#111;box-shadow:${sel ? '0 0 0 4px rgba(155,255,67,0.35)' : 'none'};`;
+      btn.style.cssText = `position:absolute;left:${Math.sin(rad) * 118 - 15}px;top:${-Math.cos(rad) * 118 - 15}px;width:30px;height:30px;border-radius:999px;font:700 12px Poppins,sans-serif;cursor:pointer;pointer-events:auto;border:2px solid ${sel ? '#111' : '#CBD6CF'};background:${sel ? '#9BFF43' : '#fff'};color:#111;box-shadow:${sel ? '0 0 0 4px rgba(155,255,67,0.35)' : 'none'};`;
       btn.onclick = (e) => { e.stopPropagation(); onSelectRef.current(f.id); };
       wrap.appendChild(btn);
       add(wrap);
@@ -79,10 +79,18 @@ const FaceSelector: React.FC<Props> = ({ latitude, longitude, mapboxToken, faces
     add(dot);
   }, [faces, selectedId, latitude, longitude]);
 
+  const noFacing = faces.every(f => !getFacing(f.facing));
   return (
     <div className="space-y-3">
-      <div className="relative h-[240px] rounded-2xl overflow-hidden border border-white/10 bg-secondary">
+      <div className="relative h-[280px] rounded-2xl overflow-hidden border border-white/10 bg-secondary">
         <div className="absolute inset-0"><div ref={el} className="w-full h-full" /></div>
+        <div className="absolute left-3 top-3 w-9 h-9 rounded-full bg-white border border-[#CBD6CF] shadow-sm flex flex-col items-center justify-center pointer-events-none" aria-label="Norte">
+          <svg width="12" height="12" viewBox="0 0 12 12"><path d="M6 0 L10 11 L6 8.5 L2 11 Z" fill="#111" /></svg>
+          <span className="text-[9px] font-bold text-[#111] leading-none">N</span>
+        </div>
+        {noFacing && (
+          <div className="absolute left-3 bottom-3 right-16 text-[11px] bg-white/95 border border-[#CBD6CF] rounded-lg px-2.5 py-1.5 text-[#33413a]">El propietario aún no marca hacia dónde ve cada cara.</div>
+        )}
         <div className="absolute right-3 bottom-3 flex flex-col rounded-xl overflow-hidden border border-[#CBD6CF] bg-white shadow-sm">
           <button type="button" aria-label="Acercar" onClick={() => map.current?.zoomIn({ duration: 250 })} className="w-9 h-9 text-lg font-semibold text-[#111] hover:bg-[#EEF3F0]">+</button>
           <button type="button" aria-label="Alejar" onClick={() => map.current?.zoomOut({ duration: 250 })} className="w-9 h-9 text-lg font-semibold text-[#111] border-t border-[#CBD6CF] hover:bg-[#EEF3F0]">−</button>
@@ -95,6 +103,11 @@ const FaceSelector: React.FC<Props> = ({ latitude, longitude, mapboxToken, faces
             <button key={f.id} type="button" onClick={() => onSelect(f.id)}
               className={cn('rounded-xl border p-2.5 text-left transition-colors', sel ? 'border-primary bg-primary/10' : 'border-white/10 hover:bg-white/5')}>
               <div className="flex items-center gap-2">
+                <span className="w-9 h-9 rounded-full border flex-shrink-0 flex items-center justify-center bg-white" style={{ borderColor: sel ? '#4FA800' : '#CBD6CF' }}>
+                  {getFacing(f.facing) ? (
+                    <svg width="18" height="18" viewBox="0 0 12 12" style={{ transform: `rotate(${getFacing(f.facing)!.bearing}deg)` }}><path d="M6 0 L10 11 L6 8.5 L2 11 Z" fill={sel ? '#2F7A00' : '#33413a'} /></svg>
+                  ) : <span className="text-[10px] text-[#5B6B62]">?</span>}
+                </span>
                 {f.image_url ? <img src={f.image_url} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" /> : null}
                 <div className="min-w-0">
                   <p className="text-white text-sm font-semibold truncate">{f.label}</p>

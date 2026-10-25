@@ -510,7 +510,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 <div className="mb-4 space-y-2">
                   <div>
                     <p className="text-white font-semibold text-sm">¿Qué cara quieres reservar?</p>
-                    <p className="text-white/50 text-xs">Arrastra el mapa y elige la cara que mira hacia tu público.</p>
+                    <p className="text-white/50 text-xs">La luz verde en el mapa muestra hacia dónde ve cada cara. Toca una para elegirla.</p>
                   </div>
                   <FaceSelector
                     latitude={Number(billboardProp.latitude)}
