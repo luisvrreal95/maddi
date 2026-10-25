@@ -46,6 +46,8 @@ const BookingManagement: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [refunding, setRefunding] = useState(false);
   const [decisionMode, setDecisionMode] = useState<'approve' | 'reject' | null>(null);
   const [resolvedImages, setResolvedImages] = useState<Record<string, string[]>>({});
   const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
@@ -154,6 +156,26 @@ const BookingManagement: React.FC = () => {
   const tabCounts = { pending: categorized.pending.length, approved: categorized.approved.length, past: categorized.past.length };
   const currentBookings = categorized[activeTab];
 
+  const refundBooking = async () => {
+    if (!selectedBooking) return;
+    setRefunding(true);
+    try {
+      const { data: res, error } = await supabase.functions.invoke('stripe-booking-action', { body: { booking_id: selectedBooking.id, action: 'refund' } });
+      if (error || (res as any)?.error) throw new Error((res as any)?.error || error?.message || 'Error al reembolsar');
+      try {
+        await supabase.functions.invoke('send-notification-email', {
+          body: { type: 'booking_rejected', recipientName: selectedBooking.profile?.full_name || 'Anunciante', userId: selectedBooking.business_id, entityId: selectedBooking.id,
+            data: { billboardTitle: selectedBooking.billboard?.title || 'Espectacular', startDate: new Date(selectedBooking.start_date).toLocaleDateString('es-MX'), endDate: new Date(selectedBooking.end_date).toLocaleDateString('es-MX'), reason: 'El propietario canceló la campaña. Se te reembolsó el total.' } },
+        });
+      } catch { /* correo opcional */ }
+      setBookings(prev => prev.map(b => b.id === selectedBooking.id ? { ...b, status: 'cancelled', payment_status: 'refunded' } as any : b));
+      toast.success('Campaña cancelada y reembolsada al anunciante');
+      setRefundOpen(false); setSelectedBooking(null);
+    } catch (e) {
+      toast.error((e as Error).message || 'Error al reembolsar');
+    } finally { setRefunding(false); }
+  };
+
   const handleApproveClick = (booking: Booking) => { setSelectedBooking(booking); setDecisionMode('approve'); };
   const handleRejectClick = (booking: Booking) => { setSelectedBooking(booking); setDecisionMode('reject'); };
 
@@ -174,6 +196,25 @@ const BookingManagement: React.FC = () => {
       default: return { label: status, color: 'bg-zinc-500/15 text-zinc-400', icon: Clock };
     }
   };
+
+  const refundDialog = (
+      <AlertDialog open={refundOpen} onOpenChange={(o) => { if (!refunding) setRefundOpen(o); }}>
+        <AlertDialogContent className="theme-light bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Cancelar y reembolsar?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Se devolverá el total al anunciante ({selectedBooking ? money(selectedBooking.total_price) : ''}) y se liberarán las fechas en tu calendario. Tú dejas de recibir ese pago y la comisión de Maddi también se devuelve. Esta acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={refunding}>Volver</AlertDialogCancel>
+            <AlertDialogAction onClick={(e) => { e.preventDefault(); refundBooking(); }} disabled={refunding} className="bg-red-600 hover:bg-red-700 text-white">
+              {refunding ? 'Reembolsando…' : 'Cancelar y reembolsar'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+  );
 
   // Detail view for a selected booking
   if (selectedBooking && !decisionMode) {
@@ -342,6 +383,15 @@ const BookingManagement: React.FC = () => {
               </div>
             )}
 
+            {selectedBooking.status === 'approved' && (selectedBooking as any).payment_status === 'captured' && isAfter(new Date(selectedBooking.end_date), new Date()) && (
+              <div className="pt-2 border-t border-white/5">
+                <Button variant="outline" onClick={() => setRefundOpen(true)} className="w-full border-red-500/30 text-red-500 hover:bg-red-500/10">
+                  Cancelar campaña y reembolsar
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2 text-center">Solo si no puedes cumplir. Se devuelve el total al anunciante.</p>
+              </div>
+            )}
+
             {selectedBooking.status === 'cancelled' && (
               <div className="bg-zinc-500/10 rounded-xl p-4 text-center">
                 <p className="text-zinc-400 text-sm">Esta solicitud fue cancelada por el negocio</p>
@@ -353,6 +403,8 @@ const BookingManagement: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {refundDialog}
 
         {/* Image Viewer */}
         <Dialog open={!!imageViewerUrl} onOpenChange={() => setImageViewerUrl(null)}>
@@ -494,6 +546,8 @@ const BookingManagement: React.FC = () => {
           })}
         </div>
       )}
+
+      {refundDialog}
 
       <BookingDecisionDialog
         booking={decisionMode ? (selectedBooking as any) : null}

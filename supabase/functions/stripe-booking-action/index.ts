@@ -1,24 +1,50 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { corsHeaders, json, getStripe, adminClient, requireUser } from "../_shared/stripe.ts";
 
-// El propietario aprueba (captura el cobro) o rechaza (libera la retención) una reserva con pago en Maddi.
+// approve / reject: el propietario captura el cobro o libera la retención.
+// cancel: el anunciante cancela una solicitud pendiente (se libera la tarjeta, sin cobro).
+// refund: el propietario cancela una campaña ya cobrada y se reembolsa todo al anunciante.
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const user = await requireUser(req);
     if (!user) return json({ error: "No autenticado" }, 401);
     const { booking_id, action } = await req.json();
-    if (!booking_id || !["approve", "reject"].includes(action)) return json({ error: "Parámetros inválidos" }, 400);
+    if (!booking_id || !["approve", "reject", "cancel", "refund"].includes(action)) return json({ error: "Parámetros inválidos" }, 400);
 
     const db = adminClient();
     const { data: booking } = await db.from("bookings").select("*").eq("id", booking_id).maybeSingle();
     if (!booking) return json({ error: "Reserva no encontrada" }, 404);
     const { data: billboard } = await db.from("billboards").select("owner_id").eq("id", booking.billboard_id).maybeSingle();
-    if (billboard?.owner_id !== user.id) return json({ error: "No autorizado" }, 403);
-    if (booking.status !== "pending") return json({ error: "La reserva ya fue respondida" }, 409);
-
     const stripe = getStripe();
     const piId = booking.stripe_payment_intent_id as string | null;
+
+    if (action === "cancel") {
+      if (booking.business_id !== user.id) return json({ error: "No autorizado" }, 403);
+      if (booking.status !== "pending") return json({ error: "Solo se pueden cancelar solicitudes pendientes. Escribe al propietario." }, 409);
+      if (piId && booking.payment_status === "authorized") { try { await stripe.paymentIntents.cancel(piId); } catch (e) { console.error(e); } }
+      await db.from("bookings").update({ status: "cancelled", payment_status: piId ? "canceled" : booking.payment_status }).eq("id", booking.id);
+      return json({ ok: true });
+    }
+
+    if (billboard?.owner_id !== user.id) return json({ error: "No autorizado" }, 403);
+
+    if (action === "refund") {
+      if (booking.status !== "approved") return json({ error: "Solo se puede reembolsar una campaña aprobada" }, 409);
+      if (!piId || booking.payment_status !== "captured") return json({ error: "Esta reserva no tiene un cobro en Maddi para reembolsar" }, 409);
+      try {
+        // reembolso completo: se revierte la transferencia al propietario y la comisión de Maddi
+        await stripe.refunds.create({ payment_intent: piId, reverse_transfer: true, refund_application_fee: true });
+      } catch (e) {
+        return json({ error: "No se pudo reembolsar: " + (e as Error).message }, 402);
+      }
+      await db.from("bookings").update({ status: "cancelled", payment_status: "refunded" }).eq("id", booking.id);
+      // libera el calendario
+      await db.from("blocked_dates").delete().eq("billboard_id", booking.billboard_id).eq("reason", `Campaña aprobada #${String(booking.id).slice(0, 8)}`);
+      return json({ ok: true });
+    }
+
+    if (booking.status !== "pending") return json({ error: "La reserva ya fue respondida" }, 409);
 
     if (action === "reject") {
       if (piId && booking.payment_status !== "none") { try { await stripe.paymentIntents.cancel(piId); } catch (e) { console.error(e); } }

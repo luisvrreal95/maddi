@@ -157,12 +157,17 @@ const BusinessDashboard: React.FC = () => {
     if (!booking) return;
 
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', bookingId);
-
-      if (error) throw error;
+      if ((booking as any).stripe_payment_intent_id) {
+        // con pago en Maddi: el servidor libera la tarjeta (no se cobra nada)
+        const { data: res, error: fnErr } = await supabase.functions.invoke('stripe-booking-action', { body: { booking_id: bookingId, action: 'cancel' } });
+        if (fnErr || (res as any)?.error) throw new Error((res as any)?.error || fnErr?.message || 'Error al cancelar');
+      } else {
+        const { error } = await supabase
+          .from('bookings')
+          .update({ status: 'cancelled' })
+          .eq('id', bookingId);
+        if (error) throw error;
+      }
 
       // Notify owner
       const { data: billboardData } = await supabase
@@ -182,7 +187,7 @@ const BusinessDashboard: React.FC = () => {
         });
       }
 
-      toast.success('Solicitud cancelada exitosamente');
+      toast.success((booking as any).stripe_payment_intent_id ? 'Solicitud cancelada · tu tarjeta fue liberada, no se cobró nada' : 'Solicitud cancelada exitosamente');
       fetchBookings();
     } catch (error) {
       console.error('Error cancelling booking:', error);

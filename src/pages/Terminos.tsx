@@ -15,7 +15,7 @@ const Terminos: React.FC = () => (
     <article className="flex-1 max-w-4xl mx-auto px-6 py-16 text-white w-full">
       <header className="mb-12 border-b border-white/10 pb-8">
         <h1 className="text-4xl md:text-5xl font-bold mb-3">Términos de Uso</h1>
-        <p className="text-white/50 text-sm">Vigencia: Enero 2026</p>
+        <p className="text-white/50 text-sm">Vigencia: Octubre 2026</p>
       </header>
 
       <Section title="1. Descripción del servicio">
@@ -48,23 +48,32 @@ const Terminos: React.FC = () => (
         </ul>
       </Section>
 
-      <Section title="4. Proceso de reservas y cancelaciones">
+      <Section title="4. Reservas, pagos y cancelaciones">
         <p>
           Las solicitudes de reserva se realizan a través de la Plataforma y requieren aprobación expresa del
-          Propietario. Una vez aprobada, las fechas quedan bloqueadas y se genera el cobro correspondiente.
+          Propietario. Los pagos con tarjeta se procesan mediante Stripe, un procesador de pagos independiente;
+          Maddi no almacena los datos de la tarjeta.
         </p>
         <ul className="list-disc pl-5 space-y-2">
-          <li><strong className="text-white">Cancelación por el Anunciante:</strong> antes del inicio de campaña, sujeta a políticas particulares del Propietario.</li>
-          <li><strong className="text-white">Cancelación por el Propietario:</strong> deberá notificar con al menos 7 días de anticipación, salvo causa de fuerza mayor.</li>
-          <li>En caso de incumplimiento por causas imputables al Propietario, el Anunciante podrá solicitar reembolso proporcional.</li>
+          <li><strong className="text-white">Retención al solicitar:</strong> al enviar la solicitud, Stripe autoriza y retiene en la tarjeta del Anunciante el importe total de la campaña. En ese momento no se realiza el cobro.</li>
+          <li><strong className="text-white">Aprobación:</strong> si el Propietario aprueba, se cobra el importe retenido, las fechas quedan bloqueadas y el Anunciante recibe la confirmación.</li>
+          <li><strong className="text-white">Rechazo o falta de respuesta:</strong> si el Propietario rechaza la solicitud, o no responde en un máximo de 7 días, la retención se libera y no se realiza ningún cobro. El plazo en que el banco refleja la liberación depende de la institución emisora.</li>
+          <li><strong className="text-white">Cancelación por el Anunciante:</strong> mientras la solicitud esté pendiente, el Anunciante puede cancelarla sin costo y la retención se libera. Una vez aprobada y cobrada la campaña, el cobro no es reembolsable por decisión del Anunciante; cualquier ajuste deberá acordarse con el Propietario.</li>
+          <li><strong className="text-white">Cancelación por el Propietario:</strong> si el Propietario cancela una campaña ya aprobada o no puede cumplirla por causas que le sean imputables, se reembolsa al Anunciante el importe total pagado y las fechas se liberan. Deberá notificar con la mayor anticipación posible.</li>
         </ul>
       </Section>
 
-      <Section title="5. Comisiones de la Plataforma">
+      <Section title="5. Comisiones, impuestos y facturación">
         <p>
           Maddi cobra una comisión equivalente al <strong className="text-primary">15%</strong> sobre el monto
-          total de cada transacción aprobada, descontada del pago al Propietario. Los precios mostrados al
-          Anunciante incluyen dicha comisión, salvo indicación contraria.
+          de cada campaña aprobada. La comisión se descuenta del pago que recibe el Propietario; el Anunciante
+          paga el precio publicado por el Propietario, sin cargo adicional por parte de Maddi.
+        </p>
+        <p>
+          El Propietario recibe el monto neto de la comisión a través de su cuenta de cobros en Stripe, y los
+          depósitos a su cuenta bancaria están sujetos a los tiempos y condiciones de Stripe. Cada parte es
+          responsable de sus propias obligaciones fiscales derivadas de las operaciones realizadas en la
+          Plataforma, incluyendo la emisión de los comprobantes fiscales que correspondan.
         </p>
         <p>
           Maddi podrá ofrecer promociones temporales con comisión reducida o nula; dichas promociones se

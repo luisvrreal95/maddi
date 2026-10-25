@@ -38,7 +38,7 @@ const Form: React.FC<{ total: number; onPaid: () => void; onCancel: () => void }
       <PaymentElement />
       <p className="text-xs text-muted-foreground flex items-start gap-2">
         <Lock className="w-3.5 h-3.5 mt-0.5 flex-none" />
-        Solo retenemos ${total.toLocaleString('es-MX')} MXN en tu tarjeta. El cobro se hace únicamente si el propietario aprueba tu solicitud; si la rechaza o no responde, se libera.
+        Solo retenemos ${total.toLocaleString('es-MX')} MXN en tu tarjeta. El cobro se hace únicamente si el propietario aprueba tu solicitud; si la rechaza o no responde en 7 días, se libera. Puedes cancelar sin costo mientras esté pendiente. Una vez aprobada y cobrada, el cobro no es reembolsable salvo que el propietario cancele. El precio no incluye otros cargos de Maddi.
       </p>
       <div className="flex gap-2">
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel} disabled={busy}>Atrás</Button>

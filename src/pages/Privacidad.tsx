@@ -15,7 +15,7 @@ const Privacidad: React.FC = () => (
     <article className="flex-1 max-w-4xl mx-auto px-6 py-16 text-white w-full">
       <header className="mb-12 border-b border-white/10 pb-8">
         <h1 className="text-4xl md:text-5xl font-bold mb-3">Aviso de Privacidad</h1>
-        <p className="text-white/50 text-sm">Vigencia: Enero 2026 · Conforme a la LFPDPPP</p>
+        <p className="text-white/50 text-sm">Vigencia: Octubre 2026 · Conforme a la LFPDPPP</p>
       </header>
 
       <Section title="1. Responsable del tratamiento">
@@ -60,7 +60,7 @@ const Privacidad: React.FC = () => (
       <Section title="4. Transferencia de datos">
         <p>Maddi podrá compartir sus datos personales con:</p>
         <ul className="list-disc pl-5 space-y-2">
-          <li>Procesadores de pago (para liquidación de transacciones).</li>
+          <li>Procesadores de pago (Stripe), para autorizar, cobrar, reembolsar y depositar pagos. Maddi no almacena los datos completos de su tarjeta.</li>
           <li>Proveedores de infraestructura tecnológica (hosting, correo, analítica).</li>
           <li>Autoridades competentes cuando sea requerido por ley.</li>
           <li>Otros usuarios de la plataforma únicamente cuando exista una reserva o conversación activa entre las partes (nombre y datos de contacto necesarios).</li>
