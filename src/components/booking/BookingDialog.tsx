@@ -204,6 +204,15 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
     setDesignPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
+  const [ownerPaysInApp, setOwnerPaysInApp] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    supabase.from('profiles').select('stripe_charges_enabled').eq('user_id', billboard.owner_id).maybeSingle()
+      .then(({ data }) => { if (!cancelled) setOwnerPaysInApp(!!(data as any)?.stripe_charges_enabled); });
+    return () => { cancelled = true; };
+  }, [open, billboard.owner_id]);
+
   const [pendingPayment, setPendingPayment] = useState<{ bookingData: any } | null>(null);
 
   const ownerAcceptsPayments = async (): Promise<boolean> => {
@@ -624,7 +633,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                 <div className="space-y-1 text-sm text-white/70 mb-2">
                   <div className="flex justify-between">
                     <span>Duración</span>
-                    <span className="text-white">{campaignDays} días ({monthsEquivalent} meses)</span>
+                    <span className="text-white">{campaignDays} días ({monthsEquivalent} {monthsEquivalent === 1 ? "mes" : "meses"})</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tarifa mensual</span>
@@ -651,7 +660,7 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
                   disabled={isLoading || dateConflict || durationError || message.trim().length < 20 || !startDate || !endDate || isUploadingImage}
                   className="flex-1 bg-primary text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
                 >
-                  {isLoading ? 'Enviando...' : 'Enviar Solicitud'}
+                  {isLoading ? 'Un momento...' : ownerPaysInApp ? 'Continuar al pago' : 'Enviar Solicitud'}
                 </Button>
               </div>
             </form>

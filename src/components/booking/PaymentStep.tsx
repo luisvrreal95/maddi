@@ -43,7 +43,7 @@ const Form: React.FC<{ total: number; onPaid: () => void; onCancel: () => void }
       <div className="flex gap-2">
         <Button type="button" variant="outline" className="rounded-full" onClick={onCancel} disabled={busy}>Atrás</Button>
         <Button type="submit" disabled={!stripe || busy} className="flex-1 rounded-full bg-primary text-primary-foreground font-semibold hover:bg-primary-hover">
-          {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Autorizar y enviar solicitud
+          {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}Enviar solicitud · retener ${total.toLocaleString('es-MX')}
         </Button>
       </div>
     </form>

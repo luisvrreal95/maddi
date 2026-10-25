@@ -137,7 +137,7 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
     setIsReady(true);
 
     // Una vez pintada la tarjeta, mueve el mapa si quedó recortada (arriba/abajo/lados)
-    const fitTimer = window.setTimeout(() => {
+    const fitPopup = () => {
       const el = popup.getElement();
       if (!el) return;
       const r = el.getBoundingClientRect();
@@ -149,10 +149,11 @@ const MapPopupPortal: React.FC<MapPopupPortalProps> = ({
       if (r.bottom > c.bottom - M) dy = r.bottom - (c.bottom - M);
       else if (r.top < c.top + M) dy = r.top - (c.top + M);
       if (dx || dy) map.panBy([dx, dy], { duration: 300 });
-    }, 120);
+    };
+    const fitTimers = [150, 600].map((ms) => window.setTimeout(fitPopup, ms));
 
     return () => {
-      window.clearTimeout(fitTimer);
+      fitTimers.forEach((t) => window.clearTimeout(t));
       popup.remove();
       containerRef.current = null;
       setIsReady(false);
