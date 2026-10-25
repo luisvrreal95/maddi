@@ -14,6 +14,9 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import type { DateRange } from 'react-day-picker';
+import { useMapboxToken } from '@/contexts/MapboxTokenContext';
+import { structureKey, normalizeFaceLabel } from '@/lib/billboardFaces';
+import FaceSelector from './FaceSelector';
 import PaymentStep from './PaymentStep';
 import BookingSuccessScreen from './BookingSuccessScreen';
 
@@ -33,8 +36,30 @@ interface ExistingBooking {
 const BookingDialog: React.FC<BookingDialogProps> = ({
   open,
   onOpenChange,
-  billboard,
+  billboard: billboardProp,
 }) => {
+  const { token: mapboxToken } = useMapboxToken();
+  const [faceRows, setFaceRows] = useState<any[]>([]);
+  const [faceId, setFaceId] = useState<string>(billboardProp.id);
+  const billboard = (faceRows.find(f => f.id === faceId) ?? billboardProp) as typeof billboardProp;
+
+  // Otras caras de la misma estructura: el anunciante elige cuál reservar
+  useEffect(() => {
+    if (!open) return;
+    setFaceId(billboardProp.id);
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.from('billboards').select('*').eq('owner_id', billboardProp.owner_id);
+      if (cancelled || !data) return;
+      const key = structureKey(billboardProp as any);
+      const same = data
+        .filter((b: any) => structureKey(b) === key && (b.is_available || b.id === billboardProp.id))
+        .sort((a: any, b: any) => (a.face_label && b.face_label ? a.face_label.localeCompare(b.face_label) : String(a.created_at).localeCompare(String(b.created_at))));
+      setFaceRows(same.length > 1 ? same : []);
+    })();
+    return () => { cancelled = true; };
+  }, [open, billboardProp.id]);
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -481,6 +506,26 @@ const BookingDialog: React.FC<BookingDialogProps> = ({
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* ... keep existing code (form content from billboard info through submit buttons) */}
+              {faceRows.length > 1 && mapboxToken && (
+                <div className="mb-4 space-y-2">
+                  <div>
+                    <p className="text-white font-semibold text-sm">¿Qué cara quieres reservar?</p>
+                    <p className="text-white/50 text-xs">Arrastra el mapa y elige la cara que mira hacia tu público.</p>
+                  </div>
+                  <FaceSelector
+                    latitude={Number(billboardProp.latitude)}
+                    longitude={Number(billboardProp.longitude)}
+                    mapboxToken={mapboxToken}
+                    selectedId={faceId}
+                    onSelect={setFaceId}
+                    faces={faceRows.map((f: any, i: number) => ({
+                      id: f.id, label: normalizeFaceLabel(f.face_label, i), facing: f.facing ?? null,
+                      price: f.price_per_month, image_url: f.image_url, available: !!f.is_available,
+                    }))}
+                  />
+                </div>
+              )}
+
               <div className="bg-card rounded-xl p-4 mb-4">
                 <p className="text-white/60 text-sm">Espectacular</p>
                 <p className="text-white font-bold">{billboard.title}</p>
