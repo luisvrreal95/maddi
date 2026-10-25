@@ -27,8 +27,8 @@ export async function requireUser(req: Request) {
 
 /** Comisión de Maddi en % (se descuenta al propietario). Configurable con PLATFORM_FEE_PERCENT. */
 export const platformFeePercent = () => {
-  const n = Number(Deno.env.get("PLATFORM_FEE_PERCENT") ?? "10");
-  return isFinite(n) && n >= 0 && n < 100 ? n : 10;
+  const n = Number(Deno.env.get("PLATFORM_FEE_PERCENT") ?? "15");
+  return isFinite(n) && n >= 0 && n < 100 ? n : 15;
 };
 
 export const siteUrl = (req: Request) =>
