@@ -18,6 +18,8 @@ interface Row {
   total_price: number;
   status: string;
   payment_status: string;
+  payout_status?: string;
+  payout_released_at?: string | null;
   platform_fee: number | null;
   owner_payout: number | null;
   payment_expires_at: string | null;
@@ -25,16 +27,17 @@ interface Row {
   updated_at?: string | null;
 }
 
-type Kind = 'held' | 'captured' | 'released';
+type Kind = 'held' | 'validating' | 'captured' | 'released';
 const kindOf = (r: Row): Kind | null => {
   if (r.payment_status === 'authorized' && r.status === 'pending') return 'held';
-  if (r.payment_status === 'captured') return 'captured';
-  if (r.payment_status === 'canceled') return 'released';
+  if (r.payment_status === 'captured') return ['awaiting_evidence', 'in_review', 'disputed'].includes(r.payout_status || '') ? 'validating' : 'captured';
+  if (r.payment_status === 'canceled' || r.payment_status === 'refunded') return 'released';
   return null;
 };
 const KIND_UI: Record<Kind, { label: string; cls: string }> = {
   held: { label: 'Retenido', cls: 'bg-amber-100 text-amber-800' },
-  captured: { label: 'Cobrado', cls: 'bg-[#E3F9C9] text-[#2F6B00]' },
+  validating: { label: 'En validación', cls: 'bg-blue-100 text-blue-800' },
+  captured: { label: 'Pagado', cls: 'bg-[#E3F9C9] text-[#2F6B00]' },
   released: { label: 'Liberado', cls: 'bg-muted text-muted-foreground' },
 };
 
@@ -67,16 +70,17 @@ const OwnerPaymentsTab: React.FC<{ billboards: Billboard[]; userId: string }> = 
 
   const stats = useMemo(() => {
     const som = new Date(); som.setDate(1); som.setHours(0, 0, 0, 0);
-    let held = 0, monthCaptured = 0, monthFee = 0, total = 0, heldCount = 0;
+    let validating = 0, held = 0, monthCaptured = 0, monthFee = 0, total = 0, heldCount = 0;
     movements.forEach(r => {
       const k = kindOf(r)!; const f = bookingFees({ ...r, billboard_id: r.billboard_id } as any);
       if (k === 'held') { held += f.payout; heldCount++; }
+      if (k === 'validating') validating += f.payout;
       if (k === 'captured') {
         total += f.payout;
-        if (new Date(r.updated_at || r.created_at) >= som) { monthCaptured += f.payout; monthFee += f.fee; }
+        if (new Date(r.payout_released_at || r.updated_at || r.created_at) >= som) { monthCaptured += f.payout; monthFee += f.fee; }
       }
     });
-    return { held, heldCount, monthCaptured, monthFee, total };
+    return { held, heldCount, validating, monthCaptured, monthFee, total };
   }, [movements]);
 
   const chart = useMemo(() => {
@@ -122,9 +126,9 @@ const OwnerPaymentsTab: React.FC<{ billboards: Billboard[]; userId: string }> = 
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className={card}><p className="text-sm text-muted-foreground">Retenido por aprobar</p><p className="text-3xl font-bold mt-1">{money(stats.held)}</p><p className="text-xs text-muted-foreground mt-1">{stats.heldCount} solicitud{stats.heldCount === 1 ? '' : 'es'} esperando tu respuesta</p></div>
-        <div className={card}><p className="text-sm text-muted-foreground">Cobrado este mes</p><p className="text-3xl font-bold mt-1">{money(stats.monthCaptured)}</p><p className="text-xs text-muted-foreground mt-1">lo que recibes</p></div>
+        <div className={card}><p className="text-sm text-muted-foreground">En validación</p><p className="text-3xl font-bold mt-1">{money(stats.validating)}</p><p className="text-xs text-muted-foreground mt-1">cobrado; se libera al validar la instalación</p></div>
+        <div className={card}><p className="text-sm text-muted-foreground">Pagado este mes</p><p className="text-3xl font-bold mt-1">{money(stats.monthCaptured)}</p><p className="text-xs text-muted-foreground mt-1">lo que recibes</p></div>
         <div className={card}><p className="text-sm text-muted-foreground">Comisión Maddi (15%)</p><p className="text-3xl font-bold mt-1">{money(stats.monthFee)}</p><p className="text-xs text-muted-foreground mt-1">este mes</p></div>
-        <div className={card}><p className="text-sm text-muted-foreground">Total cobrado</p><p className="text-3xl font-bold mt-1">{money(stats.total)}</p><p className="text-xs text-muted-foreground mt-1">desde que empezaste</p></div>
       </div>
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_340px] gap-6">
@@ -133,7 +137,7 @@ const OwnerPaymentsTab: React.FC<{ billboards: Billboard[]; userId: string }> = 
             <div className="p-4 flex items-center justify-between gap-3 border-b border-border flex-wrap">
               <h3 className="font-semibold">Movimientos</h3>
               <div className="flex gap-2">
-                {([['all', 'Todos'], ['held', 'Retenidos'], ['captured', 'Cobrados'], ['released', 'Liberados']] as const).map(([id, l]) => (
+                {([['all', 'Todos'], ['held', 'Retenidos'], ['validating', 'En validación'], ['captured', 'Pagados'], ['released', 'Liberados']] as const).map(([id, l]) => (
                   <button key={id} onClick={() => setFilter(id)} className={`text-xs font-medium rounded-full px-3 py-1.5 border ${filter === id ? 'bg-foreground text-background border-foreground' : 'border-border hover:bg-muted'}`}>{l}</button>
                 ))}
               </div>
@@ -183,8 +187,9 @@ const OwnerPaymentsTab: React.FC<{ billboards: Billboard[]; userId: string }> = 
           <h3 className="font-semibold flex items-center gap-2"><Wallet className="w-4 h-4" /> ¿Cómo funciona?</h3>
           <ol className="space-y-3 text-sm">
             <li><b>1. Retenemos.</b> <span className="text-muted-foreground">Cuando el anunciante solicita, su tarjeta se retiene (no se cobra todavía).</span></li>
-            <li><b>2. Tú decides.</b> <span className="text-muted-foreground">Si apruebas, se cobra y el dinero va a tu cuenta menos 15% de comisión. Si rechazas o no respondes en 7 días, la tarjeta se libera.</span></li>
-            <li><b>3. Te depositamos.</b> <span className="text-muted-foreground">Stripe deposita a tu cuenta bancaria; revisa fechas y estado en “Administrar en Stripe”.</span></li>
+            <li><b>2. Tú decides.</b> <span className="text-muted-foreground">Si apruebas, se cobra al anunciante. Si rechazas o no respondes en 7 días, la tarjeta se libera.</span></li>
+            <li><b>3. Instalas y subes fotos.</b> <span className="text-muted-foreground">Cuando el anuncio esté puesto, sube la evidencia en la reserva. El anunciante confirma, o a las 48 h se da por validado.</span></li>
+            <li><b>4. Te pagamos.</b> <span className="text-muted-foreground">Transferimos tu pago (menos 15% de comisión) y Stripe lo deposita en tu cuenta bancaria; ve fechas en “Administrar en Stripe”.</span></li>
           </ol>
           <div className="flex items-start gap-2 rounded-xl bg-muted/60 p-3 text-xs text-muted-foreground"><ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" /> Los pagos se procesan con Stripe. Maddi nunca ve los datos de la tarjeta.</div>
         </div>

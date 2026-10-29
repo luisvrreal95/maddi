@@ -3,6 +3,7 @@ import { corsHeaders, json, getStripe, adminClient, requireUser, platformFeePerc
 
 // Crea la retención (PaymentIntent con captura manual) de una solicitud de reserva.
 // La tarjeta se autoriza al solicitar; el cobro se captura cuando el propietario aprueba.
+// El dinero se transfiere al propietario hasta validar la instalación (stripe-booking-evidence).
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -31,13 +32,14 @@ serve(async (req) => {
       currency: "mxn",
       capture_method: "manual",
       automatic_payment_methods: { enabled: true },
-      application_fee_amount: fee,
-      transfer_data: { destination: owner.stripe_account_id },
+      // El pago entra a Maddi; se transfiere al propietario cuando se valida la instalación.
+      transfer_group: booking.id,
       description: `Reserva Maddi: ${billboard?.title ?? booking.billboard_id}`,
       metadata: { booking_id: booking.id, billboard_id: booking.billboard_id },
     }, { idempotencyKey: `pi-${booking.id}` });
 
     await db.from("bookings").update({
+      payment_model: "separate",
       payment_status: "requires_payment",
       stripe_payment_intent_id: pi.id,
       platform_fee: fee / 100,

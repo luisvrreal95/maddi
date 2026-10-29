@@ -58,3 +58,6 @@ project_id = "vzkzivropoohapysafya"
 
   [functions.stripe-webhook]
     verify_jwt = false
+
+  [functions.stripe-booking-evidence]
+    verify_jwt = false

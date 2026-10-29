@@ -33,12 +33,18 @@ serve(async (req) => {
       if (booking.status !== "approved") return json({ error: "Solo se puede reembolsar una campaña aprobada" }, 409);
       if (!piId || booking.payment_status !== "captured") return json({ error: "Esta reserva no tiene un cobro en Maddi para reembolsar" }, 409);
       try {
-        // reembolso completo: se revierte la transferencia al propietario y la comisión de Maddi
-        await stripe.refunds.create({ payment_intent: piId, reverse_transfer: true, refund_application_fee: true });
+        if (booking.payment_model === "separate") {
+          // si ya se le pagó al propietario, primero se revierte esa transferencia
+          if (booking.stripe_transfer_id) await stripe.transfers.createReversal(booking.stripe_transfer_id);
+          await stripe.refunds.create({ payment_intent: piId });
+        } else {
+          // modelo anterior: se revierte la transferencia al propietario y la comisión de Maddi
+          await stripe.refunds.create({ payment_intent: piId, reverse_transfer: true, refund_application_fee: true });
+        }
       } catch (e) {
         return json({ error: "No se pudo reembolsar: " + (e as Error).message }, 402);
       }
-      await db.from("bookings").update({ status: "cancelled", payment_status: "refunded" }).eq("id", booking.id);
+      await db.from("bookings").update({ status: "cancelled", payment_status: "refunded", payout_status: "refunded" }).eq("id", booking.id);
       // libera el calendario
       await db.from("blocked_dates").delete().eq("billboard_id", booking.billboard_id).eq("reason", `Campaña aprobada #${String(booking.id).slice(0, 8)}`);
       return json({ ok: true });
@@ -66,7 +72,11 @@ serve(async (req) => {
     if (piId) {
       try {
         await stripe.paymentIntents.capture(piId);
-        await db.from("bookings").update({ payment_status: "captured" }).eq("id", booking.id);
+        await db.from("bookings").update({
+          payment_status: "captured",
+          // con el modelo nuevo el dinero queda en Maddi hasta validar la instalación
+          payout_status: booking.payment_model === "separate" ? "awaiting_evidence" : "released",
+        }).eq("id", booking.id);
       } catch (e) {
         await db.from("bookings").update({ status: "pending" }).eq("id", booking.id);
         return json({ error: "No se pudo cobrar la tarjeta: " + (e as Error).message }, 402);

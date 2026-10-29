@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { differenceInDays, format, isAfter, isBefore } from 'date-fns';
 import { es } from 'date-fns/locale';
+import EvidencePanel from '@/components/booking/EvidencePanel';
 import BookingDecisionDialog, { bookingFees, money } from '@/components/booking/BookingDecisionDialog';
 import { parseDesignPaths, resolveDesignImageUrls } from '@/lib/designImageUtils';
 import {
@@ -94,6 +95,11 @@ const BookingManagement: React.FC = () => {
     };
     window.addEventListener('select-booking', handler as EventListener);
     return () => window.removeEventListener('select-booking', handler as EventListener);
+  }, [bookings]);
+
+  // mantiene el detalle abierto sincronizado con los datos recién cargados
+  useEffect(() => {
+    setSelectedBooking(prev => (prev ? (bookings.find(b => b.id === prev.id) ?? prev) : prev));
   }, [bookings]);
 
   const fetchBookings = async () => {
@@ -357,6 +363,8 @@ const BookingManagement: React.FC = () => {
                 </div>
               );
             })()}
+
+            <EvidencePanel booking={selectedBooking} role="owner" onChanged={fetchBookings} />
 
             {/* Actions */}
             <div className="flex gap-2 pt-2">

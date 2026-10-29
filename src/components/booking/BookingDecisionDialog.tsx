@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { AlertTriangle, CalendarCheck, CreditCard } from 'lucide-react';
+import { AlertTriangle, CalendarCheck, CreditCard, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -193,6 +193,12 @@ const BookingDecisionDialog: React.FC<Props> = ({ booking, mode, onClose, onDone
                       </>
                     )}
                   </div>
+                  {paysInApp && (
+                    <div className="flex items-start gap-2 rounded-xl bg-blue-50 text-blue-900 p-3 text-xs">
+                      <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                      <span>Maddi retiene el pago y te lo transfiere cuando subas fotos del anuncio instalado y el anunciante lo confirme (o pasen 48 h sin reportes).</span>
+                    </div>
+                  )}
                   <div className="flex items-start gap-2 text-xs text-muted-foreground">
                     <CalendarCheck className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>{isDigital ? 'Es una pantalla digital: las fechas no se bloquean.' : 'Esas fechas se bloquearán en tu calendario y el anunciante recibirá la confirmación.'}</span>

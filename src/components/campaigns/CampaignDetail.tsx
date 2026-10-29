@@ -20,6 +20,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import EvidencePanel from '@/components/booking/EvidencePanel';
 import { useMapboxToken } from '@/contexts/MapboxTokenContext';
 
 interface Billboard {
@@ -144,12 +145,17 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
   const handleCancelBooking = async () => {
     setCancelling(true);
     try {
-      const { error } = await supabase
-        .from('bookings')
-        .update({ status: 'cancelled' })
-        .eq('id', booking.id);
-
-      if (error) throw error;
+      if ((booking as any).stripe_payment_intent_id) {
+        // con pago en Maddi: el servidor libera la tarjeta (no se cobra nada)
+        const { data: res, error: fnErr } = await supabase.functions.invoke('stripe-booking-action', { body: { booking_id: booking.id, action: 'cancel' } });
+        if (fnErr || (res as any)?.error) throw new Error((res as any)?.error || fnErr?.message || 'Error al cancelar');
+      } else {
+        const { error } = await supabase
+          .from('bookings')
+          .update({ status: 'cancelled' })
+          .eq('id', booking.id);
+        if (error) throw error;
+      }
 
       // Notify owner via in-app + email
       if (billboard) {
@@ -417,6 +423,8 @@ const CampaignDetail: React.FC<CampaignDetailProps> = ({ booking, onBack, onRefr
           </div>
         </Card>
       )}
+
+      <EvidencePanel booking={booking} role="business" onChanged={() => onRefresh?.()} />
 
       {/* Cancel button for pending bookings */}
       {isPending && (
