@@ -25,7 +25,14 @@ type EmailType =
   | 'campaign_started'
   | 'campaign_started_owner'
   | 'verification_approved'
-  | 'verification_rejected';
+  | 'verification_rejected'
+  | 'evidence_request'
+  | 'evidence_reminder'
+  | 'evidence_submitted'
+  | 'evidence_review_reminder'
+  | 'evidence_disputed'
+  | 'evidence_disputed_admin'
+  | 'payout_released';
 
 interface NotificationEmailRequest {
   email: string;
@@ -356,6 +363,109 @@ const getEmailContent = (type: EmailType, recipientName: string, data: Record<st
           <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Puedes volver a enviar tu solicitud desde la sección de Configuración asegurándote de que los documentos sean legibles y estén vigentes.</p>
         `,
         cta: { text: 'Volver a intentarlo', url: `${baseUrl}/settings#verificacion` },
+        secondaryCta: null,
+      };
+
+    case 'evidence_request':
+      return {
+        subject: `Aprobaste una campaña: sube la evidencia al instalar — ${data.billboardTitle}`,
+        heading: `¡Hola ${displayName}!`,
+        message: `Aprobaste la campaña en <strong>${data.billboardTitle}</strong>. Tu pago se libera cuando el anuncio esté instalado y lo compruebes con fotos.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Inicio de campaña:</strong> ${data.startDate}</p>
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Tu pago:</strong> $${data.ownerPayout} MXN</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Cuando el anuncio esté puesto, entra a la reserva y sube de 1 a 6 fotos. El anunciante tiene 48 horas para confirmar; si no responde, se confirma automáticamente y recibes tu pago.</p>
+        `,
+        cta: { text: 'Ir a la reserva', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'evidence_reminder':
+      return {
+        subject: `Recordatorio: sube la evidencia para recibir tu pago — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `La campaña en <strong>${data.billboardTitle}</strong> ya inició (${data.startDate}) y todavía no hemos recibido fotos del anuncio instalado.`,
+        details: `
+          <div style="background: rgba(255, 200, 100, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.8);">Tu pago de <strong>$${data.ownerPayout} MXN</strong> se libera cuando subas las fotos y el anunciante las confirme.</p>
+          </div>
+        `,
+        cta: { text: 'Subir evidencia', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'evidence_submitted':
+      return {
+        subject: `Confirma que tu anuncio está instalado — ${data.billboardTitle}`,
+        heading: `¡Hola ${displayName}!`,
+        message: `El propietario subió fotos de tu anuncio en <strong>${data.billboardTitle}</strong>.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.8);">Revísalas y confirma que está instalado, o repórtanos un problema. Tienes <strong>48 horas</strong>; si no respondes, se confirma automáticamente.</p>
+          </div>
+        `,
+        cta: { text: 'Ver fotos y confirmar', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'evidence_review_reminder':
+      return {
+        subject: `Te quedan pocas horas para revisar las fotos — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `En unas 24 horas se confirmará automáticamente la instalación de tu anuncio en <strong>${data.billboardTitle}</strong>.`,
+        details: `
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Si algo no está bien, repórtalo antes de que venza el plazo y detendremos el pago al propietario mientras lo revisamos.</p>
+        `,
+        cta: { text: 'Revisar fotos', url: `${baseUrl}/business${data.bookingId ? `?booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'evidence_disputed':
+      return {
+        subject: `El anunciante reportó un problema — ${data.billboardTitle}`,
+        heading: `Hola ${displayName}`,
+        message: `El anunciante reportó un problema con la instalación en <strong>${data.billboardTitle}</strong>. Tu pago queda detenido mientras lo revisamos.`,
+        details: `
+          <div style="background: rgba(255, 100, 100, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 0; color: rgba(255,255,255,0.8);"><strong>Motivo:</strong> ${data.reason}</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">Si ya lo corregiste, puedes subir nuevas fotos desde la reserva. El equipo de Maddi también revisará el caso.</p>
+        `,
+        cta: { text: 'Ver reserva', url: `${baseUrl}/owner?tab=reservas${data.bookingId ? `&booking=${data.bookingId}` : ''}` },
+        secondaryCta: null,
+      };
+
+    case 'evidence_disputed_admin':
+      return {
+        subject: `[Maddi] Reporte de instalación por resolver — ${data.billboardTitle}`,
+        heading: `Reporte por resolver`,
+        message: `El anunciante reportó un problema en <strong>${data.billboardTitle}</strong>.`,
+        details: `
+          <div style="background: rgba(255, 100, 100, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Reserva:</strong> ${data.bookingId}</p>
+            <p style="margin: 4px 0; color: rgba(255,255,255,0.8);"><strong>Motivo:</strong> ${data.reason}</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El pago al propietario está detenido hasta que se resuelva.</p>
+        `,
+        cta: null,
+        secondaryCta: null,
+      };
+
+    case 'payout_released':
+      return {
+        subject: `Pago liberado: $${data.ownerPayout} MXN — ${data.billboardTitle}`,
+        heading: `¡Buenas noticias, ${displayName}!`,
+        message: `Se liberó tu pago por la campaña en <strong>${data.billboardTitle}</strong>.`,
+        details: `
+          <div style="background: rgba(155, 255, 67, 0.1); border-radius: 12px; padding: 16px; margin: 16px 0;">
+            <p style="margin: 4px 0; color: #FFFFFF;"><strong>Monto:</strong> $${data.ownerPayout} MXN</p>
+            <p style="margin: 4px 0; color: rgba(255,255,255,0.8);">${data.how}</p>
+          </div>
+          <p style="color: rgba(255,255,255,0.6); font-size: 14px;">El dinero llega a tu cuenta de cobros conectada y Stripe lo deposita en tu banco según tu calendario de pagos.</p>
+        `,
+        cta: { text: 'Ver mis pagos', url: `${baseUrl}/owner?tab=pagos` },
         secondaryCta: null,
       };
 

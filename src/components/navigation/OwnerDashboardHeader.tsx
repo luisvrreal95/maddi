@@ -1,3 +1,4 @@
+import { useEvidenceTodos } from '@/hooks/useEvidenceTodos';
 import React from 'react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { Menu, Home, Building2, Calendar, MessageSquare, LayoutDashboard, BarChart3, Settings, LogOut, MoreHorizontal, CalendarCheck, Wallet } from 'lucide-react';
@@ -23,6 +24,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
   const [searchParams] = useSearchParams();
   const { pathname } = useLocation();
   const { unreadCount } = useUnreadMessages();
+  const { todos: evidenceTodos } = useEvidenceTodos('owner');
   
   // La sección marcada depende de la página: Mensajes vive en /messages, el resto en /owner?tab=
   const currentTab = pathname.startsWith('/messages')
@@ -34,7 +36,7 @@ const OwnerDashboardHeader: React.FC<OwnerDashboardHeaderProps> = ({ activeTab, 
   const navItems = [
     { id: 'inicio', label: 'Inicio', icon: Home },
     { id: 'propiedades', label: 'Mis espectaculares', icon: Building2 },
-    { id: 'reservas', label: 'Reservas', icon: CalendarCheck },
+    { id: 'reservas', label: 'Reservas', icon: CalendarCheck, badge: evidenceTodos.length },
     { id: 'mensajes', label: 'Mensajes', icon: MessageSquare, badge: unreadCount },
     { id: 'pagos', label: 'Pagos', icon: Wallet },
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },

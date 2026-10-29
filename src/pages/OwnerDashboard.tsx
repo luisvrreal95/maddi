@@ -1,3 +1,4 @@
+import EvidenceTodoBanner from '@/components/booking/EvidenceTodoBanner';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -88,6 +89,11 @@ const OwnerDashboard: React.FC = () => {
       }, 500);
     }
   }, [searchParams, billboards]);
+
+  const openBookingEvidence = (bookingId: string) => {
+    setActiveTab('reservas');
+    setSearchParams({ tab: 'reservas', booking: bookingId });
+  };
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as TabType);
@@ -266,11 +272,14 @@ const OwnerDashboard: React.FC = () => {
                 Agregar espectacular
               </Button>
             </div>
+            <EvidenceTodoBanner role="owner" onOpen={openBookingEvidence} />
             <OwnerHome billboards={billboards} userId={user?.id || ''} />
           </>
         )}
 
         {activeTab === 'propiedades' && (
+          <>
+          <EvidenceTodoBanner role="owner" onOpen={openBookingEvidence} />
           <OwnerPropertiesTab
             billboards={billboards}
             bookings={currentBookings}
@@ -291,6 +300,7 @@ const OwnerDashboard: React.FC = () => {
               if (error) toast.error('No se pudieron pausar'); else { toast.success(`${ids.length} pausada(s)`); fetchBillboards(); }
             }}
           />
+          </>
         )}
 
         {activeTab === 'calendario' && (

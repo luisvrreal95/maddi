@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Check, CheckCheck, Calendar, X, FileText } from 'lucide-react';
+import { Bell, Check, CheckCheck, Calendar, X, FileText, Camera, Wallet, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -41,6 +41,14 @@ const NotificationBell: React.FC = () => {
         return <Check className="w-4 h-4 text-green-500" />;
       case 'booking_rejected':
         return <X className="w-4 h-4 text-red-500" />;
+      case 'evidence_submitted':
+      case 'evidence_review_reminder':
+      case 'evidence_reminder':
+        return <Camera className="w-4 h-4 text-primary" />;
+      case 'evidence_disputed':
+        return <AlertTriangle className="w-4 h-4 text-amber-500" />;
+      case 'payout_released':
+        return <Wallet className="w-4 h-4 text-green-500" />;
       default:
         return <FileText className="w-4 h-4 text-blue-500" />;
     }
@@ -53,9 +61,21 @@ const NotificationBell: React.FC = () => {
         ? `/owner?tab=reservas&booking=${notification.related_booking_id}`
         : '/owner?tab=reservas';
     }
-    // For booking approved/rejected, go to business dashboard
+    // Evidencia de instalación: anunciante revisa fotos; propietario sube o corrige
+    if (['evidence_submitted', 'evidence_review_reminder'].includes(notification.type)) {
+      return notification.related_booking_id ? `/business?booking=${notification.related_booking_id}` : '/business';
+    }
+    if (['evidence_reminder', 'evidence_disputed'].includes(notification.type)) {
+      return notification.related_booking_id
+        ? `/owner?tab=reservas&booking=${notification.related_booking_id}`
+        : '/owner?tab=reservas';
+    }
+    if (notification.type === 'payout_released') {
+      return '/owner?tab=pagos';
+    }
+    // For booking approved/rejected, go to that campaign in the business dashboard
     if (notification.type === 'booking_approved' || notification.type === 'booking_rejected') {
-      return '/business';
+      return notification.related_booking_id ? `/business?booking=${notification.related_booking_id}` : '/business';
     }
     // Admin action notifications go to the billboard detail
     if (notification.type === 'admin_action' && notification.related_billboard_id) {

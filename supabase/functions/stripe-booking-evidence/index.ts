@@ -11,13 +11,35 @@ const REVIEW_HOURS = 48;
 
 type Db = ReturnType<typeof adminClient>;
 
-async function notify(db: Db, userId: string, title: string, message: string, type: string, booking: any) {
+const fmtDate = (d: string) => new Date(d).toLocaleDateString("es-MX");
+const fmtMoney = (n: number) => Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Correo transaccional (best-effort) usando la función send-notification-email. */
+async function emailUser(db: Db, userId: string, type: string, data: Record<string, unknown>, entityId?: string) {
+  try {
+    const { data: prof } = await db.from("profiles").select("full_name, company_name").eq("user_id", userId).maybeSingle();
+    await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/send-notification-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}` },
+      body: JSON.stringify({ email: "", type, userId, entityId, recipientName: prof?.company_name || prof?.full_name || "", data }),
+    });
+  } catch (e) { console.error("emailUser", e); }
+}
+
+/** Notificación en la campana + correo opcional. */
+async function notify(db: Db, userId: string, title: string, message: string, type: string, booking: any, email?: { type: string; data?: Record<string, unknown> }) {
   try {
     await db.from("notifications").insert({
       user_id: userId, title, message, type,
       related_booking_id: booking.id, related_billboard_id: booking.billboard_id,
     });
   } catch (e) { console.error("notify", e); }
+  if (email) {
+    await emailUser(db, userId, email.type, {
+      bookingId: booking.id, startDate: booking.start_date ? fmtDate(booking.start_date) : "", endDate: booking.end_date ? fmtDate(booking.end_date) : "",
+      ownerPayout: fmtMoney(booking.owner_payout), ...(email.data || {}),
+    }, booking.id);
+  }
 }
 
 async function ownerOf(db: Db, billboardId: string) {
@@ -25,8 +47,53 @@ async function ownerOf(db: Db, billboardId: string) {
   return data as { owner_id: string; title: string } | null;
 }
 
+
+/** Recordatorios: propietario sin evidencia tras iniciar la campaña; anunciante a ~24 h de vencer la revisión. */
+async function sendReminders(db: Db) {
+  let n = 0;
+  const now = new Date();
+  const recent = async (bookingId: string, type: string) => {
+    const { data } = await db.from("notifications").select("created_at").eq("related_booking_id", bookingId).eq("type", type)
+      .order("created_at", { ascending: false });
+    return (data || []) as { created_at: string }[];
+  };
+
+  // Propietario: campaña iniciada y sin evidencia → cada 2 días, máximo 4 recordatorios
+  const { data: pendingOwner } = await db.from("bookings").select("*")
+    .eq("status", "approved").eq("payment_model", "separate").eq("payout_status", "awaiting_evidence")
+    .lte("start_date", now.toISOString());
+  for (const b of pendingOwner || []) {
+    try {
+      const prev = await recent(b.id, "evidence_reminder");
+      if (prev.length >= 4) continue;
+      if (prev[0] && now.getTime() - new Date(prev[0].created_at).getTime() < 47 * 3600 * 1000) continue;
+      const bb = await ownerOf(db, b.billboard_id);
+      if (!bb) continue;
+      await notify(db, bb.owner_id, "Sube la evidencia de tu anuncio", `La campaña en "${bb.title}" ya inició. Sube las fotos para recibir tu pago.`, "evidence_reminder", b,
+        { type: "evidence_reminder", data: { billboardTitle: bb.title } });
+      n++;
+    } catch (e) { console.error("reminder owner", e); }
+  }
+
+  // Anunciante: quedan ≤ 24 h para revisar
+  const in24 = new Date(now.getTime() + 24 * 3600 * 1000).toISOString();
+  const { data: reviewing } = await db.from("bookings").select("*")
+    .eq("payout_status", "in_review").gt("review_deadline", now.toISOString()).lte("review_deadline", in24);
+  for (const b of reviewing || []) {
+    try {
+      const prev = await recent(b.id, "evidence_review_reminder");
+      if (prev.length > 0 && new Date(prev[0].created_at) > new Date(b.evidence_submitted_at || 0)) continue;
+      const bb = await ownerOf(db, b.billboard_id);
+      await notify(db, b.business_id, "Quedan pocas horas para confirmar", `Revisa las fotos de "${bb?.title}". Si no respondes, se confirmará automáticamente.`, "evidence_review_reminder", b,
+        { type: "evidence_review_reminder", data: { billboardTitle: bb?.title } });
+      n++;
+    } catch (e) { console.error("reminder advertiser", e); }
+  }
+  return n;
+}
+
 /** Transfiere al propietario su parte (total − comisión). */
-async function release(db: Db, booking: any) {
+async function release(db: Db, booking: any, opts?: { how?: string }) {
   if (booking.payment_model !== "separate") throw new Error("Esta reserva ya se pagó con el modelo anterior");
   if (booking.payment_status !== "captured") throw new Error("El cobro no está capturado");
   if (booking.payout_status === "released" || booking.payout_status === "refunded") return;
@@ -51,7 +118,8 @@ async function release(db: Db, booking: any) {
   await db.from("bookings").update({
     payout_status: "released", stripe_transfer_id: transfer.id, payout_released_at: new Date().toISOString(),
   }).eq("id", booking.id);
-  await notify(db, bb.owner_id, "Pago liberado", `Se transfirió tu pago de "${bb.title}" a tu cuenta de cobros.`, "payout_released", booking);
+  await notify(db, bb.owner_id, "Pago liberado", `Se transfirió tu pago de "${bb.title}" a tu cuenta de cobros.`, "payout_released", booking,
+    { type: "payout_released", data: { billboardTitle: bb.title, how: opts?.how || "El anunciante confirmó la instalación." } });
 }
 
 /** Reembolso completo al anunciante (revierte la transferencia si ya se había pagado). */
@@ -78,9 +146,10 @@ serve(async (req) => {
         .eq("payout_status", "in_review").lte("review_deadline", new Date().toISOString());
       let released = 0; const errors: string[] = [];
       for (const b of due || []) {
-        try { await release(db, b); released++; } catch (e) { errors.push(`${b.id}: ${(e as Error).message}`); }
+        try { await release(db, b, { how: "Pasaron 48 horas sin reportes, así que la instalación se confirmó automáticamente." }); released++; } catch (e) { errors.push(`${b.id}: ${(e as Error).message}`); }
       }
-      return json({ released, errors });
+      const reminded = await sendReminders(db);
+      return json({ released, errors, reminded });
     }
 
     const user = await requireUser(req);
@@ -107,7 +176,8 @@ serve(async (req) => {
         review_deadline: new Date(Date.now() + REVIEW_HOURS * 3600 * 1000).toISOString(),
         dispute_reason: null, disputed_at: null,
       }).eq("id", booking.id);
-      await notify(db, booking.business_id, "Confirma tu anuncio", `El propietario subió fotos de "${bb?.title}". Confirma que está instalado o repórtanos un problema en 48 horas.`, "evidence_submitted", booking);
+      await notify(db, booking.business_id, "Confirma tu anuncio", `El propietario subió fotos de "${bb?.title}". Confirma que está instalado o repórtanos un problema en 48 horas.`, "evidence_submitted", booking,
+        { type: "evidence_submitted", data: { billboardTitle: bb?.title } });
       return json({ ok: true });
     }
 
@@ -123,7 +193,10 @@ serve(async (req) => {
       const reason = String(body.reason || "").trim().slice(0, 600);
       if (reason.length < 10) return json({ error: "Cuéntanos qué pasa (mínimo 10 caracteres)" }, 400);
       await db.from("bookings").update({ payout_status: "disputed", dispute_reason: reason, disputed_at: new Date().toISOString() }).eq("id", booking.id);
-      if (bb) await notify(db, bb.owner_id, "El anunciante reportó un problema", `Sobre "${bb.title}": ${reason}. Maddi revisará el caso.`, "evidence_disputed", booking);
+      if (bb) await notify(db, bb.owner_id, "El anunciante reportó un problema", `Sobre "${bb.title}": ${reason}. Maddi revisará el caso.`, "evidence_disputed", booking,
+        { type: "evidence_disputed", data: { billboardTitle: bb.title, reason } });
+      const { data: admins } = await db.from("admin_users").select("user_id");
+      for (const a of admins || []) await emailUser(db, a.user_id, "evidence_disputed_admin", { billboardTitle: bb?.title, bookingId: booking.id, reason }, booking.id);
       return json({ ok: true });
     }
 
@@ -132,7 +205,7 @@ serve(async (req) => {
       const { data: adm } = await db.from("admin_users").select("user_id").eq("user_id", user.id).maybeSingle();
       if (!adm) return json({ error: "No autorizado" }, 403);
       if (booking.payment_status !== "captured") return json({ error: "El cobro no está capturado" }, 409);
-      if (action === "admin_release") await release(db, booking); else await refund(db, booking);
+      if (action === "admin_release") await release(db, booking, { how: "Maddi revisó el caso y liberó tu pago." }); else await refund(db, booking);
       return json({ ok: true });
     }
 

@@ -125,6 +125,21 @@ const BookingDecisionDialog: React.FC<Props> = ({ booking, mode, onClose, onDone
           },
         });
       } catch { /* correo opcional */ }
+      if (paysInApp && user?.id) {
+        try {
+          await supabase.functions.invoke('send-notification-email', {
+            body: {
+              type: 'evidence_request', recipientName: user?.user_metadata?.full_name || 'Propietario',
+              userId: user.id, entityId: booking.id,
+              data: {
+                billboardTitle: title, bookingId: booking.id,
+                startDate: new Date(booking.start_date).toLocaleDateString('es-MX'),
+                ownerPayout: money(payout).replace(/^\$/, ''),
+              },
+            },
+          });
+        } catch { /* correo opcional */ }
+      }
       try { await postMessage(message); } catch { /* mensaje opcional */ }
       toast.success(paysInApp ? `Aprobada · se cobraron ${money(booking.total_price)}` : 'Campaña aprobada');
       onDone(booking.id, 'approved');

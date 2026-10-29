@@ -1,3 +1,4 @@
+import { EVIDENCE_CHANGED_EVENT } from '@/hooks/useEvidenceTodos';
 import React, { useEffect, useRef, useState } from 'react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -75,6 +76,7 @@ const EvidencePanel: React.FC<Props> = ({ booking, role, onChanged }) => {
       toast.success('Evidencia enviada. El anunciante tiene 48 h para confirmar.');
       setFiles([]); setNote('');
       onChanged();
+      window.dispatchEvent(new Event(EVIDENCE_CHANGED_EVENT));
     } catch (e) { toast.error((e as Error).message || 'No se pudo enviar la evidencia'); }
     finally { setBusy(false); }
   };
@@ -86,6 +88,7 @@ const EvidencePanel: React.FC<Props> = ({ booking, role, onChanged }) => {
       toast.success(action === 'confirm' ? 'Gracias por confirmar' : 'Reporte enviado. Maddi lo revisará.');
       setReporting(false); setReason('');
       onChanged();
+      window.dispatchEvent(new Event(EVIDENCE_CHANGED_EVENT));
     } catch (e) { toast.error((e as Error).message || 'Error'); }
     finally { setBusy(false); }
   };

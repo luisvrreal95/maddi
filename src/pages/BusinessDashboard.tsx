@@ -1,3 +1,4 @@
+import EvidenceTodoBanner from '@/components/booking/EvidenceTodoBanner';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,7 +35,7 @@ interface Booking {
 
 const BusinessDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, userRole, isLoading: authLoading } = useAuth();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,6 +43,12 @@ const BusinessDashboard: React.FC = () => {
     searchParams.get('booking') || null
   );
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+
+  // Abrir la campaña indicada en ?booking= (p. ej. desde la campana o un correo)
+  const bookingParam = searchParams.get('booking');
+  useEffect(() => {
+    if (bookingParam) setSelectedBookingId(bookingParam);
+  }, [bookingParam]);
 
   useEffect(() => {
     if (!authLoading && (!user || userRole !== 'business')) {
@@ -220,13 +227,14 @@ const BusinessDashboard: React.FC = () => {
         ) : selectedBooking ? (
           <CampaignDetail 
             booking={selectedBooking} 
-            onBack={() => setSelectedBookingId(null)}
+            onBack={() => { setSelectedBookingId(null); if (searchParams.get('booking')) setSearchParams({}, { replace: true }); }}
             onRefresh={fetchBookings}
           />
         ) : bookings.length === 0 ? (
           <EmptyCampaigns />
         ) : (
           <div className="space-y-6">
+            <EvidenceTodoBanner role="business" onOpen={(id) => setSelectedBookingId(id)} />
             {/* Status Filters */}
             <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
               {filters.filter(f => f.show).map((f) => (
